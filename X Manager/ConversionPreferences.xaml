@@ -21,7 +21,7 @@
             </Grid.ColumnDefinitions>
             <GroupBox Grid.Column="0" Header="PRESSURE" Foreground="#FF00AADE" Margin="5">
                 <StackPanel Orientation="Vertical" >
-                    <RadioButton x:Name="Millibars" Content="Millibars (MB)" Width="300" HorizontalAlignment="Left" FontSize="14" MinHeight="25" Checked="millibarsChecked"/>
+                    <RadioButton x:Name="Millibars" Content="MilliBar (MB)" Width="300" HorizontalAlignment="Left" FontSize="14" MinHeight="25" Checked="millibarsChecked"/>
                     <RadioButton x:Name="Meters" Content="Convert to meters" HorizontalAlignment="Left" FontSize="14" MinHeight="25" MinWidth="18" Checked="metersChecked"/>
                     <dc:NumericUpDown x:Name="groundLevelAirPressure" HorizontalAlignment="Left" Width="150" footerContent="mbar" headerContent="Air pressure at sea level:" FontSize="14"/>
                 </StackPanel>

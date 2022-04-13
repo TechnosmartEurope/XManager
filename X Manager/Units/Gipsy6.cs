@@ -183,6 +183,29 @@ namespace X_Manager.Units
 			return battery;
 		}
 
+		public override void setPcTime()
+		{
+			sp.Write("TGGAt");
+			try
+			{
+				sp.ReadByte();
+				byte[] dateAr = new byte[6];
+				var dateToSend = DateTime.UtcNow;
+				dateAr[0] = (byte)dateToSend.Second;
+				dateAr[1] = (byte)dateToSend.Minute;
+				dateAr[2] = (byte)dateToSend.Hour;
+				dateAr[3] = (byte)dateToSend.Day;
+				dateAr[4] = (byte)dateToSend.Month;
+				dateAr[5] = (byte)(dateToSend.Year - 2000);
+				sp.Write(dateAr, 0, 6);
+				sp.ReadByte();
+			}
+			catch
+			{
+				throw new Exception(unitNotReady);
+			}
+		}
+
 		public override uint askMaxMemory()
 		{
 			UInt32 m;
@@ -270,89 +293,85 @@ namespace X_Manager.Units
 			return remote;
 		}
 
-		public override byte[] getGpsSchedule()
+		public override byte[] getConf()
 		{
-			byte[] schedule = new byte[256];
-			sp.ReadExisting();
-			sp.Write("TTTTTTTTTTTTTGGAS");
+			sp.Write("TTTTTTTTGGAC");
+			int[] conf = new int[0x1000];
 			try
 			{
-				for (int i = 0; i < 256; i++)
+				for (int i = 32; i < 52; i++)
 				{
-					schedule[i] = (byte)sp.ReadByte();
+					conf[i] = sp.ReadByte();
 				}
-				//for (int i = 0; i <= 63; i++) { schedule[i] = (byte)sp.ReadByte(); }
-				//if (remote) sp.Write(new byte[] { 2 }, 0, 1);
-
-				//for (int i = 64; i <= 127; i++) { schedule[i] = (byte)sp.ReadByte(); }
-				//if (remote) sp.Write(new byte[] { 2 }, 0, 1);
-
-				//for (int i = 128; i <= 171; i++) { schedule[i] = (byte)sp.ReadByte(); }
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			return schedule;
+
+
+			return new byte[] { 0 };
 		}
 
-		public override void setGpsSchedule(byte[] schedule)
-		{
-			sp.Write("TTTTTTTTGGAs");
-			try
-			{
-				sp.ReadByte();
-				sp.Write(schedule, 0, 64);
-				if (remote)
-				{
-					sp.ReadByte();
-				}
-				sp.Write(schedule, 64, 64);
-				if (remote)
-				{
-					sp.ReadByte();
-				}
-				sp.Write(schedule, 128, 64);
-				if (remote)
-				{
-					sp.ReadByte();
-				}
-				sp.Write(schedule, 192, 64);
-				if (remote)
-				{
-					sp.ReadByte();
-				}
-				sp.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-		}
+		//public override byte[] getGpsSchedule()
+		//{
+		//	byte[] schedule = new byte[256];
+		//	sp.ReadExisting();
+		//	sp.Write("TTTTTTTTTTTTTGGAS");
+		//	try
+		//	{
+		//		for (int i = 0; i < 256; i++)
+		//		{
+		//			schedule[i] = (byte)sp.ReadByte();
+		//		}
+		//		//for (int i = 0; i <= 63; i++) { schedule[i] = (byte)sp.ReadByte(); }
+		//		//if (remote) sp.Write(new byte[] { 2 }, 0, 1);
 
-		public override void setPcTime()
-		{
-			sp.Write("TTTTTTTTGGAt");
-			try
-			{
-				sp.ReadByte();
-				byte[] dateAr = new byte[6];
-				var dateToSend = DateTime.UtcNow;
-				dateAr[0] = (byte)dateToSend.Second;
-				dateAr[1] = (byte)dateToSend.Minute;
-				dateAr[2] = (byte)dateToSend.Hour;
-				dateAr[3] = (byte)dateToSend.Day;
-				dateAr[4] = (byte)dateToSend.Month;
-				dateAr[5] = (byte)(dateToSend.Year - 2000);
-				sp.Write(dateAr, 0, 6);
-				Thread.Sleep(500);
-				sp.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-		}
+		//		//for (int i = 64; i <= 127; i++) { schedule[i] = (byte)sp.ReadByte(); }
+		//		//if (remote) sp.Write(new byte[] { 2 }, 0, 1);
+
+		//		//for (int i = 128; i <= 171; i++) { schedule[i] = (byte)sp.ReadByte(); }
+		//	}
+		//	catch
+		//	{
+		//		throw new Exception(unitNotReady);
+		//	}
+		//	return schedule;
+		//}
+
+		//public override void setGpsSchedule(byte[] schedule)
+		//{
+		//	sp.Write("TTTTTTTTGGAs");
+		//	try
+		//	{
+		//		sp.ReadByte();
+		//		sp.Write(schedule, 0, 64);
+		//		if (remote)
+		//		{
+		//			sp.ReadByte();
+		//		}
+		//		sp.Write(schedule, 64, 64);
+		//		if (remote)
+		//		{
+		//			sp.ReadByte();
+		//		}
+		//		sp.Write(schedule, 128, 64);
+		//		if (remote)
+		//		{
+		//			sp.ReadByte();
+		//		}
+		//		sp.Write(schedule, 192, 64);
+		//		if (remote)
+		//		{
+		//			sp.ReadByte();
+		//		}
+		//		sp.ReadByte();
+		//	}
+		//	catch
+		//	{
+		//		throw new Exception(unitNotReady);
+		//	}
+		//}
 
 		public override void disconnect()
 		{
@@ -773,7 +792,7 @@ namespace X_Manager.Units
 
 		public override void setConf(byte[] conf) { }
 
-		public override byte[] getConf() { return new byte[] { 0 }; }
+		//public override byte[] getConf() { return new byte[] { 0 }; }
 
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
 		{

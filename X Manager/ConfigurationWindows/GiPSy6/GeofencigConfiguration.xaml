@@ -1,0 +1,14 @@
+﻿<Page x:Class="X_Manager.ConfigurationWindows.GiPSy6.GeofencigConfiguration"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:X_Manager.ConfigurationWindows.GiPSy6"
+      mc:Ignorable="d" Background="DeepSkyBlue"
+      d:DesignHeight="720" d:DesignWidth="900"
+      Title="GeofencigConfiguration">
+
+    <Grid>
+        <TextBlock Text="Page3 Geofencing" Foreground="White" FontSize="40" />
+    </Grid>
+</Page>

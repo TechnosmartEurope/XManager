@@ -181,6 +181,7 @@ namespace X_Manager
 		public const uint model_AGM1 = 9;
 		public const uint model_axyTrekS = 7;
 		public const uint model_axyTrek = 6;
+		public const uint model_axyQuattrok = 4;
 
 		public bool realTimeStatus = false;
 		public bool convertStop = false;
@@ -325,6 +326,12 @@ namespace X_Manager
 			{
 				convertDataLaunch();
 			}
+
+			//sviluppo
+			//byte[] conf = new byte[0x1000];
+			//var d = new ConfigurationWindows.GiPSy6.GiPSy6ConfigurationMain(conf);
+			//d.ShowDialog();
+			//sviluppo
 		}
 
 		private void ComPortComboBox_DropDownOpened(object sender, EventArgs e)
@@ -504,7 +511,7 @@ namespace X_Manager
 					Console.Beep();
 				}
 
-				//Trek locale
+				//Trek o Quattrok locale
 				else if (e.Key == Key.L)
 				{
 					startUpMonitor.Text = "";
@@ -521,7 +528,7 @@ namespace X_Manager
 
 				}
 
-				//Trek remoto
+				//Trek o Quattrok remoto
 				else if (e.Key == Key.R)
 				{
 					startUpMonitor.Text = "";
@@ -537,7 +544,7 @@ namespace X_Manager
 					Console.Beep();
 				}
 
-				//Trek solare
+				//Trek o Quattrok solare
 				else if (e.Key == Key.S)
 				{
 					startUpMonitor.Text = "";
@@ -553,7 +560,7 @@ namespace X_Manager
 					Console.Beep();
 				}
 
-				//Trek non solare
+				//Trek o Quattrok non solare
 				else if (e.Key == Key.N)
 				{
 					startUpMonitor.Text = "";
@@ -580,6 +587,7 @@ namespace X_Manager
 					startUpMonitor.Text += "\tL: AxyTrek Locale";
 					startUpMonitor.Text += "\tS: AxyTrek Solare";
 					startUpMonitor.Text += "\tN: AxyTrek Non solare";
+					startUpMonitor.Text += "\tC: AxyQuattrok: imposta coefficienti";
 				}
 
 			}
@@ -1202,6 +1210,9 @@ namespace X_Manager
 							case "CO2 Logger":
 								oUnit = new CO2_Logger(this);
 								break;
+							case "Axy-Quattrok":
+								oUnit = new AxyQuattrok(this);
+								break;
 							case "GiPSy-6":
 								oUnit = new Gipsy6(this);
 								break;
@@ -1336,7 +1347,6 @@ namespace X_Manager
 				if (oUnit.firmTotA < 1001000)
 				{
 					confForm = new ConfigurationWindows.Axy5ConfigurationWindow_Legacy(conf, oUnit.firmTotA);
-
 				}
 				else
 				{
@@ -1344,9 +1354,9 @@ namespace X_Manager
 				}
 
 			}
-			else if (oUnit.modelCode == model_axyTrek)
+			else if (oUnit.modelCode == model_axyTrek | oUnit.modelCode==model_axyQuattrok)
 			{
-				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA);
+				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA, ref sp);
 			}
 			else
 			{
@@ -2287,6 +2297,9 @@ namespace X_Manager
 					break;
 				case Unit.model_axyTrek:
 					cUnit = new AxyTrek(this);
+					break;
+				case Unit.model_axyQuattrok:
+					cUnit = new AxyQuattrok(this);
 					break;
 				case Unit.model_AGM1:
 					cUnit = new AGM(this);

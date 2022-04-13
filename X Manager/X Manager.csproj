@@ -288,11 +288,26 @@
     <Compile Include="ConfigurationWindows\DayTab.xaml.cs">
       <DependentUpon>DayTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\BasicsConfiguration.xaml.cs">
+      <DependentUpon>BasicsConfiguration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\GeofencigConfiguration.xaml.cs">
+      <DependentUpon>GeofencigConfiguration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.xaml.cs">
+      <DependentUpon>GiPSy6ConfigurationMain.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\ScheduleConfiguration.xaml.cs">
+      <DependentUpon>ScheduleConfiguration.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConfigurationWindows\GipsyPositionConfigurationWindow.xaml.cs">
       <DependentUpon>GipsyPositionConfigurationWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConfigurationWindows\GipsySettingsTab.xaml.cs">
       <DependentUpon>GipsySettingsTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\QuattrokPressureCalibration.xaml.cs">
+      <DependentUpon>QuattrokPressureCalibration.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConfigurationWindows\RemoteTab.xaml.cs">
       <DependentUpon>RemoteTab.xaml</DependentUpon>
@@ -339,6 +354,7 @@
     <Compile Include="Units\Axy5.cs" />
     <Compile Include="Units\AxyDepth_1.cs" />
     <Compile Include="Units\AxyDepth_2.cs" />
+    <Compile Include="Units\AxyQuattrok.cs" />
     <Compile Include="Units\AxyTrek.cs" />
     <Compile Include="ChartClasses\ChartWindowAGM.xaml.cs">
       <DependentUpon>ChartWindowAGM.xaml</DependentUpon>
@@ -387,11 +403,31 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="ConfigurationWindows\GiPSy6\BasicsConfiguration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\GiPSy6\GeofencigConfiguration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\GiPSy6\ScheduleConfiguration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ConfigurationWindows\GipsyPositionConfigurationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConfigurationWindows\GipsySettingsTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\QuattrokPressureCalibration.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -661,6 +697,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\console-help.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

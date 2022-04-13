@@ -83,3 +83,5 @@
 	Bugfix: se le sessioni dei rem sono 254 la conversione crasha nel costruire l'array delle sessioni
 	Introdotte prime funzionalità per gestione gipsy6 (Texas)
 1.9.6	Bugfix: ripristinata connessione con AxyTrek
+1.10.0	Supporto per Axy-Quattrok
+	Inizio scrittura classi di configurazione GiPSy6

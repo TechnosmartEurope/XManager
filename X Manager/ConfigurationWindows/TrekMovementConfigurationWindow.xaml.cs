@@ -10,7 +10,8 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media.Imaging;
+using System.IO.Ports;
+using X_Manager.ConfigurationWindows;
 using System.Windows.Shapes;
 
 namespace X_Manager
@@ -41,17 +42,19 @@ namespace X_Manager
 		int burstBackUp;
 		int burstPeriod;
 		Timer reshapeTimer = null;
+		SerialPort sp;
 
-		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
+		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm, ref SerialPort sp)
 			: base()
 		{
 			InitializeComponent();
 			Loaded += loaded;
 			mustWrite = false;
 			axyConfOut = new byte[29];
-			unitType = axyconf[25];
+			unitType = axyconf[0];
 			firmTotA = unitFirm;
 
+			this.sp = sp;
 
 			if ((firmTotA < 2000001))
 			{
@@ -288,6 +291,7 @@ namespace X_Manager
 		{
 			Application.Current.Dispatcher.Invoke(() => reshape());
 		}
+
 		private void reshape()
 		{
 			System.Windows.Forms.Screen actScreen = ExtensionsForWPF.GetScreen(this);
@@ -496,6 +500,62 @@ namespace X_Manager
 						}
 
 					}
+
+				}
+				else if (e.Key == Key.C)
+				{
+					if (unitType != Units.Unit.model_axyQuattrok) return;
+					sp.Write("TTTTTTTTTTTTTTTGGAg");
+					int[] coeffs = new int[12];
+
+					try
+					{
+						for (int i = 0; i < 12; i++)
+						{
+							coeffs[i] = sp.ReadByte();
+						}
+					}
+					catch
+					{
+						return;
+					}
+
+					QuattrokPressureCalibration qp = new QuattrokPressureCalibration(coeffs);
+					qp.ShowDialog();
+
+					if (qp.mustWrite)
+					{
+						qp.zero *= 100;
+						qp.span = Math.Round(qp.span * 100, 0);
+
+						qp.threshold *= 65;
+						qp.threshold /= 1000;
+						qp.threshold /= .0000625;
+						qp.threshold = Math.Round(qp.threshold, 0, MidpointRounding.ToEven);
+						sp.Write("TTTTTTTTTTTTTTTGGAb");
+						try
+						{
+							sp.ReadByte();
+							byte b = (byte)((UInt16)qp.zero >> 8);
+							sp.Write(new byte[] { b }, 0, 1);
+							b = (byte)(qp.zero);
+							sp.Write(new byte[] { b }, 0, 1);
+							b = (byte)((UInt16)qp.span >> 8);
+							sp.Write(new byte[] { b }, 0, 1);
+							b = (byte)(qp.span);
+							sp.Write(new byte[] { b }, 0, 1);
+							b = (byte)((UInt16)qp.threshold >> 8);
+							sp.Write(new byte[] { b }, 0, 1);
+							b = (byte)(qp.threshold);
+							sp.Write(new byte[] { b }, 0, 1);
+							sp.ReadByte();
+						}
+						catch
+						{
+							MessageBox.Show("Unit not ready.");
+						}
+					}
+
 
 				}
 			}

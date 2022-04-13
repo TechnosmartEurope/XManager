@@ -36,6 +36,7 @@ namespace X_Manager.Units
 		public const int model_AGM1 = 9;
 		public const int model_axyTrekS = 7;
 		public const int model_axyTrek = 6;
+		public const int model_axyQuattrok = 4;
 
 		//Maschere timestamp0
 		public const byte ts_ext1 = 0b_0000_0001;

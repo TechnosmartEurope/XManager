@@ -166,8 +166,10 @@
 
 
                 </GroupBox>
-
-                <Button x:Name="sendButton" Grid.Row="3" Content="Send configuration" FontSize="20" Margin="10" Click="sendConf" TabIndex="15"/>
+                <StackPanel Grid.Row="3" >
+                    <Button x:Name="sendButton" Content="Send configuration" FontSize="20" Margin="10" Click="sendConf" TabIndex="15"/>
+                </StackPanel>
+                
             </Grid>
         </StackPanel>
     </ScrollViewer>
