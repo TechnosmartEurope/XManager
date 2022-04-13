@@ -321,8 +321,11 @@ namespace X_Manager
 				}
 				if (firmTotA >= 3008000)
 				{
-					conf[25] = (byte)sp.ReadByte();
-					conf[26] = (byte)sp.ReadByte();
+					for (int i = 25; i < 29; i++)
+					{
+						conf[i] = (byte)sp.ReadByte();
+					}
+
 				}
 			}
 			catch
@@ -352,11 +355,12 @@ namespace X_Manager
 			}
 			if (firmTotA >= 3008000)
 			{
-				sp.Write(conf, 25, 2);
+				sp.Write(conf, 25, 4);
 			}
 			try
 			{
 				sp.ReadByte();
+				sp.ReadExisting();
 			}
 			catch
 			{
@@ -1319,8 +1323,6 @@ namespace X_Manager
 				//ardFile.Close();
 
 				MemoryStream ard = new MemoryStream(ardBuffer);
-
-
 
 				byte[] uf = new byte[16];
 				ard.Position = 1;

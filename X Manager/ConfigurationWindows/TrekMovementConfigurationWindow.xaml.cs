@@ -29,13 +29,14 @@ namespace X_Manager
 		UInt32 firmTotA;
 		//bool evitaSoglieDepth = false;
 		int burstLenght;
+		int burstBackUp;
 		int burstPeriod;
 
 		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
 			: base()
 		{
 			InitializeComponent();
-			this.Loaded += loaded;
+			Loaded += loaded;
 			mustWrite = false;
 			axyConfOut = new byte[29];
 			unitType = axyconf[25];
@@ -222,14 +223,20 @@ namespace X_Manager
 			if (firmTotA >= 3008000)
 			{
 				contCB.IsChecked = false;
-				burstpTB.Text = axyconf[26].ToString();
-				burstlTB.Text = axyconf[25].ToString();
-				burstLenght = axyconf[25];
-				burstPeriod = axyconf[26];
-				if (axyconf[25] == 0)
+				//burstpTB.Text = axyconf[26].ToString();
+				//burstlTB.Text = axyconf[25].ToString();
+				//burstLenght = axyconf[25];
+				//burstPeriod = axyconf[26];
+
+				burstBackUp = burstLenght = axyconf[25] * 256 + axyconf[26];
+				burstPeriod = axyconf[27] * 256 + axyconf[28];
+				burstlTB.Text = burstLenght.ToString();
+				burstpTB.Text = burstPeriod.ToString();
+
+				if (burstLenght == 0)
 				{
-					burstLenght = 1;
-					burstlTB.Text = "1";
+					burstLenght = 2;
+					burstlTB.Text = "2";
 					contCB.IsChecked = true;
 				}
 			}
@@ -289,7 +296,7 @@ namespace X_Manager
 				range = 32;
 			}
 
-			movThresholdLabel.Content = (Math.Round((range / (256 * movThreshUd.Value)), 4).ToString() + " g");
+			movThresholdLabel.Content = (Math.Round((range / 256.0 * movThreshUd.Value), 4).ToString() + " g");
 		}
 
 		private void latValueChanged()
@@ -477,7 +484,7 @@ namespace X_Manager
 
 			//if ((unitType == MainWindow.model_axy4) || (unitType == MainWindow.model_axyDepth))
 			//{
-			
+
 			//if ((mDebug == 1))
 			//{
 			//	axyConfOut[15] += 8;
@@ -551,12 +558,18 @@ namespace X_Manager
 
 			if (firmTotA >= 3008000)
 			{
-				axyConfOut[26] = (byte)burstPeriod;
-				axyConfOut[25] = (byte)burstLenght;
-				if ((bool)contCB.IsChecked)
-				{
-					axyConfOut[25] = 0;
-				}
+				//axyConfOut[26] = (byte)burstPeriod;
+				//axyConfOut[25] = (byte)burstLenght;
+				//if ((bool)contCB.IsChecked)
+				//{
+				//	axyConfOut[25] = 0;
+				//}
+
+				axyConfOut[25] = (byte)(burstLenght >> 8);
+				axyConfOut[26] = (byte)(burstLenght & 0xff);
+
+				axyConfOut[27] = (byte)(burstPeriod >> 8);
+				axyConfOut[28] = (byte)(burstPeriod & 0xff);
 			}
 
 			mustWrite = true;
@@ -567,11 +580,16 @@ namespace X_Manager
 		{
 			if ((bool)contCB.IsChecked)
 			{
+				burstBackUp = burstLenght;
+				burstLenght = 0;
+				burstlTB.Text = "0";
 				burstlTB.IsEnabled = false;
 				burstpTB.IsEnabled = false;
 			}
 			else
 			{
+				burstLenght = burstBackUp;
+				burstlTB.Text = burstLenght.ToString();
 				burstlTB.IsEnabled = true;
 				burstpTB.IsEnabled = true;
 			}
@@ -579,11 +597,11 @@ namespace X_Manager
 
 		private void burstLenghValidate(object sender, RoutedEventArgs e)
 		{
-			int p = burstLenght;
-			int.TryParse(burstlTB.Text, out p);
-			if ((p > 0) & (p < 256))
+			int l = burstLenght;
+			int.TryParse(burstlTB.Text, out l);
+			if ((l > 1) & (l < 50000) & (l < burstPeriod - 1))
 			{
-				burstLenght = p;
+				burstLenght = l;
 			}
 			burstlTB.Text = burstLenght.ToString();
 		}
@@ -592,7 +610,7 @@ namespace X_Manager
 		{
 			int p = burstPeriod;
 			int.TryParse(burstpTB.Text, out p);
-			if ((p > 0) & (p < 256))
+			if ((p > 3) & (p < 65000) & (p > burstLenght + 1))
 			{
 				burstPeriod = p;
 			}

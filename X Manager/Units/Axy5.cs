@@ -63,6 +63,7 @@ namespace X_Manager.Units
 		int adcVal = 10;
 		int batt = 11;
 		int meta = 12;
+		int ardPosition = 13;
 
 		const int pref_pressMetri = 0;
 		const int pref_millibars = 1;
@@ -109,6 +110,7 @@ namespace X_Manager.Units
 		CultureInfo dateCi;
 		//byte cifreDec;
 		const string cifreDecString = "0.00000";
+		int debugLevel;
 		int metadata = 0;
 		bool overrideTime;
 		int temperatureEn;
@@ -136,6 +138,7 @@ namespace X_Manager.Units
 			configurePositionButtonEnabled = false;
 			modelCode = model_axy5;
 			modelName = "Axy-5";
+			debugLevel = parent.stDebugLevel;
 		}
 
 		public override string askFirmware()
@@ -1288,12 +1291,12 @@ namespace X_Manager.Units
 							new Action(() => parent.statusProgressBar.Value = ard.Position));
 				if (detectEof(ref ard)) break;
 
-				//sviluppo
-				//if (ard.Position > 0x3F000)
-				//{
-				//	int a = 0;
-				//}
-				///sviluppo
+#if DEBUG
+				if (ard.Position > 0x1e68e7)
+				{
+					int a = 0;
+				}
+#endif
 
 				decodeTimeStamp(ref ard, ref timeStampO, true);
 
@@ -1313,7 +1316,7 @@ namespace X_Manager.Units
 				{
 					MessageBox.Show(ex.Message);
 				}
-				
+
 
 			}
 
@@ -1467,7 +1470,8 @@ namespace X_Manager.Units
 			if (iend2 == 0) return textOut;
 
 			string[] gruppo = gruppoCON;
-			gruppo[meta] = "";
+			if (metadata == 1) gruppo[meta] = "";
+			if (debugLevel > 0) gruppo[ardPosition] = "";
 
 			if (!repeatEmptyValues)
 			{
@@ -1546,7 +1550,11 @@ namespace X_Manager.Units
 
 			if (!header) goto _footer;
 
-			tsc.ardPosition = ard.Position;
+			if (debugLevel > 0)
+			{
+				gruppoCON[ardPosition] = ard.Position.ToString("X");
+			}
+			//tsc.ardPosition = ard.Position;
 
 			tsc.tsTypeExt1 = 0;
 			//tsc.tsTypeExt2 = 0;
@@ -1613,10 +1621,13 @@ namespace X_Manager.Units
 				{
 					eventAr[i] = (byte)ard.ReadByte();
 				}
-				if (eventAr[0] == 11) { tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0; }
-				else if (eventAr[0] == 12) { tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; }
-				else if (eventAr[0] == 13) { tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0; }
-				else if (eventAr[0] == 14) { tsc.stopEvent = 3; gruppoCON[meta] = "Remote connection established."; addMilli = 0; }
+				if (metadata == 1)
+				{
+					if (eventAr[0] == 11) { tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0; }
+					else if (eventAr[0] == 12) { tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; }
+					else if (eventAr[0] == 13) { tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0; }
+					else if (eventAr[0] == 14) { tsc.stopEvent = 3; gruppoCON[meta] = "Remote connection established."; addMilli = 0; }
+				}
 			}
 			else
 			{
@@ -1726,7 +1737,18 @@ namespace X_Manager.Units
 				int minuti = ard.ReadByte();
 				minuti = ((minuti >> 4) * 10) + (minuti & 15);
 
+#if DEBUG
+				try
+				{
+					tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi, 0);
+				}
+				catch
+				{
+					MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
+				}
+#else
 				tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi, 0);
+#endif
 
 			}
 
@@ -1751,27 +1773,27 @@ namespace X_Manager.Units
 			//PRESSIONE E TEMPERATURA ESTERNA
 			if (pressureEn > 0)
 			{
-			if ((tsc.tsType & ts_press) == ts_press)
-			{
-				try
+				if ((tsc.tsType & ts_press) == ts_press)
 				{
-					dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
-					gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
-					gruppoCON[press] = tsc.pressure.ToString("0.00");
+					try
+					{
+						dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
+						gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
+						gruppoCON[press] = tsc.pressure.ToString("0.00");
+					}
+					catch
+					{
+						return;
+					}
 				}
-				catch
+				else
 				{
-					return;
+					if (!repeatEmptyValues)
+					{
+						gruppoCON[temp] = "";
+						gruppoCON[press] = "";
+					}
 				}
-			}
-			else
-			{
-				if (!repeatEmptyValues)
-				{
-					gruppoCON[temp] = "";
-					gruppoCON[press] = "";
-				}
-			}
 			}
 
 			//BATTERIA
@@ -1852,12 +1874,12 @@ namespace X_Manager.Units
 		_fineDecodeTimestampFooter:
 			ard.ReadByte();
 
-//#if DEBUG
-//			if (gruppoCON[meta] == "")
-//			{
-//				gruppoCON[meta] = ard.Position.ToString("X");
-//			}
-//#endif
+			//#if DEBUG
+			//			if (gruppoCON[meta] == "")
+			//			{
+			//				gruppoCON[meta] = ard.Position.ToString("X");
+			//			}
+			//#endif
 			return;
 
 		}
@@ -1894,6 +1916,7 @@ namespace X_Manager.Units
 				magx--;
 				magy--;
 				magz--;
+				ardPosition--;
 			}
 
 			if (pressureEn > 0)
@@ -1909,6 +1932,7 @@ namespace X_Manager.Units
 				magx--;
 				magy--;
 				magz--;
+				ardPosition--;
 			}
 
 			if (magEn > 0)
@@ -1923,6 +1947,7 @@ namespace X_Manager.Units
 				adcVal--;
 				batt -= 3;
 				meta -= 3;
+				ardPosition--;
 			}
 
 			if (adcEn > 0)
@@ -1934,6 +1959,7 @@ namespace X_Manager.Units
 			{
 				batt--;
 				meta--;
+				ardPosition--;
 			}
 
 			if (prefBattery == 1)
@@ -1944,11 +1970,22 @@ namespace X_Manager.Units
 			else
 			{
 				meta--;
+				ardPosition--;
 			}
 
 			if (metadata == 1)
 			{
 				csvHeader = csvHeader + csvSeparator + "Metadata";
+				contoPlace++;
+			}
+			else
+			{
+				ardPosition--;
+			}
+
+			if (debugLevel > 0)
+			{
+				csvHeader = csvHeader + csvSeparator + "ARD position";
 				contoPlace++;
 			}
 
