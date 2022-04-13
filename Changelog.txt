@@ -43,4 +43,5 @@
 	Aggiunte funzone di configurazione unità remota vergine
 	Bugfix: corretta covnersione pressione sensore vecchio (MS5803)
 	Bugfix: download remoto (tutte le unità) ignorava preferenza keepMdp in caso di pulsante stop
+1.6.1	Invio orario alla Basestation tramite Masterstation
 

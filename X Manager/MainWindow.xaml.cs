@@ -584,10 +584,10 @@ namespace X_Manager
 				sp.BaudRate = Baudrate_base;
 				sp.ReadTimeout = 5;
 				sp.NewLine = "\r\n";
-				sp.PortName = portShortName;
-
+				
 				try
 				{
+					sp.PortName = portShortName;
 					sp.Open();
 				}
 				catch (Exception ex)

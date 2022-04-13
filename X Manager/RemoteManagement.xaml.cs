@@ -23,14 +23,18 @@ namespace X_Manager
 
 		//public int connectionResult = 0;
 		MainWindow parent;
+		SerialPort sp;
 
 		public RemoteManagement(ref SerialPort sp, object p)
 		{
 			InitializeComponent();
 			parent = (MainWindow)p;
+			this.sp = sp;
 			//this.sp = sp;
 			var rconn = new RemoteConnector(ref sp, this);
 			connTab.Content = rconn;
+			var rtime = new RemoteSupervisor(ref sp, this);
+			timeTab.Content = rtime;
 			var rconf = new RemoteConfigurator(ref sp, this);
 			confTab.Content = rconf;
 		}
@@ -64,6 +68,43 @@ namespace X_Manager
 				((RemoteConnector)(connTab.Content)).UI_disconnected();
 			}
 
+		}
+
+		private void remoteManagement_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (Keyboard.Modifiers == ModifierKeys.Control)
+			{
+				if (e.Key == Key.C)
+				{
+					if (confTab.Visibility == Visibility.Hidden)
+					{
+						confTab.Visibility = Visibility.Visible;
+					}
+					else
+					{
+						if (mainTab.SelectedIndex == 2)
+						{
+							mainTab.SelectedIndex = 0;
+						}
+						confTab.Visibility = Visibility.Hidden;
+					}
+				}
+			}
+			e.Handled = true;
+		}
+
+		private void remoteManagement_Loaded(object sender, RoutedEventArgs e)
+		{
+			confTab.Visibility = Visibility.Hidden;
+		}
+
+		private void remoteManagement_Closed(object sender, EventArgs e)
+		{
+			try
+			{
+				sp.Close();
+			}
+			catch { }
 		}
 	}
 }
