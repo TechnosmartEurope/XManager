@@ -110,8 +110,11 @@ namespace X_Manager.Units
 				tout.gsvSum = this.gsvSum;
 				tout.timeStampLength = this.timeStampLength;
 				tout.dateTime = this.dateTime;
-				tout.infoAr = new byte[this.infoAr.Length];
-				Array.Copy(this.infoAr, tout.infoAr, infoAr.Length);
+				if (this.infoAr != null)
+				{
+					tout.infoAr = new byte[this.infoAr.Length];
+					Array.Copy(this.infoAr, tout.infoAr, infoAr.Length);
+				}
 				if (this.eventAr != null)
 				{
 					tout.eventAr = new byte[this.eventAr.Length];
@@ -140,7 +143,8 @@ namespace X_Manager.Units
 			E_BATTERY_LOW,
 			E_MEM_FULL,
 			E_POWER_OFF,
-			E_RESET
+			E_RESET,
+			E_REMOTE_CONNECTION
 		}
 
 		static readonly int[] accuracySteps = { 1, 2, 5, 10, 15, 50, 100 };
@@ -155,7 +159,8 @@ namespace X_Manager.Units
 			"Low Battery.",
 			"Memory Full.",
 			"Power OFF",
-			"Reset"
+			"Reset",
+			"Remote Connection."
 		};
 
 		static readonly string[] scheduleEventTimings = {
@@ -172,8 +177,10 @@ namespace X_Manager.Units
 		BackgroundWorker kmlBGW;
 		private static Semaphore txtSem;
 		private static Semaphore kmlSem;
-		private static long lastTimestamp = 0;
-		private static long conversionDone = 0;
+		private static Semaphore txtSemBack;
+		private static Semaphore kmlSemBack;
+		//private static long lastTimestamp = 0;
+		//private static long conversionDone = 0;
 
 		new byte[] firmwareArray = new byte[3];
 
@@ -981,9 +988,13 @@ namespace X_Manager.Units
 				}
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 			}
-			sp.Write("x");
-			sp.ReadByte();
-			Thread.Sleep(100);
+
+			if (ok)
+			{
+				sp.Write("x");
+				sp.ReadByte();
+				Thread.Sleep(100);
+			}
 			inBuffer[inBuffer.Length - 2] = 0x0a;
 			inBuffer[inBuffer.Length - 1] = 0x00;
 
@@ -1142,13 +1153,14 @@ namespace X_Manager.Units
 			}));
 
 			//Reinizializza le variabili statiche (in caso di più file da convertire)
-			conversionDone = 0;
-			lastTimestamp = 0;
+			//conversionDone = 0;
+			//lastTimestamp = 0;
 
 			//Crea e avvia il thread per la scrittura del file txt
 			string txtName = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + ".txt";
 			List<TimeStamp> txtList = new List<TimeStamp>();
-			txtSem = new Semaphore(0, 0x7fff);
+			txtSem = new Semaphore(0, 1);
+			txtSemBack = new Semaphore(1, 1);
 			txtBGW = new BackgroundWorker();
 			txtBGW.DoWork += (s, args) =>
 			{
@@ -1159,7 +1171,8 @@ namespace X_Manager.Units
 			//Crea e avvia il thread per la scrittura del file kml
 			string kmlName = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName);
 			List<TimeStamp> kmlList = new List<TimeStamp>();
-			kmlSem = new Semaphore(0, 0x7fff);
+			kmlSem = new Semaphore(0, 1);
+			kmlSemBack = new Semaphore(1, 1);
 			kmlBGW = new BackgroundWorker();
 			kmlBGW.DoWork += (s, args) =>
 			{
@@ -1206,6 +1219,9 @@ namespace X_Manager.Units
 				parent.kmlProgressBar.Value = 0;
 			}));
 
+			//Importa il livello di debug per la conversione
+			debugLevel = parent.stDebugLevel;
+
 			int progressBarCounter = 0;
 			//Cicla nel buffer decodificando i timestamp e aggiungendoli alla pila
 			while (pos < end)
@@ -1236,20 +1252,29 @@ namespace X_Manager.Units
 					progressBarCounter = 0;
 				}
 
-				//Acquisisce l'acccesso alla pila txt
-				lock (txtList)
-				{
-					txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
-				}
-				relTxt = txtSem.Release();   //sblocca il thread txt
+
+				txtSemBack.WaitOne();
+				txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+				txtSem.Release();
+
+
+				kmlSemBack.WaitOne();
+				kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
+				kmlSem.Release();
+
+				////Acquisisce l'acccesso alla pila txt
+				//lock (txtList)
+				//{
+				//	txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+				//}
+				//relTxt = txtSem.Release();   //sblocca il thread txt
 
 				//Acquisisce l'acccesso alla pila kml
-				lock (kmlList)
-				{
-					kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
-				}
-
-				relkml = kmlSem.Release();   //sblocca il thread kml
+				//lock (kmlList)
+				//{
+				//	kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
+				//}
+				//relkml = kmlSem.Release();   //sblocca il thread kml
 
 				if (noStampBuffer.Count == 1)
 				{
@@ -1264,15 +1289,19 @@ namespace X_Manager.Units
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Maximum = kmlList.Count));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Maximum = txtList.Count));
-			Interlocked.Increment(ref lastTimestamp);   //Segnala ai thread che non saranno più aggiunti timestamp alle pile
+			//Interlocked.Increment(ref lastTimestamp);   //Segnala ai thread che non saranno più aggiunti timestamp alle pile
+			txtSemBack.WaitOne();
+			kmlSemBack.WaitOne();
 			txtSem.Release();   //rilascia il thread txt per l'ultima volta
 			kmlSem.Release();   //rilascia il thread kml per l'ultima volta
 
+			//while (Interlocked.Read(ref conversionDone) < 2)
+			//{
+			//	Thread.Sleep(200);
+			//}
 			//aspetta che i thread abbiano finito di scrivere i rispettivi file
-			while (Interlocked.Read(ref conversionDone) < 2)
-			{
-				Thread.Sleep(200);
-			}
+			txtSemBack.WaitOne();
+			kmlSemBack.WaitOne();
 
 			Application.Current.Dispatcher.Invoke(new Action(() =>
 			{
@@ -1282,47 +1311,51 @@ namespace X_Manager.Units
 				parent.statusProgressBar.Margin = new Thickness(10, 5, 10, 10);
 			}));
 
-			//MessageBox.Show("Pranzo completato");
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				new Action(() => parent.nextFile()));
 		}
 
 		private void txtBGW_doWork(ref List<TimeStamp> tL, string txtName)
 		{
-			//BinaryWriter txtBW;
-			//txtBW = new BinaryWriter(new FileStream(txtName, FileMode.Create));
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
 			string[] tabs = new string[10];
-			//string fileOut = "";
 			int contoStatus = 0;
 			int pbmax = 0;
 			var t = new TimeStamp();
 			while (true)
 			{
-				if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
-				{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
-					txtSem.WaitOne();
-				}
-				lock (tL)
+				//if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
+				//{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
+				//	txtSem.WaitOne();
+				//}
+				txtSem.WaitOne();
+				if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
 				{
-					if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
-					{
-						break;
-					}
-					if (Interlocked.Read(ref lastTimestamp) > 0)
-					{
-						contoStatus++;
-						if (contoStatus == 100)
-						{
-							contoStatus = 0;
-							Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Value += 100));
-						}
-					}
-					t = tL[0];
-					tL.RemoveAt(0);
-
+					break;
 				}
+				t = tL[0];
+				tL.RemoveAt(0);
+
+				//lock (tL)
+				//{
+				//	if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
+				//	{
+				//		break;
+				//	}
+				//	if (Interlocked.Read(ref lastTimestamp) > 0)
+				//	{
+				//		contoStatus++;
+				//		if (contoStatus == 100)
+				//		{
+				//			contoStatus = 0;
+				//			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Value += 100));
+				//		}
+				//	}
+				//	t = tL[0];
+				//	tL.RemoveAt(0);
+
+				//}
 
 				//Si scrive il timestmap nel txt
 				if (!repeatEmptyValues)
@@ -1331,12 +1364,7 @@ namespace X_Manager.Units
 				}
 				tabs[0] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
 				tabs[1] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
-				//sviluppo
-				//if ((t.tsType & ts_coordinate) == ts_coordinate)
-				//{
-				//	tabs[1] += "-G(" + t.GPS_second.ToString("00") + ")";
-				//}
-				///sviluppo
+
 				if ((t.tsType & ts_battery) == ts_battery)
 				{
 					tabs[9] = t.batteryLevel.ToString("0.00") + "V";
@@ -1370,37 +1398,26 @@ namespace X_Manager.Units
 				{
 					tabs[10] = decodeEvent(ref t);
 				}
-				//sviluppo
-				//else
-				//{
-				//	tabs[10] = t.pos.ToString("X8");
-				//}
-				///sviluppo
+
+				if (debugLevel == 3)
+				{
+					tabs[10] += " - " + t.pos.ToString("X8");
+				}
+
 
 				for (int i = 0; i < 11; i++)
 				{
 					txtBW.Write(tabs[i] + "\t");
 				}
 				txtBW.Write(tabs[11] + "\r\n");
+				txtSemBack.Release();
 
-				//for (int i = 0; i < 11; i++)
-				//{
-				//	fileOut += (tabs[i] + "\t");
-				//}
-				//fileOut += (tabs[11] + "\r\n");
-				//if (fileOut.Length > 0x1000000) //16MB
-				//{
-				//	txtBW.Write(fileOut);
-				//	fileOut = "";
-				//}
-				//txtBW.Write(fileOut);
-				//fileOut = "";
-				//txtSem.Release();
 			}
-			//txtBW.Write(fileOut);
-			txtBW.Close();
 
-			Interlocked.Increment(ref conversionDone);
+			txtBW.Close();
+			txtSemBack.Release();
+
+			//Interlocked.Increment(ref conversionDone);
 		}
 
 		private void kmlBGW_doWork(ref List<TimeStamp> tL, string kmlName)
@@ -1431,29 +1448,36 @@ namespace X_Manager.Units
 			var t = new TimeStamp();
 			while (true)
 			{
-				if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
-				{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
-					kmlSem.WaitOne();
-				}
-				lock (tL)
+				//if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
+				//{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
+				//	kmlSem.WaitOne();
+				//}
+				kmlSem.WaitOne();
+				if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
 				{
-					if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, esce dal loop
-					{
-						break;
-					}
-					if (Interlocked.Read(ref lastTimestamp) > 0)
-					{
-						contoStatus++;
-						if (contoStatus == 100)
-						{
-							contoStatus = 0;
-							//int cc = tL.Count;
-							Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Value += 100)); ;
-						}
-					}
-					t = tL[0];
-					tL.RemoveAt(0);
+					break;
 				}
+				t = tL[0];
+				tL.RemoveAt(0);
+				//lock (tL)
+				//{
+				//	if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, esce dal loop
+				//	{
+				//		break;
+				//	}
+				//	if (Interlocked.Read(ref lastTimestamp) > 0)
+				//	{
+				//		contoStatus++;
+				//		if (contoStatus == 100)
+				//		{
+				//			contoStatus = 0;
+				//			//int cc = tL.Count;
+				//			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Value += 100)); ;
+				//		}
+				//	}
+				//	t = tL[0];
+				//	tL.RemoveAt(0);
+				//}
 
 				if (t.sat > 0) //Si scrive il timestmap nel kml
 				{
@@ -1520,6 +1544,7 @@ namespace X_Manager.Units
 					//placeS = "";
 				}
 				//kmlSem.Release();
+				kmlSemBack.Release();
 			}
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Value = pbmax));
 			//kml.Write(kmlS);
@@ -1547,7 +1572,8 @@ namespace X_Manager.Units
 			//Elimina il kml string temporaneo
 			fDel(kmlName + "_temp.kml");
 
-			Interlocked.Increment(ref conversionDone);
+			kmlSemBack.Release();
+			//Interlocked.Increment(ref conversionDone);
 		}
 
 		private double[] extractGroup(ref MemoryStream ard, ref TimeStamp tsc)

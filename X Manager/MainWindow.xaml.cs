@@ -1957,6 +1957,13 @@ namespace X_Manager
 
 				var remoteManagement = new RemoteManagement(ref sp, this, portShortName);
 				remoteManagement.ShowDialog();
+				if ((string)connectButton.Content == "Disconnect")
+				{
+					if (sp.IsOpen == false)
+					{
+						sp.Open();
+					}
+				}
 				return;
 
 				//var remote = new RemoteConnector(ref sp);
