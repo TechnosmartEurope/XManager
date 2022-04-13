@@ -87,8 +87,10 @@ namespace X_Manager
 			latencyThreshUd.Value = axyconf[24];
 
 			sendButton.Content = "Send configuration";
+			mDebug = 0;
 			if (axyconf[25] == 1)
 			{
+				mDebug = 1;
 				sendButton.Content += " (d)";
 			}
 

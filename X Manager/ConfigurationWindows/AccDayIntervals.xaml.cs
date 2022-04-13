@@ -45,7 +45,7 @@ namespace X_Manager.ConfigurationWindows
 				if (hide)
 				{
 					((TextBox)(v.Children[0])).Text = startInt.ToString();
-					((TextBox)(v.Children[1])).Text = 24.ToString();
+					((TextBox)(v.Children[1])).Text = 0x24.ToString();
 					((ComboBox)(v.Children[2])).SelectedIndex = 0;
 					((ComboBox)(v.Children[3])).SelectedIndex = 0;
 					((ComboBox)(v.Children[4])).SelectedIndex = 0;
@@ -57,11 +57,12 @@ namespace X_Manager.ConfigurationWindows
 				{
 					((TextBox)(v.Children[0])).Text = startInt.ToString();
 					startInt = schedule[0 + (i * 6)];
-					if (startInt == 24)
+					if (startInt == 0x24)
 					{
 						hide = true;
 						((TextBox)(v.Children[1])).IsEnabled = false;
 					}
+					startInt = ((startInt / 16) * 10) + (startInt % 16);
 					((TextBox)(v.Children[1])).Text = startInt.ToString();
 					((ComboBox)(v.Children[2])).SelectedIndex = schedule[1 + (i * 6)];
 					((ComboBox)(v.Children[3])).SelectedIndex = schedule[2 + (i * 6)];
@@ -81,7 +82,8 @@ namespace X_Manager.ConfigurationWindows
 			for (int i = 0; i < 5; i++)
 			{
 				var v = (StackPanel)(mainGrid.Children[i + 2]);
-				schedule[i * 6] = byte.Parse(((TextBox)(v.Children[1])).Text);
+				int b = byte.Parse(((TextBox)(v.Children[1])).Text);
+				schedule[i * 6] = (byte)(((b / 10) * 16) + (b % 10));
 				schedule[(i * 6) + 1] = ((byte)((ComboBox)(v.Children[2])).SelectedIndex);
 				schedule[(i * 6) + 2] = ((byte)((ComboBox)(v.Children[3])).SelectedIndex);
 				schedule[(i * 6) + 3] = ((byte)((ComboBox)(v.Children[4])).SelectedIndex);
