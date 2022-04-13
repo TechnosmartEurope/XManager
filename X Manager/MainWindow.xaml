@@ -60,20 +60,37 @@
                         <ColumnDefinition Width="55" />
                         <ColumnDefinition Width="87"/>
                         <ColumnDefinition Width="74"/>
-                        <ColumnDefinition Width="122"/>
-                        <ColumnDefinition Width="63"/>
-                        <ColumnDefinition Width="45"/>
+                        <ColumnDefinition Width="115"/>
+                        <ColumnDefinition Width="54"/>
+                        <ColumnDefinition Width="41"/>
+                        <ColumnDefinition Width="20"/>
                         <ColumnDefinition Width="234"/>
                         <ColumnDefinition Width="10"/>
                     </Grid.ColumnDefinitions>
                     <ComboBox  Margin="10,0,0,0"  x:Name="comPortComboBox" Width="204" HorizontalAlignment="Left" TabIndex="0" IsTabStop="False" FontSize="13" Height="Auto" Padding="5,0,1,0" DropDownOpened="ComPortComboBox_DropDownOpened"/>
                     <Label Grid.Column="1" Margin="10,6,0,6" Width="46" Content="MODEL:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
-                    <Label Grid.Column="2" Margin="5,6,0,6" x:Name="modelLabel" Width="110" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="Axy-Trek ND" Padding="0" Height="18" />
-                    <Label Grid.Column="3" Margin="10,6,0,6" Width="66" Content="FIRMWARE:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
-                    <Label Grid.Column="4" Margin="5,6,0,6" x:Name="firmwareLabel" Width="120" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="A20.20.20B20.20.20" Padding="0" Height="18" />
-                    <Label Grid.Column="5" Margin="10,6,0,6" Width="53" Content="BATTERY:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
+                    <Label Grid.Column="2" Margin="5,6,0,6" x:Name="modelLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="Axy-Trek ND" Padding="0" Height="18" />
+                    <Label Grid.Column="3" Margin="5,6,0,6" Width="66" Content="FIRMWARE:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
+                    <Label Grid.Column="4" Margin="0,6,0,6" x:Name="firmwareLabel" Width="120" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="A20.20.20B20.20.20" Padding="0" Height="18" />
+                    <Label Grid.Column="5" Margin="0,6,0,6" Width="53" Content="BATTERY:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
                     <Label Grid.Column="6" Margin="5,6,0,6" x:Name="batteryLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="4.02 V" Padding="0" Width="40" Height="18" />
-                    <StackPanel Grid.Column="7" Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto" Margin="5,0,0,0" >
+                    <Border BorderThickness="0" Grid.Column="7" BorderBrush="#00000000">
+                        <Button  x:Name="batteryRefreshB" Width="20" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                            <Image x:Name="batteryRefreshI" Stretch="Fill" Margin="0" Source="pack://application:,,,/Resources/refresh.png" 
+                                   Width="15" Height="15"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Image.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                        <SkewTransform AngleX="0" AngleY="0"/>
+                                        <RotateTransform x:Name="rtAngle" Angle="0"/>
+                                        <TranslateTransform X="0"/>
+                                    </TransformGroup>
+                                </Image.RenderTransform>
+                            </Image>
+                        </Button>
+                    </Border>
+                    <StackPanel Grid.Column="8" Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto" Margin="5,0,0,0" >
                         <Label Margin="0,0,0,0" Width="39" Content="NAME:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" />
                         <TextBox Margin="5,0,0,0" x:Name="unitNameTextBox" Width="155"
                                  VerticalAlignment="Center" MouseDoubleClick="selectAddressMouse" GotKeyboardFocus="selectAddressKeyboard"
@@ -186,7 +203,12 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition x:Name="progressBarStopButtonColumnM" x:FieldModifier="public" Width="80"/>
                 </Grid.ColumnDefinitions>
-                <ProgressBar Grid.Column="0" x:Name="statusProgressBarM" x:FieldModifier="public" Margin="10,5,10,10" Height="20" IsTabStop="False"/>
+                <StackPanel Grid.Column="0" >
+                    <ProgressBar x:Name="statusProgressBarM" x:FieldModifier="public" Margin="10,5,10,10" Height="20" IsTabStop="False" />
+                    <ProgressBar x:Name="txtProgressBarM" x:FieldModifier="public" Margin="0" Height="0" IsTabStop="False" />
+                    <ProgressBar x:Name="kmlProgressBarM" x:FieldModifier="public" Margin="0" Height="0" IsTabStop="False" />
+                </StackPanel>
+                
                 <Button x:Name="progressBarStopButtonM" x:FieldModifier="public" Grid.Column="1" Content="STOP" Margin="5,5,10,10" Padding="0" Height="20" MinHeight="7" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" FontSize="11" Click="stopThreadOperations" Foreground="#FFE00000" FontWeight="Bold"/>
             </Grid>
 

@@ -132,3 +132,10 @@
 	Bugfix: configurazione gipsy6: Togliendo enhanced mode crashava se non si erano prima "visitate" le pagine di geofencing.
 	Dimensionamento layout finestre auto-adattante alla risoluzione dello schermo.
 1.14.4	Bugfix: Configurazione AxyDepth.5 non teneva conto di periodo logging temperatura e pressione e abilitazione logging ADC presenti nel firmware 3.1.0 e successivi
+1.14.5	Geofencing: i ruquadri non possono scavalcare i bordi ai poli e al confine +/-180°, si in modalità online che offline.
+	Bufgix - Gipsy6: txm e kml BGW accumulavano nella stringa di uscita senza scaricarla nel writer, se non alla fine della conversione
+	Gipsy6: implementata triplice progressbar (producer, kml e txt consumer)
+	Implementato pulsante per aggiornamento live della batteria.
+	All'apertura della configurazione gipsy6, controlla se ci sono più di 1024 tiles nella cache e elimina quelle di troppo.
+	Il geofencing si abilita/disabilita automaticamente verificando la presenza di almeno un'area e almeno un orario. Tolta  la spunta "Enabled".
+	

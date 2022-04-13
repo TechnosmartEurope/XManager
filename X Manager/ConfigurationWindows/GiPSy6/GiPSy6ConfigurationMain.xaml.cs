@@ -63,13 +63,28 @@ namespace X_Manager.ConfigurationWindows
 
 			sbitmapAr = new List<SBitmap>();
 			bitnameAr = new List<string>();
-			foreach (string filename in System.IO.Directory.GetFiles(appDataPath, "*.png"))
+			//Carica in cache i file png salvati su disco. Se sono più di 1024, eleimina quelli in più.
+			string[] fileNames = System.IO.Directory.GetFiles(appDataPath, "*.png");
+			int maxF = Math.Max(1024, fileNames.Length);
+			for (int i = 0; i < Math.Min(fileNames.Length, 1024); i++)
 			{
-				using (SBitmap sb = new SBitmap())
+				sbitmapAr.Add(new SBitmap(fileNames[i]));
+				bitnameAr.Add(System.IO.Path.GetFileName(fileNames[i]));
+			}
+
+			if (fileNames.Length > 1024)
+			{
+				for (int i = 1024; i < fileNames.Length; i++)
 				{
-					sbitmapAr.Add(new SBitmap(filename));
+					try
+					{
+						System.IO.File.Delete(fileNames[i]);
+					}
+					catch
+					{
+						break;
+					}
 				}
-				bitnameAr.Add(System.IO.Path.GetFileName(filename));
 			}
 
 			axyConfOut = conf;

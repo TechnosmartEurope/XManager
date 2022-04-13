@@ -61,17 +61,17 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		private EventHandler onUnChecked;
+		private EventHandler onCheckedChanged;
 
-		public event EventHandler unChecked
+		public event EventHandler checkedChanged
 		{
 			add
 			{
-				onUnChecked += value;
+				onCheckedChanged += value;
 			}
 			remove
 			{
-				onUnChecked -= value;
+				onCheckedChanged -= value;
 			}
 		}
 
@@ -95,11 +95,11 @@ namespace X_Manager.ConfigurationWindows
 			else
 			{
 				settingsCB.Visibility = Visibility.Hidden;
-				EventArgs ee = new EventArgs();
-				if (onUnChecked != null)
-				{
-					onUnChecked.Invoke(this, ee);
-				}
+			}
+			EventArgs ee = new EventArgs();
+			if (onCheckedChanged != null)
+			{
+				onCheckedChanged.Invoke(this, ee);
 			}
 		}
 

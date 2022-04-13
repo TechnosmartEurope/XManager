@@ -48,8 +48,6 @@ namespace X_Manager.ConfigurationWindows
 			this.parent = parent;
 			this.index = index;
 			Canvas.SetZIndex(this, 1);
-			//bgw.WorkerSupportsCancellation = true;
-			//bgw.DoWork += bgwWork;
 
 			bIm = addTile(x, y, zoom);
 
@@ -186,32 +184,6 @@ namespace X_Manager.ConfigurationWindows
 
 		private void updateSource(SBitmap b)
 		{
-			//sviluppo
-			//System.Drawing.Bitmap newBitmap = new System.Drawing.Bitmap(256, 256);
-			//try
-			//{
-			//	using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(newBitmap))
-			//	{
-			//		graphics.DrawImage(b.bitmap, 0, 0);
-			//		graphics.DrawRectangle(new System.Drawing.Pen(System.Drawing.Color.Black, 2), 0, 0, 256, 256);
-			//		using (System.Drawing.Font arialFont = new System.Drawing.Font("Arial", 13))
-			//		{
-			//			string ondisk = "Remote";
-			//			if (b.onDisk)
-			//			{
-			//				ondisk = "Local";
-			//			}
-			//			graphics.DrawString(ondisk, arialFont, System.Drawing.Brushes.Black, 10, 10);
-			//		}
-			//	}
-			//}
-			//catch (Exception ex)
-			//{
-			//	int bs = 0;
-			//}
-
-
-
 			lock (b)
 			{
 				if (b.bitmap.Width == 1)
@@ -231,7 +203,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			if (index == 32)
 			{
-				parent.rebuildMG();
+				parent.rebuildGeoSquares();
 			}
 			if (index == 41)
 			{
@@ -240,12 +212,8 @@ namespace X_Manager.ConfigurationWindows
 		}
 	}
 
-	public class MapGrid : Grid
+	public class GeoSquare : Grid
 	{
-		//public double[] A = new double[] { 200, 200 };
-		//public double[] B = new double[] { 200, 200 };
-		//public int x = 1000;
-		//public int y = 1000;
 		public Point A = new Point(-218, 0);
 		public Point B = new Point(-218, 0);
 
@@ -256,10 +224,10 @@ namespace X_Manager.ConfigurationWindows
 		//Point startPoint;
 
 		public bool inside = false;
-		public MapGrid(int index, GeofencigConfiguration parent) : base()
+		public GeoSquare(int index, GeofencigConfiguration parent) : base()
 		{
-			Width = 50;
-			Height = 50;
+			Width = 200;
+			Height = 200;
 			Background = new SolidColorBrush(Color.FromArgb(0x80, 0, 0, 0));
 			this.parent = parent;
 			this.index = index;
@@ -267,10 +235,10 @@ namespace X_Manager.ConfigurationWindows
 			Canvas.SetZIndex(this, 4);
 		}
 
-		public MapGrid(GeofencigConfiguration.Square sq, int index, GeofencigConfiguration parent) : base()
+		public GeoSquare(GeofencigConfiguration.Square sq, int index, GeofencigConfiguration parent) : base()
 		{
-			Width = 50;
-			Height = 50;
+			Width = 200;
+			Height = 200;
 			Background = new SolidColorBrush(Color.FromArgb(0x80, 0, 0, 0));
 			this.parent = parent;
 			this.index = index;
@@ -280,6 +248,7 @@ namespace X_Manager.ConfigurationWindows
 			A.Y = sq.Y1;
 			B.X = sq.X2;
 			B.Y = sq.Y2;
+
 		}
 
 		public void updateBounds()
@@ -291,7 +260,7 @@ namespace X_Manager.ConfigurationWindows
 		public bool placeOnMap()
 		{
 
-			if (A.X < -200) return false;
+			if (A.X <= -200) return false;
 
 			Point offset = parent.relativePixel2AbsolutePixel(new Point(0, 0));
 
@@ -352,7 +321,7 @@ namespace X_Manager.ConfigurationWindows
 
 		public void move(Point p)
 		{
-			if (A.X < -200) return;
+			if (A.X <= -200) return;
 
 			var yb = p.Y + Canvas.GetTop(this);
 
@@ -514,7 +483,7 @@ namespace X_Manager.ConfigurationWindows
 		public abstract string url(int x, int y, int z);
 		public abstract string filename(int x, int y, int z);
 	}
-	
+
 	partial class GeofencigConfiguration : PageCopy
 	{
 		[DllImport("wininet.dll")]
@@ -566,8 +535,8 @@ namespace X_Manager.ConfigurationWindows
 		TextBox[] oybAr;
 		ComboBox[] valAr;
 		ComboBox[] unitAr;
-		MapGrid[] mgAr = new MapGrid[10];
-		MapGrid actMapGrid;
+		GeoSquare[] geoSquareAr = new GeoSquare[10];
+		GeoSquare selectedGeoSquare;
 		public Ellipse[] ellAr;
 		//public WebClient webClient;
 		//public TileDataTable tileDb;
@@ -605,8 +574,8 @@ namespace X_Manager.ConfigurationWindows
 			oxbAr = new TextBox[10] { ocxb0, ocxb1, ocxb2, ocxb3, ocxb4, ocxb5, ocxb6, ocxb7, ocxb8, ocxb9 };
 			oybAr = new TextBox[10] { ocyb0, ocyb1, ocyb2, ocyb3, ocyb4, ocyb5, ocyb6, ocyb7, ocyb8, ocyb9 };
 			valAr = new ComboBox[2] { eValCB, fValCB };
-			unitAr = new ComboBox[2] { eUnitCB, fUnitCB};
-			actMapGrid = null;
+			unitAr = new ComboBox[2] { eUnitCB, fUnitCB };
+			selectedGeoSquare = null;
 			timePanelAr = new List<TimePanel>();
 			ellAr = new Ellipse[8] { e1, e2, e3, e4, e5, e6, e7, e8 };
 			for (int i = 0; i < 8; i++)
@@ -658,18 +627,12 @@ namespace X_Manager.ConfigurationWindows
 					timePanel.setAB();
 					timePanel.sel = 1;
 				}
-				if (schedBselected)
-				{
-					foreach (TimePanel t in timePanelAr)
-					{
-						t.setAB();
-					}
-				}
-				timePanel.unChecked += tpUnchecked;
+
+				timePanel.checkedChanged += tpCheckedChanged;
 
 				if (i < 10)
 				{
-					for (int j = 0; j < 4; j++)
+					for (int j = 3; j >= 0; j--)
 					{
 						squareAr[i].X1 *= 256;
 						squareAr[i].X1 += conf[squareOffset + j];
@@ -695,16 +658,23 @@ namespace X_Manager.ConfigurationWindows
 
 					cbAr[i].Checked += cbChecked;
 					cbAr[i].Unchecked += cbUnchecked;
-					mgAr[i] = new MapGrid(squareAr[i], i, this);
-					//mgAr[i].placeOnMap();
+					geoSquareAr[i] = new GeoSquare(squareAr[i], i, this);
+					//geoSquareAr[i].placeOnMap();
 				}
 			}
 
+			if (schedBselected)
+			{
+				foreach (TimePanel t in timePanelAr)
+				{
+					t.setAB();
+				}
+			}
 			fakeZoom = new Image();
 
 		}
 
-		private void PageCopy_Loaded(object sender, RoutedEventArgs e)
+		private void GeofencingConfiguration_Loaded(object sender, RoutedEventArgs e)
 		{
 			if (!loaded)
 			{
@@ -748,10 +718,6 @@ namespace X_Manager.ConfigurationWindows
 						if (squareAr[i].X2 > br.X) br.X = squareAr[i].X2;
 						if (squareAr[i].Y2 < br.Y) br.Y = squareAr[i].Y2;
 					}
-					else
-					{
-						continue;
-					}
 				}
 
 				if (tl.X != 180)
@@ -773,6 +739,11 @@ namespace X_Manager.ConfigurationWindows
 						}
 					}
 				}
+
+				canvas.MouseLeftButtonDown += CanvasMouseLeftButtonDown;
+				canvas.MouseLeftButtonUp += CanvasMouseLeftButtonUp;
+				canvas.MouseMove += CanvasMouseMove;
+				canvas.MouseWheel += CanvasMouseWheel;
 
 				Panel.SetZIndex(fakeZoom, 2);
 				canvas.Children.Add(fakeZoom);
@@ -824,9 +795,10 @@ namespace X_Manager.ConfigurationWindows
 					oybAr[i].GotFocus += tbGf;
 					ocCbAr[i].Checked += cbCh;
 					ocCbAr[i].Unchecked += cbunCh;
-					ocCbAr[i].IsChecked = !(squareAr[i].X1 > 200);
+					ocCbAr[i].IsChecked = (squareAr[i].X1 > -200);
 				}
 			}
+
 			for (int i = 0; i < 2; i++)
 			{
 				unitAr[i].SelectedIndex = (int)sch[i] >> 8;
@@ -837,51 +809,32 @@ namespace X_Manager.ConfigurationWindows
 					valAr[i].Items.Add("1");
 					valAr[i].SelectedIndex = 0;
 				}
-				//if ((sch[i] % 3600) == 0)
-				//{
-				//	sch[i] /= 3600;
-				//	unitAr[i].SelectedIndex = 2;
-				//	valAr[i].Items.Clear();
-				//	valAr[i].Items.Add("1");
-				//}
-				//else if ((sch[i] % 60) == 0)
-				//{
-				//	sch[i] /= 60;
-				//	unitAr[i].SelectedIndex = 1;
-				//}
-				//else
-				//{
-				//	unitAr[i].SelectedIndex = 0;
-				//}
-
-				//valAr[i].Text = sch[i].ToString();
 				unitAr[i].SelectionChanged += cbSelChanged;
 			}
 
-			int c = 512;
-			if (index == 2) c = 513;
-			if (conf[c] == 1) mainEnableCB.IsChecked = true;
-			mainEnableCB.Checked += enableChecked;
+			//Controlla se il geofencing è abilitato o meno (almeno un orario e almeno un riquadro)
+			bool geoEnTime = false;
+			for (int i = 0; i < 24; i++)
+			{
+				if (timePanelAr[i].isChecked == true) geoEnTime = true;
+			}
+
+			bool geoEnSquare = false;
+			for (int i = 0; i < 10; i++)
+			{
+				if (cbAr[i].IsChecked == true) geoEnSquare = true;
+			}
+
+			if (!(geoEnTime && geoEnSquare))
+			{
+				mainEnableTB.Text = "Disabled";
+			}
+
 		}
 
-		private void tpUnchecked(object sender, EventArgs e)
+		private void tpCheckedChanged(object sender, EventArgs e)
 		{
-			bool atLeastOne = false;
-			foreach (TimePanel t in timePanelAr)
-			{
-				if (t.isChecked)
-				{
-					atLeastOne = true;
-					break;
-				}
-			}
-			if (!atLeastOne)
-			{
-				if (mainEnableCB.IsChecked == true)
-				{
-					mainEnableCB.IsChecked = false;
-				}
-			}
+			checkMainEn();
 		}
 
 		private void cbSelChanged(object sender, SelectionChangedEventArgs e)
@@ -928,16 +881,16 @@ namespace X_Manager.ConfigurationWindows
 		private void cbCh(object sender, EventArgs e)
 		{
 			int i = Array.IndexOf(ocCbAr, (CheckBox)sender);
-			if (squareAr[i].X1 > 200)
+			if (squareAr[i].X1 <= -200)
 			{
-				oxaAr[i].Text = "1";
-				squareAr[i].X1 = 1;
-				oyaAr[i].Text = "1";
-				squareAr[i].Y1 = 1;
-				oxbAr[i].Text = "-1";
-				squareAr[i].X2 = -1;
-				oybAr[i].Text = "-1";
-				squareAr[i].Y2 = -1;
+				oxaAr[i].Text = "0";
+				squareAr[i].X1 = 0;
+				oyaAr[i].Text = "0";
+				squareAr[i].Y1 = 0;
+				oxbAr[i].Text = "0";
+				squareAr[i].X2 = 0;
+				oybAr[i].Text = "0";
+				squareAr[i].Y2 = 0;
 			}
 			else
 			{
@@ -992,14 +945,9 @@ namespace X_Manager.ConfigurationWindows
 			double newVal;
 			tbAr[ind].Text = tbAr[ind].Text.Replace(",", ".");
 			bool convOk = double.TryParse(tbAr[ind].Text, NumberStyles.Any, CultureInfo.GetCultureInfo("en-US"), out newVal);
-			if (vert == 0)  //TopLeft Long
+			if (vert == 0)  //TopLeft X1
 			{
-				if (!convOk)
-				{
-					tbAr[ind].Text = squareAr[ind].X1.ToString();
-					return;
-				}
-				if ((newVal >= 180) | (newVal <= -180))
+				if (!convOk | (newVal >= 180) | (newVal <= -180) | (newVal >= squareAr[ind].X2))
 				{
 					tbAr[ind].Text = squareAr[ind].X1.ToString();
 					return;
@@ -1008,12 +956,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			else if (vert == 1)
 			{
-				if (!convOk)
-				{
-					tbAr[ind].Text = squareAr[ind].Y1.ToString();
-					return;
-				}
-				if ((newVal >= 85.0511) | (newVal <= -85.0511))
+				if (!convOk | (newVal >= 85.0511) | (newVal <= -85.0511) | (newVal <= squareAr[ind].Y2))
 				{
 					tbAr[ind].Text = squareAr[ind].Y1.ToString();
 					return;
@@ -1022,12 +965,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			else if (vert == 2)
 			{
-				if (!convOk)
-				{
-					tbAr[ind].Text = squareAr[ind].X2.ToString();
-					return;
-				}
-				if ((newVal >= 180) | (newVal <= -180))
+				if (!convOk | (newVal >= 180) | (newVal <= -180) | (newVal <= squareAr[ind].X1))
 				{
 					tbAr[ind].Text = squareAr[ind].X2.ToString();
 					return;
@@ -1036,12 +974,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			else if (vert == 3)
 			{
-				if (!convOk)
-				{
-					tbAr[ind].Text = squareAr[ind].Y2.ToString();
-					return;
-				}
-				if ((newVal >= 85.0511) | (newVal <= -85.0511))
+				if (!convOk | (newVal >= 85.0511) | (newVal <= -85.0511) | (newVal >= squareAr[ind].Y1))
 				{
 					tbAr[ind].Text = squareAr[ind].Y2.ToString();
 					return;
@@ -1103,7 +1036,7 @@ namespace X_Manager.ConfigurationWindows
 			int index = 1000;
 			for (int i = 0; i < 10; i++)
 			{
-				if ((MapGrid)sender == mgAr[i])
+				if ((GeoSquare)sender == geoSquareAr[i])
 				{
 					index = i;
 					break;
@@ -1136,49 +1069,83 @@ namespace X_Manager.ConfigurationWindows
 			moving = false;
 			if (isCircle | isSquare)
 			{
+				Point P1, P2;
 				if (isSquare)
 				{
-					var p1 = relativePixel2AbsolutePixel(new Point(0, Canvas.GetTop(actMapGrid))).Y;
-					var p2 = relativePixel2AbsolutePixel(new Point(0, Canvas.GetTop(actMapGrid) + actMapGrid.Height)).Y;
-					if (p2 < p1)
+					P1 = relativePixel2AbsolutePixel(new Point(Canvas.GetLeft(selectedGeoSquare), Canvas.GetTop(selectedGeoSquare)));
+					P2 = relativePixel2AbsolutePixel(new Point(Canvas.GetLeft(selectedGeoSquare) + selectedGeoSquare.Width, Canvas.GetTop(selectedGeoSquare) + selectedGeoSquare.Height));
+					if (P2.Y < P1.Y)
 					{
 						//var delta = p1 - p2;
-						canvas.Children.Remove(actMapGrid);
-						var p = new Point(Canvas.GetLeft(actMapGrid), Canvas.GetTop(actMapGrid));
+						canvas.Children.Remove(selectedGeoSquare);
+						var p = new Point(Canvas.GetLeft(selectedGeoSquare), Canvas.GetTop(selectedGeoSquare));
 
-						actMapGrid.A.X = relativePixel2Coordinates(p).X;
-						actMapGrid.A.Y = 85.03;
+						selectedGeoSquare.A.X = relativePixel2Coordinates(p).X;
+						selectedGeoSquare.A.Y = 85.03;
 
-						p.X += actMapGrid.Width;
-						p.Y = (coordinates2RelativePixel(actMapGrid.A).Y) + actMapGrid.Height;
-						actMapGrid.B = relativePixel2Coordinates(p);
+						p.X += selectedGeoSquare.Width;
+						p.Y = (coordinates2RelativePixel(selectedGeoSquare.A).Y) + selectedGeoSquare.Height;
+						selectedGeoSquare.B = relativePixel2Coordinates(p);
 
-						actMapGrid.placeOnMap();
-						actMapGrid.catchEllipses();
+						selectedGeoSquare.placeOnMap();
+						selectedGeoSquare.catchEllipses();
+					}
+					if (P2.X < P1.X)
+					{
+						canvas.Children.Remove(selectedGeoSquare);
+						var p = new Point(Canvas.GetLeft(selectedGeoSquare), Canvas.GetTop(selectedGeoSquare));
+
+						selectedGeoSquare.A.Y = relativePixel2Coordinates(p).Y;
+						selectedGeoSquare.A.X = -180;
+
+						p.Y += selectedGeoSquare.Height;
+						p.X = (coordinates2RelativePixel(selectedGeoSquare.A).X) + selectedGeoSquare.Width;
+						selectedGeoSquare.B = relativePixel2Coordinates(p);
+
+						selectedGeoSquare.placeOnMap();
+						selectedGeoSquare.catchEllipses();
+
 					}
 				}
 				else if (isCircle)
 				{
-					var y1 = relativePixel2AbsolutePixel(new Point(0, Canvas.GetTop(actMapGrid))).Y;
-					var y2 = relativePixel2AbsolutePixel(new Point(0, Canvas.GetTop(actMapGrid) + actMapGrid.Height)).Y;
 
-					if (y1 > y2)
+					P1 = relativePixel2AbsolutePixel(new Point(Canvas.GetLeft(selectedGeoSquare), Canvas.GetTop(selectedGeoSquare)));
+					P2 = relativePixel2AbsolutePixel(new Point(Canvas.GetLeft(selectedGeoSquare) + selectedGeoSquare.Width, Canvas.GetTop(selectedGeoSquare) + selectedGeoSquare.Height));
+
+
+					if (P1.Y > P2.Y)
 					{
-						var newHeight = ((tiles * 256) - 1) - y1;
+						var newHeight = ((tiles * 256) - 1) - P1.Y;
 						if (newHeight < 5)
 						{
-							y1 -= 5;
-							newHeight = ((tiles * 256) - 1) - y1;
+							P1.Y -= 5;
+							newHeight = ((tiles * 256) - 1) - P1.Y;
 						}
-						y2 = tiles * 256 - 1;
-						actMapGrid.A.Y = absolutePixel2Coordinates(new Point(0, y1)).Y;
-						actMapGrid.B.Y = absolutePixel2Coordinates(new Point(0, y2)).Y;
-						canvas.Children.Remove(actMapGrid);
-						actMapGrid.placeOnMap();
-						actMapGrid.catchEllipses();
+						P2.Y = tiles * 256 - 1;
+						selectedGeoSquare.A.Y = absolutePixel2Coordinates(new Point(0, P1.Y)).Y;
+						selectedGeoSquare.B.Y = absolutePixel2Coordinates(new Point(0, P2.Y)).Y;
+						canvas.Children.Remove(selectedGeoSquare);
+						selectedGeoSquare.placeOnMap();
+						selectedGeoSquare.catchEllipses();
+					}
+					if (P1.X > P2.X)
+					{
+						var newWidth = ((tiles * 256) - 1) - P1.X;
+						if (newWidth < 5)
+						{
+							P1.X -= 5;
+							newWidth = ((tiles * 256) - 1) - P1.X;
+						}
+						P2.X = tiles * 256 - 1;
+						selectedGeoSquare.A.X = absolutePixel2Coordinates(new Point(P1.X, 0)).X;
+						selectedGeoSquare.B.X = absolutePixel2Coordinates(new Point(P2.X, 0)).X;
+						canvas.Children.Remove(selectedGeoSquare);
+						selectedGeoSquare.placeOnMap();
+						selectedGeoSquare.catchEllipses();
 					}
 				}
-				actMapGrid.updateBounds();
+				selectedGeoSquare.updateBounds();
 				isCircle = isSquare = false;
 			}
 		}
@@ -1203,11 +1170,11 @@ namespace X_Manager.ConfigurationWindows
 
 				if (isSquare)
 				{
-					double newX = Canvas.GetLeft(actMapGrid) + offset.X;
-					double newY = Canvas.GetTop(actMapGrid) + offset.Y;
+					double newX = Canvas.GetLeft(selectedGeoSquare) + offset.X;
+					double newY = Canvas.GetTop(selectedGeoSquare) + offset.Y;
 
-					Canvas.SetLeft(actMapGrid, newX);
-					Canvas.SetTop(actMapGrid, newY);
+					Canvas.SetLeft(selectedGeoSquare, newX);
+					Canvas.SetTop(selectedGeoSquare, newY);
 					for (int i = 0; i < 8; i++)
 					{
 						Canvas.SetLeft(ellAr[i], Canvas.GetLeft(ellAr[i]) + offset.X);
@@ -1224,8 +1191,8 @@ namespace X_Manager.ConfigurationWindows
 						{
 							return;
 						}
-						Canvas.SetLeft(actMapGrid, newX + 6);
-						actMapGrid.Width -= offset.X;
+						Canvas.SetLeft(selectedGeoSquare, newX + 6);
+						selectedGeoSquare.Width -= offset.X;
 					}
 					if (circleIndex == 0 | circleIndex == 1 | circleIndex == 2)
 					{
@@ -1233,8 +1200,8 @@ namespace X_Manager.ConfigurationWindows
 						{
 							return;
 						}
-						Canvas.SetTop(actMapGrid, newY + 6);
-						actMapGrid.Height -= offset.Y;
+						Canvas.SetTop(selectedGeoSquare, newY + 6);
+						selectedGeoSquare.Height -= offset.Y;
 					}
 					if (circleIndex == 2 | circleIndex == 4 | circleIndex == 7)
 					{
@@ -1242,16 +1209,16 @@ namespace X_Manager.ConfigurationWindows
 						{
 							return;
 						}
-						actMapGrid.Width += offset.X;
+						selectedGeoSquare.Width += offset.X;
 					}
 					if (circleIndex == 7 | circleIndex == 6 | circleIndex == 5)
 					{
-						actMapGrid.Height += offset.Y;
+						selectedGeoSquare.Height += offset.Y;
 					}
-					newX = Canvas.GetLeft(actMapGrid) - 6;
-					newY = Canvas.GetTop(actMapGrid) - 6;
-					int h = (int)actMapGrid.Height;
-					int w = (int)actMapGrid.Width;
+					newX = Canvas.GetLeft(selectedGeoSquare) - 6;
+					newY = Canvas.GetTop(selectedGeoSquare) - 6;
+					int h = (int)selectedGeoSquare.Height;
+					int w = (int)selectedGeoSquare.Width;
 
 					Canvas.SetLeft(ellAr[0], newX);
 					Canvas.SetLeft(ellAr[3], newX);
@@ -1283,7 +1250,7 @@ namespace X_Manager.ConfigurationWindows
 						iAr[i].move(newX, newY);
 						if (i < 10)
 						{
-							mgAr[i].move((Point)offset);
+							geoSquareAr[i].move((Point)offset);
 							if ((i < 8) & moveEllipses)
 							{
 								newX = Canvas.GetLeft(ellAr[i]) + offset.X;
@@ -1371,9 +1338,9 @@ namespace X_Manager.ConfigurationWindows
 
 			//Acquisisce l'indice dell'eventuale rettangolo selezionato
 			int mgIndex = -1;
-			if (actMapGrid != null)
+			if (selectedGeoSquare != null)
 			{
-				mgIndex = actMapGrid.index;
+				mgIndex = selectedGeoSquare.index;
 			}
 
 			//Recupera l'indice della tile sul quale è posizionato il mouse nel vettore delle tile
@@ -1451,9 +1418,9 @@ namespace X_Manager.ConfigurationWindows
 			//Rimuove i riquadri eventualmente presenti sulla mapp
 			for (int i = 0; i < 10; i++)
 			{
-				if (canvas.Children.Contains(mgAr[i]))
+				if (canvas.Children.Contains(geoSquareAr[i]))
 				{
-					canvas.Children.Remove(mgAr[i]);
+					canvas.Children.Remove(geoSquareAr[i]);
 				}
 			}
 
@@ -1526,7 +1493,6 @@ namespace X_Manager.ConfigurationWindows
 					canvas.Children.Remove(iAr[i]);
 				}
 			}
-
 			//Calcola gli indici della tile in alto a sx
 
 			for (int i = 0; i < 2; i++)
@@ -1601,7 +1567,7 @@ namespace X_Manager.ConfigurationWindows
 					else
 					{
 						spAr[i].Background = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
-						actMapGrid = mgAr[i];
+						selectedGeoSquare = geoSquareAr[i];
 
 						if (center)
 						{
@@ -1610,14 +1576,14 @@ namespace X_Manager.ConfigurationWindows
 
 							Point pos = new Point();
 
-							pos.X = ((actMapGrid.B.X - actMapGrid.A.X) / 2) + actMapGrid.A.X;
-							pos.Y = ((actMapGrid.B.Y - actMapGrid.A.Y) / 2) + actMapGrid.A.Y;
+							pos.X = ((selectedGeoSquare.B.X - selectedGeoSquare.A.X) / 2) + selectedGeoSquare.A.X;
+							pos.Y = ((selectedGeoSquare.B.Y - selectedGeoSquare.A.Y) / 2) + selectedGeoSquare.A.Y;
 
 							for (int J = 19; J > 2; J--)
 							{
 								zoom = J;
-								Point p1 = coordinates2AbsolutePixel(actMapGrid.B);
-								Point p2 = coordinates2AbsolutePixel(actMapGrid.A);
+								Point p1 = coordinates2AbsolutePixel(selectedGeoSquare.B);
+								Point p2 = coordinates2AbsolutePixel(selectedGeoSquare.A);
 								if ((p1.X - p2.X) < 768)
 								{
 									if ((p1.Y - p2.Y) < 580)
@@ -1638,7 +1604,7 @@ namespace X_Manager.ConfigurationWindows
 						}
 						else
 						{
-							actMapGrid.catchEllipses();
+							selectedGeoSquare.catchEllipses();
 						}
 					}
 				}
@@ -1649,9 +1615,9 @@ namespace X_Manager.ConfigurationWindows
 		{
 			for (int i = 0; i < 10; i++)
 			{
-				if (canvas.Children.Contains(mgAr[i]))
+				if (canvas.Children.Contains(geoSquareAr[i]))
 				{
-					canvas.Children.Remove(mgAr[i]);
+					canvas.Children.Remove(geoSquareAr[i]);
 				}
 				if (i < 8)
 				{
@@ -1663,11 +1629,11 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		public void rebuildMG()
+		public void rebuildGeoSquares()
 		{
 			for (int i = 0; i < 10; i++)
 			{
-				if (mgAr[i].placeOnMap())
+				if (geoSquareAr[i].placeOnMap())
 				{
 					cbAr[i].Checked -= cbChecked;
 					cbAr[i].IsChecked = true;
@@ -1679,17 +1645,23 @@ namespace X_Manager.ConfigurationWindows
 					cbAr[i].Checked -= cbChecked;
 					cbAr[i].IsChecked = false;
 					cbAr[i].Checked += cbChecked;
+					try
+					{
+						canvas.Children.Remove(geoSquareAr[i]);
+					}
+					catch { }
 				}
 			}
-			if (actMapGrid != null)
+			if (selectedGeoSquare != null)
 			{
-				spAr[actMapGrid.index].Background = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
-				actMapGrid.catchEllipses();
+				spAr[selectedGeoSquare.index].Background = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
+				selectedGeoSquare.catchEllipses();
 			}
 		}
 
 		private void cbChecked(object sender, RoutedEventArgs e)
 		{
+
 			int index = 0;
 			for (int i = 0; i < 10; i++)
 			{
@@ -1708,18 +1680,20 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 			catch { }
-			mgAr[index].A = relativePixel2Coordinates(new Point(10, 10));
-			mgAr[index].B = relativePixel2Coordinates(new Point(60, 60));
-			if (mgAr[index].B.Y > mgAr[index].A.Y)
+			geoSquareAr[index].A = relativePixel2Coordinates(new Point(10, 10));
+			geoSquareAr[index].B = relativePixel2Coordinates(new Point(60, 60));
+			if (geoSquareAr[index].B.Y > geoSquareAr[index].A.Y)
 			{
-				mgAr[index].A.Y = 85.05;
-				double newY = (coordinates2RelativePixel(mgAr[index].A).Y) + 50;
-				mgAr[index].B.Y = relativePixel2Coordinates(new Point(0, newY)).Y;
+				geoSquareAr[index].A.Y = 85.05;
+				double newY = (coordinates2RelativePixel(geoSquareAr[index].A).Y) + 50;
+				geoSquareAr[index].B.Y = relativePixel2Coordinates(new Point(0, newY)).Y;
 			}
 
-			mgAr[index].placeOnMap();
-			actMapGrid = mgAr[index];
-			actMapGrid.catchEllipses();
+			geoSquareAr[index].placeOnMap();
+			selectedGeoSquare = geoSquareAr[index];
+			selectedGeoSquare.catchEllipses();
+
+			checkMainEn();
 		}
 
 		private void cbUnchecked(object sender, RoutedEventArgs e)
@@ -1729,12 +1703,12 @@ namespace X_Manager.ConfigurationWindows
 				if (cbAr[i] == (CheckBox)sender)
 				{
 					spAr[i].Background = new SolidColorBrush(Color.FromArgb(0xff, 0x60, 0x60, 0x60));
-					canvas.Children.Remove(mgAr[i]);
-					mgAr[i].A = new Point(-214, -214);
-					if (actMapGrid == mgAr[i])
+					canvas.Children.Remove(geoSquareAr[i]);
+					geoSquareAr[i].A = new Point(-214, -214);
+					if (selectedGeoSquare == geoSquareAr[i])
 					{
-						actMapGrid.MouseLeftButtonDown -= sClick;
-						actMapGrid = null;
+						selectedGeoSquare.MouseLeftButtonDown -= sClick;
+						selectedGeoSquare = null;
 						try
 						{
 							for (int j = 0; j < 8; j++)
@@ -1747,8 +1721,39 @@ namespace X_Manager.ConfigurationWindows
 					break;
 				}
 			}
+			checkMainEn();
 		}
 
+		private void checkMainEn()
+		{
+			bool geoEnTime = false;
+			bool geoEnSquare = false;
+			for (int i = 0; i < 24; i++)
+			{
+
+				if (timePanelAr[i].isChecked == true)
+				{
+					geoEnTime = true;
+				}
+				if (i < 10)
+				{
+					if (cbAr[i].IsChecked == true)
+					{
+						geoEnSquare = true;
+					}
+				}
+
+				if (!(geoEnTime && geoEnSquare))
+				{
+					mainEnableTB.Text = "Disabled";
+				}
+				else
+				{
+					mainEnableTB.Text = "Enabled";
+				}
+			}
+		}
+		
 		private void cbSchedChecked(object sender, RoutedEventArgs e)
 		{
 			foreach (TimePanel t in timePanelAr)
@@ -1765,23 +1770,23 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		private void enableChecked(object sender, RoutedEventArgs e)
-		{
-			bool atLeast = false;
-			foreach (TimePanel t in timePanelAr)
-			{
-				if (t.isChecked)
-				{
-					atLeast = true;
-					break;
-				}
-			}
-			if (!atLeast)
-			{
-				MessageBox.Show("WARNING: when Geofencing is enabled, at least one time interval must be enabled.");
-				timePanelAr[0].isChecked = true;
-			}
-		}
+		//private void enableChecked(object sender, RoutedEventArgs e)
+		//{
+		//	bool atLeast = false;
+		//	foreach (TimePanel t in timePanelAr)
+		//	{
+		//		if (t.isChecked)
+		//		{
+		//			atLeast = true;
+		//			break;
+		//		}
+		//	}
+		//	if (!atLeast)
+		//	{
+		//		MessageBox.Show("WARNING: when Geofencing is enabled, at least one time interval must be enabled.");
+		//		timePanelAr[0].isChecked = true;
+		//	}
+		//}
 
 		private void toggleRecs(bool enabled)
 		{
@@ -1793,19 +1798,20 @@ namespace X_Manager.ConfigurationWindows
 
 		public static void saveCache(List<string> bitnameAr, List<SBitmap> sbitmapAr, string appDataPath)
 		{
-			foreach (string file in Directory.GetFiles(appDataPath, "*.png"))
+			string[] files = Directory.GetFiles(appDataPath, "*.png");
+
+			//foreach (string file in Directory.GetFiles(appDataPath, "*.png"))
+			for (int i = 0; i < files.Length; i++)
 			{
-				if (!bitnameAr.Contains(System.IO.Path.GetFileName(file)))
+				if (!bitnameAr.Contains(System.IO.Path.GetFileName(files[i])))
 				{
 					try
 					{
-						File.Delete(file);
+						File.Delete(files[i]);
 					}
 					catch (Exception ex)
 					{
-						//sviluppo
-						var b = ex;
-						///sviluppo
+						break;
 					}
 				}
 			}
@@ -1851,37 +1857,45 @@ namespace X_Manager.ConfigurationWindows
 		public override void copyValues()
 		{
 
-			//if (mainEnableCB.IsChecked == false)
-			//{
-			//	MessageBox.Show(String.Format("WARNING: Geofencing {0} not enabled!\r\nIf this is an intended behaviour, please ignore this warning.", index));
-			//}
-
 			int c = 512 + index - 1; //Punta al byte 512 se Geofencing1 o 513 se Geofencing2
-			conf[c] = 0;
-			if (mainEnableCB.IsChecked == true)
-			{
-				conf[c] = 1;
-			}
+									 //conf[c] = 0;
+									 //if (mainEnableCB.IsChecked == true)
+									 //{
+									 //	conf[c] = 1;
+									 //}
 			if (!loaded)
 			{
 				return;
 			}
 
+
 			double co;
-			MapGrid m;
+			GeoSquare m;
 			c = 128;
 			if (index == 2) c += 192;
 
 			for (int i = 0; i < 10; i++)
 			{
-				m = mgAr[i];
-				if (m.A.X < -200)
+				if (!conn)
+				{
+					geoSquareAr[i].A.X = -200;
+					if (ocCbAr[i].IsChecked == true)
+					{
+						geoSquareAr[i].A.X = squareAr[i].X1;
+						geoSquareAr[i].A.Y = squareAr[i].Y1;
+						geoSquareAr[i].B.X = squareAr[i].X2;
+						geoSquareAr[i].B.Y = squareAr[i].Y2;
+					}
+				}
+				m = geoSquareAr[i];
+
+				if (m.A.X <= -200)
 				{
 					for (int j = 0; j < 16; j++)
 					{
 						conf[c + j] = 0;
 					}
-					conf[c] = 0x80;
+					conf[c + 3] = 0x80;
 				}
 				else
 				{
@@ -1890,40 +1904,41 @@ namespace X_Manager.ConfigurationWindows
 					{
 						co += 0x100000000;
 					}
-					conf[c] = (byte)((uint)co >> 24);
-					conf[c + 1] = (byte)((uint)co >> 16);
-					conf[c + 2] = (byte)((uint)co >> 8);
-					conf[c + 3] = (byte)co;
+
+					conf[c] = (byte)co;
+					conf[c + 1] = (byte)((uint)co >> 8);
+					conf[c + 2] = (byte)((uint)co >> 16);
+					conf[c + 3] = (byte)((uint)co >> 24);
 
 					co = m.A.Y * 10000000;
 					if (co < 0)
 					{
 						co += 0x100000000;
 					}
-					conf[c + 4] = (byte)((uint)co >> 24);
-					conf[c + 5] = (byte)((uint)co >> 16);
-					conf[c + 6] = (byte)((uint)co >> 8);
-					conf[c + 7] = (byte)co;
+					conf[c + 4] = (byte)co;
+					conf[c + 5] = (byte)((uint)co >> 8);
+					conf[c + 6] = (byte)((uint)co >> 16);
+					conf[c + 7] = (byte)((uint)co >> 24);
 
 					co = m.B.X * 10000000;
 					if (co < 0)
 					{
 						co += 0x100000000;
 					}
-					conf[c + 8] = (byte)((uint)co >> 24);
-					conf[c + 9] = (byte)((uint)co >> 16);
-					conf[c + 10] = (byte)((uint)co >> 8);
-					conf[c + 11] = (byte)co;
+					conf[c + 8] = (byte)co;
+					conf[c + 9] = (byte)((uint)co >> 8);
+					conf[c + 10] = (byte)((uint)co >> 16);
+					conf[c + 11] = (byte)((uint)co >> 24);
 
 					co = m.B.Y * 10000000;
 					if (co < 0)
 					{
 						co += 0x100000000;
 					}
-					conf[c + 12] = (byte)((uint)co >> 24);
-					conf[c + 13] = (byte)((uint)co >> 16);
-					conf[c + 14] = (byte)((uint)co >> 8);
-					conf[c + 15] = (byte)co;
+					conf[c + 12] = (byte)co;
+					conf[c + 13] = (byte)((uint)co >> 8);
+					conf[c + 14] = (byte)((uint)co >> 16);
+					conf[c + 15] = (byte)((uint)co >> 24);
 				}
 				c += 16;
 			}
@@ -1951,7 +1966,11 @@ namespace X_Manager.ConfigurationWindows
 
 		public override void disable()
 		{
-			mainEnableCB.IsChecked = false;
+			//mainEnableCB.IsChecked = false;
+			for (int i = 0; i < 24; i++)
+			{
+				timePanelAr[i].isChecked = false;
+			}
 			copyValues();
 		}
 

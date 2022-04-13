@@ -24,6 +24,7 @@ using X_Manager.ConfigurationWindows;
 using System.Reflection;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using System.Security.RightsManagement;
+using System.Windows.Media.Animation;
 
 #if X64
 using FT_HANDLE = System.UInt64;
@@ -243,6 +244,8 @@ namespace X_Manager
 			parseArgIn();
 			progressBarStopButton = progressBarStopButtonM;
 			statusProgressBar = statusProgressBarM;
+			txtProgressBar = txtProgressBarM;
+			kmlProgressBar = kmlProgressBarM;
 			statusLabel = statusLabelM;
 			etaLabel = etaLabelM;
 			progressBarStopButtonColumn = progressBarStopButtonColumnM;
@@ -459,7 +462,7 @@ namespace X_Manager
 				width *= scale;
 				height *= scale;
 				if (scale <= .2) break;
-				
+
 			}
 			ExternalGrid.LayoutTransform = new ScaleTransform(scale, scale);
 			if (Left < screen.Bounds.X)
@@ -572,6 +575,8 @@ namespace X_Manager
 			{
 
 			}
+			batteryRefreshB.Visibility = Visibility.Hidden;
+			batteryRefreshB.Click -= refreshBattery;
 		}
 
 		private void uiConnected()
@@ -622,6 +627,8 @@ namespace X_Manager
 			//sviluppo
 			realTimeSP.IsEnabled = true;
 			realTimeB.IsEnabled = true;
+			batteryRefreshB.Visibility = Visibility.Visible;
+			batteryRefreshB.Click += refreshBattery;
 		}
 
 		void ctrlManager(object sender, KeyEventArgs e)
@@ -2026,6 +2033,39 @@ namespace X_Manager
 			return res;
 		}
 
+		void refreshBattery(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				batteryLabel.Content = oUnit.askBattery();
+				//BackgroundWorker brBW = new BackgroundWorker();
+				//brBW.DoWork += new DoWorkEventHandler(rotateBattery);
+				//brBW.RunWorkerAsync();
+			}
+			catch (Exception ex)
+			{
+				warningShow(ex.Message);
+				uiDisconnected();
+			}
+		}
+
+		//void rotateBattery(object sender, DoWorkEventArgs e)
+		//{
+		//	Storyboard sb = new Storyboard();
+
+		//	// Create a DoubleAnimation to animate the width of the button.
+		//	DoubleAnimation myDoubleAnimation = new DoubleAnimation();
+		//	myDoubleAnimation.From = 0;
+		//	myDoubleAnimation.To = 360;
+		//	myDoubleAnimation.Duration = new Duration(TimeSpan.FromMilliseconds(10000));
+
+		//	Storyboard.SetTargetName(myDoubleAnimation, "rtAngle");
+		//	PropertyPath PropP = new PropertyPath(RotateTransform.AngleProperty);
+		//	Storyboard.SetTargetProperty(myDoubleAnimation, PropP);
+
+		//	sb.Children.Add(myDoubleAnimation);
+		//	sb.Begin(batteryRefreshI);
+		//}
 		#endregion
 
 		#region Unità

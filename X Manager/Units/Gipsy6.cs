@@ -148,13 +148,20 @@ namespace X_Manager.Units
 
 		static readonly string[] events = {
 			"Power ON.",
-			"STARTDELAY - Beginning","STARTDELAY - End",
+			"STARTDELAY - Beginning",
+			"STARTDELAY - End",
 			"Start searching for satellites...",
 			"No visible satellite. Going to sleep...",
-			"GPS Schedule {0} {1}",
+			"GPS Schedule: {0} {1}",
 			"Low Battery.",
 			"Memory Full.",
 			"Power OFF",
+		};
+
+		static readonly string[] scheduleEventTimings = {
+			"second(s)",
+			"minute(s)",
+			"hour(s)",
 		};
 
 		bool repeatEmptyValues = false;
@@ -753,6 +760,7 @@ namespace X_Manager.Units
 
 			while (buffPointer < buffSize)
 			{
+
 				if (convertStop)
 				{
 					break;
@@ -765,7 +773,6 @@ namespace X_Manager.Units
 						inBuffer[buffPointer + i] = (byte)sp.ReadByte();
 					}
 					buffPointer += 0x200;
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 				}
 				catch (Exception ex)
 				{
@@ -779,6 +786,7 @@ namespace X_Manager.Units
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 					break;
 				}
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 			}
 
 			inBuffer[inBuffer.Length - 2] = 0x0a;
@@ -974,6 +982,16 @@ namespace X_Manager.Units
 
 		public override void convert(string fileName, string[] prefs)
 		{
+			//Triplica la progress bar
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+			{
+				parent.statusProgressBar.Height = 6;
+				parent.txtProgressBar.Height = 6;
+				parent.kmlProgressBar.Height = 6;
+				parent.statusProgressBar.Margin = new Thickness(10, 5, 10, 0);
+				parent.txtProgressBar.Margin = new Thickness(10, 0, 10, 0);
+				parent.kmlProgressBar.Margin = new Thickness(10, 0, 10, 0);
+			}));
 
 			//Reinizializza le variabili statiche (in caso di più file da convertire)
 			conversionDone = 0;
@@ -1032,16 +1050,18 @@ namespace X_Manager.Units
 				parent.statusProgressBar.Minimum = 0;
 				parent.statusProgressBar.Maximum = end;
 				parent.statusProgressBar.Value = 0;
+				parent.txtProgressBar.Minimum = 0;
+				parent.txtProgressBar.Maximum = end;
+				parent.txtProgressBar.Value = 0;
+				parent.kmlProgressBar.Minimum = 0;
+				parent.kmlProgressBar.Maximum = end;
+				parent.kmlProgressBar.Value = 0;
 			}));
 
+			int progressBarCounter = 0;
 			//Cicla nel buffer decodificando i timestamp e aggiungendoli alla pila
 			while (pos < end)
 			{
-				//if (pos != 0)
-				//{
-				//	txtSem.WaitOne();
-				//	kmlSem.WaitOne();
-				//}
 				try
 				{
 					noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);   //decodifica il timestamp
@@ -1057,21 +1077,20 @@ namespace X_Manager.Units
 					break;
 				}
 
-				//Aggiorna la progress bar, sostituire con aggiornamento a scatti
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+				//Aggiorna la progress bar del producer
+				progressBarCounter++;
+				if (progressBarCounter >= 100)
 				{
-					parent.statusProgressBar.Value = pos;
-				}));
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+					{
+						parent.statusProgressBar.Value = pos;
+					}));
+					progressBarCounter = 0;
+				}
 
 				//Acquisisce l'acccesso alla pila txt
 				lock (txtList)
 				{
-					//sviluppo
-					if (timeStamp.dateTime.Second == 27 & timeStamp.dateTime.Minute == 57)
-					{
-						int f = 0;
-					}
-					///sviluppo
 					txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
 				}
 				relTxt = txtSem.Release();   //sblocca il thread txt
@@ -1084,18 +1103,19 @@ namespace X_Manager.Units
 
 				relkml = kmlSem.Release();   //sblocca il thread kml
 
-				//sviluppo
-				if (relkml > 1000)
-				{
-					int b = 0;
-				}
-				///sviluppo
-
 				if (noStampBuffer.Count == 1)
 				{
 					break;
 				}
 			}
+			//Aggiorna per l'ultima volta la progress bar del producer
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+			{
+				parent.statusProgressBar.Value = pos;
+			}));
+
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Maximum = kmlList.Count));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Maximum = txtList.Count));
 			Interlocked.Increment(ref lastTimestamp);   //Segnala ai thread che non saranno più aggiunti timestamp alle pile
 			txtSem.Release();   //rilascia il thread txt per l'ultima volta
 			kmlSem.Release();   //rilascia il thread kml per l'ultima volta
@@ -1106,6 +1126,14 @@ namespace X_Manager.Units
 				Thread.Sleep(200);
 			}
 
+			Application.Current.Dispatcher.Invoke(new Action(() =>
+			{
+				parent.statusProgressBar.Height = 20;
+				parent.txtProgressBar.Height = 0;
+				parent.kmlProgressBar.Height = 0;
+				parent.statusProgressBar.Margin = new Thickness(10, 5, 10, 10);
+			}));
+
 			//MessageBox.Show("Pranzo completato");
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				new Action(() => parent.nextFile()));
@@ -1113,11 +1141,14 @@ namespace X_Manager.Units
 
 		private void txtBGW_doWork(ref List<TimeStamp> tL, string txtName)
 		{
-			BinaryWriter txtBW;
-			txtBW = new BinaryWriter(new FileStream(txtName, FileMode.Create));
+			//BinaryWriter txtBW;
+			//txtBW = new BinaryWriter(new FileStream(txtName, FileMode.Create));
+			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
 			string[] tabs = new string[10];
-			string fileOut = "";
+			//string fileOut = "";
+			int contoStatus = 0;
+			int pbmax = 0;
 			var t = new TimeStamp();
 			while (true)
 			{
@@ -1131,13 +1162,18 @@ namespace X_Manager.Units
 					{
 						break;
 					}
+					if (Interlocked.Read(ref lastTimestamp) > 0)
+					{
+						contoStatus++;
+						if (contoStatus == 100)
+						{
+							contoStatus = 0;
+							Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Value += 100));
+						}
+					}
 					t = tL[0];
 					tL.RemoveAt(0);
-					//sviluppo
-					int cc = tL.Count;
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
-					((MainWindow)parent).batteryLabel.Content = cc.ToString()));
-					///sviluppo
+
 				}
 
 				//Si scrive il timestmap nel txt
@@ -1155,7 +1191,7 @@ namespace X_Manager.Units
 				///sviluppo
 				if ((t.tsType & ts_battery) == ts_battery)
 				{
-					tabs[10] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[9] = t.batteryLevel.ToString("0.00") + "V";
 				}
 				if ((t.tsType & ts_coordinate) == ts_coordinate)
 				{
@@ -1184,7 +1220,7 @@ namespace X_Manager.Units
 				}
 				if ((t.tsType & ts_event) == ts_event)
 				{
-					tabs[9] = decodeEvent(ref t);
+					tabs[10] = decodeEvent(ref t);
 				}
 				//sviluppo
 				//tabs[9] = t.pos.ToString("X");
@@ -1192,18 +1228,25 @@ namespace X_Manager.Units
 
 				for (int i = 0; i < 11; i++)
 				{
-					fileOut += (tabs[i] + "\t");
+					txtBW.Write(tabs[i] + "\t");
 				}
-				fileOut += (tabs[11] + "\r\n");
-				if (fileOut.Length > 0x1000000) //16MB
-				{
-					txtBW.Write(fileOut);
-					fileOut = "";
-				}
+				txtBW.Write(tabs[11] + "\r\n");
 
+				//for (int i = 0; i < 11; i++)
+				//{
+				//	fileOut += (tabs[i] + "\t");
+				//}
+				//fileOut += (tabs[11] + "\r\n");
+				//if (fileOut.Length > 0x1000000) //16MB
+				//{
+				//	txtBW.Write(fileOut);
+				//	fileOut = "";
+				//}
+				//txtBW.Write(fileOut);
+				//fileOut = "";
 				//txtSem.Release();
 			}
-			txtBW.Write(fileOut);
+			//txtBW.Write(fileOut);
 			txtBW.Close();
 
 			Interlocked.Increment(ref conversionDone);
@@ -1213,17 +1256,26 @@ namespace X_Manager.Units
 		{
 			//								data   ora    lon   lat   alt   eve   batt
 
-			BinaryWriter kml;
-			BinaryWriter placeMark;
-			kml = new BinaryWriter(new FileStream(kmlName + "_temp.kml", FileMode.Create));
-			placeMark = new BinaryWriter(new FileStream(kmlName + ".kml", FileMode.Create));
+			//BinaryWriter placeMark;
+			//placeMark = new BinaryWriter(new FileStream(kmlName + ".kml", FileMode.Create));
+			//BinaryWriter kml;
+			//kml = new BinaryWriter(new FileStream(kmlName + "_temp.kml", FileMode.Create));
+			StreamWriter placeMark;
+			placeMark = new StreamWriter(kmlName + ".kml");
+			StreamWriter kml;
+			kml = new StreamWriter(kmlName + "_temp.kml");
 
-			string kmlS = Properties.Resources.Folder_Path_Top + Properties.Resources.Path_Top;
-			string placeS = Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2;
+			//string kmlS = Properties.Resources.Folder_Path_Top + Properties.Resources.Path_Top;
+			//string placeS = Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2;
+
+			kml.Write(Properties.Resources.Folder_Path_Top + Properties.Resources.Path_Top);
+			placeMark.Write(Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2);
 
 			int contoCoord = 0;
+			int contoStatus = 0;
+			int pbmax = 0;
 			bool primaCoordinata = true;
-			string temp = "";
+			string lonS = "", latS = "", altS = "";
 
 			var t = new TimeStamp();
 			while (true)
@@ -1238,12 +1290,16 @@ namespace X_Manager.Units
 					{
 						break;
 					}
-					//sviluppo
-					int cc = tL.Count;
-					//sviluppo
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
-						((MainWindow)parent).unitNameTextBox.Text = cc.ToString()));
-					///sviluppo
+					if (Interlocked.Read(ref lastTimestamp) > 0)
+					{
+						contoStatus++;
+						if (contoStatus == 100)
+						{
+							contoStatus = 0;
+							//int cc = tL.Count;
+							Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Value += 100)); ;
+						}
+					}
 					t = tL[0];
 					tL.RemoveAt(0);
 				}
@@ -1252,31 +1308,37 @@ namespace X_Manager.Units
 				{
 					if (contoCoord == 10000)
 					{
-						kmlS += Properties.Resources.Path_Bot + Properties.Resources.Path_Top;
+						//kmlS += Properties.Resources.Path_Bot + Properties.Resources.Path_Top;
+						kml.Write(Properties.Resources.Path_Bot + Properties.Resources.Path_Top);
 						contoCoord = 0;
 					}
 
-					temp = "";
-					temp += t.lon.ToString("00.0000000", nfi) + ",";
-					temp += t.lat.ToString("00.0000000", nfi) + ",";
-					temp += t.altitude.ToString("0000.0", nfi);
-
-					kmlS += "\t\t\t\t\t" + temp + "\r\n";
+					kml.Write("\t\t\t\t\t");
+					lonS = t.lon.ToString("00.0000000", nfi) + ",";
+					kml.Write(lonS);
+					latS = t.lat.ToString("00.0000000", nfi) + ",";
+					kml.Write(latS);
+					altS = t.altitude.ToString("0000.0", nfi);
+					kml.Write(altS);
 
 					if (primaCoordinata)
 					{
 						primaCoordinata = false;
 						//Segnaposto di start
-						placeS += Properties.Resources.lookat1;
-						placeS += t.lon.ToString("00.0000000", nfi);
-						placeS += Properties.Resources.lookat2;
-						placeS += t.lat.ToString("00.0000000", nfi);
-						placeS += Properties.Resources.lookat3;
-						placeS += t.altitude.ToString("0000.0", nfi);
-						placeS += Properties.Resources.lookat4;
+						placeMark.Write(Properties.Resources.lookat1);
+						placeMark.Write(t.lon.ToString("00.0000000", nfi));
+						placeMark.Write(Properties.Resources.lookat2);
+						placeMark.Write(t.lat.ToString("00.0000000", nfi));
+						placeMark.Write(Properties.Resources.lookat3);
+						placeMark.Write(t.altitude.ToString("0000.0", nfi));
+						placeMark.Write(Properties.Resources.lookat4);
 						//Coordinata placemark
-						placeS += Properties.Resources.Placemarks_Start_Top + "\r\n\t\t\t\t\t<coordinates>" + temp + "</coordinates>\r\n";
-						placeS += Properties.Resources.Placemarks_Start_Bot + Properties.Resources.Folder_Generics_Top;
+						placeMark.Write(Properties.Resources.Placemarks_Start_Top + "\r\n\t\t\t\t<coordinates>");
+						placeMark.Write(lonS);
+						placeMark.Write(latS);
+						placeMark.Write(altS);
+						placeMark.Write("</coordinates>\r\n");
+						placeMark.Write(Properties.Resources.Placemarks_Start_Bot + Properties.Resources.Folder_Generics_Top);
 					}
 
 					char cl = (char)(49 + (t.speed / 10));
@@ -1285,33 +1347,39 @@ namespace X_Manager.Units
 						cl = '9';
 					}
 
-					placeS += Properties.Resources.Placemarks_Generic_Top_1 + t.dateTime.ToString("dd/MM/yyyy HH:mm:ss");
-					placeS += Properties.Resources.Placemarks_Generic_Top_2 + cl.ToString() + Properties.Resources.Placemarks_Generic_Top_3;
-					placeS += t.altitude.ToString() + Properties.Resources.Placemarks_Generic_Top_4 + t.speed.ToString();
-					placeS += Properties.Resources.Placemarks_Generic_Top_5 + "\r\n\t\t\t\t\t<coordinates>" + temp + "</coordinates>\r\n";
-					placeS += X_Manager.Properties.Resources.Placemarks_Generic_Bot;
+					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_1);
+					placeMark.Write(t.dateTime.ToString("dd/MM/yyyy HH:mm:ss"));
+					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_2 + cl.ToString());
+					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_3);
+					placeMark.Write(t.altitude.ToString());
+					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_4);
+					placeMark.Write(t.speed.ToString());
+					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_5);
+					placeMark.Write("\r\n\t\t\t\t\t<coordinates>");
+					placeMark.Write(lonS);
+					placeMark.Write(latS);
+					placeMark.Write(altS);
+					placeMark.Write("</coordinates>\r\n");
+					placeMark.Write(X_Manager.Properties.Resources.Placemarks_Generic_Bot);
 
 					contoCoord++;
-					if (kmlS.Length > 0x1000000)    //16MB
-					{
-						kml.Write(kmlS);
-						kmlS = "";
-					}
-
-					if (placeS.Length > 0x1000000)  //16MB
-					{
-						placeMark.Write(placeS);
-						placeS = "";
-					}
+					//kml.Write(kmlS);
+					//kmlS = "";
+					//placeMark.Write(placeS);
+					//placeS = "";
 				}
 				//kmlSem.Release();
 			}
-			kml.Write(kmlS);
-			placeMark.Write(placeS);
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Value = pbmax));
+			//kml.Write(kmlS);
+			//placeMark.Write(placeS);
 			//Scrive il segnaposto di stop nel fime kml dei placemarks
-			placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
-			placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
-				"\r\n\t\t\t\t\t+<coordinates>" + temp + "</coordinates>\r\n" + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
+			//placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
+			//placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
+			//	"\r\n\t\t\t\t\t+<coordinates>" + temp + "</coordinates>\r\n" + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
+			placeMark.Write(X_Manager.Properties.Resources.Folder_Bot);
+			placeMark.Write(X_Manager.Properties.Resources.Placemarks_Stop_Top +
+				"\r\n\t\t\t\t\t+<coordinates>" + lonS + latS + altS + "</coordinates>\r\n" + X_Manager.Properties.Resources.Placemarks_Stop_Bot);
 
 			kml.Close();
 			placeMark.Close();
@@ -1567,7 +1635,12 @@ namespace X_Manager.Units
 			switch ((eventType)ts.eventAr[1])
 			{
 				case eventType.E_SCHEDULE:
-					outs = String.Format(events[ts.eventAr[1]], ts.eventAr[2], ts.eventAr[3]);
+
+					outs = String.Format(events[ts.eventAr[1]], ts.eventAr[3], scheduleEventTimings[ts.eventAr[2]]);
+					if (ts.eventAr[0] == 3)
+					{
+						outs += " / Geofencing " + ts.eventAr[4].ToString();
+					}
 					break;
 				case eventType.E_SD_START:
 					outs = events[ts.eventAr[1]];

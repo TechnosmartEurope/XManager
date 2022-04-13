@@ -13,6 +13,8 @@ namespace X_Manager
 		public Button progressBarStopButton;
 		public ColumnDefinition progressBarStopButtonColumn;
 		public ProgressBar statusProgressBar;
+		public ProgressBar txtProgressBar;
+		public ProgressBar kmlProgressBar;
 		public Label etaLabel;
 		public System.IO.Ports.SerialPort sp;
 
