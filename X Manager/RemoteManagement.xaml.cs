@@ -29,13 +29,41 @@ namespace X_Manager
 			InitializeComponent();
 			parent = (MainWindow)p;
 			//this.sp = sp;
-			var rc = new RemoteConnector(ref sp, this);
-			connTab.Content = rc;
+			var rconn = new RemoteConnector(ref sp, this);
+			connTab.Content = rconn;
+			var rconf = new RemoteConfigurator(ref sp, this);
+			confTab.Content = rconf;
 		}
 
 		public bool connect()
 		{
 			return parent.externConnect();
+		}
+
+		public ref Units.Unit getUnit()
+		{
+			return ref parent.getReferenceUnit();
+		}
+
+		private void tabSelectionChanged(object sender, RoutedEventArgs e)
+		{
+			if (mainTab.SelectedIndex == 1)
+			{
+				((RemoteConfigurator)(confTab.Content)).read();
+			}
+		}
+
+		public void UI_disconnected(int tab)
+		{
+			if (tab == 0)
+			{
+				((RemoteConfigurator)(confTab.Content)).read();
+			}
+			else if (tab == 1)
+			{
+				((RemoteConnector)(connTab.Content)).UI_disconnected();
+			}
+
 		}
 	}
 }

@@ -360,43 +360,8 @@ namespace X_Manager.Units
 				}
 				catch { }
 				return;
-				
-				//Thread.Sleep(200);
-				//sp.BaudRate = 115200;
-				//Thread.Sleep(200);
-				//sp.Write(new byte[] { b }, 0, 1);
-				//sp.BaudRate = baudrate;
-
-				//Thread.Sleep(200);
-				//sp.Write("S");
-				//Thread.Sleep(50);
-
-				//try
-				//{
-				//	downInit = (byte)sp.ReadByte();
-				//}
-				//catch
-				//{
-				//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				//	try
-				//	{
-				//		fo.Close();
-				//	}
-				//	catch { }
-				//	return;
-				//}
 			}
-
-			//if (downInit != 0x53)
-			//{
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-			//	try
-			//	{
-			//		fo.Close();
-			//	}
-			//	catch { }
-			//	return;
-			//}
+				
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
@@ -748,11 +713,14 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				try
+				if (MainWindow.lastSettings[6].Equals("false"))
 				{
-					System.IO.File.Delete(fileNameMdp);
+					try
+					{
+						System.IO.File.Delete(fileNameMdp);
+					}
+					catch { }
 				}
-				catch { }
 			}
 
 			Thread.Sleep(600);

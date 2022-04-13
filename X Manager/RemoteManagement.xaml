@@ -8,7 +8,7 @@
         ResizeMode="NoResize"
         Title="REMOTE MANAGEMENT" Height="305" Width="630">
     <Grid>
-        <TabControl>
+        <TabControl SelectionChanged="tabSelectionChanged" x:Name="mainTab">
             <TabItem Header="Connection" x:Name="connTab">
             </TabItem>
             <TabItem Header="Configuration"  x:Name="confTab"/>

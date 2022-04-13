@@ -797,7 +797,7 @@ namespace X_Manager
 			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
 
 			byte mdrSpeed = 9;
-			mdrSpeed=8;
+			mdrSpeed = 8;
 			string br = "D";
 			if (mdrSpeed == 9) br = "H";
 			sp.Write("TTTTTTTTTTTTTTGGA" + br);
@@ -985,14 +985,20 @@ namespace X_Manager
 
 			sp.BaudRate = 115200;
 
-			if (!convertStop) extractArds(fileNameMdp, fileName, true);
+			if (!convertStop)
+			{
+				extractArds(fileNameMdp, fileName, true);
+			}
 			else
 			{
-				try
+				if (MainWindow.lastSettings[6].Equals("false"))
 				{
-					System.IO.File.Delete(fileNameMdp);
+					try
+					{
+						System.IO.File.Delete(fileNameMdp);
+					}
+					catch { }
 				}
-				catch { }
 			}
 
 			Thread.Sleep(600);

@@ -81,14 +81,19 @@ namespace X_Manager
 		//	return connectionResult;
 		//}
 
+		public void UI_disconnected()
+		{
+			wakeB.Content = "WAKE";
+			colorStep(100);
+		}
+
 		private void wakeClick(object sender, RoutedEventArgs e)
 		{
 			if (wakeB.Content.Equals("BREAK"))
 			{
 				sp.Write("TTTTTTTTTTTTTGGAO");
 				//sp.Close();
-				wakeB.Content = "WAKE";
-				colorStep(100);
+				UI_disconnected();
 				parent.connect();
 				return;
 			}

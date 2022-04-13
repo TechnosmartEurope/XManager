@@ -747,11 +747,14 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				try
+				if (MainWindow.lastSettings[6].Equals("false"))
 				{
-					System.IO.File.Delete(fileNameMdp);
+					try
+					{
+						System.IO.File.Delete(fileNameMdp);
+					}
+					catch { }
 				}
-				catch { }
 			}
 
 			Thread.Sleep(600);

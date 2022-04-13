@@ -1156,6 +1156,7 @@ namespace X_Manager
 				oUnit.disconnect();
 				oUnit.Dispose();
 				uiDisconnected();
+				oUnit = null;
 			}
 
 		}
@@ -1679,6 +1680,11 @@ namespace X_Manager
 		private void spurgo()
 		{
 			while (sp.BytesToRead != 0) sp.ReadByte();
+		}
+
+		public ref Unit getReferenceUnit()
+		{
+			return ref oUnit;
 		}
 
 		#endregion
