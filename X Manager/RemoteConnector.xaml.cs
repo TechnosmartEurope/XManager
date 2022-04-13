@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -42,6 +41,7 @@ namespace X_Manager
 		private byte remoteWakeUpAddress = 0xff;
 
 		int masterStationType = 0;
+		bool autoClose = true;
 
 		RemoteManagement parent;
 
@@ -52,7 +52,7 @@ namespace X_Manager
 		SolidColorBrush verde = new SolidColorBrush();
 		SolidColorBrush rosso = new SolidColorBrush();
 
-		string programDataListFile = System.Environment.GetFolderPath(System.Environment.SpecialFolder.CommonApplicationData) +
+		string programDataListFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) +
 			"\\TechnoSmArt Europe\\X Manager\\addressList.chn";
 		string lastListPath = "";
 
@@ -93,6 +93,11 @@ namespace X_Manager
 
 		private void wakeClick(object sender, RoutedEventArgs e)
 		{
+			autoClose = true;
+			if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Control) == System.Windows.Forms.Keys.Control)
+			{
+				autoClose = false;
+			}
 
 			MainWindow.setLatency(portShortName, 1);
 
@@ -357,7 +362,6 @@ namespace X_Manager
 			stopB.IsEnabled = false;
 		}
 
-		//private void finalize(int result)
 		private void finalize(int result, int masteStationType)
 		{
 			//parent.connectionResult = result;
@@ -370,8 +374,15 @@ namespace X_Manager
 				}
 				if (parent.connect(baudRate))
 				{
-					wakeB.Content = "BREAK";
-					parent.close();
+					if (!autoClose)
+					{
+						autoClose = true;
+					}
+					else
+					{
+						wakeB.Content = "BREAK";
+						parent.close();
+					}
 				}
 			}
 		}
@@ -572,3 +583,4 @@ namespace X_Manager
 		}
 	}
 }
+

@@ -147,3 +147,4 @@
 	Bugfix: la finestra firmware upload del gipsy6 lasciava la porta seriale impegnata dopo la chiusura
 1.15.0	Allineamento classe Gipsy6 con firmware finale 1.0.0
 	Il remote connector si chiude automaticamente quando la connessione va a buon fine.
+1.15.1	Il remote connector non si chiude automaticamente se si preme "Wake" con CTRL premuto
