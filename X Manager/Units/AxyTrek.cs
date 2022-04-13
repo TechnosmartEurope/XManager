@@ -426,7 +426,7 @@ namespace X_Manager
 				{
 					sp.Write(schedule, 128, 51);
 				}
-				
+
 				Thread.Sleep(200);
 				sp.ReadByte();
 			}
@@ -457,7 +457,7 @@ namespace X_Manager
 		public override void disconnect()
 		{
 			base.disconnect();
-			if (!remote) sp.Write("TTTTTTTGGAO");
+			sp.Write("TTTTTTTGGAO");
 		}
 
 		private uint[] calcolaSoglieDepth()
@@ -948,7 +948,7 @@ namespace X_Manager
 								firstLoop = true;
 							}
 						}
-						
+
 					}
 					else
 					{
@@ -1572,6 +1572,7 @@ namespace X_Manager
 				if (tsc.eventAr[0] == 11) tsc.stopEvent = 1;
 				else if (tsc.eventAr[0] == 12) tsc.stopEvent = 2;
 				else if (tsc.eventAr[0] == 13) tsc.stopEvent = 3;
+				else if (tsc.eventAr[0] == 14) tsc.stopEvent = 4;
 
 			}
 
@@ -1805,6 +1806,9 @@ namespace X_Manager
 							break;
 						case 3:
 							additionalInfo += "Memory full.";
+							break;
+						case 4:
+							additionalInfo += "Remote Connection.";
 							break;
 					}
 					textOut += additionalInfo + "\r\n";
@@ -2291,7 +2295,7 @@ namespace X_Manager
 					s += "Memory full, turning off.";
 					break;
 				case 14:
-					s += "Forcing to shut down.";
+					s += "Remote connection.";
 					break;
 				case 15:
 					s += "Maintenance reset. New data on next session...";

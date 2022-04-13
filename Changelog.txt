@@ -33,3 +33,6 @@
 	AxyTrek: configurazione finestre remoto
 1.5.1	Implementata memoria SingleDie anche su AxyDepth2
 	Bugfix: Axytrek remoto: corretto carattere riconoscimento dual/single die in download remoto.
+1.5.2	Axy5: allineamento con axyTrek per richiesta download 1.5 / 2 MBaud in fase di inizio download
+	Ripristinato invio comando di disconnessione al trek remoto
+	Trek remoto: riconoscimento evento "Remote Connection"
