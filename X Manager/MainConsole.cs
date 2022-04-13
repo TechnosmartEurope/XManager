@@ -60,18 +60,18 @@ namespace X_Manager
 			newPrefs[Unit.pref_leapSeconds] = "2";
 			newPrefs[Unit.pref_removeNonGps] = "False";
 
-			lastSettings = new string[11];
-			lastSettings[0] = "null";
-			lastSettings[1] = "null";
-			lastSettings[2] = "null";
-			lastSettings[3] = "";//Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads";
-			lastSettings[4] = "";// Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads";
-			lastSettings[5] = "depth";
-			lastSettings[6] = "false";
-			lastSettings[7] = "3";
-			lastSettings[8] = "\t";
-			lastSettings[9] = "A";
-			lastSettings[10] = "";// Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule\r\n";
+			//lastSettings = new string[11];
+			//lastSettings[0] = "null";
+			//lastSettings[1] = "null";
+			//lastSettings[2] = "null";
+			//lastSettings[3] = "";//Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads";
+			//lastSettings[4] = "";// Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads";
+			//lastSettings[5] = "depth";
+			//lastSettings[6] = "false";
+			//lastSettings[7] = "3";
+			//lastSettings[8] = "\t";
+			//lastSettings[9] = "A";
+			//lastSettings[10] = "";// Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule\r\n";
 
 			statusLabel = new Label();
 			statusLabel.Content = "Console";

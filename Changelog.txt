@@ -109,3 +109,5 @@
 1.12.0	Uniformate costanti di identificazione modello.
 	Aggiunta classe Drop-Off
 	Aggiunte configurazione e conversione ADC per Axy4.5
+1.12.1	AxyQuattrok: gestione zero e span per calibrazione
+	Nuovo formato file ini con parametro = valore

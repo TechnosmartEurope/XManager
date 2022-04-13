@@ -526,35 +526,46 @@ namespace X_Manager.ConfigurationWindows
 
 					if (qp.mustWrite)
 					{
-						qp.zero *= 100;
-						qp.span = Math.Round(qp.span * 100, 0);
-
-						qp.threshold *= 65;
+						qp.threshold = (1500 * qp.span / 10000) - qp.zero;
+						qp.threshold *= 55;
+						qp.threshold += 200;
 						qp.threshold /= 1000;
-						qp.threshold /= .0000625;
-						qp.threshold = Math.Round(qp.threshold, 0, MidpointRounding.ToEven);
+						qp.threshold *= 32768;
+						qp.threshold /= 2.048;
+
+						qp.span *= 1000;
+						qp.zero += 1;
+						qp.zero *= 1000;
+
 						sp.Write("TTTTTTTTTTTTTTTGGAb");
 						try
 						{
+							//Zero
 							sp.ReadByte();
 							byte b = (byte)((UInt16)qp.zero >> 8);
 							sp.Write(new byte[] { b }, 0, 1);
 							b = (byte)(qp.zero);
 							sp.Write(new byte[] { b }, 0, 1);
+
+							//Span
 							b = (byte)((UInt16)qp.span >> 8);
 							sp.Write(new byte[] { b }, 0, 1);
 							b = (byte)(qp.span);
 							sp.Write(new byte[] { b }, 0, 1);
+
+							//Threshold
 							b = (byte)((UInt16)qp.threshold >> 8);
 							sp.Write(new byte[] { b }, 0, 1);
 							b = (byte)(qp.threshold);
 							sp.Write(new byte[] { b }, 0, 1);
+							
 							sp.ReadByte();
 						}
 						catch
 						{
 							MessageBox.Show("Unit not ready.");
 						}
+
 					}
 
 

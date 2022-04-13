@@ -788,7 +788,7 @@ namespace X_Manager.Units
 			if (position > 0) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
 					try
 					{
@@ -981,7 +981,7 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
 					try
 					{
@@ -1105,7 +1105,7 @@ namespace X_Manager.Units
 			{
 				try
 				{
-					if (Parent.lastSettings[6].Equals("false"))
+					if (Parent.getParameter("keepMdp").Equals("false"))
 					{
 						fDel(fileNameMdp);
 					}
@@ -1133,7 +1133,7 @@ namespace X_Manager.Units
 			string barStatus = "";
 
 			//Imposta le preferenze di conversione
-			if ((MainWindow.lastSettings[5] == "air")) isDepth = 0;
+			if ((Parent.getParameter("pressureRange") == "air")) isDepth = 0;
 
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 

@@ -500,10 +500,10 @@ namespace X_Manager.ConfigurationWindows
 
 		private void saveScheduleAs(object sender, RoutedEventArgs e)
 		{
-			MainWindow.lastSettings = System.IO.File.ReadAllLines(iniFile);
+			//MainWindow.lastSettings = System.IO.File.ReadAllLines(iniFile);
 			var saveSchedule = new Microsoft.Win32.SaveFileDialog();
 
-			if (MainWindow.lastSettings[1] != null) saveSchedule.InitialDirectory = MainWindow.lastSettings[1];
+			if (X_Manager.Parent.getParameter("trekScheduleSavePath") != null) saveSchedule.InitialDirectory = X_Manager.Parent.getParameter("trekScheduleSavePath");
 			else saveSchedule.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
 			saveSchedule.DefaultExt = ("Schedule Files|*.sch");
@@ -512,19 +512,20 @@ namespace X_Manager.ConfigurationWindows
 			if ((bool)saveSchedule.ShowDialog())
 			{
 				exportSchedule(saveSchedule.FileName);
-				MainWindow.lastSettings[1] = System.IO.Path.GetDirectoryName(saveSchedule.FileName);
-				System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
+				X_Manager.Parent.updateParameter("trekScheduleSavePath", System.IO.Path.GetDirectoryName(saveSchedule.FileName));
+				//MainWindow.lastSettings[1] = System.IO.Path.GetDirectoryName(saveSchedule.FileName);
+				//System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
 			}
 
 		}
 
 		private void openSchedule(object sender, RoutedEventArgs e)
 		{
-			MainWindow.lastSettings = System.IO.File.ReadAllLines(iniFile);
+			//MainWindow.lastSettings = System.IO.File.ReadAllLines(iniFile);
 			var openSchedule = new Microsoft.Win32.OpenFileDialog();
-			if (MainWindow.lastSettings[2] != "null")
+			if (X_Manager.Parent.getParameter("trekScheduleOpenPath") != "null")
 			{
-				openSchedule.InitialDirectory = MainWindow.lastSettings[2];
+				openSchedule.InitialDirectory = X_Manager.Parent.getParameter("trekScheduleOpenPath");
 			}
 			else
 			{
@@ -536,8 +537,9 @@ namespace X_Manager.ConfigurationWindows
 			if ((bool)openSchedule.ShowDialog())
 			{
 				importSchedule(openSchedule.FileName);
-				MainWindow.lastSettings[2] = System.IO.Path.GetDirectoryName(openSchedule.FileName);
-				System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
+				X_Manager.Parent.updateParameter("trekScheduleOpenPath", System.IO.Path.GetDirectoryName(openSchedule.FileName));
+				//MainWindow.lastSettings[2] = System.IO.Path.GetDirectoryName(openSchedule.FileName);
+				//System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
 			}
 		}
 

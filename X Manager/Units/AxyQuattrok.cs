@@ -826,7 +826,7 @@ namespace X_Manager
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
 					try
 					{
@@ -1043,7 +1043,7 @@ namespace X_Manager
 			}
 			else
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
 					try
 					{
@@ -1168,7 +1168,7 @@ namespace X_Manager
 
 			try
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
 					fDel(fileNameMdp);
 				}
@@ -1201,7 +1201,7 @@ namespace X_Manager
 
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
-			if ((Parent.lastSettings[5] == "air")) isDepth = 0;
+			if ((Parent.getParameter("pressureRange") == "air")) isDepth = 0;
 
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 			if (addGpsTime) repeatEmptyValues = false;
@@ -1392,7 +1392,9 @@ namespace X_Manager
 				zero = ard.ReadByte() * 256 + ard.ReadByte();
 				span = ard.ReadByte() * 256 + ard.ReadByte();
 
-				span /= 100;
+				zero -= 1000;
+				zero /= 1000;
+				span /= 1000;
 
 				ard.Position += 8;
 
@@ -1677,6 +1679,7 @@ namespace X_Manager
 			tsc.stopEvent = 0;
 			ushort secondAmount = 1;
 			tsc.slowData = 0;
+			double mVmis;
 
 			tsc.tsType = ard.ReadByte();
 
@@ -1716,18 +1719,27 @@ namespace X_Manager
 				{                                   //Temperatura da sensore esterno, si suppone abilitata anche la pressione
 					ard.ReadByte();
 					tsc.temperature = ard.ReadByte() * 256 + ard.ReadByte();
-					//tsc.temperature /= 1.04;
 					tsc.temperature *= 2.048;
 					tsc.temperature /= 32768;
-					tsc.temperature -= 1;
-					tsc.temperature /= 0.00381;
+					tsc.temperature /= 2;
+					tsc.temperature = ((((tsc.temperature + 0.9943) / 0.0014957) / 1000) - 1) / 0.00381;
 					ard.ReadByte();
 					tsc.press = ard.ReadByte() * 256 + ard.ReadByte();
-					tsc.press *= 2.048;
-					tsc.press /= 32768;
-					tsc.press /= 65;
-					tsc.press = tsc.press / (span / 100000);
-					tsc.press *= 1000;
+
+					mVmis = tsc.press *= 2.04800;
+					mVmis /= 32768.00000;
+					mVmis *= 1000.0;
+
+					mVmis -= 200.00;// 201.22;//vedere se c'è un piccolo offset dovuto alla scheda stessa//6174 198mV  6234 201.8mV 6242 202.2mV
+					mVmis /= 55.00000;
+
+					//zero = 0.540;
+					//span = 27.752;
+					//m = FS/((zero+span)-zero);
+					//q = -(m * zero);
+					//tsc.press = m * mVmis + q;
+					tsc.press = (((mVmis - zero) / span) * 10000) + 980;
+					//tsc.press += 1013.0;
 				}
 			}
 

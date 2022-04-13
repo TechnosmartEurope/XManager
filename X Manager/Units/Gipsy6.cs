@@ -69,6 +69,7 @@ namespace X_Manager.Units
 			public int inWater;
 			public int inAdc;
 			public int ADC;
+			public int GPS_second;
 			public int pos
 			{
 				get => _pos;
@@ -107,14 +108,18 @@ namespace X_Manager.Units
 				tout.timeStampLength = this.timeStampLength;
 				tout.dateTime = this.dateTime;
 				tout.infoAr = new byte[this.infoAr.Length];
-				tout.eventAr = new byte[this.eventAr.Length];
 				Array.Copy(this.infoAr, tout.infoAr, infoAr.Length);
-				Array.Copy(this.eventAr, tout.eventAr, eventAr.Length);
+				if (this.eventAr != null)
+				{
+					tout.eventAr = new byte[this.eventAr.Length];
+					Array.Copy(this.eventAr, tout.eventAr, eventAr.Length);
+				}
 				tout.isEvent = this.isEvent;
 				tout.stopEvent = this.stopEvent;
 				tout.inWater = this.inWater;
 				tout.inAdc = this.inAdc;
 				tout.ADC = this.ADC;
+				tout.GPS_second = this.GPS_second;
 				tout.resetPos(this.pos);
 
 				return tout;
@@ -166,12 +171,6 @@ namespace X_Manager.Units
 			{
 				//sp.Write(new byte[] { 0 }, 0, 1);
 				sp.Write("TTTTTTGGA" + command);
-				//sviluppo
-				if (command == "m")
-				{
-					y = 0;
-				}
-				///sviluppo
 				goon = true;
 				try
 				{
@@ -186,6 +185,7 @@ namespace X_Manager.Units
 				if (test == command.ToArray()[0])   //Il comando è arrivato giusto, si manda conferma e si continua
 				{
 					sp.Write("K");
+					Thread.Sleep(10);
 					goon = true;
 					break;
 				}
@@ -341,6 +341,7 @@ namespace X_Manager.Units
 				dateAr[3] = (byte)dateToSend.Day;
 				dateAr[4] = (byte)dateToSend.Month;
 				dateAr[5] = (byte)(dateToSend.Year - 2000);
+				Thread.Sleep(10);
 				sp.Write(dateAr, 0, 6);
 				sp.ReadByte();
 			}
@@ -433,6 +434,7 @@ namespace X_Manager.Units
 					throw new Exception(unitNotReady);
 					return;
 				}
+				Thread.Sleep(10);
 				sp.ReadTimeout = 200;
 				sp.Write(name, 0, 28);
 				int res = 0;
@@ -910,7 +912,7 @@ namespace X_Manager.Units
 
 			try
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (X_Manager.Parent.getParameter("keepMdp").Equals("false"))
 				{
 					System.IO.File.Delete(fileNameMdp);
 				}
@@ -999,7 +1001,16 @@ namespace X_Manager.Units
 				//	txtSem.WaitOne();
 				//	kmlSem.WaitOne();
 				//}
-				noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);   //decodifica il timestamp
+				try
+				{
+					noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);   //decodifica il timestamp
+				}
+				catch
+				{
+					break;
+				}
+
+
 				if (noStampBuffer.Count == 1)   //Segnale di fine file
 				{
 					break;
@@ -1095,6 +1106,12 @@ namespace X_Manager.Units
 				}
 				tabs[0] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
 				tabs[1] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				//sviluppo
+				if ((t.tsType & ts_coordinate) == ts_coordinate)
+				{
+					tabs[1] += "-G(" + t.GPS_second.ToString("00") + ")";
+				}
+				///sviluppo
 				if ((t.tsType & ts_battery) == ts_battery)
 				{
 					tabs[6] = t.batteryLevel.ToString("0.00") + "V";
@@ -1318,222 +1335,6 @@ namespace X_Manager.Units
 			//return doubleResultArray;
 			return new double[] { };
 		}
-
-		//private void groupConverter(ref TimeStamp tsLoc, double[] group, string unitName, ref string sBuffer)
-		//{
-		//	string dateTimeS;
-		//	string ampm = "";
-		//	string dateS = "";
-		//	//int contoTab = 0;
-
-		//	//Compila data e ora
-		//	dateS = tsLoc.orario.ToString(dateFormatParameter);
-		//	var dateCi = new CultureInfo("it-IT");
-		//	if (angloTime) dateCi = new CultureInfo("en-US");
-		//	dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
-		//	if (angloTime)
-		//	{
-		//		ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
-		//		dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
-		//	}
-
-		//	sBuffer += unitName + csvSeparator + dateTimeS + ".000";
-
-		//	//Inserisce le coordinate
-		//	if (((tsLoc.tsType & ts_coordinate) == ts_coordinate) | repeatEmptyValues)
-		//	{
-		//		sBuffer += csvSeparator + tsLoc.lon.ToString("000.0000000") + csvSeparator + tsLoc.lat.ToString("00.0000000");
-		//		sBuffer += csvSeparator + tsLoc.altitude.ToString("0.00") + csvSeparator + tsLoc.speed.ToString("0.00") + csvSeparator + tsLoc.dop.ToString("0.00");
-		//		sBuffer += csvSeparator + tsLoc.sat.ToString() + csvSeparator + tsLoc.gsvSum.ToString();    //rimuovere "X4" dopo sviluppo
-		//	}
-		//	else
-		//	{
-		//		sBuffer += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
-		//	}
-		//	//contoTab=7;
-
-		//	//Inserisce la batteria
-		//	if (prefBattery)
-		//	{
-		//		if (((tsLoc.tsType & ts_battery) == ts_battery) | repeatEmptyValues)
-		//		{
-		//			sBuffer += csvSeparator + (tsLoc.batteryLevel.ToString("0.00"));
-		//		}
-		//		else
-		//		{
-		//			sBuffer += csvSeparator;
-		//		}
-		//		//contoTab++;
-		//	}
-
-		//	//Inserisce i metadati
-		//	if (metadata)
-		//	{
-		//		if (((tsLoc.tsType & ts_event) == ts_event) | repeatEmptyValues)
-		//		{
-		//			sBuffer += csvSeparator + decodeEvent(ref tsLoc);
-		//		}
-		//		else
-		//		{
-		//			sBuffer += csvSeparator;
-		//		}
-		//		//contoTab++;
-		//	}
-
-		//	sBuffer += "\r\n";
-
-
-
-		//	//double x, y, z;
-		//	//int milli = 0;
-		//	//string activityWater = "";
-
-		//	//textOut = "";
-		//	//x = group[0] * gCoeff;
-		//	//y = group[1] * gCoeff;
-		//	//z = group[2] * gCoeff;
-
-		//	//textOut += unitName + csvSeparator + dateTimeS + ".000";
-		//	//if (angloTime) textOut += " " + ampm;
-		//	//textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
-
-		//	//additionalInfo = "";
-		//	//if (debugLevel > 2) additionalInfo += csvSeparator + tsLoc.timeStampLength.ToString();  //sviluppo
-
-		//	//contoTab += 1;
-		//	//if ((tsLoc.tsType & 64) == 64) activityWater = "Active";
-		//	//else activityWater = "Inactive";
-		//	//if ((tsLoc.tsType & 128) == 128) activityWater += "/Wet";
-		//	//else activityWater += "/Dry";
-
-		//	//additionalInfo += csvSeparator + activityWater;
-
-		//	//if (pressureEnabled > 0)
-		//	//{
-		//	//	contoTab += 1;
-		//	//	additionalInfo += csvSeparator;
-		//	//	if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
-		//	//}
-		//	//if (temperatureEnabled > 0)
-		//	//{
-		//	//	contoTab += 1;
-		//	//	additionalInfo += csvSeparator;
-		//	//	if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
-		//	//}
-
-		//	////Inserire la coordinata.
-		//	//contoTab += 7;
-		//	//if (((tsLoc.tsType & 16) == 16) | repeatEmptyValues)
-		//	//{
-		//	//	string altSegno, eo, ns;
-		//	//	altSegno = eo = ns = "-";
-		//	//	if (tsLoc.altSegno == 0) altSegno = "";
-		//	//	if (tsLoc.eo == 1) eo = "";
-		//	//	if (tsLoc.ns == 1) ns = "";
-		//	//	double speed = tsLoc.vel * 3.704;
-		//	//	double lon, lat = 0;
-
-		//	//	lon = ((tsLoc.lonMinuti + (tsLoc.lonMinDecH / 100.0) + (tsLoc.lonMinDecL / 10000.0) + (tsLoc.lonMinDecLL / 100000.0)) / 60) + tsLoc.lonGradi;
-		//	//	lat = ((tsLoc.latMinuti + (tsLoc.latMinDecH / 100.0) + (tsLoc.latMinDecL / 10000.0) + (tsLoc.latMinDecLL / 100000.0)) / 60) + tsLoc.latGradi;
-
-		//	//	additionalInfo += csvSeparator + ns + lat.ToString("#00.00000", nfi);
-		//	//	additionalInfo += csvSeparator + eo + lon.ToString("#00.00000", nfi);
-		//	//	additionalInfo += csvSeparator + altSegno + ((tsLoc.altH * 256 + tsLoc.altL) * 2).ToString();
-		//	//	additionalInfo += csvSeparator + speed.ToString("0.0", nfi);
-		//	//	additionalInfo += csvSeparator + tsLoc.nSat.ToString();
-		//	//	additionalInfo += csvSeparator + tsLoc.DOP.ToString() + "." + tsLoc.DOPdec.ToString();
-		//	//	additionalInfo += csvSeparator + tsLoc.gsvSum.ToString();
-		//	//}
-		//	//else
-		//	//{
-		//	//	additionalInfo += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
-		//	//}
-
-		//	////Inserisce il sensore analogico
-		//	//if (adcLog)
-		//	//{
-		//	//	contoTab += 1;
-		//	//	additionalInfo += csvSeparator;
-		//	//	if (((tsLoc.tsTypeExt1 & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.ADC.ToString("0000");
-		//	//}
-
-		//	//if (adcStop)
-		//	//{
-		//	//	contoTab += 1;
-		//	//	additionalInfo += csvSeparator;
-		//	//	if (((tsLoc.tsTypeExt1 & 4) == 4) | repeatEmptyValues) additionalInfo += "Threshold crossed";
-		//	//}
-
-		//	////Inserisce la batteria
-		//	//if (prefBattery)
-		//	//{
-		//	//	contoTab += 1;
-		//	//	additionalInfo += csvSeparator;
-		//	//	if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString("0.00", nfi);
-		//	//}
-
-		//	////Inserisce i metadati
-		//	//if (metadata)
-		//	//{
-		//	//	contoTab += 1;
-		//	//	additionalInfo += csvSeparator;
-		//	//	if (tsLoc.stopEvent > 0)
-		//	//	{
-		//	//		switch (tsLoc.stopEvent)
-		//	//		{
-		//	//			case 1:
-		//	//				additionalInfo += "Low battery.";
-		//	//				break;
-		//	//			case 2:
-		//	//				additionalInfo += "Power off command received.";
-		//	//				break;
-		//	//			case 3:
-		//	//				additionalInfo += "Memory full.";
-		//	//				break;
-		//	//		}
-		//	//		textOut += additionalInfo + "\r\n";
-		//	//		return;// textOut;
-		//	//	}
-		//	//}
-
-		//	//textOut += additionalInfo + "\r\n";
-
-		//	//if (tsLoc.stopEvent > 0) return;// textOut;
-
-		//	//if (!repeatEmptyValues)
-		//	//{
-		//	//	additionalInfo = "";
-		//	//	for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
-		//	//}
-
-		//	//milli += addMilli;
-		//	//dateTimeS += ".";
-		//	//if (tsLoc.stopEvent > 0) bitsDiv = 1;
-
-		//	//var iend = (short)(rate * 3);
-
-		//	//for (short i = 3; i < iend; i += 3)
-		//	//{
-		//	//	x = group[i] * gCoeff;
-		//	//	y = group[i + 1] * gCoeff;
-		//	//	z = group[i + 2] * gCoeff;
-
-		//	//	if (rate == 1)
-		//	//	{
-		//	//		tsLoc.orario = tsLoc.orario.AddSeconds(1);
-		//	//		dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
-		//	//	}
-		//	//	textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
-
-		//	//	if (angloTime) textOut += " " + ampm;
-		//	//	textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
-
-		//	//	textOut += additionalInfo + "\r\n";
-		//	//	milli += addMilli;
-		//	//}
-		//}
-
-
 		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t, ref int pos)
 		{
 
@@ -1603,6 +1404,10 @@ namespace X_Manager.Units
 			{
 				if (gp6[pos] > 0x7f)
 				{
+					//sviluppo
+					t.GPS_second = gp6[pos] - 0x80;
+					///sviluppo
+
 					int llon;
 					llon = gp6[pos + 1] << 24;
 					llon += gp6[pos + 2] << 16;
@@ -1627,7 +1432,7 @@ namespace X_Manager.Units
 			if ((t.tsType & ts_event) == ts_event)
 			{
 				t.eventAr = new byte[10];
-				int evLength = gp6[pos]+2;
+				int evLength = gp6[pos] + 2;
 				Array.Copy(gp6, pos, t.eventAr, 0, evLength);
 				pos += evLength;
 			}

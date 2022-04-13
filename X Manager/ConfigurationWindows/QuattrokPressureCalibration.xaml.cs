@@ -36,15 +36,20 @@ namespace X_Manager.ConfigurationWindows
 		{
 			zero = coeffs[0] * 256 + coeffs[1];
 			span = coeffs[2] * 256 + coeffs[3];
-			zero /= 100;
-			span /= 100;
+
+			zero -= 1000;
+			zero /= 1000;
+
+			span /= 1000;
+
 			zeroTB.Text = zero.ToString();
 			spanTB.Text = span.ToString();
 
-			double m = span / 100;  //Coefficiente retta (passa per zero per ora)
-			threshold = m * 1.5;    //Calcolo uscita tensione dal sensore a 5m profondità
+			genThreshold();
+			//double m = span / 100;  //Coefficiente retta (passa per zero per ora)
+			//threshold = m * 1.5;    //Calcolo uscita tensione dal sensore a 5m profondità
 
-			thresholdTB.Text = Math.Round(threshold, 2).ToString();
+			//thresholdTB.Text = Math.Round(threshold, 2).ToString();
 
 		}
 
@@ -78,10 +83,14 @@ namespace X_Manager.ConfigurationWindows
 				return;
 			}
 			this.zero = zero;
-			double m = span / 100;  //Coefficiente retta (passa per zero per ora)
-			threshold = m * 1.5;    //Calcolo uscita tensione dal sensore a 5m profondità
+			genThreshold();
+			//zero += 1000;
+			//zero *= 1000;
 
-			thresholdTB.Text = Math.Round(threshold, 2).ToString();
+			//double m = span / 100;  //Coefficiente retta (passa per zero per ora)
+			//threshold = m * 1.5;    //Calcolo uscita tensione dal sensore a 5m profondità
+
+			//thresholdTB.Text = Math.Round(threshold, 2).ToString();
 		}
 
 		private void spanTB_LostFocus(object sender, RoutedEventArgs e)
@@ -108,11 +117,21 @@ namespace X_Manager.ConfigurationWindows
 				spanTB.Text = this.span.ToString();
 				return;
 			}
-			this.span = span;
-			double m = span / 100;  //Coefficiente retta (passa per zero per ora)
-			threshold = m * 1.5;    //Calcolo uscita tensione dal sensore a 5m profondità
 
-			thresholdTB.Text = Math.Round(threshold, 2).ToString();
+			this.span = span;
+			genThreshold();
+			//span *= 1000;
+
+			//threshold = m * 1.5;    //Calcolo uscita tensione dal sensore a 5m profondità
+
+			//thresholdTB.Text = Math.Round(threshold, 2).ToString();
+		}
+
+		private void genThreshold()
+		{
+			double threshold = (1500 * span / 10000) - zero;
+			threshold = Math.Round(threshold, 2);
+			thresholdTB.Text = threshold.ToString();
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)

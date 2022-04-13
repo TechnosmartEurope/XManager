@@ -825,7 +825,7 @@ namespace X_Manager
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
 					try
 					{
@@ -1042,7 +1042,7 @@ namespace X_Manager
 			}
 			else
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
 					try
 					{
@@ -1059,7 +1059,7 @@ namespace X_Manager
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
 		{
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusLabel.Content = "Creating Ard file(s)..."));
-			var mdp = new BinaryReader(System.IO.File.Open(fileNameMdp, FileMode.Open));
+			var mdp = new BinaryReader(File.Open(fileNameMdp, FileMode.Open));
 
 			BinaryWriter ard = BinaryWriter.Null;
 			//ushort packLength = 255;
@@ -1167,7 +1167,7 @@ namespace X_Manager
 
 			try
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
 					fDel(fileNameMdp);
 				}
@@ -1200,7 +1200,7 @@ namespace X_Manager
 
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
-			if ((Parent.lastSettings[5] == "air")) isDepth = 0;
+			if ((Parent.getParameter("pressureRange") == "air")) isDepth = 0;
 
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 			if (addGpsTime) repeatEmptyValues = false;

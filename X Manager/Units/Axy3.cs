@@ -323,7 +323,7 @@ namespace X_Manager.Units
             if (!convertStop) extractArds(fileNameMdp, fileName, true);
             else
             {
-                if (Parent.lastSettings[6].Equals("false"))
+                if (Parent.getParameter("keepMdp").Equals("false"))
                 {
                     try
                     {
@@ -437,7 +437,7 @@ namespace X_Manager.Units
 
             try
             {
-                if ((Parent.lastSettings[6].Equals("false")) | (!connected)) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
+                if ((Parent.getParameter("keepMdp").Equals("false")) | (!connected)) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
                 else
                 {
                     if (!Path.GetExtension(fileNameMdp).Contains("Dump"))

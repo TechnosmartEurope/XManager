@@ -189,6 +189,7 @@ namespace X_Manager
 
 		public bool realTimeStatus = false;
 		public bool convertStop = false;
+		public bool unitConnected = false;
 		//List<bool> controlStatus;
 		//ChartWindow charts;
 		UInt16 convFileTot;
@@ -297,7 +298,8 @@ namespace X_Manager
 			initPicture();
 			//scanButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 			scanPorts();
-			switch (lastSettings[5])
+			string press = getParameter("pressureRange", "depth");
+			switch (press)
 			{
 				case "depth":
 					depthSubItem.IsChecked = true;
@@ -308,14 +310,27 @@ namespace X_Manager
 					airSubItem.IsChecked = true;
 					break;
 			}
-			keepMdpItem.IsChecked = false;
-			if (lastSettings[6] == "true") keepMdpItem.IsChecked = true;
-			selectDownloadSpeed(lastSettings[7]);
-			csvSeparatorChanged(lastSettings[8]);
+			keepMdpItem.IsChecked = bool.Parse(getParameter("keepMdp", "true"));
+			//keepMdpItem.IsChecked = false;
+			//if (lastSettings[6] == "true") keepMdpItem.IsChecked = true;
+			//selectDownloadSpeed(lastSettings[7]);
+			//csvSeparatorChanged(lastSettings[8]);
+			selectDownloadSpeed(getParameter("downloadSpeed", "3"));
+			csvSeparatorChanged(getParameter("csvSeparator", "\t"));
 			normalViewTabItem.IsSelected = true;
 
-			if (lastSettings[9].Equals("A")) downloadAutomatic.IsChecked = true;
-			if (lastSettings[9].Equals("M")) downloadManual.IsChecked = true;
+			switch (getParameter("downloadMode", "A"))
+			{
+				case "A":
+					downloadAutomatic.IsChecked = true;
+					break;
+				case "M":
+					downloadManual.IsChecked = true;
+					break;
+			}
+
+			//if (lastSettings[9].Equals("A")) downloadAutomatic.IsChecked = true;
+			//if (lastSettings[9].Equals("M")) downloadManual.IsChecked = true;
 
 			downloadManual.Checked += downloadModeChecked;
 			downloadManual.Unchecked += downloadModeChecked;
@@ -417,47 +432,48 @@ namespace X_Manager
 		{
 			try
 			{
-				lastSettings = System.IO.File.ReadAllLines(iniFile);
+				settings = File.ReadAllLines(iniFile);
 			}
 			catch
 			{
-				lastSettings = new string[] { "\r\n" };
+				settings = new string[] { "\r\n" };
 			}
 
-			if (!System.IO.File.Exists(iniFile) | lastSettings.Length != 11)
+			if (!File.Exists(iniFile) | !settings[0].Contains("="))
 			{
-				if (!System.IO.Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder))
+				if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder))
 				{
 
-					System.IO.Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder);
+					Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder);
 				}
 
 				string fileBody = "";
 				//crea il file ini nella cartella e scrive la prima riga per l\\immagine di sfondo (0)
-				fileBody = "null\r\n";
+				fileBody = "backgroundImagePath=null\r\n";
 				//Scrive la cartella per il salvataggio dei file di schedule (1)
-				fileBody += "null\r\n";
+				fileBody += "trekScheduleSavePath=null\r\n";
 				//Scrive la cartella per l//apertura dei file di schedule (2)
-				fileBody += "null\r\n";
+				fileBody += "trekScheduleOpenPath=null\r\n";
 				//scrive il file ini per la cartella file Save (3)
-				fileBody += Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads\r\n";
-				if (!System.IO.Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads"))
+				fileBody += "dataSavePath=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads\r\n";
+				if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads"))
 				{
-					System.IO.Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads");
+					Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads");
 				}
 				//Scrive il file ini per la cartella Convert (4)
-				fileBody += Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads\r\n";
+				fileBody += "convertPath=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads\r\n";
 				//Scrive il tipo di conversione del sensore di pressione
-				fileBody += "depth\r\n";
+				fileBody += "pressureRange=depth\r\n";
 				//Scrive l//opzione per lasciare su disco il file mdp dopo il download
-				fileBody += "false\r\n";
+				fileBody += "keepMdp=true\r\n";
 				//Scrive la velocità di download
-				fileBody += "3\r\n";
+				fileBody += "downloadSpeed=3\r\n";
 				//Scrive il separatore csv
-				fileBody += ",\r\n";
+				fileBody += "csvSeparator=\t\r\n";
 				//Scrive la modalità download
-				fileBody += "A\r\n";
-				fileBody += Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule\r\n";
+				fileBody += "downloadMode=A\r\n";
+				//Scrive il percorso schedule Axy5
+				fileBody += "axy5SchedulePath=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule\r\n";
 				if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule"))
 				{
 					Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule");
@@ -465,11 +481,12 @@ namespace X_Manager
 				File.WriteAllText(iniFile, fileBody);
 			}
 
-			lastSettings = File.ReadAllLines(iniFile);
+			settings = File.ReadAllLines(iniFile);
 		}
 
 		private void uiDisconnected()
 		{
+			unitConnected = false;
 			modelLabel.Content = "";
 			firmwareLabel.Content = "";
 			unitNameTextBox.Text = "";
@@ -495,6 +512,7 @@ namespace X_Manager
 			realTimeSP.Visibility = Visibility.Hidden;
 			configurePositionButton.Visibility = Visibility.Visible;
 			configureMovementButton.Content = "Accelerometer Configuration";
+			configurePositionButton.Content = "GPS configuration";
 			try
 			{
 				sp.Close();
@@ -507,6 +525,7 @@ namespace X_Manager
 
 		private void uiConnected()
 		{
+			unitConnected = true;
 			unitNameTextBox.IsEnabled = true;
 			unitNameButton.IsEnabled = true;
 			comPortComboBox.IsEnabled = false;
@@ -538,8 +557,9 @@ namespace X_Manager
 				case Unit.model_Gipsy6:
 					unitNameTextBox.MaxLength = 27;
 					configureMovementButton.IsEnabled = true;
+					configurePositionButton.IsEnabled = true;
 					configureMovementButton.Content = "CONFIGURATION";
-					configurePositionButton.Visibility = Visibility.Hidden;
+					configurePositionButton.Content = "Upload new firmware";
 					break;
 				case Unit.model_drop_off:
 					configureMovementButton.Content = "Drop-off timer configuration";
@@ -732,8 +752,8 @@ namespace X_Manager
 
 		private void openDataFolder(object sender, RoutedEventArgs e)
 		{
-			lastSettings = System.IO.File.ReadAllLines(iniFile);
-			System.Diagnostics.Process.Start(lastSettings[4]);
+			//lastSettings = File.ReadAllLines(iniFile);
+			System.Diagnostics.Process.Start(getParameter("dataSavePath"));
 		}
 
 		void tabControlTabChanged(object sender, RoutedEventArgs e)
@@ -898,20 +918,22 @@ namespace X_Manager
 			downloadAutomatic.Checked -= downloadModeChecked;
 			downloadManual.Unchecked -= downloadModeChecked;
 			downloadAutomatic.Unchecked -= downloadModeChecked;
-			lastSettings = System.IO.File.ReadAllLines(iniFile);
+			//lastSettings = System.IO.File.ReadAllLines(iniFile);
 			if (((MenuItem)sender).Name.Equals("downloadAutomatic"))
 			{
 				downloadAutomatic.IsChecked = true;
 				downloadManual.IsChecked = false;
-				lastSettings[9] = "A";
-				System.IO.File.WriteAllLines(iniFile, lastSettings);
+				updateParameter("downloadMode", "A");
+				//lastSettings[9] = "A";
+				//System.IO.File.WriteAllLines(iniFile, lastSettings);
 			}
 			else
 			{
 				downloadManual.IsChecked = true;
 				downloadAutomatic.IsChecked = false;
-				lastSettings[9] = "M";
-				System.IO.File.WriteAllLines(iniFile, lastSettings);
+				updateParameter("downloadMode", "M");
+				//lastSettings[9] = "M";
+				//System.IO.File.WriteAllLines(iniFile, lastSettings);
 			}
 			downloadManual.Checked += downloadModeChecked;
 			downloadAutomatic.Checked += downloadModeChecked;
@@ -994,9 +1016,9 @@ namespace X_Manager
 			var openPicture = new Microsoft.Win32.OpenFileDialog();
 			openPicture.DefaultExt = ("JPG Files|*.jpg");
 			openPicture.Filter = ("JPG Files|*.jpg|PNG Files|*.png|BMP Files|*.bmp");
-			if (System.IO.File.Exists(System.IO.Path.GetDirectoryName(lastSettings[0])))
+			if (File.Exists(System.IO.Path.GetDirectoryName(getParameter("backgroundImagePath"))))
 			{
-				openPicture.InitialDirectory = System.IO.Path.GetDirectoryName(lastSettings[0]);
+				openPicture.InitialDirectory = System.IO.Path.GetDirectoryName(getParameter("backgroundImagePath"));
 			}
 
 
@@ -1004,8 +1026,9 @@ namespace X_Manager
 			{
 				return;
 			}
-			lastSettings[0] = openPicture.FileName;
-			System.IO.File.WriteAllLines(iniFile, lastSettings);
+			updateParameter("backgroundImagePath", openPicture.FileName);
+			//lastSettings[0] = openPicture.FileName;
+			//System.IO.File.WriteAllLines(iniFile, lastSettings);
 			try
 			{
 				var bmp = new BitmapImage();
@@ -1027,38 +1050,40 @@ namespace X_Manager
 
 		void airSensorSelected(object sender, RoutedEventArgs e)
 		{
-			loadUserPrefs();
-			lastSettings = System.IO.File.ReadAllLines(iniFile);
-			lastSettings[5] = "air";
-			System.IO.File.WriteAllLines(iniFile, lastSettings);
-
+			//loadUserPrefs();
+			//lastSettings = System.IO.File.ReadAllLines(iniFile);
+			//lastSettings[5] = "air";
+			//System.IO.File.WriteAllLines(iniFile, lastSettings);
+			updateParameter("pressureRange", "air");
 			depthSubItem.IsChecked = false;
 			airSubItem.IsChecked = true;
 		}
 
 		void depthSensorSelected(object sender, RoutedEventArgs e)
 		{
-			loadUserPrefs();
-			lastSettings = System.IO.File.ReadAllLines(iniFile);
-			lastSettings[5] = "depth";
-			System.IO.File.WriteAllLines(iniFile, lastSettings);
-
+			//loadUserPrefs();
+			//lastSettings = System.IO.File.ReadAllLines(iniFile);
+			//lastSettings[5] = "depth";
+			//System.IO.File.WriteAllLines(iniFile, lastSettings);
+			updateParameter("pressureRange", "depth");
 			depthSubItem.IsChecked = true;
 			airSubItem.IsChecked = false;
 		}
 
 		void keepMdpClicked(object sender, RoutedEventArgs e)
 		{
-			lastSettings = System.IO.File.ReadAllLines(iniFile);
+			//lastSettings = System.IO.File.ReadAllLines(iniFile);
 			if (keepMdpItem.IsChecked)
 			{
-				lastSettings[6] = "true";
+				//lastSettings[6] = "true";
+				updateParameter("keepMdp", "true");
 			}
 			else
 			{
-				lastSettings[6] = "false";
+				//lastSettings[6] = "false";
+				updateParameter("keepMdp", "false");
 			}
-			System.IO.File.WriteAllLines(iniFile, lastSettings);
+			//System.IO.File.WriteAllLines(iniFile, lastSettings);
 		}
 
 		void selectDownloadSpeed(string speed)
@@ -1082,8 +1107,9 @@ namespace X_Manager
 					speed3.IsChecked = true;
 					break;
 			}
-			lastSettings[7] = speed;
-			System.IO.File.WriteAllLines(iniFile, lastSettings);
+			updateParameter("downloadSpeed", speed);
+			//lastSettings[7] = speed;
+			//System.IO.File.WriteAllLines(iniFile, lastSettings);
 		}
 
 		void speedLegacySelected(object sender, RoutedEventArgs e)
@@ -1120,12 +1146,13 @@ namespace X_Manager
 				case ";":
 					semicolonSubItem.IsChecked = true;
 					break;
-				case "\r\n":
+				case "\t":
 					tabSubItem.IsChecked = true;
 					break;
 			}
-			lastSettings[8] = sep;
-			System.IO.File.WriteAllLines(iniFile, lastSettings);
+			updateParameter("csvSeparator", sep);
+			//lastSettings[8] = sep;
+			//File.WriteAllLines(iniFile, lastSettings);
 		}
 
 		void tabSepSel(object sender, RoutedEventArgs e)
@@ -1195,11 +1222,6 @@ namespace X_Manager
 				connectButton.IsEnabled = true;
 			}
 		}
-
-		//void scanClick(object sender, RoutedEventArgs e)
-		//{
-		//	scanPorts();
-		//}
 
 		private async Task pbTask()
 		{
@@ -1522,7 +1544,7 @@ namespace X_Manager
 				{
 					sp.Open();
 				}
-				if (oUnit is AxyTrek)
+				if ((oUnit is AxyTrek) | (oUnit is AxyQuattrok))
 				{
 					type = 1;
 				}
@@ -1583,9 +1605,9 @@ namespace X_Manager
 			string oldCon = (string)statusLabel.Content;
 			statusProgressBar.IsIndeterminate = true;
 			statusLabel.Content = "Downloading...";
-			lastSettings = File.ReadAllLines(iniFile);
+			//lastSettings = File.ReadAllLines(iniFile);
 
-			if (lastSettings[9].Equals("A"))    //Controllo memoria vuota
+			if (getParameter("downloadMode").Equals("A"))    //Controllo memoria vuota
 			{
 				if (oUnit.mem_address == oUnit.mem_max_logical_address)
 				{
@@ -1606,9 +1628,9 @@ namespace X_Manager
 			saveRaw.DefaultExt = "Ard file|*." + oUnit.defaultArdExtension;
 			saveRaw.Filter = "Ard file|*." + oUnit.defaultArdExtension;
 
-			if (File.Exists(lastSettings[3]))
+			if (File.Exists(getParameter("dataSavePath")))
 			{
-				saveRaw.InitialDirectory = lastSettings[3];
+				saveRaw.InitialDirectory = getParameter("dataSavePath");
 			}
 
 			if ((saveRaw.ShowDialog() == false))
@@ -1620,13 +1642,13 @@ namespace X_Manager
 				statusProgressBar.IsIndeterminate = false;
 				return;
 			}
-
-			lastSettings[3] = System.IO.Path.GetDirectoryName(saveRaw.FileName);
-			File.WriteAllLines(iniFile, lastSettings);
+			updateParameter("dataSavePath", System.IO.Path.GetDirectoryName(saveRaw.FileName));
+			//lastSettings[3] = System.IO.Path.GetDirectoryName(saveRaw.FileName);
+			//File.WriteAllLines(iniFile, lastSettings);
 			UInt32 fromMemory = 0;
 			UInt32 toMemory = 0;
 
-			if (lastSettings[9].Equals("A"))
+			if (getParameter("downloadMode").Equals("A"))
 			{
 				if ((oUnit is Axy5) | (oUnit is Gipsy6))
 				{
@@ -1731,11 +1753,11 @@ namespace X_Manager
 		private void convertDataClick(object sender, RoutedEventArgs e)
 		{
 			askOverwrite = true;
-			lastSettings = System.IO.File.ReadAllLines(iniFile);
+			//lastSettings = System.IO.File.ReadAllLines(iniFile);
 			Microsoft.Win32.OpenFileDialog fOpen = new Microsoft.Win32.OpenFileDialog();
-			if (File.Exists(lastSettings[4]))
+			if (File.Exists(getParameter("convertPath")))
 			{
-				fOpen.InitialDirectory = lastSettings[4];
+				fOpen.InitialDirectory = getParameter("convertPath");
 			}
 
 			//fOpen.FileName = "*.ard";
@@ -1747,8 +1769,8 @@ namespace X_Manager
 				return;
 			}
 
-			lastSettings[4] = System.IO.Path.GetDirectoryName(fOpen.FileName);
-			File.WriteAllLines(iniFile, lastSettings);
+			updateParameter("convertPath", System.IO.Path.GetDirectoryName(fOpen.FileName));
+			//File.WriteAllLines(iniFile, lastSettings);
 			convFiles = new List<string>();
 			convFiles.AddRange(fOpen.FileNames);
 			convertDataLaunch();
@@ -2072,7 +2094,7 @@ namespace X_Manager
 		}
 		private void initPicture()
 		{
-			if (lastSettings[0].Contains("null") | !System.IO.File.Exists(lastSettings[0]))
+			if (getParameter("backgroundImagePath").Contains("null") | !File.Exists(getParameter("backgroundImagePath")))
 			{
 				var png = new BitmapImage();
 				png.BeginInit();
@@ -2087,7 +2109,7 @@ namespace X_Manager
 				//pictureBox.Source= ImageSourceForBitmap(new Uri(lastSettings[0]));
 				var png = new BitmapImage();
 				png.BeginInit();
-				png.UriSource = new Uri(lastSettings[0], UriKind.Absolute);
+				png.UriSource = new Uri(getParameter("backgroundImagePath"), UriKind.Absolute);
 				png.EndInit();
 				pictureBox.Source = png;
 			}
@@ -2112,8 +2134,8 @@ namespace X_Manager
 				{
 					if (System.IO.Path.GetExtension(files[0]) == ".jpg" | System.IO.Path.GetExtension(files[0]) == ".bmp" | System.IO.Path.GetExtension(files[0]) == ".png")
 					{
-						lastSettings[0] = files[0];
-						System.IO.File.WriteAllLines(iniFile, lastSettings);
+						updateParameter("backgroundImagePath", files[0]);
+						//File.WriteAllLines(iniFile, lastSettings);
 						var bmp = new BitmapImage();
 						bmp.BeginInit();
 						bmp.UriSource = new Uri(files[0], UriKind.Absolute);
