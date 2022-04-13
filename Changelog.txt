@@ -78,3 +78,7 @@
 	AxyTrek: nella conversione rem viene utilizza data (ma non ora) della precedente sessione (se valida) come data in caso di fix gps 06/01/1980
 	AxyTrek: indicazione di nuova sessione nel txt dai rem
 1.9.4	AxyTrek: indicazione di nuova sessione nel txt dai rem inserita solo in caso di debugLevel > 0
+1.9.5	Rimossa restrizione tipologia FTDI dall'elenco porte COM
+	Bugfix: ripristinata funzione comando stop durante conversione dei rem
+	Bugfix: se le sessioni dei rem sono 254 la conversione crasha nel costruire l'array delle sessioni
+	Introdotte prime funzionalità per gestione gipsy6 (Texas)

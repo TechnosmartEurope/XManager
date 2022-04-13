@@ -138,18 +138,26 @@ namespace X_Manager.Units
 
 		public override string askName()
 		{
-			string unitNameBack;
+			name = "";
 			try
 			{
 				sp.ReadExisting();
 				sp.Write("TTTTTTTGGAN");
-				unitNameBack = sp.ReadLine();
+				byte nIn = 255;
+				for (int i = 0; i < 28; i++)
+				{
+					nIn = (byte)sp.ReadByte();
+					if (nIn != 0)
+					{
+						name += Convert.ToChar(nIn).ToString();
+					}
+				}
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			name = formatName(unitNameBack);
+			if (name == "") name = "[No Name]";
 			return name;
 		}
 
@@ -169,6 +177,8 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
+			battLevel = battLevel + (battLevel - 3) * .05 + .14;
+
 			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
 			return battery;
 		}
@@ -225,10 +235,10 @@ namespace X_Manager.Units
 
 		public override void setName(string newName)
 		{
-			if (newName.Length < 10)
-			{
-				for (int i = newName.Length; i <= 9; i++) newName += " ";
-			}
+			byte[] nameShort = Encoding.ASCII.GetBytes(newName);
+			byte[] name = new byte[28];
+			Array.Copy(nameShort, 0, name, 0, nameShort.Length);
+
 			sp.Write("TTTTTTTGGAn");
 			try
 			{
@@ -238,7 +248,11 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
-			sp.WriteLine(newName);
+			sp.Write(name, 0, 28);
+			if (sp.ReadByte() != 'I')
+			{
+				askName();
+			}
 		}
 
 		public override bool isRemote()
@@ -331,6 +345,7 @@ namespace X_Manager.Units
 				dateAr[4] = (byte)dateToSend.Month;
 				dateAr[5] = (byte)(dateToSend.Year - 2000);
 				sp.Write(dateAr, 0, 6);
+				Thread.Sleep(500);
 				sp.ReadByte();
 			}
 			catch
@@ -890,7 +905,7 @@ namespace X_Manager.Units
 
 		public override void convert(string fileName, string[] prefs)
 		{
-			
+
 			bool makeTxt = false;
 			bool makeKml = false;
 			timeStamp timeStampO = new timeStamp();
@@ -1202,7 +1217,7 @@ namespace X_Manager.Units
 			{
 				sBuffer += csvSeparator + tsLoc.lon.ToString("000.0000000") + csvSeparator + tsLoc.lat.ToString("00.0000000");
 				sBuffer += csvSeparator + tsLoc.altitude.ToString("0.00") + csvSeparator + tsLoc.speed.ToString("0.00") + csvSeparator + tsLoc.dop.ToString("0.00");
-				sBuffer += csvSeparator + tsLoc.sat.ToString() + csvSeparator + tsLoc.gsvSum.ToString();	//rimuovere "X4" dopo sviluppo
+				sBuffer += csvSeparator + tsLoc.sat.ToString() + csvSeparator + tsLoc.gsvSum.ToString();    //rimuovere "X4" dopo sviluppo
 			}
 			else
 			{

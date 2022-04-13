@@ -373,7 +373,6 @@ namespace X_Manager.Units
 			double intProgMax = progMax;
 			string endS = "\\";
 			DateTime dtStart = DateTime.Now;
-			DateTime dtAct;
 			//while (Interlocked.Exchange(ref progLock, 1) > 0)
 			//{
 			//	Thread.Sleep(10);

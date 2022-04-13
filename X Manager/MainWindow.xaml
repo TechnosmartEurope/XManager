@@ -7,7 +7,7 @@
     ResizeMode="NoResize" ScrollViewer.VerticalScrollBarVisibility="Disabled"
     xmlns:local="clr-namespace:X_Manager"
     WindowStyle="SingleBorderWindow" KeyDown="ctrlManager" Closing="Window_Closing">
-    
+
     <Grid x:Name="ExternalGrid" >
 
         <Grid.RowDefinitions>
@@ -25,123 +25,123 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <!-- Riga 0 MenuStrip-->
-        <Menu DockPanel.Dock="Top" Grid.Row="0" Height="Auto" Background="#FF181818">
-            <MenuItem Header="_SETTINGS" Margin="5" Foreground="#FF00AADE" FontSize="16" FontWeight="Bold" IsTabStop="False" >
-                <MenuItem Header="_Real Time Configuration" FontSize="12" Foreground="#FF181818" Click="realTimeConfigurationClick" IsTabStop="False" />
-                <MenuItem Header="_Change Picture" FontSize="12" Foreground="#FF181818" Click="changePictureClick" IsTabStop="False"/>
-                <MenuItem Header="_Unlock Unit" FontSize="12" Foreground="#FF181818" Click="unlockUnit_Click" IsTabStop="False"/>
-                <Separator />
-                <MenuItem Header="_Pressure Range" FontSize="12" Foreground="#FF181818" IsTabStop="False">
-                    <MenuItem Header="_Air Sensor" x:Name="airSubItem" FontSize="12" Foreground="#FF181818" Click="airSensorSelected" IsCheckable="True" IsTabStop="False"/>
-                    <MenuItem Header="_Depth Sensor" x:Name="depthSubItem" FontSize="12" Foreground="#FF181818" Click="depthSensorSelected" IsCheckable="True" IsTabStop="False"/>
-                </MenuItem>
-                <MenuItem Header="_CSV Separator" FontSize="12" Foreground="#FF181818" IsTabStop="False">
-                    <MenuItem Header="_Comma (,)" x:Name="commaSubItem" FontSize="12" Foreground="#FF181818" Click="commaSepSel" IsCheckable="True" IsTabStop="False" IsChecked="True"/>
-                    <MenuItem Header="_Semicolon (;)" x:Name="semicolonSubItem" FontSize="12" Foreground="#FF181818" Click="semiSepSel" IsCheckable="True" IsTabStop="False"/>
-                    <MenuItem Header="_Tab (     )" x:Name="tabSubItem" FontSize="12" Foreground="#FF181818" Click="tabSepSel" IsCheckable="True" IsTabStop="False"/>
-                </MenuItem>
-                <Separator />
-                <MenuItem Header="_Download Speed" FontSize="12" Foreground="#FF181818" IsTabStop="False">
-                    <MenuItem x:Name="speedLegacy" Header="Legacy" IsCheckable="True" Click="speedLegacySelected"/>
-                    <MenuItem x:Name="speed1" Header="1 MBaud" IsCheckable="True" Click="speed1Selected"/>
-                    <MenuItem x:Name="speed2" Header="2 MBaud" IsCheckable="True" Click="speed2Selected"/>
-                    <MenuItem x:Name="speed3" Header="3 MBaud" IsCheckable="True" Click="speed3Selected"/>
-                </MenuItem>
-                <MenuItem Header="_Download Range" x:Name="downloadRangeMenuItem" FontSize="12" Foreground="#FF181818" IsTabStop="False">
-                    <MenuItem x:Name="downloadAutomatic" Header="Automatic" IsCheckable="True"/>
-                    <MenuItem x:Name="downloadManual" Header="Manual" IsCheckable="True"/>
-                </MenuItem>
-                <MenuItem Header="Keep MDP file after downloading" x:Name="keepMdpItem" FontSize="12" Foreground="#FF181818" Click="keepMdpClicked" IsCheckable="True" IsChecked="False" IsTabStop="False"/>
-            </MenuItem>
-            <MenuItem Header="_?" Margin="5" Foreground="#FF00AADE" Click="aboutInfoClick" FontSize="16" FontWeight="Bold" IsTabStop="False" />
-        </Menu>
-        <!-- Riga 1 ServiceBar-->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions >
-                <ColumnDefinition Width="214"/>
-                <ColumnDefinition Width="Auto" MinWidth="57"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <ComboBox  Margin="10,0,0,0"  x:Name="comPortComboBox" Width="204" HorizontalAlignment="Left" TabIndex="0" IsTabStop="False" FontSize="13" Height="Auto" Padding="5,0,1,0" DropDownOpened="ComPortComboBox_DropDownOpened"/>
-            <Label Grid.Column="1" Margin="10,6,0,6" Width="46" Content="MODEL:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
-            <Label Grid.Column="2" Margin="5,6,0,6" x:Name="modelLabel" Width="110" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="Axy-Trek ND" Padding="0" Height="18" />
-            <Label Grid.Column="3" Margin="10,6,0,6" Width="66" Content="FIRMWARE:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
-            <Label Grid.Column="4" Margin="5,6,0,6" x:Name="firmwareLabel" Width="120" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="A20.20.20B20.20.20" Padding="0" Height="18" />
-            <Label Grid.Column="5" Margin="10,6,0,6" Width="53" Content="BATTERY:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
-            <Label Grid.Column="6" Margin="5,6,0,6" x:Name="batteryLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="4.02 V" Padding="0" Width="40" Height="18" />
-            <StackPanel Grid.Column="7" Orientation="Horizontal" HorizontalAlignment="Right" Width="199" >
-                <Label Margin="0,0,0,0" Width="Auto" Content="NAME:" VerticalAlignment="Center"  HorizontalAlignment="Right" Foreground="#FF00AADE" FontSize="13" Padding="0" />
-                <TextBox Margin="5,0,0,0" x:Name="unitNameTextBox" Width="115"
-                                 VerticalAlignment="Center" HorizontalAlignment="Right"
-                                 MouseDoubleClick="selectAddressMouse" GotKeyboardFocus="selectAddressKeyboard" PreviewMouseLeftButtonDown="selectivelyIgnoreMouseButton"
-                                 KeyDown="unitNameTextBoxKeyDown"
+                <Menu DockPanel.Dock="Top" Grid.Row="0" Height="Auto" Background="#FF181818">
+                    <MenuItem Header="_SETTINGS" Margin="5" Foreground="#FF00AADE" FontSize="16" FontWeight="Bold" IsTabStop="False" >
+                        <MenuItem Header="_Real Time Configuration" FontSize="12" Foreground="#FF181818" Click="realTimeConfigurationClick" IsTabStop="False" />
+                        <MenuItem Header="_Change Picture" FontSize="12" Foreground="#FF181818" Click="changePictureClick" IsTabStop="False"/>
+                        <MenuItem Header="_Unlock Unit" FontSize="12" Foreground="#FF181818" Click="unlockUnit_Click" IsTabStop="False"/>
+                        <Separator />
+                        <MenuItem Header="_Pressure Range" FontSize="12" Foreground="#FF181818" IsTabStop="False">
+                            <MenuItem Header="_Air Sensor" x:Name="airSubItem" FontSize="12" Foreground="#FF181818" Click="airSensorSelected" IsCheckable="True" IsTabStop="False"/>
+                            <MenuItem Header="_Depth Sensor" x:Name="depthSubItem" FontSize="12" Foreground="#FF181818" Click="depthSensorSelected" IsCheckable="True" IsTabStop="False"/>
+                        </MenuItem>
+                        <MenuItem Header="_CSV Separator" FontSize="12" Foreground="#FF181818" IsTabStop="False">
+                            <MenuItem Header="_Comma (,)" x:Name="commaSubItem" FontSize="12" Foreground="#FF181818" Click="commaSepSel" IsCheckable="True" IsTabStop="False" IsChecked="True"/>
+                            <MenuItem Header="_Semicolon (;)" x:Name="semicolonSubItem" FontSize="12" Foreground="#FF181818" Click="semiSepSel" IsCheckable="True" IsTabStop="False"/>
+                            <MenuItem Header="_Tab (     )" x:Name="tabSubItem" FontSize="12" Foreground="#FF181818" Click="tabSepSel" IsCheckable="True" IsTabStop="False"/>
+                        </MenuItem>
+                        <Separator />
+                        <MenuItem Header="_Download Speed" FontSize="12" Foreground="#FF181818" IsTabStop="False">
+                            <MenuItem x:Name="speedLegacy" Header="Legacy" IsCheckable="True" Click="speedLegacySelected"/>
+                            <MenuItem x:Name="speed1" Header="1 MBaud" IsCheckable="True" Click="speed1Selected"/>
+                            <MenuItem x:Name="speed2" Header="2 MBaud" IsCheckable="True" Click="speed2Selected"/>
+                            <MenuItem x:Name="speed3" Header="3 MBaud" IsCheckable="True" Click="speed3Selected"/>
+                        </MenuItem>
+                        <MenuItem Header="_Download Range" x:Name="downloadRangeMenuItem" FontSize="12" Foreground="#FF181818" IsTabStop="False">
+                            <MenuItem x:Name="downloadAutomatic" Header="Automatic" IsCheckable="True"/>
+                            <MenuItem x:Name="downloadManual" Header="Manual" IsCheckable="True"/>
+                        </MenuItem>
+                        <MenuItem Header="Keep MDP file after downloading" x:Name="keepMdpItem" FontSize="12" Foreground="#FF181818" Click="keepMdpClicked" IsCheckable="True" IsChecked="False" IsTabStop="False"/>
+                    </MenuItem>
+                    <MenuItem Header="_?" Margin="5" Foreground="#FF00AADE" Click="aboutInfoClick" FontSize="16" FontWeight="Bold" IsTabStop="False" />
+                </Menu>
+                <!-- Riga 1 ServiceBar-->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions >
+                        <ColumnDefinition Width="214"/>
+                        <ColumnDefinition Width="55" />
+                        <ColumnDefinition Width="87"/>
+                        <ColumnDefinition Width="74"/>
+                        <ColumnDefinition Width="122"/>
+                        <ColumnDefinition Width="63"/>
+                        <ColumnDefinition Width="45"/>
+                        <ColumnDefinition Width="234"/>
+                        <ColumnDefinition Width="10"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox  Margin="10,0,0,0"  x:Name="comPortComboBox" Width="204" HorizontalAlignment="Left" TabIndex="0" IsTabStop="False" FontSize="13" Height="Auto" Padding="5,0,1,0" DropDownOpened="ComPortComboBox_DropDownOpened"/>
+                    <Label Grid.Column="1" Margin="10,6,0,6" Width="46" Content="MODEL:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
+                    <Label Grid.Column="2" Margin="5,6,0,6" x:Name="modelLabel" Width="110" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="Axy-Trek ND" Padding="0" Height="18" />
+                    <Label Grid.Column="3" Margin="10,6,0,6" Width="66" Content="FIRMWARE:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
+                    <Label Grid.Column="4" Margin="5,6,0,6" x:Name="firmwareLabel" Width="120" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="A20.20.20B20.20.20" Padding="0" Height="18" />
+                    <Label Grid.Column="5" Margin="10,6,0,6" Width="53" Content="BATTERY:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
+                    <Label Grid.Column="6" Margin="5,6,0,6" x:Name="batteryLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="4.02 V" Padding="0" Width="40" Height="18" />
+                    <StackPanel Grid.Column="7" Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto" Margin="5,0,0,0" >
+                        <Label Margin="0,0,0,0" Width="39" Content="NAME:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" />
+                        <TextBox Margin="5,0,0,0" x:Name="unitNameTextBox" Width="155"
+                                 VerticalAlignment="Center" MouseDoubleClick="selectAddressMouse" GotKeyboardFocus="selectAddressKeyboard"
+                                 PreviewMouseLeftButtonDown="selectivelyIgnoreMouseButton" KeyDown="unitNameTextBoxKeyDown"
                                  MaxLength="10" TabIndex="8" FontSize="13" Padding="5,0" VerticalContentAlignment="Center"/>
-                <Button Margin="0,0,10,0" x:Name="unitNameButton" 
+                        <Button Margin="0,0,0,0" x:Name="unitNameButton" 
                         HorizontalAlignment="Right" Content="Set" TabIndex="9" FontSize="13" Padding="0" Click="unitNameButtonClick"/>
-            </StackPanel>
-        </Grid>
-
-        <!-- Riga 2 Scan button-->
-        <Button x:Name="scanButton" Grid.Row="2" Margin="10,2,0,2" Width="100" Content="Scan ports" MinHeight="0" TabIndex="2" HorizontalAlignment="Left" FontSize="12" Visibility="Hidden"/>
-
-        <!-- Riga 3 Pulsanti e Picture-->
-        <Grid Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <!-- Colonna 0 Pulsanti-->
-            <StackPanel x:Name="ST1" Margin="0" Grid.Column="0">
-                <StackPanel x:Name="portsCommandsStackPanel" Margin="10,25,0,0">
-                    <!--<Label Content="PORT COMMANDS" Foreground="#FF00AADE" Padding="0" />-->
-                    <Button x:Name="connectButton" Content="Connect" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick"/>
-                     <Button x:Name="remoteButton" Content="Remote" Margin="0,5 ,0,0" Height="40" MinHeight="0" TabIndex="1" Click="remoteClick"/>
-                        </StackPanel>
-                <StackPanel x:Name="unitCommandsStackPanel" Margin="10,20,0,0">
-                    <!-- <Button x:Name="configureButton" Content="Configure" Margin="0,5,0,0" TabIndex="5"/>-->
-                    <!-- <Button x:Name="realTimeButton" Content="Real Time" Margin="0,5,0,0" TabIndex="6" Click="realTime"/>   PreviewMouseRightButtonUp="openDataFolder" -->
-                    <!-- <Button x:Name="powerOffButton" Content="Power Off" Margin="0,5,0,0" Click="powerOff" TabIndex="7"/> -->
-                    <!--<Label Content="UNIT COMMANDS" Foreground="#FF00AADE" Margin="0,20,0,0" Padding="0" />-->
-                    <Button x:Name="downloadButton" Content="Download" Margin="0,5,0,0" TabIndex="3" Height="35" Click="downloadButtonClick"/>
-                    <Button x:Name="eraseButton" Content="Erase" Margin="0,5,0,0" TabIndex="4" Height="35" Click="eraseButtonClick"/>
-                    <Button x:Name="convertDataButton" Content="Convert Data" Margin="0,5,0,0" TabIndex="10" Height="35" Click="convertDataClick">
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Open Conversion Folder" Click="openDataFolder"/>
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                    </Button>
-                </StackPanel>
-
-                <StackPanel x:Name="configurationCommandsStackPanel" Margin="10,20,0,0">
-                    <!--<Label Content="CONFIGURATION COMMANDS" Foreground="#FF00AADE" Margin="0,20,0,0" Padding="0" />-->
-                    <Button x:Name="configureMovementButton" Content="Accelerometer configuration" Margin="0,5,0,0" Click="configureMovementButtonClick" TabIndex="11" Height="35" MinWidth="204"/>
-                    <Button x:Name="configurePositionButton" Content="GPS configuration" Margin="0,5,0,0" TabIndex="12" Height="35" Click="configurePoistionClick"/>
-                </StackPanel>
-            </StackPanel>
-            <!-- Colonna 1 Picture-->
-            <StackPanel x:Name="realTimeSP" Orientation="Horizontal" Panel.ZIndex="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Grid.Column="1" Margin="10,10,10,0" Width="Auto" Height="30">
-                <Button Content="Real Time" Click="realTimeClick" />
-            </StackPanel>
-            <!-- <Canvas AllowDrop="True" Background="Transparent" Margin="10,10,10,0" Grid.Column="1" > -->
-            <TabControl x:Name ="mainTabControl" Grid.Column="1" Background="#FF181818" Margin="10,0,10,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" SelectionChanged="tabControlTabChanged">
-                <TabItem x:Name="normalViewTabItem" Header="Normal View" Background="#FF181818" Foreground="#FF00AADE" >
-                    <StackPanel x:Name="pictureStackpanel" >
-                        <Image x:Name="pictureBox" Margin="0,0,0,0" VerticalAlignment="Top" AllowDrop="True" ScrollViewer.VerticalScrollBarVisibility="Disabled" Stretch="UniformToFill" />
                     </StackPanel>
-                </TabItem>
-                <TabItem x:Name="dumpViewTabItem" Header="Dump View" Background="#FF181818" Foreground="#FF00AADE">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition Height="0"/>
-                        </Grid.RowDefinitions>
-                        <TextBox x:Name="startUpMonitor"
+                </Grid>
+
+                <!-- Riga 2 Scan button-->
+                <Button x:Name="scanButton" Grid.Row="2" Margin="10,2,0,2" Width="100" Content="Scan ports" MinHeight="0" TabIndex="2" HorizontalAlignment="Left" FontSize="12" Visibility="Hidden"/>
+
+                <!-- Riga 3 Pulsanti e Picture-->
+                <Grid Grid.Row="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Colonna 0 Pulsanti-->
+                    <StackPanel x:Name="ST1" Margin="0" Grid.Column="0">
+                        <StackPanel x:Name="portsCommandsStackPanel" Margin="10,25,0,0">
+                            <!--<Label Content="PORT COMMANDS" Foreground="#FF00AADE" Padding="0" />-->
+                            <Button x:Name="connectButton" Content="Connect" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick"/>
+                            <Button x:Name="remoteButton" Content="Remote" Margin="0,5 ,0,0" Height="40" MinHeight="0" TabIndex="1" Click="remoteClick"/>
+                        </StackPanel>
+                        <StackPanel x:Name="unitCommandsStackPanel" Margin="10,20,0,0">
+                            <!-- <Button x:Name="configureButton" Content="Configure" Margin="0,5,0,0" TabIndex="5"/>-->
+                            <!-- <Button x:Name="realTimeButton" Content="Real Time" Margin="0,5,0,0" TabIndex="6" Click="realTime"/>   PreviewMouseRightButtonUp="openDataFolder" -->
+                            <!-- <Button x:Name="powerOffButton" Content="Power Off" Margin="0,5,0,0" Click="powerOff" TabIndex="7"/> -->
+                            <!--<Label Content="UNIT COMMANDS" Foreground="#FF00AADE" Margin="0,20,0,0" Padding="0" />-->
+                            <Button x:Name="downloadButton" Content="Download" Margin="0,5,0,0" TabIndex="3" Height="35" Click="downloadButtonClick"/>
+                            <Button x:Name="eraseButton" Content="Erase" Margin="0,5,0,0" TabIndex="4" Height="35" Click="eraseButtonClick"/>
+                            <Button x:Name="convertDataButton" Content="Convert Data" Margin="0,5,0,0" TabIndex="10" Height="35" Click="convertDataClick">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Open Conversion Folder" Click="openDataFolder"/>
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                        </StackPanel>
+
+                        <StackPanel x:Name="configurationCommandsStackPanel" Margin="10,20,0,0">
+                            <!--<Label Content="CONFIGURATION COMMANDS" Foreground="#FF00AADE" Margin="0,20,0,0" Padding="0" />-->
+                            <Button x:Name="configureMovementButton" Content="Accelerometer configuration" Margin="0,5,0,0" Click="configureMovementButtonClick" TabIndex="11" Height="35" MinWidth="204"/>
+                            <Button x:Name="configurePositionButton" Content="GPS configuration" Margin="0,5,0,0" TabIndex="12" Height="35" Click="configurePoistionClick"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <!-- Colonna 1 Picture-->
+                    <StackPanel x:Name="realTimeSP" Orientation="Horizontal" Panel.ZIndex="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Grid.Column="1" Margin="10,10,10,0" Width="Auto" Height="30">
+                        <Button Content="Real Time" Click="realTimeClick" />
+                    </StackPanel>
+                    <!-- <Canvas AllowDrop="True" Background="Transparent" Margin="10,10,10,0" Grid.Column="1" > -->
+                    <TabControl x:Name ="mainTabControl" Grid.Column="1" Background="#FF181818" Margin="10,0,10,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" SelectionChanged="tabControlTabChanged">
+                        <TabItem x:Name="normalViewTabItem" Header="Normal View" Background="#FF181818" Foreground="#FF00AADE" >
+                            <StackPanel x:Name="pictureStackpanel" >
+                                <Image x:Name="pictureBox" Margin="0,0,0,0" VerticalAlignment="Top" AllowDrop="True" ScrollViewer.VerticalScrollBarVisibility="Disabled" Stretch="UniformToFill" />
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem x:Name="dumpViewTabItem" Header="Dump View" Background="#FF181818" Foreground="#FF00AADE">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition Height="0"/>
+                                </Grid.RowDefinitions>
+                                <TextBox x:Name="startUpMonitor"
                                              IsReadOnly="True" 
                                              Foreground="#FF00AADE"
                                              FontSize="12"
@@ -149,12 +149,12 @@
                                              TextWrapping="Wrap"
                                              VerticalScrollBarVisibility="Auto"
                                              Background="#FF000000"/>
-                        <!-- <Button Grid.Row="1">Stop</Button>-->
-                    </Grid>
-                </TabItem>
-            </TabControl>
+                                <!-- <Button Grid.Row="1">Stop</Button>-->
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
 
-            <!--<WindowsFormsHost x:Name="chartHost" >
+                    <!--<WindowsFormsHost x:Name="chartHost" >
                                 <fc:Chart x:Name="mChart" Dock="Fill" />
                             </WindowsFormsHost>
                             <ch:Chart x:Name="mChart" Background="LightSteelBlue" Title="Accelerometer" LegendTitle="Axes" Height="411" VerticalAlignment="Top" Margin="0">
@@ -164,35 +164,35 @@
                                     <ch:AreaSeries Title="Z" />
                                 </ch:Chart.Series>
                             </ch:Chart>-->
-            <!-- </Canvas> -->
-        </Grid>
-    </Grid>
-    </ContentControl>
+                    <!-- </Canvas> -->
+                </Grid>
+            </Grid>
+        </ContentControl>
 
-    <!-- Riga 1 StatusBar-->
-    <StackPanel Grid.Row="1">
-        <StackPanel Orientation="Horizontal">
-            <Label Content="STATUS: " Foreground="#FF00AADE" 
+        <!-- Riga 1 StatusBar-->
+        <StackPanel Grid.Row="1">
+            <StackPanel Orientation="Horizontal">
+                <Label Content="STATUS: " Foreground="#FF00AADE" 
                    Margin="10,0,0,0" VerticalAlignment="Center" 
                    HorizontalAlignment="Left"/>
-            <Label Margin="5,0,0,0" x:Name="statusLabelM" 
+                <Label Margin="5,0,0,0" x:Name="statusLabelM" 
                    x:FieldModifier="public" Width="718" 
                    VerticalAlignment="Center" HorizontalAlignment="Left"/>
-            <Label Margin="5,0,0,0" x:Name="etaLabelM"
+                <Label Margin="5,0,0,0" x:Name="etaLabelM"
                    x:FieldModifier="public" VerticalAlignment="Center" FontSize="11"
                    HorizontalAlignment="Left" Width="95"
                    HorizontalContentAlignment="Right" Foreground="#FF505050" />
             </StackPanel>
-        <Grid x:Name="progressBarGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition x:Name="progressBarStopButtonColumnM" x:FieldModifier="public" Width="80"/>
-            </Grid.ColumnDefinitions>
-            <ProgressBar Grid.Column="0" x:Name="statusProgressBarM" x:FieldModifier="public" Margin="10,5,10,10" Height="20" IsTabStop="False"/>
-            <Button x:Name="progressBarStopButtonM" x:FieldModifier="public" Grid.Column="1" Content="STOP" Margin="5,5,10,10" Padding="0" Height="20" MinHeight="7" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" FontSize="11" Click="stopThreadOperations" Foreground="#FFE00000" FontWeight="Bold"/>
-        </Grid>
+            <Grid x:Name="progressBarGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition x:Name="progressBarStopButtonColumnM" x:FieldModifier="public" Width="80"/>
+                </Grid.ColumnDefinitions>
+                <ProgressBar Grid.Column="0" x:Name="statusProgressBarM" x:FieldModifier="public" Margin="10,5,10,10" Height="20" IsTabStop="False"/>
+                <Button x:Name="progressBarStopButtonM" x:FieldModifier="public" Grid.Column="1" Content="STOP" Margin="5,5,10,10" Padding="0" Height="20" MinHeight="7" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" FontSize="11" Click="stopThreadOperations" Foreground="#FFE00000" FontWeight="Bold"/>
+            </Grid>
 
-    </StackPanel>
+        </StackPanel>
 
     </Grid>
 </local:Parent>

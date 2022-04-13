@@ -1286,7 +1286,7 @@ namespace X_Manager
 					newAdd = BitConverter.ToInt64(ardFile.ReadBytes(8), 0);
 					ardFile.ReadBytes(8);
 					sesAdd.Add(newAdd);
-				} while (newAdd != 0);
+				} while ((newAdd != 0) & (ardFile.BaseStream.Position < ardFile.BaseStream.Length));
 				sesAdd.RemoveAt(sesAdd.Count - 1);
 			}
 			else
@@ -1491,9 +1491,9 @@ namespace X_Manager
 
 				DateTime startTime = findStartTime(ref ard, ref prefs, pos, exten.Contains("rem"));
 
-				if ((startTime.Year == 1980) | (startTime.Year==2080))	//Se la data è 1980 l'ora è giusta
+				if ((startTime.Year == 1980) | (startTime.Year == 2080))    //Se la data è 1980 l'ora è giusta
 				{
-					if (DateTime.Compare(recoveryDate, nullDate) != 0)	//Quindi se la sessione precedente ha l'ora la sfrutta
+					if (DateTime.Compare(recoveryDate, nullDate) != 0)  //Quindi se la sessione precedente ha l'ora la sfrutta
 					{
 						//Imposta la data della recovery date e l'ora dall'orario gps
 						startTime = new DateTime(recoveryDate.Year, recoveryDate.Month, recoveryDate.Day, startTime.Hour,
@@ -1502,14 +1502,14 @@ namespace X_Manager
 						{
 							startTime = startTime.AddDays(1);
 						}
-						
+
 					}
 				}
 				recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
 
 				ard.Position = pos;
 
-				if (exten.Contains("rem"))
+				if (exten.Contains("rem") & !convertStop)
 				{
 					File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ": "
 						+ startTime.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: "
@@ -1575,7 +1575,7 @@ namespace X_Manager
 
 					if (timeStampO.stopEvent > 0)
 					{
-						if ((timeStampO.stopEvent == 4) & (timeStampO.orario.Year>1980) & (timeStampO.orario.Year < 2080))
+						if ((timeStampO.stopEvent == 4) & (timeStampO.orario.Year > 1980) & (timeStampO.orario.Year < 2080))
 						{
 
 							recoveryDate = new DateTime(timeStampO.orario.Year, timeStampO.orario.Month, timeStampO.orario.Day,
@@ -1652,6 +1652,7 @@ namespace X_Manager
 						File.Delete(fileNameKml);
 					}
 					catch { }
+					sesAdd.Clear();
 				}
 
 				ard.Close();
@@ -1696,7 +1697,6 @@ namespace X_Manager
 
 			//sw.Stop();
 			//MessageBox.Show(sw.Elapsed.TotalSeconds.ToString());
-
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				new Action(() => parent.nextFile()));
 		}

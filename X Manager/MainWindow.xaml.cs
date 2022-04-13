@@ -34,7 +34,7 @@ namespace X_Manager
 
 		#region DichiarazioniFTDI
 
-		
+
 #if X64
 		public const string ftdiLibraryName = "FTD2XX.dll";
 #else
@@ -198,7 +198,7 @@ namespace X_Manager
 		public byte[] axyconf = new byte[30];
 		bool positionCanSend = false;
 		BackgroundWorker startUpMonitorBW;
-		
+
 		//Costanti e pseudo constanti
 		const string STR_noComPortAvailable = "No COM port available. Please connect a data cable.";
 		const string STR_unitNotReady = "Unit not ready: please reconnect again.";
@@ -226,7 +226,7 @@ namespace X_Manager
 
 		#region Interfaccia
 
-		
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -436,6 +436,7 @@ namespace X_Manager
 			statusProgressBar.IsIndeterminate = false;
 			//statusProgressBar.Value = 0;
 			dumpViewTabItem.IsEnabled = false;
+			unitNameTextBox.MaxLength = 10;
 			configurePositionButton.IsEnabled = oUnit.configurePositionButtonEnabled;
 			configureMovementButton.IsEnabled = oUnit.configureMovementButtonEnabled;
 			if (realTimeType > 0)
@@ -450,6 +451,9 @@ namespace X_Manager
 					break;
 				case Units.Unit.model_AGM1:
 					configureMovementButton.Content = "Movement configuration";
+					break;
+				case Unit.model_Gipsy6:
+					unitNameTextBox.MaxLength = 27;
 					break;
 				default:
 					configureMovementButton.Content = "Accelerometer configuration";
@@ -1052,9 +1056,11 @@ namespace X_Manager
 					}
 					catch { }
 					//deviceName = mo["Caption"].ToString();
-					if ((deviceName.Contains("COM") && deviceName.Contains("olific")) | (deviceName.Contains("COM") && deviceName.Contains("USB Serial")))
+					if (deviceName.Contains("COM") && !deviceName.Contains("Auxiliary"))
 					{
-						comPortComboBox.Items.Add(deviceName);
+						{
+							comPortComboBox.Items.Add(deviceName);
+						}
 					}
 				}
 				catch
@@ -1136,8 +1142,13 @@ namespace X_Manager
 						spurgo();
 						sp.Write("T");
 						Thread.Sleep(5);
+						sp.Write("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTGGAP");
 					}
-					sp.Write("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTGGAP");
+					else if (rs == '6')		//In caso di Gipsy6 bisogna mandare una stringa corta
+					{
+						sp.Write("GGAP");
+					}
+
 					if (remote) Thread.Sleep(400);
 					response = sp.ReadLine();
 				}
@@ -2115,6 +2126,22 @@ namespace X_Manager
 			string[] nomiFile = new string[] { "" };
 			string addOn = "";
 			bool GoOn = true;
+
+			try
+			{
+				if (cUnit != null)
+				{
+					if (cUnit.convertStop)
+					{
+						GoOn = false;
+						cUnit.convertStop = false;
+					}
+					cUnit.Dispose();
+					cUnit = null;
+				}
+			}
+			catch { }
+
 			try
 			{
 				fileName = convFiles[0];
@@ -2361,7 +2388,7 @@ namespace X_Manager
 		}
 		private void Window_Closing(object sender, CancelEventArgs e)
 		{
-			
+
 		}
 
 
