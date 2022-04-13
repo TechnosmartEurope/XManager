@@ -78,7 +78,7 @@ namespace X_Manager
 
             // PRESSURE
             ((RadioButton)(((Grid)(pressGrid.Children[0])).Children[(axyConf[20] + 1)])).IsChecked = true;
-            if ((unitType == MainWindow.model_AGM1))
+            if ((unitType == Units.Unit.model_AGM1))
             {
                 // In caso di AGM se trovata pressione a 2 viene messa a 1
                 if ((axyConf[20] == 2))

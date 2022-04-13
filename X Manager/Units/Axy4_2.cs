@@ -30,6 +30,7 @@ namespace X_Manager.Units
 			public DateTime orario;
 			public byte stopEvent;
 			public byte timeStampLength;
+			public double adcVal;
 			public double magX_A, magY_A, magZ_A, magX_B, magY_B, magZ_B;
 			//public long ardPosition;
 		}
@@ -45,6 +46,7 @@ namespace X_Manager.Units
 		ushort rate;
 		ushort rateComp;
 		byte range;
+		int adcEn = 0;
 		//uint sogliaNeg;
 		//uint rendiNeg;
 		double gCoeff;
@@ -250,7 +252,6 @@ namespace X_Manager.Units
 			byte[] conf = new byte[30];
 			for (byte i = 0; i < 30; i++) conf[i] = 0xff;
 
-			conf[22] = 0;
 			conf[25] = modelCode;
 
 			sp.ReadExisting();
@@ -268,6 +269,10 @@ namespace X_Manager.Units
 						conf[19] = (byte)sp.ReadByte();
 					}
 					conf[21] = (byte)sp.ReadByte();
+					if (firmTotA >= 3002000)
+					{
+						conf[22] = (byte)sp.ReadByte();
+					}
 				}
 			}
 			catch
@@ -292,6 +297,10 @@ namespace X_Manager.Units
 						sp.Write(conf, 19, 1);
 					}
 					sp.Write(conf, 21, 1);
+					if (firmTotA >= 3002000)
+					{
+						sp.Write(conf, 22, 1);
+					}
 				}
 				sp.ReadByte();
 			}
@@ -1156,6 +1165,10 @@ namespace X_Manager.Units
 			{
 				magen = ard.ReadByte();
 			}
+			if (firmTotA >= 3002000)
+			{
+				adcEn = ard.ReadByte();
+			}
 
 			Array.Resize(ref lastGroup, ((rateComp * 3)));
 			nOutputs = rateComp;
@@ -1399,6 +1412,14 @@ namespace X_Manager.Units
 			additionalInfo += csvSeparator;
 			if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString(nfi);
 
+			//Inserisce l'adc
+			if (adcEn > 0)
+			{
+				contoTab++;
+				additionalInfo += csvSeparator;
+				if (((tsLoc.tsTypeExt1 & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.adcVal.ToString(nfi);
+			}
+
 			//Inserisce la batteria
 			if (prefBattery)
 			{
@@ -1406,7 +1427,6 @@ namespace X_Manager.Units
 				additionalInfo += csvSeparator;
 				if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString(nfi);
 			}
-
 			//Inserisce i metadati
 
 			if (metadata)
@@ -1655,6 +1675,10 @@ namespace X_Manager.Units
 			return bitsDiv;
 		}
 
+		private void findAdcEn()
+		{
+
+		}
 		private byte convertTimeStamp(byte tsType)
 		{
 			if (tsType > 0xfc) return tsType;
@@ -1689,6 +1713,7 @@ namespace X_Manager.Units
 
 			tsc.stopEvent = 0;
 			tsc.tsType = ard.ReadByte();
+			tsc.tsTypeExt1 = 0;
 
 			if (firmTotA < 2000)
 			{
@@ -1712,12 +1737,15 @@ namespace X_Manager.Units
 				return;
 			}
 
-			if ((tsc.tsType & 1) == 1)
+			if ((tsc.tsType & ts_ext1) == ts_ext1)
 			{
 				try
 				{
 					tsc.tsTypeExt1 = ard.ReadByte();
-					if ((tsc.tsTypeExt1 & 1) == 1) tsc.tsTypeExt2 = ard.ReadByte();
+					if ((tsc.tsTypeExt1 & ts_ext2) == ts_ext2)
+					{
+						tsc.tsTypeExt2 = ard.ReadByte();
+					}
 				}
 				catch
 				{
@@ -1725,7 +1753,7 @@ namespace X_Manager.Units
 				}
 			}
 
-			if ((tsc.tsType & 2) == 2)
+			if ((tsc.tsType & ts_temperature) == ts_temperature)
 			{
 				try
 				{
@@ -1749,16 +1777,23 @@ namespace X_Manager.Units
 			}
 
 
-			if ((tsc.tsType & 8) == 8)
+			if ((tsc.tsType & ts_battery) == ts_battery)
 			{
 				tsc.batteryLevel = (float)Math.Round(((((float)((ard.ReadByte() * 256) + ard.ReadByte())) * 6) / 4096), 2);
 			}
 
 			tsc.orario = tsc.orario.AddSeconds(1);
 
-			if ((tsc.tsType & 1) == 0) return;
+			if ((tsc.tsType & ts_ext1) == 0) return;
 
-			if ((tsc.tsTypeExt1 & 8) == 8)
+			//ADC VALORE
+			if ((tsc.tsTypeExt1 & ts_adcValue) == ts_adcValue)
+			{
+				tsc.adcVal = Math.Round((double)(ard.ReadByte() * 256 + ard.ReadByte()), 2);
+				//gruppoCON[adcVal] = tsc.adcVal.ToString("0000");
+			}
+
+			if ((tsc.tsTypeExt1 & ts_mag) == ts_mag)
 			{
 				tsc.magX_A = ard.ReadByte();
 				tsc.magX_A += (ard.ReadByte() * 256);
@@ -1785,7 +1820,7 @@ namespace X_Manager.Units
 				tsc.magZ_A *= 1.5;
 			}
 
-			if ((tsc.tsTypeExt1 & 32) == 32)
+			if ((tsc.tsTypeExt1 & ts_time) == ts_time)
 			{
 				if (!overrideTime)
 				{
@@ -1814,16 +1849,13 @@ namespace X_Manager.Units
 						tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
 					}
 					catch { }
-					
+
 				}
 				else
 				{
 					ard.ReadBytes(8);
 				}
-				//overrideTime = true;
-
 			}
-
 		}
 
 		private void csvPlaceHeader(ref BinaryWriter csv)
@@ -1844,6 +1876,10 @@ namespace X_Manager.Units
 				csvHeader += csvSeparator + "magX" + csvSeparator + "magY" + csvSeparator + "magZ";
 			}
 			csvHeader = csvHeader + csvSeparator + "Temp. (°C)";
+			if (adcEn > 0)
+			{
+				csvHeader += csvSeparator + "Analog";
+			}
 			if (prefBattery)
 			{
 				csvHeader = csvHeader + csvSeparator + "Battery Voltage (V)";
@@ -1855,7 +1891,7 @@ namespace X_Manager.Units
 			}
 
 			csvHeader += "\r\n";
-			csv.Write(System.Text.Encoding.ASCII.GetBytes(csvHeader));
+			csv.Write(Encoding.ASCII.GetBytes(csvHeader));
 		}
 
 		private bool detectEof(ref BinaryReader ard)

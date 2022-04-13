@@ -83,7 +83,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_x64|AnyCPU'">
     <OutputPath>bin\Debug_x64\</OutputPath>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <DefineConstants>TRACE;DEBUG;X64</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>pdbonly</DebugType>
@@ -291,6 +291,9 @@
     <Compile Include="ConfigurationWindows\DayTab.xaml.cs">
       <DependentUpon>DayTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ConfigurationWindows\DropOffConfigurationWindow.xaml.cs">
+      <DependentUpon>DropOffConfigurationWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConfigurationWindows\GiPSy6\BasicsConfiguration.xaml.cs">
       <DependentUpon>BasicsConfiguration.xaml</DependentUpon>
     </Compile>
@@ -367,6 +370,7 @@
       <DependentUpon>ConversionPreferences.xaml</DependentUpon>
     </Compile>
     <Compile Include="Units\CO2_Logger.cs" />
+    <Compile Include="Units\Drop-Off.cs" />
     <Compile Include="Units\Gipsy6.cs" />
     <Compile Include="Units\Unit.cs" />
     <Compile Include="Warning.xaml.cs">
@@ -400,6 +404,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConfigurationWindows\DayTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\DropOffConfigurationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -173,19 +173,19 @@ namespace X_Manager
 		public const int Baudrate_2M = 2000000;
 		public const int Baudrate_3M = 3000000;
 
-		public const uint model_axy1 = 255;
-		public const uint model_axyDepth = 127;
-		public const uint model_axy2 = 126;
-		public const uint model_axy3 = 125;
-		public const uint model_axy4 = 124;
-		public const uint model_Co2Logger = 123;
-		public const uint model_axy5 = 122;
-		public const uint model_AGM1_calib = 10;
-		public const uint model_Gipsy6 = 10;
-		public const uint model_AGM1 = 9;
-		public const uint model_axyTrekS = 7;
-		public const uint model_axyTrek = 6;
-		public const uint model_axyQuattrok = 4;
+		//public const uint model_axy1 = 255;
+		//public const uint model_axyDepth = 127;
+		//public const uint model_axy2 = 126;
+		//public const uint model_axy3 = 125;
+		//public const uint model_axy4 = 124;
+		//public const uint model_Co2Logger = 123;
+		//public const uint model_axy5 = 122;
+		//public const uint model_AGM1_calib = 10;
+		//public const uint model_Gipsy6 = 10;
+		//public const uint model_AGM1 = 9;
+		//public const uint model_axyTrekS = 7;
+		//public const uint model_axyTrek = 6;
+		//public const uint model_axyQuattrok = 4;
 
 		public bool realTimeStatus = false;
 		public bool convertStop = false;
@@ -529,10 +529,10 @@ namespace X_Manager
 
 			switch (oUnit.modelCode)
 			{
-				case Units.Unit.model_Co2Logger:
+				case Unit.model_Co2Logger:
 					configureMovementButton.Content = "Logger configuration";
 					break;
-				case Units.Unit.model_AGM1:
+				case Unit.model_AGM1:
 					configureMovementButton.Content = "Movement configuration";
 					break;
 				case Unit.model_Gipsy6:
@@ -540,6 +540,9 @@ namespace X_Manager
 					configureMovementButton.IsEnabled = true;
 					configureMovementButton.Content = "CONFIGURATION";
 					configurePositionButton.Visibility = Visibility.Hidden;
+					break;
+				case Unit.model_drop_off:
+					configureMovementButton.Content = "Drop-off timer configuration";
 					break;
 				default:
 					configureMovementButton.Content = "Accelerometer configuration";
@@ -705,6 +708,11 @@ namespace X_Manager
 
 		private void setPBMemory(uint[] actM, uint[] maxM)
 		{
+			if (actM.Length == 0)
+			{
+				return;
+			}
+
 			statusProgressBar.Maximum = maxM[1] - maxM[0];
 			statusProgressBar.Minimum = 0;
 
@@ -1287,6 +1295,7 @@ namespace X_Manager
 				{
 					try
 					{
+						Thread.Sleep(10);
 						string model = Unit.askModel(ref sp);
 						switch (model)
 						{
@@ -1315,6 +1324,9 @@ namespace X_Manager
 								break;
 							case "GiPSy-6":
 								oUnit = new Gipsy6(this);
+								break;
+							case "Drop-Off":
+								oUnit = new Drop_Off(this);
 								break;
 						}
 						modelLabel.Content = model;
@@ -1440,21 +1452,25 @@ namespace X_Manager
 			}
 			//ConfigurationWindow confForm = new ConfigurationWindow();
 			ConfigurationWindow confForm;
-			if (oUnit.modelCode == model_AGM1)
+			if (oUnit.modelCode == Unit.model_AGM1)
 			{
 				confForm = new AgmConfigurationWindow(conf, oUnit.modelCode);
 			}
-			else if (oUnit.modelCode == model_Gipsy6)
+			else if (oUnit.modelCode == Unit.model_Gipsy6)
 			{
 				confForm = new GiPSy6ConfigurationMain(conf, oUnit.modelCode);
 			}
-			else if (oUnit.modelCode == model_axy5)
+			else if (oUnit.modelCode == Unit.model_axy5)
 			{
 				confForm = new Axy5ConfigurationWindow(conf, accSchedule, oUnit.firmTotA);
 			}
-			else if (oUnit.modelCode == model_axyTrek | oUnit.modelCode == model_axyQuattrok)
+			else if (oUnit.modelCode == Unit.model_axyTrek | oUnit.modelCode == Unit.model_axyQuattrok)
 			{
 				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA, ref sp);
+			}
+			else if (oUnit.modelCode == Unit.model_drop_off)
+			{
+				confForm = new DropOffConfigurationWindow(conf, oUnit.firmTotA, ref sp);
 			}
 			else
 			{
@@ -2448,19 +2464,19 @@ namespace X_Manager
 
 			switch (unitType)
 			{
-				case (byte)model_axyTrek:
+				case (byte)Unit.model_axyTrek:
 					fileIn.Read(uf, 0, 6);
 					fTotA = uf[0] * (uint)1000000 + uf[1] * (uint)1000 + uf[2];
 					fTotB = uf[3] * (uint)1000000 + uf[4] * (uint)1000 + uf[5];
 					uf[6] = 254;
 					break;
-				case (byte)model_axy3:
+				case Unit.model_axy3:
 					fileIn.Read(uf, 0, 2);
 					fTotA = uf[0] * (uint)1000 + uf[1];
 					uf[2] = 254;
 					break;
-				case (byte)model_axy4:
-				case (byte)model_axyDepth:
+				case Unit.model_axy4:
+				case Unit.model_axyDepth:
 					fileIn.Read(uf, 0, 2);
 					fTotA = uf[0] * (uint)1000 + uf[1];
 					uf[2] = 254;
@@ -2471,7 +2487,7 @@ namespace X_Manager
 						uf[3] = 254;
 					}
 					break;
-				case (byte)model_AGM1:
+				case Unit.model_AGM1:
 					fileIn.Read(uf, 0, 3);
 					fTotA = uf[0] * (uint)1000000 + uf[1] * (uint)1000 + uf[2];
 					uf[3] = 254;

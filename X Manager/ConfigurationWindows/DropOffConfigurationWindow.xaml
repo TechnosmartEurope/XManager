@@ -1,0 +1,39 @@
+﻿<local:ConfigurationWindow x:Class="X_Manager.ConfigurationWindows.DropOffConfigurationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Title="CONFIGURATION" Background="#FF181818" 
+        mc:Ignorable="d" Height="450" Width="400">
+    <Grid>
+        <Grid x:Name="mainGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Timer:" Foreground="AliceBlue" VerticalAlignment="Center"
+                       FontSize="30" Grid.Row="1" Margin="40,0,0,0"/>
+            <TextBox x:Name="timerTb" Grid.Row="2" Height="40" Width="100"
+                     VerticalAlignment="Center" VerticalContentAlignment="Center"
+                     Text="00000" FontSize="25" Margin="40,0,0,0" HorizontalAlignment="Left" 
+                     LostFocus="timerTb_LostFocus" PreviewKeyDown="timerTb_PreviewKeyDown"/>
+            <TextBlock Text="hrs" Grid.Row="2" FontSize="30" Margin="150,0,0,0" 
+                       VerticalAlignment="Center" Foreground="Gray"/>
+            <Button x:Name="testB" Grid.Row="4" Content="Test" 
+                    Foreground="White" FontSize="25" HorizontalAlignment="Left"
+                    Margin="40,0,0,0" Height="50" Background="Gray" Click="testB_Click"/>
+            <Button x:Name="sendB" Grid.Row="4" Content="SEND" 
+                    Foreground="GreenYellow" FontSize="25" HorizontalAlignment="Right"
+                    Margin="00,0,40,0" Height="50" Background="Gray" Click="sendB_Click"/>
+            <TextBlock x:Name="currentTb" Grid.Row="5" VerticalAlignment="Center"
+                       FontSize="25" Foreground="Gray" Margin="40,0,0,0" 
+                       HorizontalAlignment="Left"/>
+
+        </Grid>
+    </Grid>
+</local:ConfigurationWindow>

@@ -106,3 +106,6 @@
 	Bugfix: Axy5 dichiarava ard corrupted all'ultimo pre-stamp prima di evento poweroff
 	Bugfix: Axy5, in decodetimestamp rilevamento evento di fine sessione (poweroff, memfull, lowbattery) spostato a inizio timestamp esteso.
 1.11.5	Bugfix: Conversione Air nell'AxyDepth 1
+1.12.0	Uniformate costanti di identificazione modello.
+	Aggiunta classe Drop-Off
+	Aggiunte configurazione e conversione ADC per Axy4.5

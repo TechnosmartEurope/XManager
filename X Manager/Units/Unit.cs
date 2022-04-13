@@ -31,6 +31,7 @@ namespace X_Manager.Units
 		public const int model_axy4 = 124;
 		public const int model_Co2Logger = 123;
 		public const int model_axy5 = 122;
+		public const int model_drop_off = 11;
 		public const int model_AGM1_calib = 10;
 		public const int model_Gipsy6 = 10;
 		public const int model_AGM1 = 9;
@@ -151,7 +152,7 @@ namespace X_Manager.Units
 		}
 
 		public virtual void changeBaudrate(ref SerialPort sp, int newBaudrate)
-		{}
+		{ }
 		public static string askModel(ref SerialPort sp)
 		{
 			sp.Write("TTTTTTTGGAf");
@@ -167,11 +168,11 @@ namespace X_Manager.Units
 			//byte model=0;
 			switch (unitModelString)
 			{
-				case "Axy-4":
-				case "Axy-4.5":
-				case "Axy-Depth":
-				case "Axy-Depth.5":
-					break;
+				//case "Axy-4":
+				//case "Axy-4.5":
+				//case "Axy-Depth":
+				//case "Axy-Depth.5":
+				//break;
 				case "Axy-Trek":
 					break;
 				case "Axy-Track":

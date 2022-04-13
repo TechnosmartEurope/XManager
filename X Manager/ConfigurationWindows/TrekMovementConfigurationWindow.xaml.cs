@@ -11,6 +11,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.IO.Ports;
+using X_Manager.Units;
 using X_Manager.ConfigurationWindows;
 using System.Windows.Shapes;
 
@@ -267,7 +268,7 @@ namespace X_Manager.ConfigurationWindows
 			latencyThreshUd.maxValue = 40;
 			latencyThreshUd.header.Content = "Latency time: ";
 			latencyThreshUd.roundDigits = 0;
-			if ((unitType == MainWindow.model_axyDepth) || (unitType == MainWindow.model_axy3) || (unitType == MainWindow.model_axy4))
+			if ((unitType == Unit.model_axyDepth) || (unitType == Unit.model_axy3) || (unitType == Unit.model_axy4))
 			{
 				movThreshUd.IsEnabled = false;
 				movThreshUd.Value = 0;
@@ -275,7 +276,7 @@ namespace X_Manager.ConfigurationWindows
 				latencyThreshUd.Value = 0;
 			}
 
-			if ((unitType == MainWindow.model_axy3) || (unitType == MainWindow.model_axy4))
+			if ((unitType == Unit.model_axy3) || (unitType == Unit.model_axy4))
 			{
 				TDgroupBox.Header = "TEMPERATURE LOGGING";
 				logPeriodStackPanel.IsEnabled = false;

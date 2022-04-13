@@ -36,53 +36,14 @@ namespace X_Manager.ConfigurationWindows
 			unitType = axyconf[25];
 			firmTotA = unitFirm;
 
-			//if ((unitType == MainWindow.model_axyTrek))
-			//{
-			//    if ((firmTotA < 2000001))
-			//    {
-			//        this.mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(0);
-			//        sendButton.Margin = new Thickness(25);
-			//    }
-			//    else if ((firmTotA < 3000000))
-			//    {
-			//        this.mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(74);
-			//        sendButton.Margin = new Thickness(10);
-			//        WsHardwareRB.Visibility = Visibility.Hidden;
-			//        WsHardwareRB.IsEnabled = false;
-			//        WSGrid.ColumnDefinitions[1].Width = new GridLength(0);
-			//        WsDisabledRB.Margin = new Thickness(30, 0, 0, 0);
-			//        WsEnabledRB.Margin = new Thickness(30, 0, 0, 0);
-			//    }
-			//    else
-			//    {
-			//        this.mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(74);
-			//        sendButton.Margin = new Thickness(10);
-			//        if ((firmTotA < 3001000))
-			//        {
-			//            WsEnabledRB.Content = "Software";
-			//            WsHardwareRB.Content = "Hardware";
-			//        }
-			//        else
-			//        {
-			//            this.WSGrid.ColumnDefinitions[1].Width = new System.Windows.GridLength(0);
-			//            WsHardwareRB.Visibility = Visibility.Hidden;
-			//            WsHardwareRB.IsEnabled = false;
-			//            WsEnabledRB.Content = "Enabled";
-			//            WsDisabledRB.Margin = new Thickness(30, 0, 0, 0);
-			//            WsEnabledRB.Margin = new Thickness(30, 0, 0, 0);
-			//        }
-
-			//    }
-
-			//}
-			if ((unitType == MainWindow.model_Co2Logger))
+			if ((unitType == Units.Unit.model_Co2Logger))
 			{
-				this.mainGrid.RowDefinitions[2].Height = new System.Windows.GridLength(0);
-				this.mainGrid.RowDefinitions[3].Height = new System.Windows.GridLength(0);
-				this.mainGrid.RowDefinitions[4].Height = new System.Windows.GridLength(0);
-				this.mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(0);
-				this.accGrid.ColumnDefinitions[1].Width = new System.Windows.GridLength(0);
-				this.Height = 450;
+				mainGrid.RowDefinitions[2].Height = new System.Windows.GridLength(0);
+				mainGrid.RowDefinitions[3].Height = new System.Windows.GridLength(0);
+				mainGrid.RowDefinitions[4].Height = new System.Windows.GridLength(0);
+				mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(0);
+				accGrid.ColumnDefinitions[1].Width = new System.Windows.GridLength(0);
+				Height = 450;
 				sampleRateGB.Header = "SAMPLING PERIOD (s)";
 				((RadioButton)(rates.Children[0])).Content = "1";
 				((RadioButton)(rates.Children[1])).Content = "10";
@@ -92,7 +53,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			else
 			{
-				this.mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(0);
+				mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(0);
 				sendButton.Margin = new Thickness(25);
 				if (firmTotA < 3000000)
 				{
@@ -100,6 +61,15 @@ namespace X_Manager.ConfigurationWindows
 					magL.Visibility = Visibility.Hidden;
 					magGB.Visibility = Visibility.Hidden;
 					magCol.Width = new GridLength(0, GridUnitType.Pixel);
+				}
+				if (firmTotA < 3002000)
+				{
+					adcCB.IsChecked = false;
+					adcCB.IsEnabled = false;
+				}
+				else
+				{
+					adcCB.IsChecked = axyconf[22] == 1 ? true : false;
 				}
 			}
 
@@ -112,7 +82,7 @@ namespace X_Manager.ConfigurationWindows
 				catch { }
 			}
 
-			if (unitType == MainWindow.model_Co2Logger)
+			if (unitType == Units.Unit.model_Co2Logger)
 			{
 				switch (axyconf[24])
 				{
@@ -166,7 +136,7 @@ namespace X_Manager.ConfigurationWindows
 					break;
 			}
 
-			if ((unitType == MainWindow.model_axy4) || (unitType == MainWindow.model_axyDepth))
+			if ((unitType == Units.Unit.model_axy4) || (unitType == Units.Unit.model_axyDepth))
 			{
 				sendButton.Content = "Send configuration";
 				if ((axyconf[15] < 8))
@@ -218,9 +188,9 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			tempDepthLogginUD.Text = "";
-			if (unitType != MainWindow.model_axy3)
+			if (unitType != Units.Unit.model_axy3)
 			{
-				if (unitType != MainWindow.model_axy4 | firmTotA >= 3001000)
+				if (unitType != Units.Unit.model_axy4 | firmTotA >= 3001000)
 				{
 					tempDepthLogginUD.Text = axyconf[19].ToString();
 				}
@@ -231,7 +201,7 @@ namespace X_Manager.ConfigurationWindows
 				magCB.SelectedIndex = axyconf[21];
 			}
 
-			if (unitType == MainWindow.model_axyTrek)
+			if (unitType == Units.Unit.model_axyTrek)
 			{
 				switch (axyconf[22])
 				{
@@ -275,7 +245,7 @@ namespace X_Manager.ConfigurationWindows
 			latencyThreshUd.maxValue = 40;
 			latencyThreshUd.header.Content = "Latency time: ";
 			latencyThreshUd.roundDigits = 0;
-			if ((unitType == MainWindow.model_axyDepth) || (unitType == MainWindow.model_axy3) || (unitType == MainWindow.model_axy4))
+			if ((unitType == Units.Unit.model_axyDepth) || (unitType == Units.Unit.model_axy3) || (unitType == Units.Unit.model_axy4))
 			{
 				movThreshUd.IsEnabled = false;
 				movThreshUd.Value = 0;
@@ -283,13 +253,13 @@ namespace X_Manager.ConfigurationWindows
 				latencyThreshUd.Value = 0;
 			}
 
-			if (unitType == MainWindow.model_axy3)
+			if (unitType == Units.Unit.model_axy3)
 			{
 				TDgroupBox.Header = "TEMPERATURE LOGGING";
 				logPeriodStackPanel.IsEnabled = false;
 			}
 
-			if ((unitType == MainWindow.model_axy4) & (firmTotA < 3001000))
+			if ((unitType == Units.Unit.model_axy4) & (firmTotA < 3001000))
 			{
 				TDgroupBox.Header = "TEMPERATURE LOGGING";
 				logPeriodStackPanel.IsEnabled = false;
@@ -458,9 +428,10 @@ namespace X_Manager.ConfigurationWindows
 		{
 			sendConfiguration();
 		}
+
 		private void sendConfiguration()
 		{
-			if (unitType == MainWindow.model_Co2Logger)
+			if (unitType == Units.Unit.model_Co2Logger)
 			{
 				if ((bool)rate1RB.IsChecked)
 				{
@@ -502,7 +473,7 @@ namespace X_Manager.ConfigurationWindows
 				axyConfOut[15] = 4;
 			}
 
-			if ((unitType == MainWindow.model_axy4) || (unitType == MainWindow.model_axyDepth))
+			if ((unitType == Units.Unit.model_axy4) || (unitType == Units.Unit.model_axyDepth))
 			{
 				if ((mDebug == 1))
 				{
@@ -548,33 +519,9 @@ namespace X_Manager.ConfigurationWindows
 			{
 				axyConfOut[21] = (byte)magCB.SelectedIndex;
 			}
-			//try
-			//{
-			//	axyConfOut[20] = (byte)movThreshUd.Value;
-			//}
-			//catch { }
-			//try
-			//{
-			//	axyConfOut[21] = (byte)latencyThreshUd.Value;
-			//}
-			//catch { }
-
-			axyConfOut[22] = mDebug;
-			if ((unitType == MainWindow.model_axyTrek))
+			if (firmTotA >= 3002000)
 			{
-				if ((firmTotA > 2000000))
-				{
-					axyConfOut[23] = 0;
-					if ((bool)WsEnabledRB.IsChecked)
-					{
-						axyConfOut[23] = 1;
-					}
-
-					if ((bool)WsHardwareRB.IsChecked)
-					{
-						axyConfOut[23] = 2;
-					}
-				}
+				axyConfOut[22] = (bool)(adcCB.IsChecked) ? (byte)1 : (byte)0;
 			}
 			mustWrite = true;
 			this.Close();
