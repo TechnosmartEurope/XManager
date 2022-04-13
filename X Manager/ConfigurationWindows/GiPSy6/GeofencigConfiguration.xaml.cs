@@ -514,6 +514,7 @@ namespace X_Manager.ConfigurationWindows
 		public abstract string url(int x, int y, int z);
 		public abstract string filename(int x, int y, int z);
 	}
+	
 	partial class GeofencigConfiguration : PageCopy
 	{
 		[DllImport("wininet.dll")]
@@ -631,7 +632,7 @@ namespace X_Manager.ConfigurationWindows
 				sB = "H:";
 				schAL.Text = "Schedule G:";
 				schBL.Text = "Schedule H:";
-				titleL.Text = " 4 - Geofencing 2";
+				titleL.Text = "Geofencing 2";
 				squareOffset += 192;
 				scheduleOffset += 192;
 			}
@@ -1850,10 +1851,10 @@ namespace X_Manager.ConfigurationWindows
 		public override void copyValues()
 		{
 
-			if (mainEnableCB.IsChecked == false)
-			{
-				MessageBox.Show(String.Format("WARNING: Geofencing {0} not enabled!\r\nIf this is an intended behaviour, please ignore this warning.", index));
-			}
+			//if (mainEnableCB.IsChecked == false)
+			//{
+			//	MessageBox.Show(String.Format("WARNING: Geofencing {0} not enabled!\r\nIf this is an intended behaviour, please ignore this warning.", index));
+			//}
 
 			double co;
 			MapGrid m;
@@ -1950,6 +1951,11 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
+		public override void disable()
+		{
+			mainEnableCB.IsChecked = false;
+			copyValues();
+		}
 
 		#region CONVERSIONI
 

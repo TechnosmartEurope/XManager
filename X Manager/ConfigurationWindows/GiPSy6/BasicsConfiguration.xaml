@@ -8,7 +8,7 @@
       d:DesignWidth="968" Height="720" Width="968"
       Title="BasicsConfiguration">
 
-    <Grid>
+    <Grid x:Name="maingGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="60"/>
             <RowDefinition Height="50" />
@@ -23,32 +23,40 @@
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
             <RowDefinition />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Text=" 1 - Basics" Foreground="White" FontSize="35" Margin="0,0,0,0" Background="#FF303030"/>
+        <TextBlock Grid.Row="0" Text="Basics" Foreground="White" FontSize="35" Margin="0,0,0,0" Background="#FF303030"/>
 
-        <TextBlock Grid.Row="2" Text="FIRST FIX options" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
-        <TextBlock Grid.Row="3" Text="First Fix Acquisition ON time: " Foreground="White" FontSize="25" Margin="80,0,0,0" />
-        <TextBox Grid.Row="3" x:Name="acqOnTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" KeyDown="validate" LostFocus="validate" TabIndex="100" GotFocus="onTB_GotFocus" />
+        <TextBlock Grid.Row="1" Text="ACQUISITION options:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+        <TextBlock Grid.Row="2" Text="First Fix ON time: " Foreground="White" FontSize="25" Margin="80,0,0,0" />
+        <TextBox Grid.Row="2" x:Name="acqOnTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" KeyDown="validate" LostFocus="validate" TabIndex="100" GotFocus="onTB_GotFocus" />
+        <TextBlock Grid.Row="2" Text="(sec)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
+
+        <TextBlock Grid.Row="3" Text="First Fix OFF time: " Foreground="White" FontSize="25" Margin="80,0,0,0" />
+        <TextBox Grid.Row="3" x:Name="acqOffTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" TabIndex="100" GotFocus="onTB_GotFocus" />
         <TextBlock Grid.Row="3" Text="(sec)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
 
-        <TextBlock Grid.Row="4" Text="First Fix Acquisition OFF time: " Foreground="White" FontSize="25" Margin="80,0,0,0" />
-        <TextBox Grid.Row="4" x:Name="acqOffTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" TabIndex="100" GotFocus="onTB_GotFocus" />
-        <TextBlock Grid.Row="4" Text="(sec)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
+        <TextBlock Grid.Row="4" Text="Early Stop Filter:" Foreground="White" FontSize="25" Margin="80,0,0,0" />
+        <TextBlock Grid.Row="4" Text="N.SAT" Foreground="White" FontSize="25" Margin="320,0,0,0" HorizontalAlignment="Left"/>
+        <TextBox Grid.Row="4" x:Name="nsatTB" Margin="400,0,0,0" FontSize="20" Foreground="White" Width="100" KeyDown="validate" LostFocus="validate" TabIndex="107" GotFocus="onTB_GotFocus" HorizontalAlignment="Left"/>
+        <TextBlock Grid.Row="4" Text="GSV" Foreground="White" FontSize="25" Margin="540,0,0,0" HorizontalAlignment="Left"/>
+        <TextBox Grid.Row="4" x:Name="gsvTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" KeyDown="validate" LostFocus="validate" TabIndex="107" GotFocus="onTB_GotFocus" />
+        <TextBlock Grid.Row="4" Text="(dB/Hz)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
 
-        <TextBlock Grid.Row="6" Text="ACQUISITION options:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
-        <TextBlock Grid.Row="7" Text="Acquisition ON time:" Foreground="White" FontSize="25" Margin="80,0,0,0" />
+        <TextBlock Grid.Row="6" Text="LOGGING options:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+        <TextBlock Grid.Row="7" Text="ON time:" Foreground="White" FontSize="25" Margin="80,0,0,0" />
         <TextBox Grid.Row="7" x:Name="altOnTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" TabIndex="106" GotFocus="onTB_GotFocus" />
         <TextBlock Grid.Row="7" Text="(sec)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
-        
-        <CheckBox Grid.Row="8" x:Name="gsvCB" Margin="40,0,0,0" VerticalContentAlignment="Center" Width="40" HorizontalAlignment="Left" Checked="gsvCB_UnChecked" Unchecked="gsvCB_UnChecked"/>
-        <TextBlock Grid.Row="8" Text="SAT condition:" Foreground="White" FontSize="25" Margin="80,0,0,0" />
-        <TextBlock Grid.Row="8" Text="N.SAT" Foreground="White" FontSize="25" Margin="320,0,0,0" HorizontalAlignment="Left"/>
-        <TextBox Grid.Row="8" x:Name="nsatTB" Margin="400,0,0,0" FontSize="20" Foreground="White" Width="100" KeyDown="validate" LostFocus="validate" TabIndex="107" GotFocus="onTB_GotFocus" HorizontalAlignment="Left"/>
-        <TextBlock Grid.Row="8" Text="GSV" Foreground="White" FontSize="25" Margin="540,0,0,0" HorizontalAlignment="Left"/>
-        <TextBox Grid.Row="8" x:Name="gsvTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" KeyDown="validate" LostFocus="validate" TabIndex="107" GotFocus="onTB_GotFocus" />
-        <TextBlock Grid.Row="8" Text="(dB/Hz)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
-
+        <TextBlock Grid.Row="8" Text="Filters:" Foreground="White" FontSize="25" Margin="80,0,0,0" />
+        <CheckBox Grid.Row="8" x:Name="earlyStopCB" Margin="310,0,0,0" VerticalContentAlignment="Center" Width="180" HorizontalAlignment="Left"
+                  VerticalAlignment="Center" Content="Early Stop" Foreground="White" FontSize="20"/>
+        <CheckBox Grid.Row="8" x:Name="enhancedAccuracyCB" Margin="600,0,0,0" VerticalContentAlignment="Center" Width="240" HorizontalAlignment="Left"
+                  VerticalAlignment="Center" Content="Enhanced Accuracy" Foreground="White" FontSize="20"/>
+       
         <TextBlock Grid.Row="10" Text="START DELAY" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
         <CheckBox Grid.Row="11" x:Name="sddCB" Margin="40,0,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="30" Width="30" Padding="0" Checked="sddCB_Checked" Unchecked="sddCB_Checked" TabIndex="102" />
         <TextBlock Grid.Row="11" Text="Start Delay (date based): " Foreground="White" FontSize="25" Margin="80,0,0,0" Width="300" HorizontalAlignment="Left" />
@@ -58,5 +66,7 @@
         <TextBox Grid.Row="12" x:Name="startDelayTimeTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" TabIndex="105" GotFocus="onTB_GotFocus" />
         <TextBlock Grid.Row="12" x:Name="minLabel" Text="(min)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
 
+        <TextBlock Grid.Row="14" Text="REMOTE SCHEDULE" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+        
     </Grid>
 </local:PageCopy>

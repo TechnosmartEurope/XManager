@@ -20,5 +20,10 @@ namespace X_Manager.ConfigurationWindows
 
 		}
 
+		public virtual void disable()
+		{
+
+		}
+
 	}
 }

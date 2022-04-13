@@ -14,7 +14,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Margin="0,0,0,0" Text=" 2 - Schedule" Background="#FF303030" Foreground="White" FontSize="35" />
+        <TextBlock Grid.Row="0" Margin="0,0,0,0" Text="Schedule" Background="#FF303030" Foreground="White" FontSize="35" />
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -33,18 +33,46 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40" />
                     <RowDefinition Height="20" />
-                    <RowDefinition Height="40" />
-                    <RowDefinition Height="40" />
                     <RowDefinition Height="60" />
                     <RowDefinition Height="20" />
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="40" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="Primary Schedule"
-                   HorizontalAlignment="Center" Foreground="#FFC0C0C0" FontSize="25" />
-                <CheckBox Grid.Row="2" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" IsChecked="True" IsEnabled="False" />
-                <TextBlock Grid.Row="2" Text="Schedule A:" Margin="50,0,0,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Text="PRIMARY SCHEDULE"
+                   HorizontalAlignment="Center" Foreground="#FF00AADE" FontSize="25" />
+                <StackPanel Grid.Row="2" Orientation="Horizontal">
+                    <TextBlock Text="J" Margin="15,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="F" Margin="26,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="M" Margin="20,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="A" Margin="19,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="M" Margin="19,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="J" Margin="24,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="J" Margin="26,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="A" Margin="26,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="S" Margin="24,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="O" Margin="22,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="N" Margin="20,0,0,0" VerticalAlignment="Bottom"/>
+                    <TextBlock Text="D" Margin="20,0,0,0" VerticalAlignment="Bottom"/>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Margin="0,0,0,0" Orientation="Horizontal">
+                    <CheckBox x:Name="mm1" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm2" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm3" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm4" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm5" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm6" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm7" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm8" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm9" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm10" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm11" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                    <CheckBox x:Name="mm12" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
+                </StackPanel>
+                <CheckBox Grid.Row="4" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" IsChecked="True" IsEnabled="False" />
+                <TextBlock Grid.Row="4" Text="Schedule A:" Margin="50,0,0,0" VerticalAlignment="Center"/>
                 <!--<TextBox Grid.Row="2" x:Name="aValTB" Margin="190,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center"/>-->
-                <ComboBox Grid.Row="2" x:Name="aValCB" Margin="190,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
+                <ComboBox Grid.Row="4" x:Name="aValCB" Margin="190,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
                     <ComboBoxItem Content="1"/>
                     <ComboBoxItem Content="2"/>
                     <ComboBoxItem Content="3"/>
@@ -57,15 +85,15 @@
                     <ComboBoxItem Content="20"/>
                     <ComboBoxItem Content="30"/>
                 </ComboBox>
-                <ComboBox Grid.Row="2" Name="aTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
+                <ComboBox Grid.Row="4" Name="aTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
                     <ComboBoxItem Content="Hours"/>
                 </ComboBox>
-                <CheckBox Grid.Row="3" x:Name="scheduleBCB" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Checked="scheduleBCB_Checked" Unchecked="scheduleBCB_Checked" Height="40" VerticalAlignment="Top" />
-                <TextBlock Grid.Row="3" Text="Schedule B:" Margin="50,0,0,0" VerticalAlignment="Center"/>
+                <CheckBox Grid.Row="5" x:Name="scheduleBCB" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Checked="scheduleBCB_Checked" Unchecked="scheduleBCB_Checked" Height="40" VerticalAlignment="Top" />
+                <TextBlock Grid.Row="5" Text="Schedule B:" Margin="50,0,0,0" VerticalAlignment="Center"/>
                 <!--<TextBox Grid.Row="3" x:Name="bValTB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center"/>-->
-                <ComboBox Grid.Row="3" x:Name="bValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
+                <ComboBox Grid.Row="5" x:Name="bValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
                     <ComboBoxItem Content="1"/>
                     <ComboBoxItem Content="2"/>
                     <ComboBoxItem Content="3"/>
@@ -78,7 +106,7 @@
                     <ComboBoxItem Content="20"/>
                     <ComboBoxItem Content="30"/>
                 </ComboBox>
-                <ComboBox Grid.Row="3" Name="bTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
+                <ComboBox Grid.Row="5" Name="bTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
                     <ComboBoxItem Content="Hours"/>
@@ -111,18 +139,18 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="40" />
                     <RowDefinition Height="20" />
+                    <RowDefinition Height="60" />
+                    <RowDefinition Height="20" />
                     <RowDefinition Height="40" />
                     <RowDefinition Height="40" />
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
                     <RowDefinition />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="Secondary Schedule"
-                   HorizontalAlignment="Center" Foreground="#FFC0C0C0" FontSize="25" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="SECONDARY SCHEDULE" Foreground="#FF00AADE"
+                   HorizontalAlignment="Center" FontSize="25" />
 
-                <CheckBox Grid.Row="2" Margin="10,0,0,0" x:Name="scheduleCCB" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" IsChecked="True" IsEnabled="False" />
-                <TextBlock Grid.Row="2" Text="Schedule C:" Margin="50,0,0,0" VerticalAlignment="Center"/>
-                <ComboBox Grid.Row="2" x:Name="cValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
+                <CheckBox Grid.Row="4" Margin="10,0,0,0" x:Name="scheduleCCB" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" IsChecked="True" IsEnabled="False" />
+                <TextBlock Grid.Row="4" Text="Schedule C:" Margin="50,0,0,0" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="4" x:Name="cValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
                     <ComboBoxItem Content="1"/>
                     <ComboBoxItem Content="2"/>
                     <ComboBoxItem Content="3"/>
@@ -135,14 +163,14 @@
                     <ComboBoxItem Content="20"/>
                     <ComboBoxItem Content="30"/>
                 </ComboBox>
-                <ComboBox Grid.Row="2" Name="cTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
+                <ComboBox Grid.Row="4" Name="cTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
                     <ComboBoxItem Content="Hours"/>
                 </ComboBox>
-                <CheckBox Grid.Row="3" x:Name="scheduleDCB" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Unchecked="scheduleDCB_Checked" Checked="scheduleDCB_Checked" />
-                <TextBlock Grid.Row="3" Text="Schedule D:" Margin="50,0,0,0" VerticalAlignment="Center"/>
-                <ComboBox Grid.Row="3" x:Name="dValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
+                <CheckBox Grid.Row="5" x:Name="scheduleDCB" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Unchecked="scheduleDCB_Checked" Checked="scheduleDCB_Checked" />
+                <TextBlock Grid.Row="5" Text="Schedule D:" Margin="50,0,0,0" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="5" x:Name="dValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
                     <ComboBoxItem Content="1"/>
                     <ComboBoxItem Content="2"/>
                     <ComboBoxItem Content="3"/>
@@ -155,12 +183,12 @@
                     <ComboBoxItem Content="20"/>
                     <ComboBoxItem Content="30"/>
                 </ComboBox>
-                <ComboBox Grid.Row="3" Name="dTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
+                <ComboBox Grid.Row="5" Name="dTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
                     <ComboBoxItem Content="Hours"/>
                 </ComboBox>
-                <StackPanel Grid.Row="4" Orientation="Horizontal">
+                <StackPanel Grid.Row="2" Orientation="Horizontal">
                     <TextBlock Text="J" Margin="15,0,0,0" VerticalAlignment="Bottom"/>
                     <TextBlock Text="F" Margin="26,0,0,0" VerticalAlignment="Bottom"/>
                     <TextBlock Text="M" Margin="20,0,0,0" VerticalAlignment="Bottom"/>
@@ -174,7 +202,7 @@
                     <TextBlock Text="N" Margin="20,0,0,0" VerticalAlignment="Bottom"/>
                     <TextBlock Text="D" Margin="20,0,0,0" VerticalAlignment="Bottom"/>
                 </StackPanel>
-                <StackPanel Grid.Row="5" Margin="0,0,0,0" Orientation="Horizontal">
+                <StackPanel Grid.Row="2" Margin="0,0,0,0" Orientation="Horizontal">
                     <CheckBox x:Name="m1" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
                     <CheckBox x:Name="m2" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
                     <CheckBox x:Name="m3" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
@@ -185,7 +213,7 @@
                     <CheckBox x:Name="m8" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
                     <CheckBox x:Name="m9" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
                     <CheckBox x:Name="m10" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
-                    <CheckBox x:Name="m11" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" />
+                    <CheckBox x:Name="m11" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
                     <CheckBox x:Name="m12" VerticalContentAlignment="Center" Width="35" Padding="0,0,0,0" Margin="0" MinWidth="20" FontSize="5" BorderThickness="1,1,1,0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Top" />
                 </StackPanel>
                 <Grid Grid.Row="6" x:Name="secondaryScheduleGrid">

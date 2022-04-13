@@ -13,6 +13,8 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" Background="DarkGray">
             <Button x:Name="backB" Content="&lt;--" Background="#FF404040" FontSize="20" FontWeight="Bold" Height="40" VerticalAlignment="Top" Click="backClick"/>
+            <CheckBox x:Name="expertCB" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="20,0,0,0" Content="Expert Mode" Foreground="DarkSlateGray"
+                      Checked="expertCB_Checked" Unchecked="expertCB_Unchecked"/>
         </StackPanel>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" HorizontalAlignment="Right">
             <Button x:Name="forthB" Content="-->" Background="#FF404040" FontSize="20" FontWeight="Bold" Click="forthClick" />

@@ -28,15 +28,21 @@ namespace X_Manager.ConfigurationWindows
 		GeofencigConfiguration geoConf1;
 		GeofencigConfiguration geoConf2;
 		PageCopy[] pages;
+		bool[] pagesEnabled;
 		public volatile List<SBitmap> sbitmapAr;
 		public volatile List<string> bitnameAr;
 		byte unitType;
 		public string appDataPath;
 		public bool conn;
+		public bool expertMode;
+		int lastIndex;
+		int firstIndex;
 		//byte[] conf;
 		public GiPSy6ConfigurationMain(byte[] conf, byte unitType)
 		{
 			InitializeComponent();
+
+			expertCB.IsChecked = bool.Parse(MainWindow.getParameter("gipsy6ConfigurationExpertMode", "false"));
 
 			appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\TechnoSmArt Europe\\X Manager\\map cache\\";
 			System.IO.Directory.CreateDirectory(appDataPath);
@@ -69,9 +75,18 @@ namespace X_Manager.ConfigurationWindows
 			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
 			backB.IsEnabled = false;
 			this.unitType = unitType;
-			pages = new PageCopy[] { basicsConf, schedConf, geoConf1, geoConf2 };
+			pages = new PageCopy[] { schedConf, basicsConf, geoConf1, geoConf2 };
+			pagesEnabled = new bool[] { true, false, false, false };
+			lastIndex = 0;
+			firstIndex = 0;
+			forthB.Content = "SEND";
+			if ((bool)expertCB.IsChecked)
+			{
+				pagesEnabled = new bool[] { true, true, true, true };
+				forthB.Content = "-->";
+				lastIndex = 3;
+			}
 			Gipsy6ConfigurationBrowser.Content = pages[0];
-
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -83,16 +98,20 @@ namespace X_Manager.ConfigurationWindows
 		{
 			forthB.Content = "-->";
 
-			PageCopy p;
 			clearHistory();
 			backB.IsEnabled = true;
 			forthB.IsEnabled = true;
 
+			PageCopy p;
 			p = pages[pagePointer];
 			p.copyValues();
 
-			pagePointer--;
-			if (pagePointer == 0)
+			do
+			{
+				pagePointer--;
+			} while (pagesEnabled[pagePointer] == false);
+
+			if (pagePointer == firstIndex)
 			{
 				backB.IsEnabled = false;
 			}
@@ -103,24 +122,27 @@ namespace X_Manager.ConfigurationWindows
 		{
 			if ((string)forthB.Content == "SEND")
 			{
-				geoConf2.copyValues();
+				pages[lastIndex].copyValues();
 				mustWrite = true;
 				Close();
 				return;
 			}
 
-			PageCopy p;
 			clearHistory();
 			backB.IsEnabled = true;
 			forthB.IsEnabled = true;
 
+			PageCopy p;
 			p = pages[pagePointer];
 			p.copyValues();
 
-			pagePointer++;
-			if (pagePointer == (pages.Length - 1))
+			do
 			{
-				//forthB.IsEnabled = false;
+				pagePointer++;
+			} while (pagesEnabled[pagePointer] == false);
+
+			if (pagePointer == lastIndex)
+			{
 				forthB.Content = "SEND";
 			}
 			Gipsy6ConfigurationBrowser.Content = pages[pagePointer];
@@ -151,6 +173,78 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
+		private void expertCB_Checked(object sender, RoutedEventArgs e)
+		{
+			MainWindow.updateParameter("gipsy6ConfigurationExpertMode", "true");
 
+			pagesEnabled = new bool[] { true, true, true, true };
+			for (int i = pagesEnabled.Length - 1; i >= 0; i--)
+			{
+				lastIndex = i;
+				if (pagesEnabled[i] == true)
+				{
+					break;
+				}
+			}
+			for (int i = 0; i < pagesEnabled.Length; i++)
+			{
+				firstIndex = i;
+				if (pagesEnabled[i] == true)
+				{
+					break;
+				}
+			}
+			backB.IsEnabled = !(pagePointer == firstIndex);
+			forthB.Content = "-->";
+			if (pagePointer == lastIndex)
+			{
+				forthB.Content = "SEND";
+			}
+		}
+
+		private void expertCB_Unchecked(object sender, RoutedEventArgs e)
+		{
+			MainWindow.updateParameter("gipsy6ConfigurationExpertMode", "false");
+
+			pagesEnabled = new bool[] { true, false, false, false };
+
+			for (int i = pagesEnabled.Length - 1; i >= 0; i--)
+			{
+				lastIndex = i;
+				if (pagesEnabled[i] == true)
+				{
+					break;
+				}
+			}
+			for (int i = 0; i < pagesEnabled.Length; i++)
+			{
+				firstIndex = i;
+				if (pagesEnabled[i] == true)
+				{
+					break;
+				}
+			}
+			for (int i = 0; i < pagesEnabled.Length; i++)
+			{
+				if (pagesEnabled[i] == false)
+				{
+					pages[i].disable();
+				}
+			}
+
+			if (pagesEnabled[pagePointer] == false)
+			{
+				Gipsy6ConfigurationBrowser.Content = pages[firstIndex];
+				pagePointer = firstIndex;
+			}
+			if (pagePointer == firstIndex)
+			{
+				backB.IsEnabled = false;
+			}
+			if (pagePointer == lastIndex)
+			{
+				forthB.Content = "SEND";
+			}
+		}
 	}
 }

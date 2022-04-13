@@ -24,7 +24,9 @@ namespace X_Manager.ConfigurationWindows
 		uint[] sch = new uint[4];
 		ComboBox[] quantityArr;
 		ComboBox[] unitArr;
-		CheckBox[] ckArr;
+
+		CheckBox[] mAr;
+		CheckBox[] mmAr;
 		//int[] oldCbVal = new int[4];
 		public ScheduleConfiguration(byte[] conf)
 		{
@@ -34,7 +36,8 @@ namespace X_Manager.ConfigurationWindows
 			int colonna = 0;
 			quantityArr = new ComboBox[] { aValCB, bValCB, cValCB, dValCB };
 			unitArr = new ComboBox[4] { aTimeUnitCB, bTimeUnitCB, cTimeUnitCB, dTimeUnitCB };
-			ckArr = new CheckBox[12] { m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12 };
+			mAr = new CheckBox[12] { m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12 };
+			mmAr = new CheckBox[12] { mm1, mm2, mm3, mm4, mm5, mm6, mm7, mm8, mm9, mm10, mm11, mm12 };
 
 			for (int i = 0; i < 24; i++)
 			{
@@ -132,16 +135,19 @@ namespace X_Manager.ConfigurationWindows
 			//Mesi C/D
 			for (int i = 0; i < 12; i++)
 			{
-				if (conf[i + 116] == 1)
-				{
-					ckArr[i].IsChecked = true;
-				}
+				mmAr[i].IsChecked = conf[i + 116] == 0 ? true : false;
+				mAr[i].IsChecked = conf[i + 116] == 1 ? true : false;
+				mAr[i].Checked += m_Checked;
+				mAr[i].Unchecked += m_Checked;
+				mmAr[i].Checked += mm_Checked;
+				mmAr[i].Unchecked += mm_Checked;
+				
 			}
 		}
 
 		public override void copyValues()
 		{
-			
+
 			for (int i = 0; i < 4; i++)
 			{
 				sch[i] = uint.Parse(quantityArr[i].Text);
@@ -179,7 +185,7 @@ namespace X_Manager.ConfigurationWindows
 			for (int i = 0; i < 12; i++)
 			{
 				conf[i + 116] = 0;
-				if (ckArr[i].IsChecked == true)
+				if (mmAr[i].IsChecked == true)
 				{
 					conf[i + 116] = 1;
 				}
@@ -255,5 +261,40 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
+		private void mm_Checked(object sender, RoutedEventArgs e)
+		{
+			int index = 0;
+			for (int i = 0; i < 12; i++)
+			{
+				if ((CheckBox)sender == mmAr[i])
+				{
+					index = i;
+					break;
+				}
+			}
+			mAr[index].Checked -= m_Checked;
+			mAr[index].Unchecked -= m_Checked;
+			mAr[index].IsChecked = !mmAr[index].IsChecked;
+			mAr[index].Checked += m_Checked;
+			mAr[index].Unchecked += m_Checked;
+		}
+
+		private void m_Checked(object sender, RoutedEventArgs e)
+		{
+			int index = 0;
+			for (int i = 0; i < 12; i++)
+			{
+				if ((CheckBox)sender == mAr[i])
+				{
+					index = i;
+					break;
+				}
+			}
+			mmAr[index].Checked -= mm_Checked;
+			mmAr[index].Unchecked -= mm_Checked;
+			mmAr[index].IsChecked = !mAr[index].IsChecked;
+			mmAr[index].Checked += mm_Checked;
+			mmAr[index].Unchecked += mm_Checked;
+		}
 	}
 }

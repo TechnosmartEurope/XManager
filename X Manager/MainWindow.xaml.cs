@@ -40,7 +40,8 @@ namespace X_Manager
 
 
 #if X64
-		public const string ftdiLibraryName = "ftd2xx64.dll";
+		//public const string ftdiLibraryName = "ftd2xx64.dll";
+		public const string ftdiLibraryName = "ftd2xx.dll";
 #else
 		public const string ftdiLibraryName = "FTD2XX.dll";
 #endif
@@ -568,6 +569,9 @@ namespace X_Manager
 					configureMovementButton.Content = "Accelerometer configuration";
 					break;
 			}
+			//sviluppo
+			realTimeSP.IsEnabled = true;
+			realTimeB.IsEnabled = true;
 		}
 
 		void ctrlManager(object sender, KeyEventArgs e)
@@ -1952,9 +1956,13 @@ namespace X_Manager
 				case (0):
 					return;
 				case (2):
+					sp.Close();
 					charts = new ChartWindowAGM(sp.PortName);
+					((ChartWindowAGM)charts).WindowState = WindowState.Maximized;
+					((ChartWindowAGM)charts).ShowDialog();
 					break;
 			}
+			
 		}
 
 		public bool externConnect()
@@ -2014,7 +2022,7 @@ namespace X_Manager
 		private void getConf()
 		{
 			positionCanSend = oUnit.positionCanSend;
-			if (!(bool)sp.IsOpen)
+			if (!sp.IsOpen)
 			{
 				sp.Open();
 			}

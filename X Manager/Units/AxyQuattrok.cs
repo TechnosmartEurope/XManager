@@ -7,7 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using System.IO;
-using FTD2XX_NET;
+//using FTD2XX_NET;
 using System.Runtime.InteropServices;
 using System.Globalization;
 //using System.Diagnostics;

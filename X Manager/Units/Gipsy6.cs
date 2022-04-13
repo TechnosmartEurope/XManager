@@ -57,7 +57,9 @@ namespace X_Manager.Units
 			public double lat;
 			public double lon;
 			public double speed;
-			public double dop;
+			public int hAcc;
+			public int vAcc;
+			public int cog;
 			public int sat;
 			public int gsvSum;
 			public int timeStampLength;
@@ -102,7 +104,8 @@ namespace X_Manager.Units
 				tout.lat = this.lat;
 				tout.lon = this.lon;
 				tout.speed = this.speed;
-				tout.dop = this.dop;
+				tout.hAcc = this.hAcc;
+				tout.vAcc = this.vAcc;
 				tout.sat = this.sat;
 				tout.gsvSum = this.gsvSum;
 				tout.timeStampLength = this.timeStampLength;
@@ -125,6 +128,8 @@ namespace X_Manager.Units
 				return tout;
 			}
 		}
+
+		static readonly int[] accuracySteps = { 1, 2, 5, 10, 15, 50, 100 };
 
 		static readonly string[] events = {
 			"Power ON.",
@@ -185,7 +190,7 @@ namespace X_Manager.Units
 				if (test == command.ToArray()[0])   //Il comando è arrivato giusto, si manda conferma e si continua
 				{
 					sp.Write("K");
-					Thread.Sleep(10);
+					//Thread.Sleep(10);
 					goon = true;
 					break;
 				}
@@ -207,12 +212,15 @@ namespace X_Manager.Units
 			int b;
 			try
 			{
+
+				//sp.Write(new byte[] { 0x54, 0x54, 0x47, 0x47, 0x41, 0x62, 0x4b, 0x01 }, 0, 8);
+
 				if (!ask("b"))
 				{
 					return;
 				}
-				sp.ReadTimeout = 200;
 				sp.Write(new byte[] { (byte)maxMin }, 0, 1);
+				sp.ReadTimeout = 1200;
 				newBaudRate = (int)sp.ReadByte();
 				newBaudRate = newBaudRate + ((int)sp.ReadByte() << 8);
 				newBaudRate = newBaudRate + ((int)sp.ReadByte() << 16);
@@ -488,7 +496,7 @@ namespace X_Manager.Units
 				{
 					sp.ReadTimeout = 400;
 					//ACQ, Start delay e GSV			
-					for (int i = 32; i < 52; i++)
+					for (int i = 32; i < 32 + 20; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
@@ -497,70 +505,67 @@ namespace X_Manager.Units
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
+					sp.Write(new byte[] { 1 }, 0, 1);//***********************************************SYNC
 
-					sp.Write(new byte[] { 1 }, 0, 1); //Byte di sincronizzazione per remoto 1
-
-					//Schedule C e D + mesi
-					for (int i = 84; i < 84 + 44; i++)
+					//Schedule C e D + mesi + primo quadrato geofencing 1
+					for (int i = 84; i < 84 + 60; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
+					sp.Write(new byte[] { 1 }, 0, 1);//***********************************************SYNC
 
-					//Primi 2 vertici geofencing
-					for (int i = 128; i < 128 + 16; i++)
+					//Quadrati 2-5 geofencing-1
+					for (int i = 144; i < 144 + 64; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
+					sp.Write(new byte[] { 3 }, 0, 1);//***********************************************SYNC
 
-					sp.Write(new byte[] { 2 }, 0, 1); //Byte di sincronizzazione per remoto 2
-
-					//Altri 16 vertici geofencing
-					for (int i = 144; i < 208; i++)
+					//Quadrati 6-9 geofencing-1
+					for (int i = 208; i < 208 + 64; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
+					sp.Write(new byte[] { 4 }, 0, 1);//***********************************************SYNC
 
-					sp.Write(new byte[] { 3 }, 0, 1); //Byte di sincronizzazione per remoto 3
-
-					//Altri 16 vertici geofencing
-					for (int i = 208; i < 272; i++)
+					//Quadrato 10 geofencing-1 + Schedule E/F + Orari Geofencing 1 + Primo quadrato geofencing-2
+					for (int i = 272; i < 272 + 64; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
+					sp.Write(new byte[] { 5 }, 0, 1);//***********************************************SYNC
 
-					sp.Write(new byte[] { 4 }, 0, 1); //Byte di sincronizzazione per remoto 4
-
-
-					//Ultimi 16 vertici geofencing + Schedule E/F + Orari Geofencing 1 + Primo quadrato Geofencing 2
-					for (int i = 272; i < 336; i++)
+					//Quadrati 2-5 geofencing-2
+					for (int i = 336; i < 336 + 64; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
+					sp.Write(new byte[] { 6 }, 0, 1);//***********************************************SYNC
 
-					sp.Write(new byte[] { 5 }, 0, 1); //Byte di sincronizzazione per remoto
-
-					//Ulteriori 4 quadrati geofencing 2
-					for (int i = 336; i < 400; i++)
+					//Quadrati 6-9 geofencing-2
+					for (int i = 400; i < 400 + 64; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
+					sp.Write(new byte[] { 7 }, 0, 1);//***********************************************SYNC
 
-					sp.Write(new byte[] { 6 }, 0, 1); //Byte di sincronizzazione per remoto
-
-					//Ulteriori 4 quadrati geofencing 2
-					for (int i = 400; i < 464; i++)
+					//Ultimo quadrato geofencing 2 + Schedule G/H + orari Geofencing 2 + Enable Geofencing 1 e 2 + schedule remoto
+					for (int i = 464; i < 464 + 50; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
-
-					sp.Write(new byte[] { 7 }, 0, 1); //Byte di sincronizzazione per remoto
-
-					//Ultimo quadrato geofencing 2 + Schedule G/H + orari Geofencing 2 + Enable Geofencing 1 e 2
-					for (int i = 464; i < 514; i++)
+					if (firmTotA > 1)
 					{
-						conf[i] = (byte)sp.ReadByte();
+						for (int i = 514; i < 514 + 14; i++)
+						{
+							conf[i] = (byte)sp.ReadByte();
+						}
+						sp.Write(new byte[] { 8 }, 0, 1); //Byte di sincronizzazione per remoto
+						for (int i = 528; i < 528 + 12; i++)
+						{
+							conf[i] = (byte)sp.ReadByte();
+						}
 					}
-
 					sp.Write(new byte[] { 8 }, 0, 1); //Byte di sincronizzazione per remoto
 
 					break;
@@ -637,7 +642,14 @@ namespace X_Manager.Units
 		public override void disconnect()
 		{
 			base.disconnect();
-			ask("O");
+			if (remote)
+			{
+				ask("O");
+			}
+			else
+			{
+				ask("O");
+			}
 		}
 
 		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
@@ -698,15 +710,15 @@ namespace X_Manager.Units
 				return;
 			}
 
-			sp.ReadTimeout = 600;
+			sp.ReadTimeout = 1600;
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = buffPointer));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffSize));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = buffSize));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 
 			address = BitConverter.GetBytes(mem_max_logical_address);
 			Array.Reverse(address);
@@ -739,10 +751,17 @@ namespace X_Manager.Units
 						inBuffer[buffPointer + i] = (byte)sp.ReadByte();
 					}
 					buffPointer += 0x200;
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 				}
 				catch (Exception ex)
 				{
 					ok = false;
+					if (buffPointer != 0)
+					{
+						var foC = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
+						foC.Write(inBuffer, 0, inBuffer.Length);
+						foC.Close();
+					}
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 					break;
 				}
@@ -785,8 +804,16 @@ namespace X_Manager.Units
 						sp.Write(conf, (i * 64) + 32, 64);
 						sp.ReadByte();
 					}
+
 					sp.Write(conf, 480, 36);
 					sp.ReadByte();
+
+					if (firmTotA > 1)
+					{
+						sp.Write(conf, 516, 24);
+					}
+					sp.ReadByte();
+
 					break;
 				}
 				catch
@@ -1074,7 +1101,7 @@ namespace X_Manager.Units
 		{
 			BinaryWriter txtBW;
 			txtBW = new BinaryWriter(new FileStream(txtName, FileMode.Create));
-			//								data   ora    lon   lat   alt   eve   batt
+			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
 			string[] tabs = new string[10];
 			string fileOut = "";
 			var t = new TimeStamp();
@@ -1102,39 +1129,58 @@ namespace X_Manager.Units
 				//Si scrive il timestmap nel txt
 				if (!repeatEmptyValues)
 				{
-					tabs = new string[10];
+					tabs = new string[12];
 				}
 				tabs[0] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
 				tabs[1] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
 				//sviluppo
-				if ((t.tsType & ts_coordinate) == ts_coordinate)
-				{
-					tabs[1] += "-G(" + t.GPS_second.ToString("00") + ")";
-				}
+				//if ((t.tsType & ts_coordinate) == ts_coordinate)
+				//{
+				//	tabs[1] += "-G(" + t.GPS_second.ToString("00") + ")";
+				//}
 				///sviluppo
 				if ((t.tsType & ts_battery) == ts_battery)
 				{
-					tabs[6] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[10] = t.batteryLevel.ToString("0.00") + "V";
 				}
 				if ((t.tsType & ts_coordinate) == ts_coordinate)
 				{
-					tabs[2] = t.lat.ToString("00.000000", nfi);
-					tabs[3] = t.lon.ToString("00.000000", nfi);
-					tabs[4] = Math.Round(t.altitude, 1).ToString("#.0");
+					tabs[2] = t.lat.ToString("00.0000000", nfi);
+					tabs[3] = t.lon.ToString("000.0000000", nfi);
+					if (t.hAcc == 7)
+					{
+						tabs[4] = "> 100m";
+					}
+					else
+					{
+						tabs[4] = String.Format("< {0}m", accuracySteps[t.hAcc]);
+					}
+
+					tabs[5] = t.altitude.ToString();
+					if (t.vAcc == 7)
+					{
+						tabs[6] = "> 100m";
+					}
+					else
+					{
+						tabs[6] = String.Format("< {0}m", accuracySteps[t.vAcc]);
+					}
+					tabs[7] = t.speed.ToString("0.0");
+					tabs[8] = t.cog.ToString("0.0");
 				}
 				if ((t.tsType & ts_event) == ts_event)
 				{
-					tabs[5] = decodeEvent(ref t);
+					tabs[9] = decodeEvent(ref t);
 				}
 				//sviluppo
-				tabs[9] = t.pos.ToString("X");
+				//tabs[9] = t.pos.ToString("X");
 				///sviluppo
 
-				for (int i = 0; i < 9; i++)
+				for (int i = 0; i < 11; i++)
 				{
 					fileOut += (tabs[i] + "\t");
 				}
-				fileOut += (tabs[9] + "\r\n");
+				fileOut += (tabs[11] + "\r\n");
 				if (fileOut.Length > 0x1000000) //16MB
 				{
 					txtBW.Write(fileOut);
@@ -1197,8 +1243,8 @@ namespace X_Manager.Units
 					}
 
 					temp = "";
-					temp += t.lon.ToString("00.000000", nfi) + ",";
-					temp += t.lat.ToString("00.000000", nfi) + ",";
+					temp += t.lon.ToString("00.0000000", nfi) + ",";
+					temp += t.lat.ToString("00.0000000", nfi) + ",";
 					temp += t.altitude.ToString("0000.0", nfi);
 
 					kmlS += "\t\t\t\t\t" + temp + "\r\n";
@@ -1208,9 +1254,9 @@ namespace X_Manager.Units
 						primaCoordinata = false;
 						//Segnaposto di start
 						placeS += Properties.Resources.lookat1;
-						placeS += t.lon.ToString("00.000000", nfi);
+						placeS += t.lon.ToString("00.0000000", nfi);
 						placeS += Properties.Resources.lookat2;
-						placeS += t.lat.ToString("00.000000", nfi);
+						placeS += t.lat.ToString("00.0000000", nfi);
 						placeS += Properties.Resources.lookat3;
 						placeS += t.altitude.ToString("0000.0", nfi);
 						placeS += Properties.Resources.lookat4;
@@ -1402,30 +1448,50 @@ namespace X_Manager.Units
 			//Coordinata
 			if ((t.tsType & ts_coordinate) == ts_coordinate)
 			{
-				if (gp6[pos] > 0x7f)
+				int llon;
+				llon = (gp6[pos] & 0x7f) << 24;
+				llon += gp6[pos + 1] << 16;
+				llon += gp6[pos + 2] << 8;
+				llon += gp6[pos + 6] & 0xc0;
+				if ((gp6[pos] & 0x80) == 0x80)
 				{
-					//sviluppo
-					t.GPS_second = gp6[pos] - 0x80;
-					///sviluppo
+					llon = -llon;
+				}
+				t.lon = llon / 10000000.0;
 
-					int llon;
-					llon = gp6[pos + 1] << 24;
-					llon += gp6[pos + 2] << 16;
-					llon += gp6[pos + 3] << 8;
-					t.lon = llon / 10000000.0;
-					int llat;
-					llat = gp6[pos + 4] << 24;
-					llat += gp6[pos + 5] << 16;
-					llat += gp6[pos + 6] << 8;
-					t.lat = llat / 10000000.0;
-					t.altitude = gp6[pos + 7] << 8;
-					t.altitude += gp6[pos + 8];
-					t.altitude *= 0.128;
-					t.altitude -= 1000;
-					pos += 9;
-					t.sat = 8; //In caso di coordinata da flash interna, forza il n. di satelliti a 8 per consentire la conversione del kml
+				int llat;
+				llat = (gp6[pos + 3] & 0x3f) << 24;
+				llat += gp6[pos + 4] << 16;
+				llat += gp6[pos + 5] << 8;
+				llat += (gp6[pos + 6] & 0x30) << 2;
+				if ((gp6[pos] & 0x40) == 0x40)
+				{
+					llat = -llat;
+				}
+				t.lat = llat / 10000000.0;
+
+				t.altitude = (gp6[pos + 6] & 0x0f) << 8;
+				t.altitude = t.altitude + gp6[pos + 7] - 191;
+
+				t.hAcc = (gp6[pos + 8] & 0xe0) >> 5;
+				t.vAcc = (gp6[pos + 8] & 0x1c) >> 2;
+
+				t.speed = (gp6[pos + 8] & 3) << 6;
+				t.speed += (gp6[pos + 9] & 0xfc) >> 2;
+
+				t.cog = (gp6[pos + 9 & 3]) << 2;
+				if ((gp6[pos + 10] & 0x80) == 0x80)
+				{
+					t.cog += 2;
+				}
+				if ((gp6[pos + 3] & 0x80) == 0x80)
+				{
+					t.cog += 1;
 				}
 
+				t.GPS_second = gp6[pos + 10] & 0x3f;
+				pos += 11;
+				t.sat = 8;  //forzata per il kml
 			}
 
 			//Evento

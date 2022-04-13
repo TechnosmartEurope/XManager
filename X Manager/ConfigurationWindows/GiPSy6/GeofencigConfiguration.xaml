@@ -14,7 +14,7 @@
             <RowDefinition Height="660"/>
         </Grid.RowDefinitions>
         
-        <TextBlock Grid.Row="0" x:Name="titleL" Text=" 3 - Geofencing 1" Background="#FF303030" Foreground="White" FontSize="40" />
+        <TextBlock Grid.Row="0" x:Name="titleL" Text="Geofencing 1" Background="#FF303030" Foreground="White" FontSize="40" />
         <CheckBox Grid.Row="0" Name="mainEnableCB" HorizontalAlignment="Right" VerticalContentAlignment="Center" Content="Enable" FontSize="26" Margin="0,0,20,0" VerticalAlignment="Center" Padding="4,0" Checked="enableChecked"/>
         
         <Grid Grid.Row="1">
