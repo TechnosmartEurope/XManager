@@ -340,40 +340,18 @@ namespace X_Manager.Units
 			sp.Write("S");
 			Thread.Sleep(50);
 
-			byte downInit = 0;
+			int dieCount = 0;
 			try
 			{
-				downInit = (byte)sp.ReadByte();
+				dieCount = sp.ReadByte();
+				if (dieCount == 0x53) dieCount = 2;
+				if (dieCount == 0x73) dieCount = 1;
+				if ((dieCount != 1) & (dieCount != 2))
+				{
+					throw new Exception(unitNotReady);
+				}
 			}
 			catch
-			{
-				Thread.Sleep(200);
-				sp.BaudRate = 115200;
-				Thread.Sleep(200);
-				sp.Write(new byte[] { b }, 0, 1);
-				sp.BaudRate = baudrate;
-
-				Thread.Sleep(200);
-				sp.Write("S");
-				Thread.Sleep(50);
-
-				try
-				{
-					downInit = (byte)sp.ReadByte();
-				}
-				catch
-				{
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					try
-					{
-						fo.Close();
-					}
-					catch { }
-					return;
-				}
-			}
-
-			if (downInit != 0x53)
 			{
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 				try
@@ -382,7 +360,43 @@ namespace X_Manager.Units
 				}
 				catch { }
 				return;
+				
+				//Thread.Sleep(200);
+				//sp.BaudRate = 115200;
+				//Thread.Sleep(200);
+				//sp.Write(new byte[] { b }, 0, 1);
+				//sp.BaudRate = baudrate;
+
+				//Thread.Sleep(200);
+				//sp.Write("S");
+				//Thread.Sleep(50);
+
+				//try
+				//{
+				//	downInit = (byte)sp.ReadByte();
+				//}
+				//catch
+				//{
+				//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+				//	try
+				//	{
+				//		fo.Close();
+				//	}
+				//	catch { }
+				//	return;
+				//}
 			}
+
+			//if (downInit != 0x53)
+			//{
+			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+			//	try
+			//	{
+			//		fo.Close();
+			//	}
+			//	catch { }
+			//	return;
+			//}
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
@@ -463,23 +477,35 @@ namespace X_Manager.Units
 					actMemory += 4096;
 					if ((actMemory % 0x20000) == 0)
 					{
-						actMemory -= 4096;
-						for (int i = 0; i < 2; i++)
+						if (dieCount == 2)
 						{
-							address = BitConverter.GetBytes(actMemory);
-							Array.Reverse(address);
-							Array.Copy(address, 0, outBuffer, 1, 3);
-							outBuffer[0] = 97;
-							bytesToWrite = 4;
-							fixed (byte* outP = outBuffer, inP = inBuffer)
+							actMemory -= 4096;
+							for (int i = 0; i < 2; i++)
 							{
-								FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-								FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								address = BitConverter.GetBytes(actMemory);
+								Array.Reverse(address);
+								Array.Copy(address, 0, outBuffer, 1, 3);
+								outBuffer[0] = 97;
+								bytesToWrite = 4;
+								fixed (byte* outP = outBuffer, inP = inBuffer)
+								{
+									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								}
+								fo.Write(inBuffer, 0, 2048);
+								actMemory += 2048;
 							}
-							fo.Write(inBuffer, 0, 2048);
-							actMemory += 2048;
+							firstLoop = true;
 						}
-						firstLoop = true;
+						else
+						{
+							fo.Write(inBuffer, 0, 4096);
+							if ((actMemory % 0x40000) == 0)
+							{
+								firstLoop = true;
+							}
+						}
+						
 					}
 					else
 					{
@@ -540,6 +566,7 @@ namespace X_Manager.Units
 			string br = "D";
 			if (mdrSpeed == 9) br = "H";
 			sp.Write("TTTTTTTTTTTTTTGGA" + br);
+			int dieCount = 0;
 			try
 			{
 				sp.ReadByte();
@@ -555,7 +582,13 @@ namespace X_Manager.Units
 				Thread.Sleep(900);
 				sp.Write("R");
 				Thread.Sleep(100);
-				sp.ReadByte();
+				dieCount = sp.ReadByte();
+				if (dieCount == 0x53) dieCount = 2;
+				if (dieCount == 0x73) dieCount = 1;
+				if ((dieCount != 1) & (dieCount != 2))
+				{
+					throw new Exception(unitNotReady);
+				}
 			}
 			catch
 			{
@@ -608,8 +641,6 @@ namespace X_Manager.Units
 			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
 
 			bool firstLoop = true;
-			bool mem4 = false;
-			if (firmTotA > 2999999) mem4 = true;
 
 			while (actMemory < toMemory)
 			{
@@ -649,28 +680,39 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					if (mem4 && ((actMemory % 0x20000) == 0))
+					actMemory += 4096;
+					if (((actMemory % 0x20000) == 0))
 					{
-						for (int i = 0; i < 2; i++)
+						if (dieCount == 2)
 						{
-							address = BitConverter.GetBytes(actMemory);
-							Array.Reverse(address);
-							Array.Copy(address, 0, outBuffer, 1, 3);
-							outBuffer[0] = 97;
-							bytesToWrite = 4;
-							fixed (byte* outP = outBuffer, inP = inBuffer)
+							for (int i = 0; i < 2; i++)
 							{
-								FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-								FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								address = BitConverter.GetBytes(actMemory);
+								Array.Reverse(address);
+								Array.Copy(address, 0, outBuffer, 1, 3);
+								outBuffer[0] = 97;
+								bytesToWrite = 4;
+								fixed (byte* outP = outBuffer, inP = inBuffer)
+								{
+									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								}
+								fo.Write(inBuffer, 0, 2048);
+								actMemory += 2048;
 							}
-							fo.Write(inBuffer, 0, 2048);
-							actMemory += 2048;
+							firstLoop = true;
 						}
-						firstLoop = true;
+						else
+						{
+							fo.Write(inBuffer, 0, 4096);
+							if ((actMemory % 0x40000) == 0)
+							{
+								firstLoop = true;
+							}
+						}
 					}
 					else
 					{
-						actMemory += 4096;
 						fo.Write(inBuffer, 0, 4096);
 					}
 				}

@@ -691,7 +691,7 @@ namespace X_Manager
 					actMemory += 4096;
 					if (mem4 && ((actMemory % 0x20000) == 0))
 					{
-						
+
 						if (dieCount == 2)
 						{
 							actMemory -= 4096;
@@ -719,20 +719,20 @@ namespace X_Manager
 							{
 								firstLoop = true;
 							}
-						//	address = BitConverter.GetBytes(actMemory);
-						//	Array.Reverse(address);
-						//	Array.Copy(address, 0, outBuffer, 1, 3);
-						//	outBuffer[0] = 97;
-						//	bytesToWrite = 4;
-						//	fixed (byte* outP = outBuffer, inP = inBuffer)
-						//	{
-						//		FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-						//		FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
-						//	}
-						//	fo.Write(inBuffer, 0, 4096);
-						//	actMemory += 4096;
+							//	address = BitConverter.GetBytes(actMemory);
+							//	Array.Reverse(address);
+							//	Array.Copy(address, 0, outBuffer, 1, 3);
+							//	outBuffer[0] = 97;
+							//	bytesToWrite = 4;
+							//	fixed (byte* outP = outBuffer, inP = inBuffer)
+							//	{
+							//		FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+							//		FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
+							//	}
+							//	fo.Write(inBuffer, 0, 4096);
+							//	actMemory += 4096;
 						}
-						
+
 					}
 					else
 					{
@@ -788,6 +788,7 @@ namespace X_Manager
 			string br = "D";
 			if (mdrSpeed == 9) br = "H";
 			sp.Write("TTTTTTTTTTTTTTGGA" + br);
+			int dieCount = 0;
 			try
 			{
 				sp.ReadByte();
@@ -803,7 +804,13 @@ namespace X_Manager
 				Thread.Sleep(900);
 				sp.Write("R");
 				Thread.Sleep(100);
-				sp.ReadByte();
+				dieCount = sp.ReadByte();
+				if (dieCount == 0x53) dieCount = 2;
+				if (dieCount == 0x73) dieCount = 1;
+				if ((dieCount != 1) & (dieCount != 2))
+				{
+					throw new Exception(unitNotReady);
+				}
 			}
 			catch
 			{
@@ -897,28 +904,41 @@ namespace X_Manager
 				}
 				else
 				{
+					actMemory += 4096;
 					if (mem4 && ((actMemory % 0x20000) == 0))
 					{
-						for (int i = 0; i < 2; i++)
+						if (dieCount == 2)
 						{
-							address = BitConverter.GetBytes(actMemory);
-							Array.Reverse(address);
-							Array.Copy(address, 0, outBuffer, 1, 3);
-							outBuffer[0] = 97;
-							bytesToWrite = 4;
-							fixed (byte* outP = outBuffer, inP = inBuffer)
+							actMemory -= 4096;
+							for (int i = 0; i < 2; i++)
 							{
-								FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-								FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								address = BitConverter.GetBytes(actMemory);
+								Array.Reverse(address);
+								Array.Copy(address, 0, outBuffer, 1, 3);
+								outBuffer[0] = 97;
+								bytesToWrite = 4;
+								fixed (byte* outP = outBuffer, inP = inBuffer)
+								{
+									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								}
+								fo.Write(inBuffer, 0, 2048);
+								actMemory += 2048;
 							}
-							fo.Write(inBuffer, 0, 2048);
-							actMemory += 2048;
+							firstLoop = true;
 						}
-						firstLoop = true;
+						else
+						{
+							fo.Write(inBuffer, 0, 4096);
+							if ((actMemory % 0x40000) == 0)
+							{
+								firstLoop = true;
+							}
+						}
+						
 					}
 					else
 					{
-						actMemory += 4096;
 						fo.Write(inBuffer, 0, 4096);
 					}
 				}
@@ -1949,7 +1969,7 @@ namespace X_Manager
 
 			dt = new DateTime(2000 + tsc.anno, tsc.mese, tsc.giorno, tsc.ore, tsc.minuti, tsc.secondi);
 			dt = dt.AddSeconds(-secondiAdd);
-			dt = dt.AddSeconds(leapSeconds *  -1);
+			dt = dt.AddSeconds(leapSeconds * -1);
 
 			return dt;
 		}
