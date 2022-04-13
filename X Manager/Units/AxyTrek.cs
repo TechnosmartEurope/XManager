@@ -1362,8 +1362,11 @@ namespace X_Manager
 
 				MemoryStream ard = new MemoryStream(ardBuffer);
 
-				txt.Write(Encoding.ASCII.GetBytes("\r\n********************************* SESSION #" + sesCounter.ToString() + " (0x" +
+				if (debugLevel > 0)
+				{
+					txt.Write(Encoding.ASCII.GetBytes("\r\n********************************* SESSION #" + sesCounter.ToString() + " (0x" +
 					(ard.Position + infRemPosition).ToString("X4") + ")\r\n"));
+				}
 				//Encoding.ASCII.GetBytes(coord)
 
 				byte[] uf = new byte[16];

@@ -1,0 +1,75 @@
+-h: 
+this help
+
+-c: <file name>
+WARNING: This option is mandatory in order to execute X Manager in console-mode.
+<file name>: the raw file to be converted.
+
+-txt:
+	true
+	false
+Add a txt file with fixes and events
+
+-kml
+	true
+	false
+Add a kml files with GPS fixes and path.
+
+-pressUnit:
+	bar
+	meter
+Pressure is converted in height if "meters" is selected.
+
+-pressOffset:
+	integral number
+If pressure to height conversion in required, this value represents the air pressure value at 0m.
+
+-dateFormat:
+	dd/MM/yyyy
+	MM/dd/yyyy
+	yyyy/MM/dd
+	yyyy/dd/MM
+How the date has to be displayed in the Date or Date/Time column.
+
+-timeFormat
+	12
+	24
+Indicates if the time has to be displayed in 12am/pm or 24 hour format.
+
+-fillEmpty
+	true
+	false
+Fills empty csv fields with last known values.
+
+-sameColumn:
+	true
+	false
+Put the Time and the Date inside the same column or into two separate columns.
+
+-battery:
+	true
+	false
+Adds a csv column with the logged attery status.
+
+-overrideTime:
+	true
+	false
+Overrides the device/GPS time (if any) or add a specific time to the log (if device/GPS time is missing).
+
+-newTime
+	date and time
+Specifies the new time for replacing the log one.
+
+-metadata:
+	true
+	false
+Adds a csv column with metadata.
+
+-removeNonGPS:
+	true
+	false
+For rem files only: indicates if sessions without GPS fixes have to be removed from the csv or not.
+
+-leapSeconds:
+	integer number
+Number of additional Leap Seconds used for the correction of GPS time.

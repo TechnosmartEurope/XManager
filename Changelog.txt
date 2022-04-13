@@ -76,3 +76,5 @@
 1.9.3	Bugfix - AxyTrek: attesa progressWorker (busy)
 	Bugfix - AxyTrek: migliorato riconoscimento tripletta x y z di troppo tra header inizio sessione e primo timestamp. Il riconoscimento falliva nel caso di tripletta contenente escape 0xAB
 	AxyTrek: nella conversione rem viene utilizza data (ma non ora) della precedente sessione (se valida) come data in caso di fix gps 06/01/1980
+	AxyTrek: indicazione di nuova sessione nel txt dai rem
+1.9.4	AxyTrek: indicazione di nuova sessione nel txt dai rem inserita solo in caso di debugLevel > 0
