@@ -60,13 +60,14 @@ namespace X_Manager.ConfigurationWindows
 					if (startInt == 24)
 					{
 						hide = true;
+						((TextBox)(v.Children[1])).IsEnabled = false;
 					}
 					((TextBox)(v.Children[1])).Text = startInt.ToString();
-					((ComboBox)(v.Children[2])).SelectedItem = schedule[1 + (i * 6)];
-					((ComboBox)(v.Children[3])).SelectedItem = schedule[2 + (i * 6)];
-					((ComboBox)(v.Children[4])).SelectedItem = schedule[3 + (i * 6)];
-					((ComboBox)(v.Children[5])).SelectedItem = schedule[4 + (i * 6)];
-					((ComboBox)(v.Children[6])).SelectedItem = schedule[5 + (i * 6)];
+					((ComboBox)(v.Children[2])).SelectedIndex = schedule[1 + (i * 6)];
+					((ComboBox)(v.Children[3])).SelectedIndex = schedule[2 + (i * 6)];
+					((ComboBox)(v.Children[4])).SelectedIndex = schedule[3 + (i * 6)];
+					((ComboBox)(v.Children[5])).SelectedIndex = schedule[4 + (i * 6)];
+					((ComboBox)(v.Children[6])).SelectedIndex = schedule[5 + (i * 6)];
 				}
 			}
 
@@ -75,9 +76,22 @@ namespace X_Manager.ConfigurationWindows
 
 		public byte[] exportSchedule()
 		{
-			return new byte[] { (byte)0 };
+			byte[] schedule = new byte[30];
+
+			for (int i = 0; i < 5; i++)
+			{
+				var v = (StackPanel)(mainGrid.Children[i + 2]);
+				schedule[i * 6] = byte.Parse(((TextBox)(v.Children[1])).Text);
+				schedule[(i * 6) + 1] = ((byte)((ComboBox)(v.Children[2])).SelectedIndex);
+				schedule[(i * 6) + 2] = ((byte)((ComboBox)(v.Children[3])).SelectedIndex);
+				schedule[(i * 6) + 3] = ((byte)((ComboBox)(v.Children[4])).SelectedIndex);
+				schedule[(i * 6) + 4] = ((byte)((ComboBox)(v.Children[5])).SelectedIndex);
+				schedule[(i * 6) + 5] = ((byte)((ComboBox)(v.Children[6])).SelectedIndex);
+			}
+			return schedule;
 		}
 
 	}
 
 }
+

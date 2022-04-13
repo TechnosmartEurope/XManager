@@ -249,7 +249,7 @@ namespace X_Manager.Units
 			sp.Write("TTTTTTTTTTTTGGAC");
 			try
 			{
-				for (int i = 15; i <= 25; i++) { conf[i] = (byte)sp.ReadByte(); }
+				for (int i = 17; i <= 25; i++) { conf[i] = (byte)sp.ReadByte(); }
 			}
 			catch
 			{
@@ -265,7 +265,7 @@ namespace X_Manager.Units
 			try
 			{
 				sp.ReadByte();
-				sp.Write(conf, 15, 11);
+				sp.Write(conf, 17, 9);
 				sp.ReadByte();
 			}
 			catch

@@ -1237,6 +1237,7 @@ namespace X_Manager
                 if (confForm.mustWrite)
                 {
                     oUnit.setConf(confForm.axyConfOut);
+					oUnit.setAccSchedule(confForm.axyScheduleOut);
 					
                     Ok okf = new Ok("Movement configuration succesfully updated.");
                     okf.ShowDialog();

@@ -35,20 +35,39 @@ namespace X_Manager
 			this.Loaded += loaded;
 			mustWrite = false;
 			axyConfOut = new byte[26];
+			axyScheduleOut = new byte[30];
 			firmTotA = unitFirm;
 
 
 			//sendButton.Margin = new Thickness(25);
 
 			//Temperature logging
-			tempDepthCB.IsChecked = false;
+			temperatureOnOff.IsChecked = false;
 			tempDepthLogginUD.IsEnabled = false;
 			if (axyconf[17] == 1)
 			{
-				tempDepthCB.IsChecked = true;
+				temperatureOnOff.IsChecked = true;
 				tempDepthLogginUD.IsEnabled = true;
 			}
+
+			//Pressure logging
+			pressureOnOff.IsChecked = false;
+			if (axyconf[18] == 1)
+			{
+				temperatureOnOff.IsChecked = true;
+				tempDepthLogginUD.IsEnabled = true;
+			}
+
+			//T/D period
 			tempDepthLogginUD.Text = axyconf[19].ToString();
+
+			//Remote
+			remoteOnOff.IsChecked = false;
+			remoteOnOff.IsEnabled = false;
+
+			//Waterswitch
+			waterOnOff.IsChecked = false;
+			waterOnOff.IsEnabled = false;
 
 			//Remote
 			remoteOnOff.IsChecked = false;
@@ -94,14 +113,8 @@ namespace X_Manager
 			latencyThreshUd.IsEnabled = false;
 			latencyThreshUd.Value = 0;
 
-			TDgroupBox.Header = "TEMPERATURE LOGGING";
-			logPeriodStackPanel.IsEnabled = false;
-
-			//Da modificare man mano che si sviluppa il firmware
-			remoteOnOff.IsChecked = false;
-			remoteOnOff.IsEnabled = false;
-			WsDisabledRB.IsChecked = false;
-			WaterSwitchGB.IsEnabled = false;
+			//TDgroupBox.Header = "TEMPERATURE LOGGING";
+			//logPeriodStackPanel.IsEnabled = false;
 
 			// setThresholdUds()
 		}
@@ -207,6 +220,42 @@ namespace X_Manager
 			}
 		}
 
+		private void waterCheck(object sender, RoutedEventArgs e)
+		{
+			if ((bool)waterOnOff.IsChecked)
+			{
+				waterOnOff.Content = "Enabled";
+			}
+			else
+			{
+				waterOnOff.Content = "Disabled";
+			}
+		}
+
+		private void tempChecked(object sender, RoutedEventArgs e)
+		{
+			if ((bool)temperatureOnOff.IsChecked)
+			{
+				temperatureOnOff.Content = "Enabled";
+			}
+			else
+			{
+				temperatureOnOff.Content = "Disabled";
+			}
+		}
+
+		private void depthChecked(object sender, RoutedEventArgs e)
+		{
+			if ((bool)pressureOnOff.IsChecked)
+			{
+				pressureOnOff.Content = "Enabled";
+			}
+			else
+			{
+				pressureOnOff.Content = "Disabled";
+			}
+		}
+
 		private void cmdDown_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
 			UInt16 i = UInt16.Parse(tempDepthLogginUD.Text);
@@ -223,7 +272,7 @@ namespace X_Manager
 
 		private void tempDepthCBChecked(object sender, RoutedEventArgs e)
 		{
-			if ((bool)tempDepthCB.IsChecked)
+			if (((bool)temperatureOnOff.IsChecked) | ((bool)pressureOnOff.IsChecked))
 			{
 				tempDepthLogginUD.IsEnabled = true;
 			}
@@ -276,51 +325,14 @@ namespace X_Manager
 		private void sendConfiguration()
 		{
 
-
-			//if ((rate1RB.IsChecked == true))
-			//{
-			//	axyConfOut[15] = 1;
-			//}
-			//else if ((rate10RB.IsChecked == true))
-			//{
-			//	axyConfOut[15] = 2;
-			//}
-			//else if ((rate25RB.IsChecked == true))
-			//{
-			//	axyConfOut[15] = 3;
-			//}
-			//else if ((rate50RB.IsChecked == true))
-			//{
-			//	axyConfOut[15] = 4;
-			//}
-			//else if ((rate100RB.IsChecked == true))
-			//{
-			//	axyConfOut[15] = 5;
-			//}
-
-			//if (range2RB.IsChecked == true)
-			//{
-			//	axyConfOut[16] = 0;
-			//}
-			//else if (range4RB.IsChecked == true)
-			//{
-			//	axyConfOut[16] = 1;
-			//}
-			//else if (range8RB.IsChecked == true)
-			//{
-			//	axyConfOut[16] = 2;
-			//}
-			//else if (range16RB.IsChecked == true)
-			//{
-			//	axyConfOut[16] = 3;
-			//}
-
-
 			axyConfOut[17] = 0;
 			axyConfOut[18] = 0;
-			if ((tempDepthCB.IsChecked == true))
+			if ((temperatureOnOff.IsChecked == true))
 			{
 				axyConfOut[17] = 1;
+			}
+			if ((pressureOnOff.IsChecked == true))
+			{
 				axyConfOut[18] = 1;
 			}
 
@@ -366,6 +378,8 @@ namespace X_Manager
 			catch { }
 
 			axyConfOut[25] = mDebug;
+
+			axyScheduleOut = scheduleC.exportSchedule();
 
 			mustWrite = true;
 			this.Close();
