@@ -1394,7 +1394,21 @@ namespace X_Manager.Units
 					}
 					else
 					{
-						MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
+						if (dummyExt1 == 0x02)
+                        {
+							int b = ard.ReadByte();
+							ard.Position -= 2;
+							if (b != 0xab)
+                            {
+								MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
+								ard.WriteByte(0x00);
+								ard.Position -= 1;
+							}
+                        }
+                        else
+                        {
+							MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
+						}
 					}
 				}
 				else
@@ -1643,7 +1657,7 @@ namespace X_Manager.Units
 			//	{
 			//		int t = 0;
 			//	}
-				
+
 			//}
 			///sviluppo
 
@@ -1849,21 +1863,36 @@ namespace X_Manager.Units
 
 			if ((tsc.tsTypeExt1 & ts_escape) == ts_escape)
 			{
-				if ((tsc.tsTypeExt1 & ts_multi) == ts_multi)
+				if ((tsc.tsTypeExt1 & ts_blockEnd) == ts_blockEnd)
 				{
-					byte t = 0;
-					while (t != 0xab)
+					if ((tsc.tsTypeExt1 & ts_be_memFull) == ts_be_memFull)
 					{
-						if (ard.Position >= ard.Length)
-						{
-							return;
-						}
-						t = (byte)ard.ReadByte();
+						tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0;
 					}
-					ard.Read(new byte[0x3e], 0, 0x3e);
-					header = true;
-					tsCheck--;
-					goto _inizio;
+					else if ((tsc.tsTypeExt1 & ts_be_battery) == ts_be_battery)
+					{
+						tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0;
+					}
+					else if ((tsc.tsTypeExt1 & ts_be_powerOff) == ts_be_powerOff)
+					{
+						tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0;
+					}
+					else
+					{
+						byte t = 0;
+						while (t != 0xab)
+						{
+							if (ard.Position >= ard.Length)
+							{
+								return;
+							}
+							t = (byte)ard.ReadByte();
+						}
+						ard.Read(new byte[0x3e], 0, 0x3e);
+						header = true;
+						tsCheck--;
+						goto _inizio;
+					}
 				}
 			}
 

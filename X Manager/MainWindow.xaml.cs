@@ -1162,7 +1162,7 @@ namespace X_Manager
 					}
 					catch { }
 					//deviceName = mo["Caption"].ToString();
-					if (deviceName.Contains("COM") && !deviceName.Contains("XDS110") && !deviceName.Contains("COM1"))
+					if (deviceName.Contains("COM"))// && !deviceName.Contains("XDS110") && !deviceName.Contains("COM1"))
 					{
 						{
 							comPortComboBox.Items.Add(deviceName);

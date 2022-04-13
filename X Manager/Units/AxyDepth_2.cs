@@ -917,10 +917,8 @@ namespace X_Manager.Units
 				{
 					csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
 				}
-				catch (Exception ex)
-				{
-					int g = 0;
-				}
+				catch
+				{	}
 
 			}
 			while (Interlocked.Exchange(ref progLock, 2) > 0) { }

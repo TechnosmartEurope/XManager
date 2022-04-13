@@ -102,3 +102,4 @@
 1.11.1	Bugfix: separatore decimale magnetometro su axy4d
 1.11.2	Bugfix: crashava alla configurazione dell'axyDepth.5
 1.11.3	Bugfix: conversione axyDepth.5
+1.11.4	Rimossa limitazione elenco porte COM

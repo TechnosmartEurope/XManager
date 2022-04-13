@@ -828,24 +828,32 @@ namespace X_Manager.ConfigurationWindows
 			}
 			for (int i = 0; i < 2; i++)
 			{
-				if ((sch[i] % 3600) == 0)
+				unitAr[i].SelectedIndex = (int)sch[i] >> 8;
+				valAr[i].Text = (sch[i] & 0xff).ToString();
+				if (unitAr[i].SelectedIndex == 2)
 				{
-					sch[i] /= 3600;
-					unitAr[i].SelectedIndex = 2;
 					valAr[i].Items.Clear();
 					valAr[i].Items.Add("1");
+					valAr[i].SelectedIndex = 0;
 				}
-				else if ((sch[i] % 60) == 0)
-				{
-					sch[i] /= 60;
-					unitAr[i].SelectedIndex = 1;
-				}
-				else
-				{
-					unitAr[i].SelectedIndex = 0;
-				}
-				
-				valAr[i].Text = sch[i].ToString();
+				//if ((sch[i] % 3600) == 0)
+				//{
+				//	sch[i] /= 3600;
+				//	unitAr[i].SelectedIndex = 2;
+				//	valAr[i].Items.Clear();
+				//	valAr[i].Items.Add("1");
+				//}
+				//else if ((sch[i] % 60) == 0)
+				//{
+				//	sch[i] /= 60;
+				//	unitAr[i].SelectedIndex = 1;
+				//}
+				//else
+				//{
+				//	unitAr[i].SelectedIndex = 0;
+				//}
+
+				//valAr[i].Text = sch[i].ToString();
 				unitAr[i].SelectionChanged += cbSelChanged;
 			}
 
@@ -1908,10 +1916,15 @@ namespace X_Manager.ConfigurationWindows
 				c += 16;
 			}
 
+			//sch[0] = uint.Parse(valAr[0].Text);
+			//sch[0] *= (uint)Math.Pow(60, unitAr[0].SelectedIndex);
+			//sch[1] = uint.Parse(valAr[1].Text);
+			//sch[1] *= (uint)Math.Pow(60, unitAr[1].SelectedIndex);
+
 			sch[0] = uint.Parse(valAr[0].Text);
-			sch[0] *= (uint)Math.Pow(60, unitAr[0].SelectedIndex);
+			sch[0] += (uint)(unitAr[0].SelectedIndex) << 8;
 			sch[1] = uint.Parse(valAr[1].Text);
-			sch[1] *= (uint)Math.Pow(60, unitAr[1].SelectedIndex);
+			sch[1] += (uint)(unitAr[1].SelectedIndex) << 8;
 
 			conf[c] = (byte)sch[0];
 			conf[c + 1] = (byte)(sch[0] >> 8);

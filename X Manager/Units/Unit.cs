@@ -59,6 +59,13 @@ namespace X_Manager.Units
 		public const byte ts_multi = 0b0100_0000;
 		public const byte ts_escape = 0b1000_0000;
 
+		//Maschere timestamp di fine blocco
+		public const byte ts_be_powerOff = 0b_0000_1000;
+		public const byte ts_be_battery = 0b0001_0000;
+		public const byte ts_be_memFull = 0b0010_0000;
+		public const byte ts_blockEnd = 0b0100_0000;
+
+
 		//Array preferenze
 		public const int pref_pressMetri = 0;
 		public const int pref_millibars = 1;

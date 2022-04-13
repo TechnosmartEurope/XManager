@@ -118,25 +118,14 @@ namespace X_Manager.ConfigurationWindows
 			//Secondi Schedule ABCD
 			for (int i = 0; i < 4; i++)
 			{
-				if ((sch[i] % 3600) == 0)
+				unitArr[i].SelectedIndex = (int)sch[i] >> 8;
+				quantityArr[i].Text = (sch[i] & 0xff).ToString();
+				if (unitArr[i].SelectedIndex == 2)
 				{
-					sch[i] /= 3600;
-					unitArr[i].SelectedIndex = 2;
 					quantityArr[i].Items.Clear();
 					quantityArr[i].Items.Add("1");
-					//quantityArr[i].SelectedIndex = 0;
+					quantityArr[i].SelectedIndex = 0;
 				}
-				else if ((sch[i] % 60) == 0)
-				{
-					sch[i] /= 60;
-					unitArr[i].SelectedIndex = 1;
-				}
-				else
-				{
-					unitArr[i].SelectedIndex = 0;
-				}
-				quantityArr[i].Text = sch[i].ToString();
-				//quantityArr[i].SelectedItem = sch[i].ToString();
 				unitArr[i].SelectionChanged += cbSelChanged;
 			}
 
@@ -156,7 +145,8 @@ namespace X_Manager.ConfigurationWindows
 			for (int i = 0; i < 4; i++)
 			{
 				sch[i] = uint.Parse(quantityArr[i].Text);
-				sch[i] *= (uint)Math.Pow(60, unitArr[i].SelectedIndex);
+				sch[i] += (uint)(unitArr[i].SelectedIndex) << 8;
+				//sch[i] *= (uint)Math.Pow(60, unitArr[i].SelectedIndex);
 			}
 
 			conf[52] = (byte)(sch[0] & 0xff);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -73,7 +74,7 @@ namespace X_Manager.Units
 				get => _pos;
 				set
 				{
-					_pos = value + (((value / 0x1fe) + 1) * 2);
+					_pos = value + ((value / 512) + 1) * 2;
 				}
 			}
 
@@ -125,8 +126,10 @@ namespace X_Manager.Units
 			"","",
 			"Start searching for satellites...",
 			"No visible satellite. Going to sleep...",
-			"GPS Schedule {0} {1} {2}",
-			"","","",
+			"GPS Schedule {0} {1}",
+			"","",
+			"Low Battery.",
+			"Memory Full.",
 			"Power OFF",
 		};
 
@@ -155,7 +158,7 @@ namespace X_Manager.Units
 		{
 			int tent = 0;
 			bool res = false;
-			sp.ReadTimeout = 3;
+			sp.ReadTimeout = 30;
 			sp.ReadExisting();
 			int test = 0;
 			bool goon = false;
@@ -408,6 +411,7 @@ namespace X_Manager.Units
 			}
 			try
 			{
+				sp.ReadTimeout = 500;
 				sp.ReadByte();
 			}
 			catch
@@ -957,13 +961,16 @@ namespace X_Manager.Units
 			//Carica il file gp6 in memoria e lo chiude
 			BinaryReader gp6File = new System.IO.BinaryReader(new FileStream(fileName, FileMode.Open));
 			int filePointer = 0;
-			byte[] gp6 = new byte[(gp6File.BaseStream.Length / 512) * 510];
+			byte[] gp6 = new byte[gp6File.BaseStream.Length - ((gp6File.BaseStream.Length / 512) + 1) * 2];
+			//byte[] gp6 = new byte[(gp6File.BaseStream.Length / 512) * 510];
 			for (int i = 0; i < (gp6File.BaseStream.Length / 0x200); i++)
 			{
 				gp6File.ReadBytes(2);
 				gp6File.BaseStream.Read(gp6, filePointer, 510);
 				filePointer += 510;
 			}
+
+
 			gp6File.Close();
 
 			//Inizializza le variabili
@@ -993,6 +1000,10 @@ namespace X_Manager.Units
 				//	kmlSem.WaitOne();
 				//}
 				noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);   //decodifica il timestamp
+				if (noStampBuffer.Count == 1)   //Segnale di fine file
+				{
+					break;
+				}
 
 				//Aggiorna la progress bar, sostituire con aggiornamento a scatti
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
@@ -1003,15 +1014,15 @@ namespace X_Manager.Units
 				//Acquisisce l'acccesso alla pila txt
 				lock (txtList)
 				{
+					//sviluppo
+					if (timeStamp.dateTime.Second == 27 & timeStamp.dateTime.Minute == 57)
+					{
+						int f = 0;
+					}
+					///sviluppo
 					txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
 				}
 				relTxt = txtSem.Release();   //sblocca il thread txt
-											 //sviluppo
-				if (relTxt > 1000)
-				{
-					int a = 0;
-				}
-				///sviluppo
 
 				//Acquisisce l'acccesso alla pila kml
 				lock (kmlList)
@@ -1043,7 +1054,7 @@ namespace X_Manager.Units
 				Thread.Sleep(200);
 			}
 
-			MessageBox.Show("Pranzo completato");
+			//MessageBox.Show("Pranzo completato");
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				new Action(() => parent.nextFile()));
 		}
@@ -1615,9 +1626,10 @@ namespace X_Manager.Units
 			//Evento
 			if ((t.tsType & ts_event) == ts_event)
 			{
-				t.eventAr = new byte[5];
-				Array.Copy(gp6, pos, t.eventAr, 0, 5);
-				pos += 5;
+				t.eventAr = new byte[10];
+				int evLength = gp6[pos]+2;
+				Array.Copy(gp6, pos, t.eventAr, 0, evLength);
+				pos += evLength;
 			}
 
 			//Inserire Accelerometro
@@ -1667,13 +1679,13 @@ namespace X_Manager.Units
 		private string decodeEvent(ref TimeStamp ts)
 		{
 			string outs;
-			switch (ts.eventAr[0])
+			switch (ts.eventAr[1])
 			{
 				case 5:
-					outs = String.Format(events[ts.eventAr[0]], ts.eventAr[1], ts.eventAr[2], ts.eventAr[3]);
+					outs = String.Format(events[ts.eventAr[1]], ts.eventAr[2], ts.eventAr[3]);
 					break;
 				default:
-					outs = events[ts.eventAr[0]];
+					outs = events[ts.eventAr[1]];
 					break;
 			}
 			return outs;
