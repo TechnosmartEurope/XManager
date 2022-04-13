@@ -1,0 +1,19 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "X Manager Setup", "X Manager Setup\X Manager Setup.aiproj", "{816F97F5-0128-4C23-9E3C-E8649EE5C419}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		All|Default = All|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{816F97F5-0128-4C23-9E3C-E8649EE5C419}.All|Default.ActiveCfg = DefaultBuild
+		{816F97F5-0128-4C23-9E3C-E8649EE5C419}.All|Default.Build.0 = DefaultBuild
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

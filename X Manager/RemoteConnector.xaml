@@ -1,0 +1,68 @@
+﻿<Window x:Class="X_Manager.RemoteConnector"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:dc="clr-namespace:X_Manager"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+        Background="#FF181818" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" 
+        Title="REMOTE CONNECTOR" Height="231" Width="601">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="3*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <ComboBox x:Name="channelListCB" Margin="20,10,0,10" Width="180" FontSize="40" SelectedIndex="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" IsManipulationEnabled="True" >
+                    <ListBoxItem Content="180" FontSize="40"/>
+                </ComboBox>
+                <Button x:Name="wakeB" Content="WAKE" FontSize="30" Margin="40,10" Padding="20,0" Click="wakeClick" Foreground="#FF00AADE"/>
+            </StackPanel>
+            <Button x:Name="stopB" Grid.Column="1" Content="STOP" FontSize="30" Margin="10" Click="stopClick"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Rectangle x:Name="r1" Grid.Column="1" Height="35" Width="70" Fill="#FF424242" />
+                <Rectangle x:Name="r2" Grid.Column="2" Height="35" Width="70" Fill="#FF424242" />
+                <Rectangle x:Name="r3" Grid.Column="3" Height="35" Width="70" Fill="#FF424242" />
+                <Rectangle x:Name="r4" Grid.Column="4" Height="35" Width="70" Fill="#FF424242" />
+                <Rectangle x:Name="ra" Grid.Column="5" Height="35" Width="70" Fill="#FF424242"  >
+                    <Rectangle.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform AngleY="10"/>
+                            <RotateTransform/>
+                            <TranslateTransform Y="0"/>
+                        </TransformGroup>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+                <Rectangle x:Name="rb" Grid.Column="5" Height="35" Width="70" Fill="#FF424242"  >
+                    <Rectangle.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform AngleY="-10"/>
+                            <RotateTransform/>
+                            <TranslateTransform Y="0"/>
+                        </TransformGroup>
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+
+            </Grid>
+        </Grid>
+
+
+    </Grid>
+</Window>

@@ -1,0 +1,55 @@
+﻿<UserControl x:Class="X_Manager.ConfigurationWindows.DayTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="280" d:DesignWidth="900">
+    <Grid Background="#FF282828">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Label x:Name="dayLabel" Grid.Row="0" Margin="20,10,0,0" FontSize="20" FontWeight ="Bold" Foreground="#FF00AADE" Content="DayX"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Label Content="Number of intervals: " Margin="20,0,0,0"/>
+            <ComboBox Name="numeroIntervalliCB" Width="80" TabIndex="0" SelectionChanged="numeroIntervalliSelectionChanged" />
+        </StackPanel>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,10,0,0">
+            <StackPanel x:Name="orari1SP" HorizontalAlignment="left">
+                <TextBox Name="I1H1" IsEnabled="False" Width="60" Margin="40,5,0,0" />
+                <TextBox Name="I2H1" IsEnabled="False" Width="60" Margin="40,5,0,0"/>
+                <TextBox Name="I3H1" IsEnabled="False" Width="60" Margin="40,5,0,0"/>
+                <TextBox Name="I4H1" IsEnabled="False" Width="60" Margin="40,5,0,0"/>
+                <TextBox Name="I5H1" IsEnabled="False" Width="60" Margin="40,5,0,0"/>
+            </StackPanel>
+            <StackPanel x:Name="orari2SP" HorizontalAlignment="left" Margin="10,0,0,0">
+                <ComboBox Name="I1H2" Width="70" Margin="0,5,0,0" SelectionChanged="riassegnaOrariSelectionChanged" TabIndex="1"/>
+                <ComboBox Name="I2H2" Width="70" Margin="0,5,0,0" SelectionChanged="riassegnaOrariSelectionChanged" TabIndex="4"/>
+                <ComboBox Name="I3H2" Width="70" Margin="0,5,0,0" SelectionChanged="riassegnaOrariSelectionChanged" TabIndex="7"/>
+                <ComboBox Name="I4H2" Width="70" Margin="0,5,0,0" SelectionChanged="riassegnaOrariSelectionChanged" TabIndex="10"/>
+                <ComboBox Name="I5H2" Width="70" Margin="0,5,0,0" IsEnabled="false" SelectionChanged="riassegnaOrariSelectionChanged"/>
+            </StackPanel>
+            <StackPanel x:Name="modiSP" HorizontalAlignment="left" Margin="30,0,0,0">
+                <ComboBox Width="270" x:Name="I1M" HorizontalAlignment="Left" Margin="0,5,0,0" SelectionChanged="modiSelectionChanged" TabIndex="2" />
+                <ComboBox Width="270" x:Name="I2M" HorizontalAlignment="Left" Margin="0,5,0,0" SelectionChanged="modiSelectionChanged" TabIndex="5"/>
+                <ComboBox Width="270" x:Name="I3M" HorizontalAlignment="Left" Margin="0,5,0,0" SelectionChanged="modiSelectionChanged" TabIndex="8"/>
+                <ComboBox Width="270" x:Name="I4M" HorizontalAlignment="Left" Margin="0,5,0,0" SelectionChanged="modiSelectionChanged" TabIndex="11"/>
+                <ComboBox Width="270" x:Name="I5M" HorizontalAlignment="Left" Margin="0,5,0,0" SelectionChanged="modiSelectionChanged" TabIndex="13"/>
+            </StackPanel>
+            <StackPanel x:Name="parametriSP" HorizontalAlignment="left" Margin="30,0,0,0">
+                <ComboBox Width="170" Name="I1P" HorizontalAlignment="Left" Margin="0,5,0,0" TabIndex="3"/>
+                <ComboBox Width="170" Name="I2P" HorizontalAlignment="Left" Margin="0,5,0,0" TabIndex="6"/>
+                <ComboBox Width="170" x:Name="I3P" HorizontalAlignment="Left" Margin="0,5,0,0" TabIndex="9"/>
+                <ComboBox Width="170" Name="I4P" HorizontalAlignment="Left" Margin="0,5,0,0" TabIndex="12"/>
+                <ComboBox Width="170" Name="I5P" HorizontalAlignment="Left" Margin="0,5,0,0" TabIndex="14"/>
+            </StackPanel>
+            <Button Name="copyToNextDayButton" Height="80" VerticalAlignment="center" Width="90" Margin="50,77,0,0" TabIndex="15" Click="copyToNextDayButtonClick">
+                <Button.Content>
+                    <TextBlock Name ="copyToNextDayTB" Text="Copy to day y ->" TextWrapping="Wrap" />
+                </Button.Content>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>
