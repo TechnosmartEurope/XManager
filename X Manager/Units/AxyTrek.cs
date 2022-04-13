@@ -86,7 +86,7 @@ namespace X_Manager
 		ushort adcThreshold = 0;
 		//bool adcMagmin = false;
 		uint contoCoord;
-		
+
 		bool addGpsTime;
 		//uint sogliaNeg;
 		//uint rendiNeg;
@@ -118,6 +118,9 @@ namespace X_Manager
 		bool metadata;
 		bool oldUnitDebug = false;
 		int leapSeconds;
+
+		DateTime nullDate = new DateTime(1970, 1, 1, 0, 0, 0);
+		DateTime recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
 
 		public AxyTrek(object p)
 			: base(p)
@@ -1348,7 +1351,7 @@ namespace X_Manager
 				{
 					bufLen = ardFile.BaseStream.Length - sesAdd[0];
 				}
-				
+
 				ardFile.BaseStream.Position = sesAdd[0];
 				infRemPosition = sesAdd[0];
 				sesAdd.RemoveAt(0);
@@ -1358,6 +1361,10 @@ namespace X_Manager
 				ardFile.Close();
 
 				MemoryStream ard = new MemoryStream(ardBuffer);
+
+				txt.Write(Encoding.ASCII.GetBytes("\r\n********************************* SESSION #" + sesCounter.ToString() + " (0x" +
+					(ard.Position + infRemPosition).ToString("X4") + ")\r\n"));
+				//Encoding.ASCII.GetBytes(coord)
 
 				byte[] uf = new byte[16];
 				ard.Position = 1;
@@ -1448,8 +1455,31 @@ namespace X_Manager
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 					new Action(() => parent.statusLabel.Content = barStatus + sesInfo + " - Searching for a GPS fix..."));
 
-				byte abCheck = (byte)ard.ReadByte();
-				while (abCheck != (byte)0xab) abCheck = (byte)ard.ReadByte();
+				while (true)
+				{
+					byte abCheck = (byte)ard.ReadByte();
+					if (abCheck != 0xab)
+					{
+						continue;
+					}
+					else
+					{
+						abCheck = (byte)ard.ReadByte();
+						if (abCheck == 0xab)
+						{
+							continue;
+						}
+						else
+						{
+							ard.Position -= 1;
+							break;
+						}
+					}
+				}
+
+
+				//while (abCheck != 0xab) abCheck = (byte)ard.ReadByte();
+
 
 				long pos = ard.Position;
 				//ard.Close();
@@ -1457,6 +1487,23 @@ namespace X_Manager
 				//in caso di rem, se la sessione non contiene il fix gps viene tolta dal csv
 
 				DateTime startTime = findStartTime(ref ard, ref prefs, pos, exten.Contains("rem"));
+
+				if ((startTime.Year == 1980) | (startTime.Year==2080))	//Se la data è 1980 l'ora è giusta
+				{
+					if (DateTime.Compare(recoveryDate, nullDate) != 0)	//Quindi se la sessione precedente ha l'ora la sfrutta
+					{
+						//Imposta la data della recovery date e l'ora dall'orario gps
+						startTime = new DateTime(recoveryDate.Year, recoveryDate.Month, recoveryDate.Day, startTime.Hour,
+							startTime.Minute, startTime.Second);
+						if (DateTime.Compare(recoveryDate, startTime) > 0)
+						{
+							startTime = startTime.AddDays(1);
+						}
+						
+					}
+				}
+				recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
+
 				ard.Position = pos;
 
 				if (exten.Contains("rem"))
@@ -1474,7 +1521,6 @@ namespace X_Manager
 				}
 
 				timeStampO.orario = startTime;
-				sesCounter++;
 
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
@@ -1497,6 +1543,7 @@ namespace X_Manager
 				progMax = ard.Length - 1;
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 					new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+				while (progressWorker.IsBusy) { };
 				progressWorker.RunWorkerAsync();
 
 				string sBuffer = "";
@@ -1507,7 +1554,7 @@ namespace X_Manager
 				while (!convertStop)
 				{
 
-					while (Interlocked.Exchange(ref progLock, 2) > 0){}
+					while (Interlocked.Exchange(ref progLock, 2) > 0) { }
 
 					progVal = ard.Position;
 					Interlocked.Exchange(ref progLock, 0);
@@ -1525,6 +1572,12 @@ namespace X_Manager
 
 					if (timeStampO.stopEvent > 0)
 					{
+						if ((timeStampO.stopEvent == 4) & (timeStampO.orario.Year>1980) & (timeStampO.orario.Year < 2080))
+						{
+
+							recoveryDate = new DateTime(timeStampO.orario.Year, timeStampO.orario.Month, timeStampO.orario.Day,
+								timeStampO.orario.Hour, timeStampO.orario.Minute, timeStampO.orario.Second);
+						}
 						groupConverter(ref timeStampO, lastGroup, shortFileName, ref sBuffer, ref infRemPosition);
 						csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
 						break;
@@ -1571,7 +1624,7 @@ namespace X_Manager
 				}
 
 				if (makeTxt) txtWrite(ref timeStampO, ref txt);
-
+				sesCounter++;
 				//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				//	new Action(() => parent.statusProgressBar.Value = ard.Position));
 
@@ -1637,7 +1690,7 @@ namespace X_Manager
 				ardFile.Close();
 			}
 			catch { }
-			
+
 			//sw.Stop();
 			//MessageBox.Show(sw.Elapsed.TotalSeconds.ToString());
 
@@ -2199,7 +2252,8 @@ namespace X_Manager
 						if ((timeStamp0 & 16) == 16)
 						{
 							br.Read(coordinate, 0, 22);
-							if (coordinate[8] != 80) break;
+							break;
+							//if (coordinate[8] != 80) break;
 						}
 						if ((timeStamp0 & 32) == 32)
 						{

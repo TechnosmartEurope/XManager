@@ -73,3 +73,6 @@
 	Bugfix: correzione ETA (riportava male i minuti)
 1.9.2	Auto resize della finestra di configurazione axytrek in funzione della risoluzione dello schermo
 	Bugfix: Conversione axy5 crashava se tolta la colonna batteria da preferenze conversione
+1.9.3	Bugfix - AxyTrek: attesa progressWorker (busy)
+	Bugfix - AxyTrek: migliorato riconoscimento tripletta x y z di troppo tra header inizio sessione e primo timestamp. Il riconoscimento falliva nel caso di tripletta contenente escape 0xAB
+	AxyTrek: nella conversione rem viene utilizza data (ma non ora) della precedente sessione (se valida) come data in caso di fix gps 06/01/1980
