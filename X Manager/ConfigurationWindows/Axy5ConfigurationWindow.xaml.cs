@@ -34,7 +34,7 @@ namespace X_Manager
 			InitializeComponent();
 			this.Loaded += loaded;
 			mustWrite = false;
-			axyConfOut = new byte[26];
+			axyConfOut = new byte[30];
 			axyScheduleOut = new byte[30];
 			firmTotA = unitFirm;
 
@@ -61,19 +61,22 @@ namespace X_Manager
 			//T/D period
 			tempDepthLogginUD.Text = axyconf[19].ToString();
 
-			//Remote
-			remoteOnOff.IsChecked = false;
-			remoteOnOff.IsEnabled = false;
-
 			//Waterswitch
 			waterOnOff.IsChecked = false;
 			waterOnOff.IsEnabled = false;
 
 			//Remote
 			remoteOnOff.IsChecked = false;
+			remoteScheduleGB.IsEnabled = false;
 			if (axyconf[20] == 1)
 			{
 				remoteOnOff.IsChecked = true;
+				if (firmTotA > 1001000)
+				{
+					remoteScheduleGB.IsEnabled = true;
+					//remoteInterval1.IsEnabled = true;
+					//remoteInterval2.IsEnabled = true;
+				}
 			}
 
 			//Magnetometro
@@ -96,9 +99,34 @@ namespace X_Manager
 
 			//Schedule
 			scheduleC.importSchedule(schedule);
-			
+
+			//Remote Schedule
+			uint bitMask = 0;
+			if (firmTotA > 1001000)
+			{
+				bitMask = ((uint)axyconf[26] << 16) + ((uint)axyconf[27] << 8) + (uint)axyconf[28];
+			}
+
+			for (int i = 0; i < 24; i++)
+			{
+				var r = (Rectangle)remoteScheduleSP.Children[i];
+				if (((bitMask >> i) & 1) == 1)
+				{
+					r.Fill = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
+				}
+				else
+				{
+					r.Fill = new SolidColorBrush(Color.FromArgb(0xff, 0x18, 0x18, 0x18));
+				}
+			}
+
 		}
-		
+
+		private void cbChecked(object sender, RoutedEventArgs e)
+		{
+			int a = 0;
+		}
+
 		private void loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
 			movThreshUd.header.Content = "Acceleration magnitude: ";
@@ -121,7 +149,7 @@ namespace X_Manager
 			// setThresholdUds()
 
 		}
-		
+
 		private void setThresholdUds()
 		{
 			movValueChanged();
@@ -216,10 +244,19 @@ namespace X_Manager
 			if ((bool)remoteOnOff.IsChecked)
 			{
 				remoteOnOff.Content = "Enabled";
+				if (firmTotA > 1001000)
+				{
+					remoteScheduleGB.IsEnabled = true;
+					//remoteInterval1.IsEnabled = true;
+					//remoteInterval2.IsEnabled = true;
+				}
 			}
 			else
 			{
 				remoteOnOff.Content = "Disabled";
+				remoteScheduleGB.IsEnabled = false;
+				//remoteInterval1.IsEnabled = false;
+				//remoteInterval2.IsEnabled = false;
 			}
 		}
 
@@ -349,25 +386,16 @@ namespace X_Manager
 			{
 				axyConfOut[20] = 1;
 			}
+			else
+			{
+				axyConfOut[20] = 0;
+			}
 
 			if (magOnOff.IsChecked == true)
 			{
 				axyConfOut[21] = 1;
 			}
-
-			//if (bits10RB.IsChecked == true)
-			//{
-			//	axyConfOut[22] = 0;
-			//}
-			//else if (bits12RB.IsChecked == true)
-			//{
-			//	axyConfOut[22] = 1;
-			//}
-			//else if (bits8RB.IsChecked == true)
-			//{
-			//	axyConfOut[22] = 2;
-			//}
-						
+			
 			try
 			{
 				axyConfOut[23] = (byte)movThreshUd.Value;
@@ -381,11 +409,80 @@ namespace X_Manager
 
 			axyConfOut[25] = mDebug;
 
+			if (firmTotA > 1001000)
+			{
+				uint bitMask = 0;
+				for (int i = 0; i < 24; i++)
+				{
+					var r = (Rectangle)remoteScheduleSP.Children[i];
+					if (((SolidColorBrush)r.Fill).Color.R == 0)
+					{
+						bitMask += (uint)Math.Pow(2, i);
+					}
+					axyConfOut[26] = (byte)((bitMask >> 16) & 0b1111_1111);
+					axyConfOut[27] = (byte)((bitMask >> 8) & 0b1111_1111);
+					axyConfOut[28] = (byte)(bitMask & 0b1111_1111);
+				}
+			}
+
 			axyScheduleOut = scheduleC.exportSchedule();
 
 			mustWrite = true;
 			this.Close();
 		}
+
+		private void remoteHourClicked(object sender, RoutedEventArgs e)
+		{
+			var r = (Rectangle)sender;
+			if (((SolidColorBrush)r.Fill).Color.R == 0)
+			{
+				r.Fill = new SolidColorBrush(Color.FromArgb(0xff, 0x18, 0x18, 0x18));
+			}
+			else
+			{
+				r.Fill = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
+			}
+		}
+
+		//private void rem1Ch(object sender, RoutedEventArgs e)
+		//{
+		//	if (remInt1.SelectedIndex > remInt2.SelectedIndex)
+		//	{
+		//		remInt1.SelectedIndex = remInt2.SelectedIndex;
+		//	}
+		//}
+
+		//private void rem2Ch(object sender, RoutedEventArgs e)
+		//{
+		//	if (remInt2.SelectedIndex < remInt1.SelectedIndex)
+		//	{
+		//		remInt2.SelectedIndex = remInt1.SelectedIndex;
+		//	}
+		//	if (remInt2.SelectedIndex > remInt3.SelectedIndex)
+		//	{
+		//		remInt2.SelectedIndex = remInt3.SelectedIndex;
+		//	}
+		//}
+
+		//private void rem3Ch(object sender, RoutedEventArgs e)
+		//{
+		//	if (remInt3.SelectedIndex < remInt2.SelectedIndex)
+		//	{
+		//		remInt3.SelectedIndex = remInt2.SelectedIndex;
+		//	}
+		//	if (remInt3.SelectedIndex > remInt4.SelectedIndex)
+		//	{
+		//		remInt3.SelectedIndex = remInt4.SelectedIndex;
+		//	}
+		//}
+
+		//private void rem4Ch(object sender, RoutedEventArgs e)
+		//{
+		//	if (remInt4.SelectedIndex < remInt3.SelectedIndex)
+		//	{
+		//		remInt4.SelectedIndex = remInt3.SelectedIndex;
+		//	}
+		//}
 
 	}
 

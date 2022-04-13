@@ -253,11 +253,29 @@ namespace X_Manager.Units
 			sp.Write("TTTTTTTTTTTTGGAC");
 			try
 			{
+				//Legge rate e range per firmware senza schedule
 				if (firmTotA < 1000002)
 				{
 					for (int i = 15; i < 17; i++) { conf[i] = (byte)sp.ReadByte(); }
 				}
+
+				//Legge la configura<ione comune a tutti i firmware
 				for (int i = 17; i <= 25; i++) { conf[i] = (byte)sp.ReadByte(); }
+
+				//Legge lo schedule remoto
+				if (firmTotA > 1001000)
+				{
+					for (int i = 26; i <= 28; i++)
+					{
+						conf[i] = (byte)sp.ReadByte();
+					}
+				}
+				else
+				{
+					conf[26] = 0;
+					conf[27] = 0;
+					conf[28] = 1;
+				}
 			}
 			catch
 			{
@@ -278,6 +296,10 @@ namespace X_Manager.Units
 					sp.Write(conf, 15, 2);
 				}
 				sp.Write(conf, 17, 9);
+				if (firmTotA > 1001000)
+				{
+					sp.Write(conf, 26, 3);
+				}
 				sp.ReadByte();
 			}
 			catch
@@ -1223,6 +1245,9 @@ namespace X_Manager.Units
 								break;
 							case 3:
 								additionalInfo += "Memory full.";
+								break;
+							case 4:
+								additionalInfo += "Remote connection established.";
 								break;
 						}
 						textOut += additionalInfo + "\r\n";

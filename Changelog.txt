@@ -19,5 +19,8 @@
 	Bugfix: Aggiunti try-catch in apertura ard e csv per gestire eccezione file già aperti.
 	Separate finestre configurazione accelerometro per Axy e Axytrek
 	Separate temperatura e pressione nella config. AxyTrek per firmware Trek 3.4.0 (temperatura da sensore LIS2DH quando profond assente). Garantita retrocompatibilita' per precedenti fw
+1.3.0	Configurtazione Schedule Axy5
+	Configurazione Schedule Remoto Axy5
+	Completata conversione Axy5, compreso evento "Remote communication established"
 
 

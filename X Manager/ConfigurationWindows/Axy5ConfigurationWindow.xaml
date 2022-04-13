@@ -15,23 +15,123 @@
 
     <Grid Name="mainGrid" Height="Auto" Width="540" Margin="5,0,5,0" >
         <Grid.RowDefinitions>
+            <!-- Titolo -->
             <RowDefinition Height="54"/>
+            <!-- Schedule -->
             <RowDefinition Height="400"/>
+            <!-- Schedule remoto -->
             <RowDefinition Height="Auto"/>
+            <!-- Mag Rem Switch TOGGLES -->
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <!-- Temp Depth TOGGLES + period -->
+            <RowDefinition Height="Auto"/>
+            <!-- Movement trigger -->
+            <RowDefinition Height="Auto"/>
+            <!-- Button -->
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- Titolo -->
         <Label Grid.Row="0" Content="Present settings:" HorizontalAlignment="Center" VerticalAlignment="Center"
                FontSize="26" FontWeight="Normal" />
 
+        <!-- Schedule -->
         <GroupBox Grid.Row="1" x:Name="scheduleGB" Header="SCHEDULE" Foreground="#FF00AADE">
             <dc2:AccDayIntervals x:Name="scheduleC"/>
         </GroupBox>
 
+        <!-- Schedule remoto -->
+
+        <GroupBox Grid.Row="2" Header="REMOTE SCHEDULE" x:Name="remoteScheduleGB" Foreground="#FF00AADE">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1.4*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Label Content="0" FontSize="12" Margin="4,0,13,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="1" FontSize="12" Margin="2,0,12,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="2" FontSize="12" Margin="2,0,12,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="3" FontSize="12" Margin="2,0,12,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="4" FontSize="12" Margin="2,0,13,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="5" FontSize="12" Margin="2,0,13,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="6" FontSize="12" Margin="2,0,12,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="7" FontSize="12" Margin="2,0,12,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="8" FontSize="12" Margin="2,0,12,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="9" FontSize="12" Margin="2,0,9,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="10" FontSize="12" Margin="3,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="11" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="12" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="13" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="14" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="15" FontSize="12" Margin="1,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="16" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="17" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="18" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="19" FontSize="12" Margin="0,0,7,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="20" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="21" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="22" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="23" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                    <Label Content="24" FontSize="12" Margin="0,0,8,0" Padding="0" VerticalAlignment="Center" VerticalContentAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Orientation="Horizontal" x:Name="remoteScheduleSP" VerticalAlignment="Top">
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="11,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                    <Rectangle Fill="#FF00AADE" Height="5" Width="14" MouseUp="remoteHourClicked" Stroke="#FF00AADE" Margin="6,3,1,3"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+        <!--<Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0" x:Name="remoteInterval1" Header="REMOTE INTERVAL #1" Foreground="#FF00AADE">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" Margin="5" x:Name="remInt1"/>
+                    <ComboBox Grid.Column="1" Margin="5" x:Name="remInt2"/>
+                </Grid>
+            </GroupBox>
+            <GroupBox Grid.Column="1" x:Name="remoteInterval2" Header="REMOTE INTERVAL #2" Foreground="#FF00AADE">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" Margin="5" x:Name="remInt3"/>
+                    <ComboBox Grid.Column="1" Margin="5" x:Name="remInt4"/>
+                </Grid>
+            </GroupBox>
+        </Grid>-->
+
+
+        <!-- Mag Rem Switch TOGGLES -->
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -50,6 +150,7 @@
             </GroupBox>
         </Grid>
 
+        <!-- Temp Depth TOGGLES + period -->
         <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -77,33 +178,8 @@
                 </StackPanel>
             </GroupBox>
         </Grid>
-        <!--
-        <GroupBox Grid.Row="4" Name="TDgroupBox" Header="TEMPERATURE AND DEPTH LOGGING" Foreground="#FF00AADE" Margin="0,0,0,5">
-            <Grid Margin="10,0" HorizontalAlignment="Center" Width="350">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox Name="tempDepthCB" Grid.Column="0" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="26,0,0,0" />
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="29,0,-29,2">
-                    <StackPanel Name="logPeriodStackPanel" Orientation="Horizontal">
-                        <Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
-                        <TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="12"/>
-                        <Grid Width="30" Height="32" ScrollViewer.VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="1*" />
-                                <RowDefinition Height="1*"/>
-                            </Grid.RowDefinitions>
-                            <Button x:Name="LogEnup" x:FieldModifier="private" Grid.Row="0" Margin="0,1,0,0" MinHeight="0" MinWidth="0" Content="˄" ContentStringFormat="" FontSize="12" VerticalContentAlignment="Top" Click="cmdUp_Click" TabIndex="13"/>
-                            <Button x:Name="LogEndown" x:FieldModifier="private" Grid.Row="1" Margin="0" MinHeight="0" MinWidth="0" Content="˅" ContentStringFormat="" FontSize="12" Height="15" Click="cmdDown_Click" TabIndex="14"/>
-                        </Grid>
-                    </StackPanel>
-                </StackPanel>
 
-            </Grid>
-        </GroupBox>
-        -->
-
+        <!-- Movement trigger -->
         <GroupBox Grid.Row="5" Header="MOVEMENT THRESHOLDS" Foreground="#FF00AADE" HorizontalAlignment="Center" Width="540" >
             <Grid Margin="0,0,0,0" >
                 <Grid.ColumnDefinitions>
@@ -114,30 +190,18 @@
                 </Grid.ColumnDefinitions>
                 <dc:NumericUpDown x:Name="movThreshUd" Grid.Column="0" Margin="20,0,0,0" valueChanged="movChangedEvent" TabIndex="41"/>
                 <dc:NumericUpDown x:Name="latencyThreshUd" Grid.Column="2" Margin="5,0,0,0" valueChanged="latChangedEvent" TabIndex="40"/>
-               
+
                 <Label Grid.Column="1" Margin="5,0,0,0" Name="movThresholdLabel" Content="eeee" />
                 <Label Grid.Column="3" Margin="5,0,0,0" Name="latThresholdLabel" Content="eeee"/>
             </Grid>
-          
+
         </GroupBox>
 
-        <!--
-        <GroupBox Grid.Row="6" Name="WaterSwitchGB" Header="WATERSWITCH" Foreground="#FF00AADE" HorizontalAlignment="Center" Width="540" >
-            <Grid Margin="0,0,0,0" x:Name="WSGrid" >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
-                <RadioButton Name="WsEnabledRB" Grid.Column="0"  HorizontalAlignment="Left" Content="Enabled" TabIndex="9" Margin="20,0,0,0"   />
-                <RadioButton Name="WsDisabledRB" Grid.Column="1" HorizontalAlignment="Left" Content="Disabled" TabIndex="11" Margin="25,0,0,0"/>
-            </Grid>
-        </GroupBox>
-        -->
-        
-        <Button Grid.Row="7" x:Name="sendButton" Content="Send configuration" FontSize="20" Margin="0,10,0,10" Height="60" Click="sendConf" TabIndex="39"/>
-        
-        
- 
+        <!-- Button -->
+        <Button Grid.Row="6" x:Name="sendButton" Content="Send configuration" FontSize="20" Margin="0,10,0,10" Height="60" Click="sendConf" TabIndex="39"/>
+
+
+
     </Grid>
 
 </local:ConfigurationWindow>
