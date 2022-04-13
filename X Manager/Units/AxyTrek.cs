@@ -115,6 +115,7 @@ namespace X_Manager
 		//uint positionInFile = 0;
 		bool metadata;
 		bool oldUnitDebug = false;
+		int leapSeconds;
 
 		public AxyTrek(object p)
 			: base(p)
@@ -594,7 +595,10 @@ namespace X_Manager
 			Thread.Sleep(200);
 			sp.Write("S");
 			Thread.Sleep(1000);
-			if (sp.ReadByte() != (byte)0x53)
+			int dieCount = sp.ReadByte();
+			if (dieCount == 0x53) dieCount = 2;
+			if (dieCount == 0x73) dieCount = 1;
+			if ((dieCount != 1) & (dieCount != 2))
 			{
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 				try
@@ -604,6 +608,7 @@ namespace X_Manager
 				catch { }
 				return;
 			}
+
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
@@ -686,23 +691,48 @@ namespace X_Manager
 					actMemory += 4096;
 					if (mem4 && ((actMemory % 0x20000) == 0))
 					{
-						actMemory -= 4096;
-						for (int i = 0; i < 2; i++)
+						
+						if (dieCount == 2)
 						{
-							address = BitConverter.GetBytes(actMemory);
-							Array.Reverse(address);
-							Array.Copy(address, 0, outBuffer, 1, 3);
-							outBuffer[0] = 97;
-							bytesToWrite = 4;
-							fixed (byte* outP = outBuffer, inP = inBuffer)
+							actMemory -= 4096;
+							for (int i = 0; i < 2; i++)
 							{
-								FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-								FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								address = BitConverter.GetBytes(actMemory);
+								Array.Reverse(address);
+								Array.Copy(address, 0, outBuffer, 1, 3);
+								outBuffer[0] = 97;
+								bytesToWrite = 4;
+								fixed (byte* outP = outBuffer, inP = inBuffer)
+								{
+									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								}
+								fo.Write(inBuffer, 0, 2048);
+								actMemory += 2048;
 							}
-							fo.Write(inBuffer, 0, 2048);
-							actMemory += 2048;
+							firstLoop = true;
 						}
-						firstLoop = true;
+						else
+						{
+							fo.Write(inBuffer, 0, 4096);
+							if ((actMemory % 0x40000) == 0)
+							{
+								firstLoop = true;
+							}
+						//	address = BitConverter.GetBytes(actMemory);
+						//	Array.Reverse(address);
+						//	Array.Copy(address, 0, outBuffer, 1, 3);
+						//	outBuffer[0] = 97;
+						//	bytesToWrite = 4;
+						//	fixed (byte* outP = outBuffer, inP = inBuffer)
+						//	{
+						//		FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+						//		FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
+						//	}
+						//	fo.Write(inBuffer, 0, 4096);
+						//	actMemory += 4096;
+						}
+						
 					}
 					else
 					{
@@ -1072,6 +1102,7 @@ namespace X_Manager
 			const int pref_txt = 7;
 			const int pref_kml = 8;
 			const int pref_metadata = 16;
+			const int pref_leapSeconds = 17;
 
 			bool makeTxt = false;
 			bool makeKml = false;
@@ -1144,6 +1175,7 @@ namespace X_Manager
 			}
 			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
+			leapSeconds = int.Parse(prefs[pref_leapSeconds]);
 			timeStampO.inAdc = 0;
 			timeStampO.inWater = 0;
 
@@ -1917,7 +1949,7 @@ namespace X_Manager
 
 			dt = new DateTime(2000 + tsc.anno, tsc.mese, tsc.giorno, tsc.ore, tsc.minuti, tsc.secondi);
 			dt = dt.AddSeconds(-secondiAdd);
-			dt = dt.AddSeconds(-2);
+			dt = dt.AddSeconds(leapSeconds *  -1);
 
 			return dt;
 		}
@@ -1999,6 +2031,7 @@ namespace X_Manager
 						gCoeff = 187.58;
 						break;
 				}
+				gCoeff /= 1000;
 				return false;
 			}
 			else
@@ -2018,6 +2051,7 @@ namespace X_Manager
 						gCoeff = 46.9;
 						break;
 				}
+				gCoeff /= 1000;
 				return true;
 			}
 		}

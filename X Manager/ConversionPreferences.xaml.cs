@@ -47,6 +47,7 @@ namespace X_Manager
         const int pref_date_day = 14;
         const int pref_time_override = 15;
         const int pref_metadata = 16;
+		const int pref_leapSeconds = 17;
 
         public ConversionPreferences()
         {
@@ -68,7 +69,7 @@ namespace X_Manager
                 lastPrefs = System.IO.File.ReadAllLines(prefFile);
                 string s = lastPrefs[16];
 
-                if (s == "" | string.IsNullOrEmpty(s) | lastPrefs.Length < 17)
+                if (s == "" | string.IsNullOrEmpty(s) | lastPrefs.Length < 18)
                 {
                     throw new Exception("");
                 }
@@ -92,6 +93,7 @@ namespace X_Manager
                 newPrefs += DateTime.Now.Date.Day.ToString() + "\r\n";
                 newPrefs += "False\r\n";
                 newPrefs += "True\r\n";
+				newPrefs += "2\r\n";
                 System.IO.File.WriteAllText(prefFile, newPrefs);
             }
 
@@ -184,6 +186,8 @@ namespace X_Manager
 
             metadata.IsChecked = false;
             if (lastPrefs[pref_metadata] == "True") metadata.IsChecked = true;
+
+			leapSecondsUD.Value = int.Parse(lastPrefs[pref_leapSeconds]);
         }
 
         private void ctrlManager(object sender, KeyEventArgs e)
@@ -244,7 +248,7 @@ namespace X_Manager
 
         private void closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            string[] lastPrefs = new string[17];
+            string[] lastPrefs = new string[18];
             if ((bool)Millibars.IsChecked)
             {
                 lastPrefs[pref_pressMetri] = "millibars";
@@ -298,6 +302,7 @@ namespace X_Manager
             lastPrefs[pref_date_day] = dateTimePicker.Value.Value.Day.ToString();
             lastPrefs[pref_time_override] = OverrideTime.IsChecked.ToString();
             lastPrefs[pref_metadata] = metadata.IsChecked.ToString();
+			lastPrefs[pref_leapSeconds] = leapSecondsUD.Value.ToString();
             if (System.IO.File.Exists(prefFile)) System.IO.File.Delete(prefFile);
             System.IO.File.WriteAllLines(prefFile, lastPrefs);
         }

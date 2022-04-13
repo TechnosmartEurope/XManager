@@ -847,6 +847,7 @@ namespace X_Manager.Units
 						gCoeff = 187.58;
 						break;
 				}
+				gCoeff /= 1000;
 				return false;
 			}
 			else
@@ -866,6 +867,7 @@ namespace X_Manager.Units
 						gCoeff = 46.9;
 						break;
 				}
+				gCoeff /= 1000;
 				return true;
 			}
 		}

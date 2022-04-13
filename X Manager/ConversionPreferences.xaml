@@ -56,7 +56,7 @@
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <GroupBox Grid.Column="0" Header="CONVERSION SETTINGS" Foreground="#FF00AADE" Margin="5" Padding="0,5,5,5" MinHeight="25">
+            <GroupBox Grid.Column="0" Header="CONVERSION SETTINGS" Foreground="#FF00AADE" Margin="5" Padding="0,5,5,5" MinHeight="30">
                 <StackPanel Orientation="Vertical">
                     <CheckBox x:Name="fill" Content="Fill empty fields with last known values (MB)" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" />
                     <CheckBox x:Name="same" Content="Date and Time on the same column" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" />
@@ -68,28 +68,31 @@
             </GroupBox>
             <GroupBox Grid.Column="1" Header="START TIME (optional)" Foreground="#FF00AADE" Margin="5" Padding="0,5,5,5">
                 <StackPanel Orientation="Vertical" >
-                    <Grid Height="58" Margin="0" VerticalAlignment="Center">
+                    <Grid Height="Auto" Margin="0" VerticalAlignment="Center">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Orientation="Horizontal" >
-                            <dc:NumericUpDown x:Name ="hUd" Grid.Column="0" headerContent="H" headerHeight="Auto" minValue="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="90"/>
-                            <Grid x:Name="ampm" HorizontalAlignment="Left">
+                            <dc:NumericUpDown x:Name ="hUd" Grid.Column="0" headerContent="H" headerHeight="Auto" minValue="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="90" Height="Auto"/>
+                            <Grid x:Name="ampm" HorizontalAlignment="Left" VerticalAlignment="Top">
                                 <Grid.RowDefinitions >
-                                    <RowDefinition Height="28"/>
                                     <RowDefinition/>
                                     <RowDefinition/>
                                 </Grid.RowDefinitions>
-                                <Label Name="amLabel" Grid.Row="1" Content="am" MouseLeftButtonUp="amClick" FontSize="10" Padding="0" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="0,0,0,3"/>
-                                <Label Name="pmLabel" Grid.Row="2" Content="pm" MouseLeftButtonUp="pmClick" FontSize="10" Padding="0" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="0,0,0,3"/>
+                                <Label Name="amLabel" Grid.Row="0" Content="am" MouseLeftButtonUp="amClick" FontSize="10" Padding="0" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="0,0,0,3"/>
+                                <Label Name="pmLabel" Grid.Row="1" Content="pm" MouseLeftButtonUp="pmClick" FontSize="10" Padding="0" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="0,0,0,3"/>
                             </Grid>
                         </StackPanel>
                         <dc:NumericUpDown x:Name ="mUd" Grid.Column="1" headerContent="M" headerHeight="Auto" minValue="0" maxValue="59" HorizontalAlignment="Center" Width="90" VerticalAlignment="Top"/>
                         <dc:NumericUpDown x:Name ="sUd" Grid.Column="2" headerContent="S" headerHeight="Auto" minValue="0" maxValue="59" HorizontalAlignment="Right" Width="90" VerticalAlignment="Top"/>
                     </Grid>
-                    <xctk:DateTimePicker x:Name="dateTimePicker" Height="Auto" Format="Custom" HorizontalContentAlignment="Left" Margin="0,20,0,0" TimePickerShowButtonSpinner="False" TimePickerAllowSpin="False" TimePickerVisibility="Hidden" />
+                    <xctk:DateTimePicker x:Name="dateTimePicker" Height="Auto" Format="Custom" HorizontalContentAlignment="Left" Margin="0,15,0,10" TimePickerShowButtonSpinner="False" TimePickerAllowSpin="False" TimePickerVisibility="Hidden" />
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Leap Seconds:" />
+                        <dc:NumericUpDown x:Name="leapSecondsUD"  Margin="10,0,0,0" maxValue="20" />
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
         </Grid>

@@ -830,7 +830,8 @@ namespace X_Manager.Units
 
 				else if (testByte == 0x55)
 				{
-					ard.Write(mdp.ReadBytes(255));
+					mdp.ReadBytes(2);
+					ard.Write(mdp.ReadBytes(253));
 				}
 
 				else if (testByte == 0xff)
@@ -1068,6 +1069,8 @@ namespace X_Manager.Units
 				}
 			}
 
+			csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
+
 			if (makeTxt) txtWrite(ref timeStampO, ref txt);
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
@@ -1177,7 +1180,7 @@ namespace X_Manager.Units
 			string dateTimeS;
 			string ampm = "";
 			string dateS = "";
-			int contoTab = 0;
+			//int contoTab = 0;
 
 			//Compila data e ora
 			dateS = tsLoc.orario.ToString(dateFormatParameter);
@@ -1189,26 +1192,58 @@ namespace X_Manager.Units
 				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
 				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
 			}
-			
-			string log = unitName + csvSeparator + dateTimeS + ".000";
+
+			sBuffer += unitName + csvSeparator + dateTimeS + ".000";
+
+			//Inserisce le coordinate
 			if (((tsLoc.tsType & ts_coordinate) == ts_coordinate) | repeatEmptyValues)
 			{
-				log += csvSeparator + tsLoc.lon.ToString("000.0000000") + csvSeparator + tsLoc.lat.ToString("00.0000000");
-				log += csvSeparator + tsLoc.altitude + ToString() + csvSeparator + tsLoc.speed.ToString() + csvSeparator + tsLoc.dop.ToString();
-				log += csvSeparator + tsLoc.sat.ToString() + csvSeparator + tsLoc.gsvSum.ToString();
+				sBuffer += csvSeparator + tsLoc.lon.ToString("000.0000000") + csvSeparator + tsLoc.lat.ToString("00.0000000");
+				sBuffer += csvSeparator + tsLoc.altitude.ToString("0.00") + csvSeparator + tsLoc.speed.ToString("0.00") + csvSeparator + tsLoc.dop.ToString("0.00");
+				sBuffer += csvSeparator + tsLoc.sat.ToString() + csvSeparator + tsLoc.gsvSum.ToString();	//rimuovere "X4" dopo sviluppo
 			}
 			else
 			{
-				log += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
+				sBuffer += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
+			}
+			//contoTab=7;
+
+			//Inserisce la batteria
+			if (prefBattery)
+			{
+				if (((tsLoc.tsType & ts_battery) == ts_battery) | repeatEmptyValues)
+				{
+					sBuffer += csvSeparator + (tsLoc.batteryLevel.ToString("0.00"));
+				}
+				else
+				{
+					sBuffer += csvSeparator;
+				}
+				//contoTab++;
 			}
 
+			//Inserisce i metadati
+			if (metadata)
+			{
+				if (((tsLoc.tsType & ts_event) == ts_event) | repeatEmptyValues)
+				{
+					sBuffer += csvSeparator + decodeEvent(ref tsLoc);
+				}
+				else
+				{
+					sBuffer += csvSeparator;
+				}
+				//contoTab++;
+			}
+
+			sBuffer += "\r\n";
 
 
 
 			//double x, y, z;
 			//int milli = 0;
 			//string activityWater = "";
-			
+
 			//textOut = "";
 			//x = group[0] * gCoeff;
 			//y = group[1] * gCoeff;
@@ -1357,7 +1392,7 @@ namespace X_Manager.Units
 		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc, uint fTotA)
 		{
 			tsc.stopEvent = 0;
-			//ushort secondAmount = 1;
+			int secondAmount = 1;
 
 			tsc.tsType = ard.ReadByte();
 
@@ -1428,23 +1463,26 @@ namespace X_Manager.Units
 				int minuti = ard.ReadByte();
 				int secondi = ard.ReadByte();
 
-				tsc.lon = (ard.ReadByte() << 24) + (ard.ReadByte() << 16) + (ard.ReadByte() << 8) + ard.ReadByte();
+				ard.ReadByte(); //FixType
+
+				tsc.lon = ard.ReadByte() + (ard.ReadByte() << 8) + (ard.ReadByte() << 16) + (ard.ReadByte() << 24);
 				if (tsc.lon > 2_147_483_647) tsc.lon -= 4_294_967_296;
 				tsc.lon /= 10000000;
-				tsc.lat = (ard.ReadByte() << 24) + (ard.ReadByte() << 16) + (ard.ReadByte() << 8) + ard.ReadByte();
+				tsc.lat = ard.ReadByte() + (ard.ReadByte() << 8) + (ard.ReadByte() << 16) + (ard.ReadByte() << 24);
 				if (tsc.lat > 2_147_483_647) tsc.lat -= 4_294_967_296;
 				tsc.lat /= 10000000;
 
-				tsc.altitude = (ard.ReadByte() << 24) + (ard.ReadByte() << 16) + (ard.ReadByte() << 8) + ard.ReadByte();
+				tsc.altitude = ard.ReadByte() + (ard.ReadByte() << 8) + (ard.ReadByte() << 16) + (ard.ReadByte() << 24);
 				if (tsc.altitude > 2_147_483_647) tsc.altitude -= 4_294_967_296;
 				tsc.altitude /= 1000;
 
-				tsc.speed = (ard.ReadByte() << 24) + (ard.ReadByte() << 16) + (ard.ReadByte() << 8) + ard.ReadByte();
+				tsc.speed = ard.ReadByte() + (ard.ReadByte() << 8) + (ard.ReadByte() << 16) + (ard.ReadByte() << 24);
 				if (tsc.speed > 2_147_483_647) tsc.speed -= 4_294_967_296;
 				tsc.speed *= 3.6;
 				tsc.speed /= 10000;
 
-				tsc.dop = (ard.ReadByte()) / 256.0;
+				tsc.dop = ard.ReadByte() + (ard.ReadByte() << 8);
+				tsc.dop /= 100;
 				tsc.sat = ard.ReadByte();
 				tsc.gsvSum = ard.ReadByte() * 256 + ard.ReadByte();
 
@@ -1482,6 +1520,7 @@ namespace X_Manager.Units
 				{
 					int anno = ard.ReadByte();
 					anno = ((anno / 16) * 10) + (anno % 16);
+					anno += 2000;
 					int mese = ard.ReadByte();
 					mese = ((mese / 16) * 10) + (mese % 16);
 					int giorno = ard.ReadByte();
@@ -1493,10 +1532,40 @@ namespace X_Manager.Units
 					int secondi = ard.ReadByte();
 					secondi = ((secondi / 16) * 10) + (secondi % 16);
 					tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
+					secondAmount = 0;
 				}
 			}
-			
 
+			tsc.orario = tsc.orario.AddSeconds(secondAmount);
+
+		}
+
+		private string decodeEvent(ref timeStamp ts)
+		{
+			string outS = "";
+			switch (ts.eventAr[0])
+			{
+				case 0:
+					return "Start searching for satellites...";
+				case 1:
+					return "Poor signal.";
+				case 3:
+					return "Delayed Start";
+				case 4:
+					return "Start";
+				case 5:
+					return "Switching to Continuous";
+				case 6:
+					return "Switchinf to Off";
+				case 20:
+					outS = "Fix obtained (" + ts.eventAr[1].ToString() + "-" + ts.eventAr[2].ToString() + ")";
+					return outS;
+				case 30:
+					outS = "Signal lost (nsat: " + ts.eventAr[1].ToString() + " gsv:" + (ts.eventAr[2] * 256 + ts.eventAr[3]).ToString() + ")";
+					return outS;
+				default:
+					return "Unknown event.";
+			}
 		}
 
 		private void csvPlaceHeader(ref BinaryWriter csv)
@@ -1538,7 +1607,7 @@ namespace X_Manager.Units
 			//}
 
 			csvHeader += csvSeparator + "loc.lat" + csvSeparator + "loc.lon" + csvSeparator + "alt"
-				+ csvSeparator + "speed" + csvSeparator + "sat.count" + csvSeparator + "hdop" + csvSeparator + "signal";
+				+ csvSeparator + "speed" + csvSeparator + "hdop" + csvSeparator + "sat.count" + csvSeparator + "signal";
 			if (adcLog) csvHeader += csvSeparator + "Sensor Raw";
 			if (adcStop) csvHeader += csvSeparator + "Sensor State";
 			if (prefBattery) csvHeader += csvSeparator + "batt(V)";
