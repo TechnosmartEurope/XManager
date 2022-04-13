@@ -450,13 +450,13 @@ namespace X_Manager.Units
 
 		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
-			convertStop = false;
-			uint actMemory = mem_max_logical_address;
-			FileMode fm = FileMode.Create;
+			convertStop = false;	//Inizializzazione variabile di interruzione utente del download
+			uint actMemory = mem_max_logical_address;	//Inizializzazione numero di pagina da scaricare
+			FileMode fm = FileMode.Create;				//File ard da creare nuovo (se esistente viene sovrascritto)
 
-			string fileNameMdp_base = Path.GetFileNameWithoutExtension(fileName);
-			int numAct = -1;
-			foreach (string file in Directory.GetFiles(Path.GetDirectoryName(fileName)))
+			string fileNameMdp_base = Path.GetFileNameWithoutExtension(fileName);	//recupera il nome dell'unità dal nome del file
+			int numAct = -1;	
+			foreach (string file in Directory.GetFiles(Path.GetDirectoryName(fileName)))	//Calcola il suffisso da aggiungere al file, in caso di file già presenti
 			{
 				string fileNoExt = Path.GetFileNameWithoutExtension(file);
 				if (fileNoExt.Contains(fileNameMdp_base))
@@ -482,12 +482,12 @@ namespace X_Manager.Units
 			}
 			numAct++;
 
-
+			//Crea il nome del file ard per la sessione corrente
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + fileNameMdp_base + "_" + numAct.ToString("0000") + ".mdp";
 
-			//byte downInit = 0;
 			byte dummy;
 			int dieCount;
+			//Invia il comando di download e imposta la velocità di download a 3MBaud
 			try
 			{
 				sp.Write("TTTTTTTTTTTTGGAe");           // TTTTGGAe ->
@@ -502,7 +502,7 @@ namespace X_Manager.Units
 				sp.Write("S");                          // S ->
 				Thread.Sleep(200);
 
-
+				//Controlla il tipo di memoria (dual o single die)
 				dieCount = sp.ReadByte();
 				if (dieCount == 'S')    //<- S
 				{
@@ -527,13 +527,13 @@ namespace X_Manager.Units
 
 			int position = 0;
 			int toBeDownloaded;
-			uint stopMemory = mem_address & 0xfffff000;
+			uint stopMemory = mem_address & 0xfffff000;	//Allinea i dati da scaricare arrotondandoli per eccesso ad una pagina completo
 			if ((mem_address & 0xfff) != 0)
 			{
 				stopMemory += 0x1000;
 			}
 			
-			
+			//Calcola il numero di pagine da scaricare
 			if (mem_address > mem_max_logical_address)
 			{
 				toBeDownloaded = (int)mem_address - (int)mem_max_logical_address;
@@ -543,6 +543,7 @@ namespace X_Manager.Units
 				toBeDownloaded = (int)mem_max_physical_address - (int)mem_max_logical_address + (int)mem_address;
 			}
 
+			//imposta i valori della prorgess bar
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
 
@@ -566,29 +567,26 @@ namespace X_Manager.Units
 
 			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
 
-			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
+			//Tenta l'apertura della porta seriale
+			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);	
 			if (FT_Status != MainWindow.FT_STATUS.FT_OK)
 			{
 				MainWindow.FT_Close(FT_Handle);
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 			}
-
+			//Imposta latenza e timeout
 			MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
 			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
 
 			int firstLoop = 1;
 			int pageCounter = 0;
 
-			//uint blockSize;
-
 			if (dieCount == 1)
 			{
-				//blockSize = 0x40000;
 				goto _loopSingleDie;
 			}
 			else
 			{
-				//blockSize = 0x20000;
 				goto _loopDualDie;
 			}
 
@@ -620,10 +618,10 @@ namespace X_Manager.Units
 				}
 
 				//INVIO COMANDO
-				fixed (byte* outP = outBuffer, inP = inBuffer)
+				fixed (byte* outP = outBuffer, inP = &inBuffer[position])
 				{
 					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP + position, (uint)4096, ref bytesReturned);
+					FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
 				}
 
 				//ANOMALIA SERIALE
@@ -652,11 +650,8 @@ namespace X_Manager.Units
 				if ((actMemory % 0x_0004_0000) == 0)
 				{
 					firstLoop = 1;
-					//if (!manual) firstLoop++;
-
 				}
 
-				//fileOut.Write(inBuffer, 0, 4096);
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = pageCounter)); //Aggiornamento progress bar
 				if (convertStop) break;      //Premuto il tasto stop
 			}

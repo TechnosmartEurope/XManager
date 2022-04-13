@@ -125,4 +125,9 @@
 	Rimosso incorpramento driver FTDI (l'utente lo dovrà scaricare dal sito).
 1.14.1	Bugfix: lo schedule Gipsy6 veniva caricato male e invertiva i mesi di validità dello schedule B
 1.14.2	Gipsy6: uso enumeratore per identificare gli eventi
-	Bigfix: Axy5, la data nel timestamp veniva interpretata prima di riconoscere un timestamp escape con memoria piena
+	Bugfix: Axy5, la data nel timestamp veniva interpretata prima di riconoscere un timestamp escape con memoria piena
+1.14.3	Axy5 Download riga 621 modificato puntatore al buffer di download. Prima il puntatore puntava inizio buffer e 
+		veniva utilizzato sommando l'offset; ora viene creato puntando direttamente all'offset del buffer.
+	Aggiunta possibilità di minimizzare l'interfaccia
+	Bugfix: configurazione gipsy6: Togliendo enhanced mode crashava se non si erano prima "visitate" le pagine di geofencing.
+	Dimensionamento layout finestre auto-adattante alla risoluzione dello schermo.

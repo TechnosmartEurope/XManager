@@ -229,6 +229,8 @@ namespace X_Manager
 		[return: MarshalAs(UnmanagedType.Bool)]
 		public static extern bool DeleteObject([In] IntPtr hObject);
 
+		DispatcherTimer windowMovingTimer = new DispatcherTimer();
+
 		#endregion
 
 		#region Interfaccia
@@ -244,6 +246,9 @@ namespace X_Manager
 			statusLabel = statusLabelM;
 			etaLabel = etaLabelM;
 			progressBarStopButtonColumn = progressBarStopButtonColumnM;
+			LocationChanged += locationChanged;
+			windowMovingTimer.Tick += windowMovingEnded;
+			windowMovingTimer.Interval = new TimeSpan(3000000);
 		}
 
 		private void parseArgIn()
@@ -421,9 +426,54 @@ namespace X_Manager
 					};
 			//var confForm = new GiPSy6ConfigurationMain(conf, Unit.model_Gipsy6);
 			//confForm.ShowDialog();
+			windowMovingEnded(this, new EventArgs());
+
 #endif
 		}
 
+		private void locationChanged(object sender, EventArgs e)
+		{
+			windowMovingTimer.Stop();
+			windowMovingTimer.Start();
+		}
+
+		private void windowMovingEnded(object sender, EventArgs e)
+		{
+			windowMovingTimer.Stop();
+			var wih = new WindowInteropHelper(this);
+			var screen = System.Windows.Forms.Screen.FromHandle(wih.Handle);
+			var waWidth = screen.WorkingArea.Width;
+			var waHeight = screen.WorkingArea.Height;
+			double scale = 1;
+			if (ExternalGrid.LayoutTransform is ScaleTransform)
+			{
+				scale = ((ScaleTransform)ExternalGrid.LayoutTransform).ScaleX;
+			}
+			var width = Width / scale;
+			var height = Height / scale;
+
+			scale = 1;
+			while ((waWidth <= width) || (waHeight <= height))
+			{
+				scale -= .2;
+				width *= scale;
+				height *= scale;
+				if (scale <= .2) break;
+				
+			}
+			ExternalGrid.LayoutTransform = new ScaleTransform(scale, scale);
+			if (Left < screen.Bounds.X)
+			{
+				Left = screen.Bounds.X + 5;
+			}
+			if (Top < screen.Bounds.Y)
+			{
+				Top = screen.Bounds.Y + 5;
+			}
+
+			//MessageBox.Show(screen.DeviceName + "  scale: " + scale.ToString() + "\r\nWidth: " + Width.ToString() + " Height: " + Height.ToString() +
+			//	"\r\nScale Transform: " + st.ToString());
+		}
 		private void ComPortComboBox_DropDownOpened(object sender, EventArgs e)
 		{
 			scanPorts();
@@ -1962,7 +2012,7 @@ namespace X_Manager
 					((ChartWindowAGM)charts).ShowDialog();
 					break;
 			}
-			
+
 		}
 
 		public bool externConnect()

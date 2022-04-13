@@ -1856,9 +1856,20 @@ namespace X_Manager.ConfigurationWindows
 			//	MessageBox.Show(String.Format("WARNING: Geofencing {0} not enabled!\r\nIf this is an intended behaviour, please ignore this warning.", index));
 			//}
 
+			int c = 512 + index - 1; //Punta al byte 512 se Geofencing1 o 513 se Geofencing2
+			conf[c] = 0;
+			if (mainEnableCB.IsChecked == true)
+			{
+				conf[c] = 1;
+			}
+			if (!loaded)
+			{
+				return;
+			}
+
 			double co;
 			MapGrid m;
-			int c = 128;
+			c = 128;
 			if (index == 2) c += 192;
 
 			for (int i = 0; i < 10; i++)
@@ -1917,11 +1928,6 @@ namespace X_Manager.ConfigurationWindows
 				c += 16;
 			}
 
-			//sch[0] = uint.Parse(valAr[0].Text);
-			//sch[0] *= (uint)Math.Pow(60, unitAr[0].SelectedIndex);
-			//sch[1] = uint.Parse(valAr[1].Text);
-			//sch[1] *= (uint)Math.Pow(60, unitAr[1].SelectedIndex);
-
 			sch[0] = uint.Parse(valAr[0].Text);
 			sch[0] += (uint)(unitAr[0].SelectedIndex) << 8;
 			sch[1] = uint.Parse(valAr[1].Text);
@@ -1940,14 +1946,6 @@ namespace X_Manager.ConfigurationWindows
 				{
 					conf[c + i] = (byte)(timePanelAr[i].sel + 1);
 				}
-			}
-
-			c = 512;
-			if (index == 2) c = 513;
-			conf[c] = 0;
-			if (mainEnableCB.IsChecked == true)
-			{
-				conf[c] = 1;
 			}
 		}
 

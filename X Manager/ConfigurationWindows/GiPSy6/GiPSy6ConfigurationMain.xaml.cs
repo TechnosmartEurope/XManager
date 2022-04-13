@@ -6,6 +6,8 @@ using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
+using System.Windows.Interop;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -38,6 +40,8 @@ namespace X_Manager.ConfigurationWindows
 		int lastIndex;
 		int firstIndex;
 		//byte[] conf;
+
+		DispatcherTimer windowMovingTimer = new DispatcherTimer();
 		public GiPSy6ConfigurationMain(byte[] conf, byte unitType)
 		{
 			InitializeComponent();
@@ -87,11 +91,61 @@ namespace X_Manager.ConfigurationWindows
 				lastIndex = 3;
 			}
 			Gipsy6ConfigurationBrowser.Content = pages[0];
+
+			LocationChanged += locationChanged;
+			windowMovingTimer.Tick += windowMovingEnded;
+			windowMovingTimer.Interval = new TimeSpan(3000000);
+
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
 			Closed += closing;
+			windowMovingEnded(this, new EventArgs());
+		}
+
+		private void locationChanged(object sender, EventArgs e)
+		{
+			windowMovingTimer.Stop();
+			windowMovingTimer.Start();
+		}
+
+		private void windowMovingEnded(object sender, EventArgs e)
+		{
+			windowMovingTimer.Stop();
+			var wih = new WindowInteropHelper(this);
+			var screen = System.Windows.Forms.Screen.FromHandle(wih.Handle);
+			var waWidth = screen.WorkingArea.Width;
+			var waHeight = screen.WorkingArea.Height;
+			double scale = 1;
+			if (ExternalGrid.LayoutTransform is ScaleTransform)
+			{
+				scale = ((ScaleTransform)ExternalGrid.LayoutTransform).ScaleX;
+			}
+			var width = Width / scale;
+			var height = Height / scale;
+
+			scale = 1;
+			while ((waWidth <= width) || (waHeight <= height))
+			{
+				scale -= .2;
+				width *= scale;
+				height *= scale;
+				if (scale <= .2) break;
+
+			}
+			ExternalGrid.LayoutTransform = new ScaleTransform(scale, scale);
+			if (Left < screen.Bounds.X)
+			{
+				Left = screen.Bounds.X + 5;
+			}
+			if (Top < screen.Bounds.Y)
+			{
+				Top = screen.Bounds.Y + 5;
+			}
+
+			//MessageBox.Show(screen.DeviceName + "  scale: " + scale.ToString() + "\r\nWidth: " + Width.ToString() + " Height: " + Height.ToString() +
+			//	"\r\nScale Transform: " + st.ToString());
 		}
 
 		private void backClick(object sender, RoutedEventArgs e)
@@ -208,7 +262,7 @@ namespace X_Manager.ConfigurationWindows
 
 			pagesEnabled = new bool[] { true, false, false, false };
 
-			for (int i = pagesEnabled.Length - 1; i >= 0; i--)
+			for (int i = pagesEnabled.Length - 1; i >= 0; i--)  //Calcola l'indice dell'ultima pagina abilitata
 			{
 				lastIndex = i;
 				if (pagesEnabled[i] == true)
@@ -216,7 +270,7 @@ namespace X_Manager.ConfigurationWindows
 					break;
 				}
 			}
-			for (int i = 0; i < pagesEnabled.Length; i++)
+			for (int i = 0; i < pagesEnabled.Length; i++)       //Calcola l'indice della prima pagina abilitata
 			{
 				firstIndex = i;
 				if (pagesEnabled[i] == true)
@@ -236,6 +290,10 @@ namespace X_Manager.ConfigurationWindows
 			{
 				Gipsy6ConfigurationBrowser.Content = pages[firstIndex];
 				pagePointer = firstIndex;
+			}
+			else
+			{
+				Gipsy6ConfigurationBrowser.Content = pages[pagePointer];
 			}
 			if (pagePointer == firstIndex)
 			{

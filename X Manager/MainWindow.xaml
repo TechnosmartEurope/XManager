@@ -1,14 +1,12 @@
 ﻿<local:Parent
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:fc="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization"
     x:Class="X_Manager.MainWindow"
-    Title="X MANAGER" Height="600" Width="920" Background="#FF181818"
-    ResizeMode="NoResize" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-    xmlns:local="clr-namespace:X_Manager"
-    WindowStyle="SingleBorderWindow" KeyDown="ctrlManager" Closing="Window_Closing">
+    Title="X MANAGER" Background="#FF181818" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+    xmlns:local="clr-namespace:X_Manager" SizeToContent="WidthAndHeight"
+    WindowStyle="SingleBorderWindow" KeyDown="ctrlManager" Closing="Window_Closing" ResizeMode="CanMinimize">
 
-    <Grid x:Name="ExternalGrid" >
+    <Grid x:Name="ExternalGrid" Height="600" Width="920" >
 
         <Grid.RowDefinitions>
             <RowDefinition  Height="*"/>
@@ -21,7 +19,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition/>
+                    <RowDefinition />
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <!-- Riga 0 MenuStrip-->
@@ -96,7 +94,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <!-- Colonna 0 Pulsanti-->
-                    <StackPanel x:Name="ST1" Margin="0" Grid.Column="0">
+                    <StackPanel x:Name="ST1" Margin="0" Grid.Column="0" >
                         <StackPanel x:Name="portsCommandsStackPanel" Margin="10,25,0,0">
                             <!--<Label Content="PORT COMMANDS" Foreground="#FF00AADE" Padding="0" />-->
                             <Button x:Name="connectButton" Content="Connect" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick"/>
