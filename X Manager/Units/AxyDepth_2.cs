@@ -759,8 +759,8 @@ namespace X_Manager.Units
 				addOn = ("_S" + exten.Remove(0, 4));
 			}
 			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-			BinaryReader ard = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
-			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+			BinaryReader ard = new BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+			BinaryWriter csv = new BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
 
 			ard.BaseStream.Position = 1;
 			firmTotA = (uint)(ard.ReadByte() * 1000 + ard.ReadByte());
@@ -1142,6 +1142,11 @@ namespace X_Manager.Units
 			}
 
 			milli += addMilli;
+			if (rate == 1)
+			{
+				tsLoc.orario = tsLoc.orario.AddSeconds(1);
+				dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi);
+			}
 			dateTimeS += ".";
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
@@ -1159,11 +1164,6 @@ namespace X_Manager.Units
 				y *= gCoeff; y = Math.Round(y, cifreDec);
 				z *= gCoeff; z = Math.Round(z, cifreDec);
 
-				if (rate == 1)
-				{
-					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
-				}
 				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
 
 				if (angloTime) textOut += " " + ampm;
@@ -1171,9 +1171,13 @@ namespace X_Manager.Units
 
 				textOut += magAdditionalInfo + additionalInfo + "\r\n";
 				milli += addMilli;
+				if (rate == 1)
+				{
+					tsLoc.orario = tsLoc.orario.AddSeconds(1);
+					dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+				}
 			}
 			if (rateComp == 1) return textOut;
-
 
 			x = group[iend1]; y = group[iend1 + 1]; z = group[iend1 + 2];
 

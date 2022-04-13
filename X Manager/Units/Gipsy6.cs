@@ -319,7 +319,7 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
-			battLevel = battLevel + (battLevel - 3) * .05 + .14;
+			//battLevel = battLevel + (battLevel - 3) * .05 + .14;
 
 			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
 			return battery;
@@ -1394,8 +1394,8 @@ namespace X_Manager.Units
 			if ((t.tsType & ts_battery) == ts_battery)
 			{
 				t.batteryLevel = gp6[pos] * 256;
-				t.batteryLevel += gp6[pos];
-				t.batteryLevel = (t.batteryLevel * 6.6) / 4096; //Rimettere *6 dopo sviluppo
+				t.batteryLevel += gp6[pos + 1];
+				t.batteryLevel = (t.batteryLevel * 6) / 4096; //Rimettere *6 dopo sviluppo
 				pos += 2;
 			}
 

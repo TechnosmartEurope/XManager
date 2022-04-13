@@ -1468,6 +1468,11 @@ namespace X_Manager.Units
 			}
 
 			milli += addMilli;
+			if (rate == 1)
+			{
+				tsLoc.orario = tsLoc.orario.AddSeconds(1);
+				dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi);
+			}
 			dateTimeS += ".";
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
@@ -1488,11 +1493,7 @@ namespace X_Manager.Units
 				y *= gCoeff; //y = Math.Round(y, cifreDec);
 				z *= gCoeff; //z = Math.Round(z, cifreDec);
 
-				if (rate == 1)
-				{
-					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
-				}
+
 				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
 
 				if (angloTime) textOut += " " + ampm;
@@ -1500,6 +1501,11 @@ namespace X_Manager.Units
 
 				textOut += magAdditionalInfo + additionalInfo + "\r\n";
 				milli += addMilli;
+				if (rate == 1)
+				{
+					tsLoc.orario = tsLoc.orario.AddSeconds(1);
+					dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+				}
 			}
 
 			if (rateComp == 1) return textOut;

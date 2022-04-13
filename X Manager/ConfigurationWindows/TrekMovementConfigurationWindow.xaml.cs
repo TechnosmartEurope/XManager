@@ -526,7 +526,7 @@ namespace X_Manager.ConfigurationWindows
 
 					if (qp.mustWrite)
 					{
-						qp.threshold = (1500 * qp.span / 10000) - qp.zero;
+						qp.threshold = (((1500 - qp.zero) * qp.span) / 100000);// - qp.zero;
 						qp.threshold *= 55;
 						qp.threshold += 200;
 						qp.threshold /= 1000;
@@ -534,8 +534,9 @@ namespace X_Manager.ConfigurationWindows
 						qp.threshold /= 2.048;
 
 						qp.span *= 1000;
-						qp.zero += 1;
-						qp.zero *= 1000;
+						qp.zero += 32500;
+						//qp.zero += 1;
+						//qp.zero *= 1000;
 
 						sp.Write("TTTTTTTTTTTTTTTGGAb");
 						try

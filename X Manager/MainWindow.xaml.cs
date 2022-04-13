@@ -678,6 +678,38 @@ namespace X_Manager
 					Console.Beep();
 				}
 
+				else if (e.Key == Key.B)
+				{
+					bool uConn = true;
+					if (!((string)configurePositionButton.Content).Contains("firmware"))
+					{
+						try
+						{
+							string portShortName;
+							portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
+							portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
+							sp.PortName = portShortName;
+							sp.BaudRate = 115200;
+							sp.Open();
+							uConn = false;
+
+						}
+						catch (Exception ex)
+						{
+							MessageBox.Show(ex.Message);
+							return;
+						}
+					}
+					uiDisconnected();
+					var boot = new Bootloader.Bootloader_Gipsy6(sp, uConn);
+					boot.ShowDialog();
+					try
+					{
+						sp.Close();
+					}
+					catch { }
+				}
+
 				//Pubblicazione help
 				else
 				{
@@ -690,6 +722,7 @@ namespace X_Manager
 					startUpMonitor.Text += "\tS: AxyTrek Solare";
 					startUpMonitor.Text += "\tN: AxyTrek Non solare";
 					startUpMonitor.Text += "\tC: AxyQuattrok: imposta coefficienti";
+					startUpMonitor.Text += "\tB: GiPSy6 Bootloader";
 				}
 
 			}
@@ -1199,8 +1232,12 @@ namespace X_Manager
 					//deviceName = mo["Caption"].ToString();
 					if (deviceName.Contains("COM"))// && !deviceName.Contains("XDS110") && !deviceName.Contains("COM1"))
 					{
+						if (!deviceName.Contains("XDS"))
 						{
-							comPortComboBox.Items.Add(deviceName);
+							if (!deviceName.Contains("COM1)"))
+							{
+								comPortComboBox.Items.Add(deviceName);
+							}
 						}
 					}
 				}
@@ -1561,6 +1598,13 @@ namespace X_Manager
 			else if (type == 1)
 			{
 				conf = new TrekPositionConfigurationWindow(ref oUnit);
+			}
+			else
+			{
+				uiDisconnected();
+				var boot = new Bootloader.Bootloader_Gipsy6(sp, true);
+				boot.ShowDialog();
+				return;
 			}
 
 			//conf = new TrekPositionConfigurationWindow(ref oUnit);

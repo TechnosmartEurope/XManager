@@ -37,8 +37,8 @@ namespace X_Manager.ConfigurationWindows
 			zero = coeffs[0] * 256 + coeffs[1];
 			span = coeffs[2] * 256 + coeffs[3];
 
-			zero -= 1000;
-			zero /= 1000;
+			zero -= 32500;
+			//zero /= 1000;
 
 			span /= 1000;
 
@@ -129,7 +129,7 @@ namespace X_Manager.ConfigurationWindows
 
 		private void genThreshold()
 		{
-			double threshold = (1500 * span / 10000) - zero;
+			double threshold = ((1500 - zero) * span / 100000);// - zero;
 			threshold = Math.Round(threshold, 2);
 			thresholdTB.Text = threshold.ToString();
 		}

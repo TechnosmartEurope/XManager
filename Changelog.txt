@@ -111,3 +111,8 @@
 	Aggiunte configurazione e conversione ADC per Axy4.5
 1.12.1	AxyQuattrok: gestione zero e span per calibrazione
 	Nuovo formato file ini con parametro = valore
+1.13.0	Bootloader Gipsy6
+	Possibilità di mettere i secondi DropOff a zero.
+	Bugfix: lettura batteria Gipsy6
+	AxyQuattrok: sistemati zero e span
+	Bugfix: conversione Axy4/Depth_2 a 1Hz

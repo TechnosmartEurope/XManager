@@ -1392,8 +1392,8 @@ namespace X_Manager
 				zero = ard.ReadByte() * 256 + ard.ReadByte();
 				span = ard.ReadByte() * 256 + ard.ReadByte();
 
-				zero -= 1000;
-				zero /= 1000;
+				zero -= 32500;
+				//zero /= 1000;
 				span /= 1000;
 
 				ard.Position += 8;
@@ -1733,13 +1733,16 @@ namespace X_Manager
 					mVmis -= 200.00;// 201.22;//vedere se c'è un piccolo offset dovuto alla scheda stessa//6174 198mV  6234 201.8mV 6242 202.2mV
 					mVmis /= 55.00000;
 
-					//zero = 0.540;
+					//zero = 0.500;
 					//span = 27.752;
-					//m = FS/((zero+span)-zero);
-					//q = -(m * zero);
-					//tsc.press = m * mVmis + q;
-					tsc.press = (((mVmis - zero) / span) * 10000) + 980;
-					//tsc.press += 1013.0;
+					//tsc.press = (mVmis - zero) / (span / 100000);
+
+					//double m = 10000 / ((zero + span) - zero);
+                    //double q = -(m * zero);
+                    //tsc.press = m * mVmis + q;
+                    tsc.press = (((mVmis) / span) * 100000);
+					tsc.press += 890;
+					tsc.press += zero;
 				}
 			}
 

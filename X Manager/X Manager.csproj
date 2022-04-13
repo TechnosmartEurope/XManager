@@ -272,6 +272,9 @@
     <Compile Include="About.xaml.cs">
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Bootloader\Bootloader_Gipsy6.xaml.cs">
+      <DependentUpon>Bootloader_Gipsy6.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ChartClasses\ChartWindow.cs" />
     <Compile Include="ChartClasses\CustomChartArea.cs" />
     <Compile Include="ChartClasses\CustomSeries.cs" />
@@ -380,6 +383,10 @@
       <DependentUpon>YesNo.xaml</DependentUpon>
     </Compile>
     <Page Include="About.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Bootloader\Bootloader_Gipsy6.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -719,6 +726,7 @@
   <ItemGroup>
     <None Include="Resources\tile_background_offline.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
