@@ -123,3 +123,4 @@
 	Gipsy6: Supporto per configurazioni orari remoto.
 	Gipsy6: Modalità Basic / Expert per la configurazione.
 	Rimosso incorpramento driver FTDI (l'utente lo dovrà scaricare dal sito).
+1.14.1	Bugfix: lo schedule Gipsy6 veniva caricato male e invertiva i mesi di validità dello schedule B

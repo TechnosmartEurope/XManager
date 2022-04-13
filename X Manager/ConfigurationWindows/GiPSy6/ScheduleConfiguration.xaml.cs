@@ -25,8 +25,8 @@ namespace X_Manager.ConfigurationWindows
 		ComboBox[] quantityArr;
 		ComboBox[] unitArr;
 
-		CheckBox[] mAr;
-		CheckBox[] mmAr;
+		CheckBox[] mAr_sx;
+		CheckBox[] mAr_dx;
 		//int[] oldCbVal = new int[4];
 		public ScheduleConfiguration(byte[] conf)
 		{
@@ -36,8 +36,8 @@ namespace X_Manager.ConfigurationWindows
 			int colonna = 0;
 			quantityArr = new ComboBox[] { aValCB, bValCB, cValCB, dValCB };
 			unitArr = new ComboBox[4] { aTimeUnitCB, bTimeUnitCB, cTimeUnitCB, dTimeUnitCB };
-			mAr = new CheckBox[12] { m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12 };
-			mmAr = new CheckBox[12] { mm1, mm2, mm3, mm4, mm5, mm6, mm7, mm8, mm9, mm10, mm11, mm12 };
+			mAr_sx = new CheckBox[12] { m1_sx, m2_sx, m3_sx, m4_sx, m5_sx, m6_sx, m7_sx, m8_sx, m9_sx, m10_sx, m11_sx, m12_sx };
+			mAr_dx = new CheckBox[12] { m1_dx, m2_dx, m3_dx, m4_dx, m5_dx, m6_dx, m7_dx, m8_dx, m9_dx, m10_dx, m11_dx, m12_dx };
 
 			for (int i = 0; i < 24; i++)
 			{
@@ -135,12 +135,12 @@ namespace X_Manager.ConfigurationWindows
 			//Mesi C/D
 			for (int i = 0; i < 12; i++)
 			{
-				mmAr[i].IsChecked = conf[i + 116] == 0 ? true : false;
-				mAr[i].IsChecked = conf[i + 116] == 1 ? true : false;
-				mAr[i].Checked += m_Checked;
-				mAr[i].Unchecked += m_Checked;
-				mmAr[i].Checked += mm_Checked;
-				mmAr[i].Unchecked += mm_Checked;
+				mAr_sx[i].IsChecked = conf[i + 116] == 0 ? true : false;
+				mAr_dx[i].IsChecked = conf[i + 116] == 1 ? true : false;
+				mAr_sx[i].Checked += mSx_Checked;
+				mAr_sx[i].Unchecked += mSx_Checked;
+				mAr_dx[i].Checked += mDx_Checked;
+				mAr_dx[i].Unchecked += mDx_Checked;
 				
 			}
 		}
@@ -185,7 +185,7 @@ namespace X_Manager.ConfigurationWindows
 			for (int i = 0; i < 12; i++)
 			{
 				conf[i + 116] = 0;
-				if (mmAr[i].IsChecked == true)
+				if (mAr_dx[i].IsChecked == true)
 				{
 					conf[i + 116] = 1;
 				}
@@ -261,40 +261,40 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		private void mm_Checked(object sender, RoutedEventArgs e)
+		private void mDx_Checked(object sender, RoutedEventArgs e)
 		{
 			int index = 0;
 			for (int i = 0; i < 12; i++)
 			{
-				if ((CheckBox)sender == mmAr[i])
+				if ((CheckBox)sender == mAr_dx[i])
 				{
 					index = i;
 					break;
 				}
 			}
-			mAr[index].Checked -= m_Checked;
-			mAr[index].Unchecked -= m_Checked;
-			mAr[index].IsChecked = !mmAr[index].IsChecked;
-			mAr[index].Checked += m_Checked;
-			mAr[index].Unchecked += m_Checked;
+			mAr_sx[index].Checked -= mSx_Checked;
+			mAr_sx[index].Unchecked -= mSx_Checked;
+			mAr_sx[index].IsChecked = !mAr_dx[index].IsChecked;
+			mAr_sx[index].Checked += mSx_Checked;
+			mAr_sx[index].Unchecked += mSx_Checked;
 		}
 
-		private void m_Checked(object sender, RoutedEventArgs e)
+		private void mSx_Checked(object sender, RoutedEventArgs e)
 		{
 			int index = 0;
 			for (int i = 0; i < 12; i++)
 			{
-				if ((CheckBox)sender == mAr[i])
+				if ((CheckBox)sender == mAr_sx[i])
 				{
 					index = i;
 					break;
 				}
 			}
-			mmAr[index].Checked -= mm_Checked;
-			mmAr[index].Unchecked -= mm_Checked;
-			mmAr[index].IsChecked = !mAr[index].IsChecked;
-			mmAr[index].Checked += mm_Checked;
-			mmAr[index].Unchecked += mm_Checked;
+			mAr_dx[index].Checked -= mDx_Checked;
+			mAr_dx[index].Unchecked -= mDx_Checked;
+			mAr_dx[index].IsChecked = !mAr_sx[index].IsChecked;
+			mAr_dx[index].Checked += mDx_Checked;
+			mAr_dx[index].Unchecked += mDx_Checked;
 		}
 	}
 }
