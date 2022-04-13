@@ -1142,6 +1142,10 @@ namespace X_Manager
 				}
 				else
 				{
+#if DEBUG
+					//MessageBox.Show(testByte.ToString("X2") + "  " + mdp.BaseStream.Position.ToString("X"));
+					ard.Write(mdp.ReadBytes(255));
+#endif
 
 
 				}
@@ -1323,6 +1327,7 @@ namespace X_Manager
 			int sesMax = sesAdd.Count;
 			int sesCounter = 1;
 			long infRemPosition;
+			ardFile.Close();
 
 			string logFile = System.IO.Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
 			try
@@ -1333,6 +1338,7 @@ namespace X_Manager
 
 			while (sesAdd.Count > 0)
 			{
+				ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
 				long bufLen;
 				if (sesAdd.Count > 1)
 				{
@@ -1342,13 +1348,14 @@ namespace X_Manager
 				{
 					bufLen = ardFile.BaseStream.Length - sesAdd[0];
 				}
+				
 				ardFile.BaseStream.Position = sesAdd[0];
 				infRemPosition = sesAdd[0];
 				sesAdd.RemoveAt(0);
 				ardBuffer = new byte[bufLen];
 				ardFile.Read(ardBuffer, 0, (int)bufLen);
 
-				//ardFile.Close();
+				ardFile.Close();
 
 				MemoryStream ard = new MemoryStream(ardBuffer);
 
@@ -1625,8 +1632,12 @@ namespace X_Manager
 			if (makeTxt) txt.Close();
 
 			csv.Close();
-
-			ardFile.Close();
+			try
+			{
+				ardFile.Close();
+			}
+			catch { }
+			
 			//sw.Stop();
 			//MessageBox.Show(sw.Elapsed.TotalSeconds.ToString());
 

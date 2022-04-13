@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
+//using System.Windows.Forms;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -165,7 +165,7 @@ namespace X_Manager
 
 			var rend = new Thread(renderSummaryThread);
 			rend.Start();
-
+			
 		}
 
 		private void setThresholdUds()

@@ -71,3 +71,5 @@
 	Bugfix: Axy5, se selezionato "fill empty fields" crashava
 1.9.1	Bugfix: AGM, in caso di "fill empty values", giroscopio e magnetometro seganavano zero (al cent.di.secondo 0 e se impostati come "linked")
 	Bugfix: correzione ETA (riportava male i minuti)
+1.9.2	Auto resize della finestra di configurazione axytrek in funzione della risoluzione dello schermo
+	Bugfix: Conversione axy5 crashava se tolta la colonna batteria da preferenze conversione

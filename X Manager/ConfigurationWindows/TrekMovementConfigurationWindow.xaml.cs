@@ -3,17 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
+//using System.Windows.Forms;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
+using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace X_Manager
 {
+	static class ExtensionsForWPF
+	{
+		public static System.Windows.Forms.Screen GetScreen(this Window window)
+		{
+			return System.Windows.Forms.Screen.FromHandle(new WindowInteropHelper(window).Handle);
+		}
+	}
+
 	/// <summary>
 	/// Interaction logic for TrekMovementConfigurationWindow.xaml
 	/// </summary>
@@ -31,6 +40,7 @@ namespace X_Manager
 		int burstLenght;
 		int burstBackUp;
 		int burstPeriod;
+		Timer reshapeTimer = null;
 
 		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
 			: base()
@@ -42,14 +52,15 @@ namespace X_Manager
 			unitType = axyconf[25];
 			firmTotA = unitFirm;
 
+
 			if ((firmTotA < 2000001))
 			{
-				mainGrid.RowDefinitions[6].Height = new System.Windows.GridLength(0);
+				externalGrid2.RowDefinitions[2].Height = new System.Windows.GridLength(0);
 				sendButton.Margin = new Thickness(25);
 			}
 			else if ((firmTotA < 3000000))
 			{
-				mainGrid.RowDefinitions[6].Height = new System.Windows.GridLength(74);
+				externalGrid2.RowDefinitions[2].Height = new System.Windows.GridLength(74);
 				sendButton.Margin = new Thickness(10);
 				WsHardwareRB.Visibility = Visibility.Hidden;
 				WsHardwareRB.IsEnabled = false;
@@ -59,7 +70,7 @@ namespace X_Manager
 			}
 			else
 			{
-				mainGrid.RowDefinitions[6].Height = new System.Windows.GridLength(74);
+				externalGrid2.RowDefinitions[2].Height = new System.Windows.GridLength(74);
 				sendButton.Margin = new Thickness(10);
 				if ((firmTotA < 3001000))
 				{
@@ -83,7 +94,7 @@ namespace X_Manager
 
 			if (firmTotA < 3008000)
 			{
-				mainGrid.Children.RemoveAt(3);
+				externalGrid1.Children.RemoveAt(3);
 				ghostRow.Height = new GridLength(0);
 				Height = 710;
 			}
@@ -267,8 +278,67 @@ namespace X_Manager
 				logPeriodStackPanel.IsEnabled = false;
 			}
 
-			// setThresholdUds()
+			reshapeTimer = new System.Timers.Timer(100);
+			reshapeTimer.Elapsed += reshapeTimerElapsed;
+			LocationChanged += locationChanged;
+			reshape();
 		}
+
+		private void reshapeTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+		{
+			Application.Current.Dispatcher.Invoke(() => reshape());
+		}
+		private void reshape()
+		{
+			System.Windows.Forms.Screen actScreen = ExtensionsForWPF.GetScreen(this);
+			System.Drawing.Rectangle r = actScreen.Bounds;
+
+			if (r.Height < 900)
+			{
+				Width = 800;
+				Height = 560;
+				generalSB.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+				generalSB.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
+				generalSP.Orientation = Orientation.Horizontal;
+			}
+			else
+			{
+				generalSP.Orientation = Orientation.Vertical;
+				Height = 790;
+				Width = 460;
+				generalSB.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+				generalSB.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
+			}
+		}
+
+		private void locationChanged(object sender, EventArgs e)
+		{
+			reshapeTimer.Stop();
+			reshapeTimer.Start();
+		}
+
+		//private void reshape(Object source, System.Timers.ElapsedEventArgs e)
+		//{
+		//	System.Windows.Forms.Screen actScreen = ExtensionsForWPF.GetScreen(this);
+		//	System.Drawing.Rectangle r = actScreen.Bounds;
+
+		//	if (r.Height < 900)
+		//	{
+		//		Width = 800;
+		//		Height = 560;
+		//		generalSB.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+		//		generalSB.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
+		//		generalSP.Orientation = Orientation.Horizontal;
+		//	}
+		//	else
+		//	{
+		//		generalSP.Orientation = Orientation.Vertical;
+		//		Height = 790;
+		//		Width = 460;
+		//		generalSB.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+		//		generalSB.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
+		//	}
+		//}
 
 		private void setThresholdUds()
 		{
@@ -406,9 +476,9 @@ namespace X_Manager
 				sendConfiguration();
 			}
 
-			if ((e.Key == Key.D))
+			if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
 			{
-				if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
+				if (e.Key == Key.D)
 				{
 					if ((unitType != Units.Unit.model_axy3))
 					{
@@ -428,7 +498,6 @@ namespace X_Manager
 					}
 
 				}
-
 			}
 
 		}
@@ -634,5 +703,6 @@ namespace X_Manager
 				burstPeriodValidate(null, new RoutedEventArgs());
 			}
 		}
+
 	}
 }

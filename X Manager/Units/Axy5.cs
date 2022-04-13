@@ -1772,18 +1772,17 @@ namespace X_Manager.Units
 			}
 
 			//BATTERIA
-			if (prefBattery == 1)
-			{
+
 				if ((tsc.tsType & ts_battery) == ts_battery)
 				{
 					tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
-					gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+					if (prefBattery == 1) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
 				}
 				else
 				{
-					if (!repeatEmptyValues) gruppoCON[batt] = "";
+					if (!repeatEmptyValues & prefBattery==1) gruppoCON[batt] = "";
 				}
-			}
+
 
 			if (tsc.tsTypeExt1 == 0)
 			{
