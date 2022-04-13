@@ -1209,8 +1209,21 @@ namespace X_Manager
             }
             else if (oUnit.modelCode == model_axy5)
             {
-                confForm = new Axy5ConfigurationWindow(conf,accSchedule, oUnit.firmTotA);
+				if (oUnit.firmTotA < 1001000)
+				{
+					confForm = new ConfigurationWindows.Axy5ConfigurationWindow_Legacy(conf, oUnit.firmTotA);
+					
+				}
+				else
+				{
+					confForm = new Axy5ConfigurationWindow(conf, accSchedule, oUnit.firmTotA);
+				}
+                
             }
+			else if (oUnit.modelCode == model_axyTrek)
+			{
+				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA);
+			}
             else
             {
                 confForm = new AxyConfigurationWindow(conf, oUnit.firmTotA);

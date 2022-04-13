@@ -276,6 +276,11 @@ namespace X_Manager.Units
 
 		public override byte[] getAccSchedule()
 		{
+			if (firmTotA < 1001000)
+			{
+				return new byte[] { 0 };
+			}
+
 			byte[] schedule = new byte[30];
 			sp.Write("TTTTTTTTTTTTTGGAS");
 			Thread.Sleep(200);

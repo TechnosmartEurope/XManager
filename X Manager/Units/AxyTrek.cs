@@ -98,12 +98,13 @@ namespace X_Manager
 		bool inMeters = false;
 		bool prefBattery = false;
 		bool repeatEmptyValues = true;
-		bool isDepth = true;
+		int isDepth = 1;
 		byte range;
 		ushort rate;
 		bool primaCoordinata;
 		bool sameColumn = false;
-		bool dTenable;
+		int temperatureEnabled;
+		int pressureEnabled;
 		ushort addMilli;
 		int debugStampId = 13;
 		int debugStampLenght = 15;
@@ -1106,7 +1107,7 @@ namespace X_Manager
 
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
-			if ((MainWindow.lastSettings[5] == "air")) isDepth = false;
+			if ((MainWindow.lastSettings[5] == "air")) isDepth = 0;
 
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 
@@ -1164,24 +1165,24 @@ namespace X_Manager
 			foreach (byte b in coeffCheck) { coeffSum16 += b; }
 			//long pos = 0;
 			bool adcPresence = false;
-			if (adcFlag != 0)
+			if (adcFlag != 0)                   //Se il primo byte non è zero, sicuramente non c'è l'info adc
 			{
 				adcPresence = false;                        //no adc
 			}
 			else
-			{
-				if (coeffSum16 == 0)                        //si adc e coeff
+			{                                   //Altrimenti potrebbero essere a zero i coeff adc. In questo caso:
+				if (coeffSum16 == 0)                        //16 byte consecutivi a zero vuol dire PRESENZA di info adc e coefficienti a zero (4 + 12)
 				{
 					adcPresence = true;
 				}
 				else
-				{
-					if (coeffSum12 == 0)
+				{                                           //I 16 byte non sono tutti a zero: in questo caso:
+					if (coeffSum12 == 0)                        //Sono a zero tutti e solo i primi 12, vuol dire NO info adc e coefficienti a zero
 					{
 						adcPresence = false;                //no adc
 					}
 					else
-					{
+					{                                           //I primi 12 byte non sono tutti a zero: i primi 4 sono le info adc e successivamente ci sono i coefficienti
 						adcPresence = true;                 //si adc
 					}
 				}
@@ -1206,7 +1207,10 @@ namespace X_Manager
 			for (int u = 0; u <= 5; u++) convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
 
 			//Legge i parametri di logging
-			dTenable = Convert.ToBoolean(ard.ReadByte() & 1);
+			pressureEnabled = ard.ReadByte();
+			temperatureEnabled = pressureEnabled;
+			pressureEnabled /= 16;
+			temperatureEnabled &= 15;
 
 			byte rrb = (byte)ard.ReadByte();
 			rate = findSamplingRate(rrb);
@@ -1376,6 +1380,7 @@ namespace X_Manager
 
 			tsc.tsType = ard.ReadByte();
 
+			//Flag timestamp esteso
 			if ((tsc.tsType & 1) == 1)
 			{
 				tsc.tsTypeExt1 = ard.ReadByte();
@@ -1393,30 +1398,46 @@ namespace X_Manager
 				tsc.tsTypeExt1 = 0;
 			}
 
-			if (((tsc.tsType & 2) == 2) | ((tsc.tsType & 4) == 4))
+			//Temperatura (evntualmente anche pressione)
+			if ((tsc.tsType & 2) == 2)
 			{
-				if (isDepth)
+				if (temperatureEnabled == 2)
 				{
-					if (fTotA > 2000000)
+					tsc.temperature = ard.ReadByte() + ard.ReadByte() * 256;
+					tsc.temperature = (uint)(tsc.temperature) >> 6;
+					if (tsc.temperature > 511)
 					{
-						if (pressureDepth5837(ref ard, ref tsc)) return;
+						tsc.temperature -= 1024;
 					}
-					else
-					{
-						if (pressureDepth(ref ard, ref tsc)) return;
-					}
+					tsc.temperature = (tsc.temperature * 0.1221) + 22.5;
 				}
 				else
 				{
-					if (pressureAir(ref ard, ref tsc)) return;
+					if (isDepth == 1)
+					{
+						if (fTotA > 2000000)
+						{
+							if (pressureDepth5837(ref ard, ref tsc)) return;
+						}
+						else
+						{
+							if (pressureDepth(ref ard, ref tsc)) return;
+						}
+					}
+					else
+					{
+						if (pressureAir(ref ard, ref tsc)) return;
+					}
 				}
 			}
 
+			//Batteria
 			if ((tsc.tsType & 8) == 8)
 			{
 				tsc.batteryLevel = ((ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096);
 			}
 
+			//Coordinata
 			if ((tsc.tsType & 16) == 16)
 			{
 
@@ -1467,6 +1488,8 @@ namespace X_Manager
 				tsc.gsvSum = (ard.ReadByte() * 256 + ard.ReadByte());
 			}
 
+
+			//evento
 			if ((tsc.tsType & 32) == 32)
 			{
 				int b = ard.ReadByte();
@@ -1478,31 +1501,22 @@ namespace X_Manager
 					ard.Read(tsc.eventAr, 0, debugStampLenght);
 					tsc.eventAr[0] = 80;
 				}
-				else ard.Read(tsc.eventAr, 0, 5);                   //tsc.eventAr = ard.ReadBytes(5);
-																	//if ((firmTotA > 1999999) && (b==80))
-																	//{
-																	//	ard.Read(tsc.eventAr, 0, 15);      //tsc.eventAr = ard.ReadBytes(15);
-																	//}
-																	//if (b == 80)
+				else
+				{
+					ard.Read(tsc.eventAr, 0, 5);
+				}
 
 				if (tsc.eventAr[0] == 11) tsc.stopEvent = 1;
 				else if (tsc.eventAr[0] == 12) tsc.stopEvent = 2;
 				else if (tsc.eventAr[0] == 13) tsc.stopEvent = 3;
-				//{
-				//	tsc.stopEvent = 3;
-				//	if (oldUnitDebug)
-				//	{
-				//		ard.Position -= 5;
-				//		//tsc.eventAr = (byte)ard.ReadBytes(15);
-				//		ard.Read(tsc.eventAr, 0, 15);
-				//		tsc.eventAr[0] = 80;
-				//		tsc.stopEvent = 0;
-				//	}
-				//}
+
 			}
+
+			//Attività/acqua
 			tsc.inWater = 0;
 			if ((tsc.tsType & 128) == 128) tsc.inWater = 1;
 
+			//Parametri estesi
 			if ((tsc.tsType & 1) == 1)
 			{
 				if ((tsc.tsTypeExt1 & 2) == 2) tsc.ADC = (ard.ReadByte() * 256 + ard.ReadByte());
@@ -1647,12 +1661,14 @@ namespace X_Manager
 
 			additionalInfo += csvSeparator + activityWater;
 
-			if (dTenable)
+			if (pressureEnabled > 0)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
 				if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
-
+			}
+			if (temperatureEnabled > 0)
+			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
 				if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
@@ -1794,6 +1810,11 @@ namespace X_Manager
 			byte timeStamp1 = 0;
 			uint secondiAdd = 0;
 			byte[] coordinate = new byte[22];
+			int noByteTemper = 3;
+			if (temperatureEnabled == 2)
+			{
+				noByteTemper = 2;
+			}
 
 			//br.BaseStream.Position = 7;
 			//if (br.ReadByte() == 0) br.BaseStream.Position = 25;
@@ -1811,7 +1832,7 @@ namespace X_Manager
 					{
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = br.BaseStream.Position));
 						if ((timeStamp0 & 1) == 1) timeStamp1 = br.ReadByte();
-						if ((timeStamp0 & 2) == 2) br.BaseStream.Position += 3;
+						if ((timeStamp0 & 2) == 2) br.BaseStream.Position += noByteTemper;
 						if ((timeStamp0 & 4) == 4) br.BaseStream.Position += 3;
 						if ((timeStamp0 & 8) == 8) br.BaseStream.Position += 2;
 						if ((timeStamp0 & 16) == 16)
@@ -1821,27 +1842,19 @@ namespace X_Manager
 						}
 						if ((timeStamp0 & 32) == 32)
 						{
-							byte ev = (byte)br.BaseStream.ReadByte();
-							if (ev == 18)
+							byte ev = (byte)br.BaseStream.ReadByte();       //ex b
+							int debugCheck = (byte)br.BaseStream.ReadByte();
+
+							br.BaseStream.Position -= 2;
+							if ((ev == debugStampId) && (debugCheck > 2))
 							{
-								tsc.anno = (dt.Year - 2000);
-								tsc.mese = dt.Month;
-								tsc.giorno = dt.Day;
-								tsc.ore = br.BaseStream.ReadByte();
-								tsc.minuti = br.BaseStream.ReadByte();
-								tsc.secondi = br.BaseStream.ReadByte();
-								br.BaseStream.ReadByte();
-								dt = new DateTime(2000 + tsc.anno, tsc.mese, tsc.giorno, tsc.ore, tsc.minuti, tsc.secondi);
-								dt = dt.AddSeconds(-secondiAdd - 1);
-							}
-							else if (ev == 80)
-							{
-								br.BaseStream.Position += 15;
+								br.ReadBytes(debugStampLenght);
 							}
 							else
 							{
-								br.BaseStream.Position += 4;
+								br.ReadBytes(5);
 							}
+
 						}
 						if ((timeStamp0 & 1) == 1)
 						{
@@ -2422,11 +2435,11 @@ namespace X_Manager
 
 			csvHeader = csvHeader + csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
 			csvHeader = csvHeader + csvSeparator + "Activity";
-			if (dTenable)
+			if (pressureEnabled > 0)
 			{
 				if (inMeters)
 				{
-					if (isDepth)
+					if (isDepth == 1)
 					{
 						csvHeader = csvHeader + csvSeparator + "Depth";
 					}
@@ -2440,8 +2453,12 @@ namespace X_Manager
 				{
 					csvHeader = csvHeader + csvSeparator + "Pressure";
 				}
+			}
+			if (temperatureEnabled > 0)
+			{
 				csvHeader += csvSeparator + "Temp. (°C)";
 			}
+
 			csvHeader += csvSeparator + "location-lat" + csvSeparator + "location-lon" + csvSeparator + "height-above-msl"
 				+ csvSeparator + "ground-speed" + csvSeparator + "satellite-count" + csvSeparator + "hdop" + csvSeparator + "maximum-signal-strength";
 			if (adcLog) csvHeader += csvSeparator + "Sensor Raw";

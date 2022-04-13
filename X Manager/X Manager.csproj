@@ -265,6 +265,9 @@
     <Compile Include="ConfigurationWindows\Axy5ConfigurationWindow.xaml.cs">
       <DependentUpon>Axy5ConfigurationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ConfigurationWindows\Axy5ConfigurationWindow_Legacy.xaml.cs">
+      <DependentUpon>Axy5ConfigurationWindow_Legacy.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConfigurationWindows\AxyConfigurationWindow.xaml.cs">
       <DependentUpon>AxyConfigurationWindow.xaml</DependentUpon>
     </Compile>
@@ -280,6 +283,9 @@
     </Compile>
     <Compile Include="ConfigurationWindows\RemoteTab.xaml.cs">
       <DependentUpon>RemoteTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\TrekMovementConfigurationWindow.xaml.cs">
+      <DependentUpon>TrekMovementConfigurationWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConfigurationWindows\TrekSettingsTab.xaml.cs">
       <DependentUpon>TrekSettingsTab.xaml</DependentUpon>
@@ -339,6 +345,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="ConfigurationWindows\Axy5ConfigurationWindow_Legacy.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="ConfigurationWindows\AxyConfigurationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -356,6 +366,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConfigurationWindows\RemoteTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\TrekMovementConfigurationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
