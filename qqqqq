@@ -1,0 +1,578 @@
+[1mdiff --git a/X Manager/ConfigurationWindows/GiPSy6/BasicsConfiguration.xaml.cs b/X Manager/ConfigurationWindows/GiPSy6/BasicsConfiguration.xaml.cs[m
+[1mindex 2f505bc..9c6dbd4 100644[m
+[1m--- a/X Manager/ConfigurationWindows/GiPSy6/BasicsConfiguration.xaml.cs[m	
+[1m+++ b/X Manager/ConfigurationWindows/GiPSy6/BasicsConfiguration.xaml.cs[m	
+[36m@@ -15,302 +15,303 @@[m [musing System.Windows.Shapes;[m
+ [m
+ namespace X_Manager.ConfigurationWindows[m
+ {[m
+[31m-	/// <summary>[m
+[31m-	/// Logica di interazione per BasicsConfiguration.xaml[m
+[31m-	/// </summary>[m
+[31m-	partial class BasicsConfiguration : PageCopy[m
+[31m-	{[m
+[31m-		int acqOn, acqOff, altOn, nSat, gsv;[m
+[31m-		uint sdTime, sddDate;[m
+[31m-		List<TextBox> ctrAr;[m
+[31m-		int[] maxs = new int[6] { 65000, 65000, 65000, 8, 200, 0x7ffffff };[m
+[31m-		int[] mins = new int[6] { 10, 2, 2, 0, 5, 0 };[m
+[31m-		CheckBox[] remSchAr = new CheckBox[24];[m
+[31m-		byte[] conf;[m
+[31m-		DateTime sdDate;[m
+[32m+[m[32m        /// <summary>[m
+[32m+[m[32m        /// Logica di interazione per BasicsConfiguration.xaml[m
+[32m+[m[32m        /// </summary>[m
+[32m+[m[32m    partial class BasicsConfiguration : PageCopy[m
+[32m+[m[32m    {[m
+[32m+[m[32m        int acqOn, acqOff, altOn, nSat, gsv;[m
+[32m+[m[32m        uint sdTime, sddDate;[m
+[32m+[m[32m        List<TextBox> ctrAr;[m
+[32m+[m[32m        int[] maxs = new int[6] { 65000, 65000, 65000, 8, 200, 0x7ffffff };[m
+[32m+[m[32m        int[] mins = new int[6] { 10, 2, 2, 0, 5, 0 };[m
+[32m+[m[32m        CheckBox[] remSchAr = new CheckBox[24];[m
+[32m+[m[32m        byte[] conf;[m
+[32m+[m[32m        DateTime sdDate;[m
+ [m
+[31m-		public BasicsConfiguration(byte[] conf)[m
+[31m-			: base()[m
+[31m-		{[m
+[31m-			InitializeComponent();[m
+[32m+[m[32m        public BasicsConfiguration(byte[] conf)[m
+[32m+[m[32m            : base()[m
+[32m+[m[32m        {[m
+[32m+[m[32m            InitializeComponent();[m
+ [m
+[31m-			ctrAr = new List<TextBox> { acqOnTB, acqOffTB, altOnTB, nsatTB, gsvTB, startDelayTimeTB };[m
+[31m-			this.conf = conf;[m
+[32m+[m[32m            ctrAr = new List<TextBox> { acqOnTB, acqOffTB, altOnTB, nsatTB, gsvTB, startDelayTimeTB };[m
+[32m+[m[32m            this.conf = conf;[m
+ [m
+[31m-			acqOn = BitConverter.ToInt16(conf, 32);     //32-33[m
+[31m-			acqOff = BitConverter.ToInt16(conf, 34);    //34-35[m
+[31m-			altOn = BitConverter.ToInt16(conf, 36);     //36-37[m
+[31m-			nSat = conf[38] & 0x7f;                     //38[m
+[31m-			gsv = conf[39];                             //39[m
+[31m-			sdTime = BitConverter.ToUInt32(conf, 40);    //40-43[m
+[31m-			sddDate = BitConverter.ToUInt32(conf, 44);    //44-47[m
+[32m+[m[32m            acqOn = BitConverter.ToInt16(conf, 32);     //32-33[m
+[32m+[m[32m            acqOff = BitConverter.ToInt16(conf, 34);    //34-35[m
+[32m+[m[32m            altOn = BitConverter.ToInt16(conf, 36);     //36-37[m
+[32m+[m[32m            nSat = conf[38] & 0x7f;                     //38[m
+[32m+[m[32m            gsv = conf[39];                             //39[m
+[32m+[m[32m            sdTime = BitConverter.ToUInt32(conf, 40);    //40-43[m
+[32m+[m[32m            sddDate = BitConverter.ToUInt32(conf, 44);    //44-47[m
+ [m
+[31m-			//bool enableSdDate = true;[m
+[31m-			//if (mese > 0x80)[m
+[31m-			//{[m
+[31m-			//	enableSdDate = false;[m
+[31m-			//	mese -= 0x80;[m
+[31m-			//}[m
+[31m-			//sdDate = new DateTime(anno, mese, giorno);[m
+[32m+[m[32m            //bool enableSdDate = true;[m
+[32m+[m[32m            //if (mese > 0x80)[m
+[32m+[m[32m            //{[m
+[32m+[m[32m            //	enableSdDate = false;[m
+[32m+[m[32m            //	mese -= 0x80;[m
+[32m+[m[32m            //}[m
+[32m+[m[32m            //sdDate = new DateTime(anno, mese, giorno);[m
+ [m
+ [m
+[31m-			earlyStopCB.IsChecked = (conf[38] & 0x80) == 0x80;[m
+[31m-			enhancedAccuracyCB.IsChecked = (conf[38] & 0x40) == 0x40;[m
+[32m+[m[32m            earlyStopCB.IsChecked = (conf[38] & 0x80) == 0x80;[m
+[32m+[m[32m            enhancedAccuracyCB.IsChecked = (conf[38] & 0x40) == 0x40;[m
+ [m
+[31m-			acqOnTB.Text = acqOn.ToString();[m
+[31m-			acqOffTB.Text = acqOff.ToString();[m
+[31m-			altOnTB.Text = altOn.ToString();[m
+[31m-			nsatTB.Text = nSat.ToString();[m
+[31m-			gsvTB.Text = gsv.ToString();[m
+[32m+[m[32m            acqOnTB.Text = acqOn.ToString();[m
+[32m+[m[32m            acqOffTB.Text = acqOff.ToString();[m
+[32m+[m[32m            altOnTB.Text = altOn.ToString();[m
+[32m+[m[32m            nsatTB.Text = nSat.ToString();[m
+[32m+[m[32m            gsvTB.Text = gsv.ToString();[m
+ [m
+[31m-			if (sdTime > 0x7ffffff)[m
+[31m-			{[m
+[31m-				sdtCB.IsChecked = false;[m
+[31m-				sdTime -= 0x80000000;[m
+[31m-				startDelayTimeTB.Visibility = Visibility.Hidden;[m
+[31m-				minLabel.Visibility = Visibility.Hidden;[m
+[31m-			}[m
+[31m-			else[m
+[31m-			{[m
+[31m-				sdtCB.IsChecked = true;[m
+[31m-				startDelayTimeTB.Visibility = Visibility.Visible;[m
+[31m-				minLabel.Visibility = Visibility.Visible;[m
+[31m-			}[m
+[31m-			startDelayTimeTB.Text = sdTime.ToString();[m
+[32m+[m[32m            if (sdTime > 0x7ffffff)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                sdtCB.IsChecked = false;[m
+[32m+[m[32m                sdTime -= 0x80000000;[m
+[32m+[m[32m                startDelayTimeTB.Visibility = Visibility.Hidden;[m
+[32m+[m[32m                minLabel.Visibility = Visibility.Hidden;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            else[m
+[32m+[m[32m            {[m
+[32m+[m[32m                sdtCB.IsChecked = true;[m
+[32m+[m[32m                startDelayTimeTB.Visibility = Visibility.Visible;[m
+[32m+[m[32m                minLabel.Visibility = Visibility.Visible;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            startDelayTimeTB.Text = sdTime.ToString();[m
+ [m
+[31m-			if (sddDate > 0x7fffffff)[m
+[31m-			{[m
+[31m-				sddCB.IsChecked = false;[m
+[31m-				sddDate -= 0x80000000;[m
+[31m-				startDelayDateDP.Visibility = Visibility.Hidden;[m
+[31m-			}[m
+[31m-			else[m
+[31m-			{[m
+[31m-				sddCB.IsChecked = true;[m
+[31m-				startDelayDateDP.Visibility = Visibility.Visible;[m
+[31m-			}[m
+[31m-			int anno = (int)(sddDate >> 16);[m
+[31m-			int mese = (int)((sddDate >> 8) & 0xff);[m
+[31m-			int giorno = (int)(sddDate & 0xff);[m
+[31m-			sdDate = new DateTime(anno, mese, giorno);[m
+[31m-			startDelayDateDP.SelectedDate = sdDate;[m
+[32m+[m[32m            if (sddDate > 0x7fffffff)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                sddCB.IsChecked = false;[m
+[32m+[m[32m                sddDate -= 0x80000000;[m
+[32m+[m[32m                startDelayDateDP.Visibility = Visibility.Hidden;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            else[m
+[32m+[m[32m            {[m
+[32m+[m[32m                sddCB.IsChecked = true;[m
+[32m+[m[32m                startDelayDateDP.Visibility = Visibility.Visible;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            int anno = (int)(sddDate >> 16);[m
+[32m+[m[32m            int mese = (int)((sddDate >> 8) & 0xff);[m
+[32m+[m[32m            int giorno = (int)(sddDate & 0xff);[m
+[32m+[m[32m            sdDate = new DateTime(anno, mese, giorno);[m
+[32m+[m[32m            startDelayDateDP.SelectedDate = sdDate;[m
+ [m
+[31m-			for (int i = 0; i < 12; i++)[m
+[31m-			{[m
+[31m-				var v = new CheckBox();[m
+[31m-				v.HorizontalContentAlignment = HorizontalAlignment.Left;[m
+[31m-				v.VerticalContentAlignment = VerticalAlignment.Center;[m
+[31m-				v.Content = (i + 1).ToString("00");[m
+[31m-				Grid.SetRow(v, 15);[m
+[31m-				v.Margin = new Thickness(20 + (i * 70), 0, 0, 0);[m
+[31m-				maingGrid.Children.Add(v);[m
+[31m-				remSchAr[i] = v;[m
+[31m-			}[m
+[31m-			for (int i = 0; i < 12; i++)[m
+[31m-			{[m
+[31m-				var v = new CheckBox();[m
+[31m-				v.HorizontalContentAlignment = HorizontalAlignment.Left;[m
+[31m-				v.VerticalContentAlignment = VerticalAlignment.Center;[m
+[31m-				v.Content = (i + 13).ToString("00");[m
+[31m-				Grid.SetRow(v, 16);[m
+[31m-				v.Margin = new Thickness(20 + (i * 70), 0, 0, 0);[m
+[31m-				maingGrid.Children.Add(v);[m
+[31m-				remSchAr[i + 12] = v;[m
+[31m-			}[m
+[31m-			for (int i = 0; i < 24; i++)[m
+[31m-			{[m
+[31m-				if (conf[i + 516] == 1)[m
+[31m-				{[m
+[31m-					var cb = remSchAr[i];[m
+[31m-					cb.IsChecked = true;[m
+[31m-					;[m
+[31m-				}[m
+[31m-			}[m
+[31m-		}[m
+[32m+[m[32m            for (int i = 0; i < 12; i++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                var v = new CheckBox();[m
+[32m+[m[32m                v.HorizontalContentAlignment = HorizontalAlignment.Left;[m
+[32m+[m[32m                v.VerticalContentAlignment = VerticalAlignment.Center;[m
+[32m+[m[32m                v.Content = (i + 1).ToString("00");[m
+[32m+[m[32m                Grid.SetRow(v, 15);[m
+[32m+[m[32m                v.Margin = new Thickness(20 + (i * 70), 0, 0, 0);[m
+[32m+[m[32m                maingGrid.Children.Add(v);[m
+[32m+[m[32m                remSchAr[i] = v;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            for (int i = 0; i < 12; i++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                var v = new CheckBox();[m
+[32m+[m[32m                v.HorizontalContentAlignment = HorizontalAlignment.Left;[m
+[32m+[m[32m                v.VerticalContentAlignment = VerticalAlignment.Center;[m
+[32m+[m[32m                v.Content = (i + 13).ToString("00");[m
+[32m+[m[32m                Grid.SetRow(v, 16);[m
+[32m+[m[32m                v.Margin = new Thickness(20 + (i * 70), 0, 0, 0);[m
+[32m+[m[32m                maingGrid.Children.Add(v);[m
+[32m+[m[32m                remSchAr[i + 12] = v;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            for (int i = 0; i < 24; i++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                if (conf[i + 516] == 1)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    var cb = remSchAr[i];[m
+[32m+[m[32m                    cb.IsChecked = true;[m
+[32m+[m[32m                    ;[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+ [m
+[31m-		private void sdtCB_Checked(object sender, RoutedEventArgs e)[m
+[31m-		{[m
+[31m-			if (sdtCB.IsChecked == false)[m
+[31m-			{[m
+[31m-				//sdTime = 0;[m
+[31m-				startDelayTimeTB.Visibility = Visibility.Hidden;[m
+[31m-				minLabel.Visibility = Visibility.Hidden;[m
+[31m-			}[m
+[31m-			else[m
+[31m-			{[m
+[31m-				startDelayTimeTB.Visibility = Visibility.Visible;[m
+[31m-				minLabel.Visibility = Visibility.Visible;[m
+[31m-				//sdTime = BitConverter.ToUInt32(conf, 40);[m
+[31m-				////sdTime = (conf[40] << 24) + (conf[38] << 16) + (conf[37] << 8) + conf[36];[m
+[31m-				//if (sdTime == 0)[m
+[31m-				//{[m
+[31m-				//	sdTime = 360;[m
+[31m-				//}[m
+[31m-				//startDelayTimeTB.Text = sdTime.ToString();[m
+[31m-			}[m
+[31m-		}[m
+[32m+[m[32m        private void sdtCB_Checked(object sender, RoutedEventArgs e)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            if (sdtCB.IsChecked == false)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                //sdTime = 0;[m
+[32m+[m[32m                startDelayTimeTB.Visibility = Visibility.Hidden;[m
+[32m+[m[32m                minLabel.Visibility = Visibility.Hidden;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            else[m
+[32m+[m[32m            {[m
+[32m+[m[32m                startDelayTimeTB.Visibility = Visibility.Visible;[m
+[32m+[m[32m                minLabel.Visibility = Visibility.Visible;[m
+[32m+[m[32m                //sdTime = BitConverter.ToUInt32(conf, 40);[m
+[32m+[m[32m                ////sdTime = (conf[40] << 24) + (conf[38] << 16) + (conf[37] << 8) + conf[36];[m
+[32m+[m[32m                //if (sdTime == 0)[m
+[32m+[m[32m                //{[m
+[32m+[m[32m                //	sdTime = 360;[m
+[32m+[m[32m                //}[m
+[32m+[m[32m                //startDelayTimeTB.Text = sdTime.ToString();[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+ [m
+[31m-		private void sddCB_Checked(object sender, RoutedEventArgs e)[m
+[31m-		{[m
+[31m-			if (sddCB.IsChecked == false)[m
+[31m-			{[m
+[31m-				//sdDate = new DateTime(2019, 1, 1);[m
+[31m-				startDelayDateDP.Visibility = Visibility.Hidden;[m
+[31m-			}[m
+[31m-			else[m
+[31m-			{[m
+[31m-				startDelayDateDP.Visibility = Visibility.Visible;[m
+[31m-				//int anno = BitConverter.ToInt16(conf, 44);  //44-46[m
+[31m-				//if (conf[46] > 0x80) conf[46] -= 0x80;[m
+[31m-				//int mese = conf[46];[m
+[31m-				//int giorno = conf[47];[m
+[31m-				//sdDate = new DateTime(anno, mese, giorno);[m
+[31m-				startDelayDateDP.SelectedDate = sdDate;[m
+[31m-			}[m
+[31m-		}[m
+[32m+[m[32m        private void sddCB_Checked(object sender, RoutedEventArgs e)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            if (sddCB.IsChecked == false)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                //sdDate = new DateTime(2019, 1, 1);[m
+[32m+[m[32m                startDelayDateDP.Visibility = Visibility.Hidden;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            else[m
+[32m+[m[32m            {[m
+[32m+[m[32m                startDelayDateDP.Visibility = Visibility.Visible;[m
+[32m+[m[32m                //int anno = BitConverter.ToInt16(conf, 44);  //44-46[m
+[32m+[m[32m                //if (conf[46] > 0x80) conf[46] -= 0x80;[m
+[32m+[m[32m                //int mese = conf[46];[m
+[32m+[m[32m                //int giorno = conf[47];[m
+[32m+[m[32m                //sdDate = new DateTime(anno, mese, giorno);[m
+[32m+[m[32m                startDelayDateDP.SelectedDate = sdDate;[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+ [m
+[31m-		private void validate(object sender, RoutedEventArgs e)[m
+[31m-		{[m
+[31m-			if (sender is TextBox)[m
+[31m-			{[m
+[31m-				validate((TextBox)sender);[m
+[31m-			}[m
+[31m-			else[m
+[31m-			{[m
+[31m-				validate((DatePicker)sender);[m
+[31m-			}[m
+[31m-		}[m
+[32m+[m[32m        private void validate(object sender, RoutedEventArgs e)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            if (sender is TextBox)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                validate((TextBox)sender);[m
+[32m+[m[32m            }[m
+[32m+[m[32m            else[m
+[32m+[m[32m            {[m
+[32m+[m[32m                validate((DatePicker)sender);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+ [m
+[31m-		private void startDelayDateDP_SelectedDateChanged(object sender, SelectionChangedEventArgs e)[m
+[31m-		{[m
+[31m-			if (startDelayDateDP.SelectedDate != null)[m
+[31m-			{[m
+[31m-				sdDate = (DateTime)startDelayDateDP.SelectedDate;[m
+[31m-			}[m
+[31m-		}[m
+[32m+[m[32m        private void startDelayDateDP_SelectedDateChanged(object sender, SelectionChangedEventArgs e)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            if (startDelayDateDP.SelectedDate != null)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                sdDate = (DateTime)startDelayDateDP.SelectedDate;[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+ [m
+[31m-		private void onTB_GotFocus(object sender, RoutedEventArgs e)[m
+[31m-		{[m
+[31m-			if (sender is TextBox)[m
+[31m-			{[m
+[31m-				((TextBox)sender).SelectAll();[m
+[31m-			}[m
+[31m-			else[m
+[31m-			{[m
+[31m-				((DatePicker)sender).IsDropDownOpen = true;[m
+[31m-			}[m
+[31m-		}[m
+[32m+[m[32m        private void onTB_GotFocus(object sender, RoutedEventArgs e)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            if (sender is TextBox)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                ((TextBox)sender).SelectAll();[m
+[32m+[m[32m            }[m
+[32m+[m[32m            else[m
+[32m+[m[32m            {[m
+[32m+[m[32m                ((DatePicker)sender).IsDropDownOpen = true;[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+ [m
+[31m-		private void validate(object sender, KeyEventArgs e)[m
+[31m-		{[m
+[31m-			if (e.Key == Key.Enter)[m
+[31m-			{[m
+[31m-				if (sender is TextBox)[m
+[31m-				{[m
+[31m-					validate((TextBox)sender);[m
+[31m-				}[m
+[31m-				else[m
+[31m-				{[m
+[31m-					validate((DatePicker)sender);[m
+[31m-				}[m
+[32m+[m[32m        private void validate(object sender, KeyEventArgs e)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            if (e.Key == Key.Enter)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                if (sender is TextBox)[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    validate((TextBox)sender);[m
+[32m+[m[32m                }[m
+[32m+[m[32m                else[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    validate((DatePicker)sender);[m
+[32m+[m[32m                }[m
+ [m
+[31m-			}[m
+[31m-		}[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+ [m
+[31m-		private void validate(DatePicker s)[m
+[31m-		{[m
+[31m-			//MessageBox.Show(s.SelectedDate.ToString());[m
+[31m-		}[m
+[32m+[m[32m        private void validate(DatePicker s)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            //MessageBox.Show(s.SelectedDate.ToString());[m
+[32m+[m[32m        }[m
+ [m
+[31m-		private void validate(TextBox s)[m
+[31m-		{[m
+[31m-			//TextBox s = (TextBox)sender;[m
+[31m-			int index = 100;[m
+[31m-			for (int i = 0; i < 6; i++)[m
+[31m-			{[m
+[31m-				if (s == ctrAr[i])[m
+[31m-				{[m
+[31m-					index = i;[m
+[31m-					break;[m
+[31m-				}[m
+[31m-			}[m
+[31m-			if (index == 100) return;[m
+[31m-			int[] oldVal = new int[6] { acqOn, acqOff, altOn, nSat, gsv, (int)sdTime };[m
+[31m-			int newVal;[m
+[31m-			if (!int.TryParse(s.Text, out newVal))[m
+[31m-			{[m
+[31m-				s.Text = oldVal[index].ToString();[m
+[31m-				return;[m
+[31m-			}[m
+[31m-			if ((newVal > maxs[index]) | newVal < mins[index])[m
+[31m-			{[m
+[31m-				s.Text = oldVal[index].ToString();[m
+[31m-				return;[m
+[31m-			}[m
+[31m-			switch (index)[m
+[31m-			{[m
+[31m-				case 0:[m
+[31m-					acqOn = newVal;[m
+[31m-					break;[m
+[31m-				case 1:[m
+[31m-					acqOff = newVal;[m
+[31m-					break;[m
+[31m-				case 2:[m
+[31m-					altOn = newVal;[m
+[31m-					break;[m
+[31m-				case 3:[m
+[31m-					nSat = newVal;[m
+[31m-					break;[m
+[31m-				case 4:[m
+[31m-					gsv = newVal;[m
+[31m-					break;[m
+[31m-				case 5:[m
+[31m-					sdTime = (uint)newVal;[m
+[31m-					break;[m
+[31m-			}[m
+[32m+[m[32m        private void validate(TextBox s)[m
+[32m+[m[32m        {[m
+[32m+[m[32m            //TextBox s = (TextBox)sender;[m
+[32m+[m[32m            int index = 100;[m
+[32m+[m[32m            for (int i = 0; i < 6; i++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                if (s == ctrAr[i])[m
+[32m+[m[32m                {[m
+[32m+[m[32m                    index = i;[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m            if (index == 100) return;[m
+[32m+[m[32m            int[] oldVal = new int[6] { acqOn, acqOff, altOn, nSat, gsv, (int)sdTime };[m
+[32m+[m[32m            int newVal;[m
+[32m+[m[32m            if (!int.TryParse(s.Text, out newVal))[m
+[32m+[m[32m            {[m
+[32m+[m[32m                s.Text = oldVal[index].ToString();[m
+[32m+[m[32m                return;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            if ((newVal > maxs[index]) | newVal < mins[index])[m
+[32m+[m[32m            {[m
+[32m+[m[32m                s.Text = oldVal[index].ToString();[m
+[32m+[m[32m                return;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            switch (index)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                case 0:[m
+[32m+[m[32m                    acqOn = newVal;[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m                case 1:[m
+[32m+[m[32m                    acqOff = newVal;[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m                case 2:[m
+[32m+[m[32m                    altOn = newVal;[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m                case 3:[m
+[32m+[m[32m                    nSat = newVal;[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m                case 4:[m
+[32m+[m[32m                    gsv = newVal;[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m                case 5:[m
+[32m+[m[32m                    sdTime = (uint)newVal;[m
+[32m+[m[32m                    break;[m
+[32m+[m[32m            }[m
+ [m
+[31m-		}[m
+[32m+[m[32m        }[m
+ [m
+[31m-		public override void copyValues()[m
+[31m-		{[m
+[31m-			conf[32] = (byte)(acqOn & 0xff);[m
+[31m-			conf[33] = (byte)(acqOn >> 8);[m
+[31m-			conf[34] = (byte)(acqOff & 0xff);[m
+[31m-			conf[35] = (byte)(acqOff >> 8);[m
+[32m+[m[32m        public override void copyValues()[m
+[32m+[m[32m        {[m
+[32m+[m[32m            conf[32] = (byte)(acqOn & 0xff);[m
+[32m+[m[32m            conf[33] = (byte)(acqOn >> 8);[m
+[32m+[m[32m            conf[34] = (byte)(acqOff & 0xff);[m
+[32m+[m[32m            conf[35] = (byte)(acqOff >> 8);[m
+ [m
+[31m-			conf[36] = (byte)(altOn & 0xff);[m
+[31m-			conf[37] = (byte)(altOn >> 8);[m
+[32m+[m[32m            conf[36] = (byte)(altOn & 0xff);[m
+[32m+[m[32m            conf[37] = (byte)(altOn >> 8);[m
+ [m
+[31m-			conf[38] = (byte)nSat;[m
+[31m-			conf[39] = (byte)gsv;[m
+[31m-			if (earlyStopCB.IsChecked == true) conf[38] += 0x80;[m
+[31m-			if (enhancedAccuracyCB.IsChecked == true) conf[38] += 0x40;[m
+[32m+[m[32m            conf[38] = (byte)nSat;[m
+[32m+[m[32m            conf[39] = (byte)gsv;[m
+[32m+[m[32m            conf[38] &= 0x3f;[m
+[32m+[m[32m            if (earlyStopCB.IsChecked == true) conf[38] += 0x80;[m
+[32m+[m[32m            if (enhancedAccuracyCB.IsChecked == true) conf[38] += 0x40;[m
+ [m
+[31m-			if (!(bool)sdtCB.IsChecked)[m
+[31m-			{[m
+[31m-				sdTime += 0x80000000;[m
+[31m-			}[m
+[31m-			conf[40] = (byte)(sdTime & 0xff);[m
+[31m-			conf[41] = (byte)((sdTime >> 8) & 0xff);[m
+[31m-			conf[42] = (byte)((sdTime >> 16) & 0xff);[m
+[31m-			conf[43] = (byte)(sdTime >> 24);[m
+[32m+[m[32m            if (!(bool)sdtCB.IsChecked)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                sdTime += 0x80000000;[m
+[32m+[m[32m            }[m
+[32m+[m[32m            conf[40] = (byte)(sdTime & 0xff);[m
+[32m+[m[32m            conf[41] = (byte)((sdTime >> 8) & 0xff);[m
+[32m+[m[32m            conf[42] = (byte)((sdTime >> 16) & 0xff);[m
+[32m+[m[32m            conf[43] = (byte)(sdTime >> 24);[m
+ [m
+[31m-			uint ddate = (uint)((sdDate.Year << 16) + (sdDate.Month << 8) + sdDate.Day);[m
+[31m-			if (!(bool)sddCB.IsChecked)[m
+[31m-			{[m
+[31m-				ddate += 0x80000000;[m
+[31m-			}[m
+[32m+[m[32m            uint ddate = (uint)((sdDate.Year << 16) + (sdDate.Month << 8) + sdDate.Day);[m
+[32m+[m[32m            if (!(bool)sddCB.IsChecked)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                ddate += 0x80000000;[m
+[32m+[m[32m            }[m
+ [m
+[31m-			conf[44] = (byte)(ddate & 0xff);[m
+[31m-			conf[45] = (byte)(ddate >> 8);[m
+[31m-			conf[46] = (byte)(ddate >> 16);[m
+[31m-			conf[47] = (byte)(ddate >> 24);[m
+[32m+[m[32m            conf[44] = (byte)(ddate & 0xff);[m
+[32m+[m[32m            conf[45] = (byte)(ddate >> 8);[m
+[32m+[m[32m            conf[46] = (byte)(ddate >> 16);[m
+[32m+[m[32m            conf[47] = (byte)(ddate >> 24);[m
+ [m
+[31m-			for (int i = 0; i < 24; i++)[m
+[31m-			{[m
+[31m-				conf[i + 516] = (bool)remSchAr[i].IsChecked ? (byte)1 : (byte)0;[m
+[31m-			}[m
+[31m-		}[m
+[32m+[m[32m            for (int i = 0; i < 24; i++)[m
+[32m+[m[32m            {[m
+[32m+[m[32m                conf[i + 516] = (bool)remSchAr[i].IsChecked ? (byte)1 : (byte)0;[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+ [m
+[31m-	}[m
+[32m+[m[32m    }[m
+ }[m

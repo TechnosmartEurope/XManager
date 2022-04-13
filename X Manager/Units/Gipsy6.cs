@@ -77,7 +77,7 @@ namespace X_Manager.Units
 				get => _pos;
 				set
 				{
-					_pos = value + ((value / 512) + 1) * 2;
+					_pos = value + ((value / 0x1fe) + 1) * 2;
 				}
 			}
 
@@ -901,6 +901,11 @@ namespace X_Manager.Units
 				buffSize = (mem_max_physical_address - mem_max_logical_address) + (mem_address - mem_min_physical_address);
 			}
 
+			if ((buffSize & 0x1ff) != 0)
+			{
+				buffSize &= 0xfffffe00;
+				buffSize += 0x200;
+			}
 			//buffSize -= (buffSize / 0x200) * 2;
 			//buffSize += 2;
 
@@ -928,8 +933,7 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = buffSize));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 
-			address = BitConverter.GetBytes(mem_max_logical_address);
-			Array.Reverse(address);
+			address = BitConverter.GetBytes(mem_max_logical_address >> 8);
 			Array.Copy(address, 0, outBuffer, 1, 3);
 			outBuffer[0] = 0x65;        //load address
 			sp.Write(outBuffer, 0, 4);
@@ -1212,7 +1216,7 @@ namespace X_Manager.Units
 				}
 				catch
 				{
-					break;
+					continue;
 				}
 
 
@@ -1367,7 +1371,10 @@ namespace X_Manager.Units
 					tabs[10] = decodeEvent(ref t);
 				}
 				//sviluppo
-				//tabs[9] = t.pos.ToString("X");
+				//else
+				//{
+				//	tabs[10] = t.pos.ToString("X8");
+				//}
 				///sviluppo
 
 				for (int i = 0; i < 11; i++)
@@ -1618,6 +1625,7 @@ namespace X_Manager.Units
 			int max = gp6.Length - 1;
 			while (true)
 			{
+
 				while ((test != 0xab) & (pos < max) && (test != 0xac) && (test != 0x0a))
 				{
 					pos++;
@@ -1751,20 +1759,30 @@ namespace X_Manager.Units
 			//Data e Ora
 			if ((t.tsTypeExt1 & ts_time) == ts_time)
 			{
+				DateTime oldDate = t.dateTime;
 				byte second = gp6[pos];
 				if (second > 0x7f)
 				{
 					second -= 0x80;
-					t.dateTime = new DateTime((gp6[pos + 6] * 256 + gp6[pos + 5]), gp6[pos + 4], gp6[pos + 3], gp6[pos + 2], gp6[pos + 1], second);
+					int year = gp6[pos + 6] * 256 + gp6[pos + 5];
+					int month = gp6[pos + 4];
+					int day = gp6[pos + 3];
+					int hour = gp6[pos + 2];
+					int minute = gp6[pos + 1];
+					t.dateTime = new DateTime(year, month, day, hour, minute, second);
 					pos += 7;
 				}
 				else
 				{
-					t.dateTime = new DateTime(t.dateTime.Year, t.dateTime.Month, t.dateTime.Day, gp6[pos + 2], gp6[pos + 1], second);
+					int hour = gp6[pos + 2];
+					int minute = gp6[pos + 1];
+					t.dateTime = new DateTime(t.dateTime.Year, t.dateTime.Month, t.dateTime.Day, hour, minute, second);
 					pos += 3;
 				}
-
-
+				if (t.dateTime < oldDate)
+				{
+					t.dateTime = t.dateTime.AddDays(1);
+				}
 			}
 			else
 			{

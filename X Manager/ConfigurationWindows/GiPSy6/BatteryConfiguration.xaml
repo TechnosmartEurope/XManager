@@ -1,0 +1,34 @@
+﻿<Window x:Class="X_Manager.ConfigurationWindows.GiPSy6.BatteryConfiguration"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:X_Manager.ConfigurationWindows.GiPSy6"
+        mc:Ignorable="d"
+        Title="BatteryConfiguration" Height="450" Width="620">
+	<Grid>
+		<TextBlock HorizontalAlignment="Left" Margin="60,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="185"><Run Language="it-it" Text="Start Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="60,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="185"><Run Language="it-it" Text="Pause Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="60,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="204"><Run Language="it-it" Text="Resume Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="60,200,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="185"><Run Language="it-it" Text="Radio Threshold (start):"/><LineBreak/><Run Language="it-it"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="60,250,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="204"><Run Language="it-it" Text="Radio Threshold (logging):"/><LineBreak/><Run Language="it-it"/></TextBlock>
+		<TextBox x:Name="startLogging" HorizontalAlignment="Left" Margin="298,50,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
+		<TextBox x:Name="pauseLogging" HorizontalAlignment="Left" Margin="298,100,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
+		<TextBox x:Name="resumeLogging" HorizontalAlignment="Left" Margin="298,150,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
+		<TextBox x:Name="lowRf" HorizontalAlignment="Left" Margin="298,200,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
+		<TextBox x:Name="lowPc" HorizontalAlignment="Left" Margin="298,250,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
+		<TextBlock HorizontalAlignment="Left" Margin="388,55,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="388,105,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="388,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="388,154,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="388,255,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
+		<TextBlock HorizontalAlignment="Left" Margin="475,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" ><Run Language="it-it" Text="Presets:"/></TextBlock>
+		<Button Content="Local" HorizontalAlignment="Left" Margin="475,50,0,0" VerticalAlignment="Top" Width="96" Click="localClick"/>
+		<Button Content="Remote" HorizontalAlignment="Left" Margin="475,102,0,0" VerticalAlignment="Top" Width="96" Click="remoteClick"/>
+		<Button Content="SAVE" HorizontalAlignment="Left" Margin="475,308,0,0" VerticalAlignment="Top" Width="96" Foreground="Red" Click="Button_Click"/>
+		<TextBlock HorizontalAlignment="Left" Margin="60,308,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="204"><Run Language="it-it" Text="Charging current:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+		<TextBox x:Name="currentTB" HorizontalAlignment="Left" Margin="298,308,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="currentTB_PreviewKeyDown"/>
+		<TextBlock HorizontalAlignment="Left" Margin="388,312,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="26" Width="27"><Run Language="it-it" Text="mA"/></TextBlock>
+
+	</Grid>
+</Window>
