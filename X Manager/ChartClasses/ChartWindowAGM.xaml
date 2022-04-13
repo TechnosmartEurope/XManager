@@ -7,7 +7,7 @@
     xmlns:dc="clr-namespace:X_Manager"
     mc:Ignorable="d" 
     Title="CHARTS" Height="500" Width="700" Background="#FF181818"
-    ScrollViewer.VerticalScrollBarVisibility="Disabled" WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen" 
+    ScrollViewer.VerticalScrollBarVisibility="Disabled" WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterScreen"
     xmlns:fc="clr-namespace:System.Windows.Forms.DataVisualization.Charting;assembly=System.Windows.Forms.DataVisualization">
     <Grid>
         <Grid.RowDefinitions>

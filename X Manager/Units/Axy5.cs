@@ -48,11 +48,11 @@ namespace X_Manager.Units
 		string[] gruppoSENZA;// = new string[];
 							 //int[] gruppoPar = new int[13];
 
-		int tagId = 0;
-		int date = 1;
-		int accx = 2;
-		int accy = 3;
-		int accz = 4;
+		//int tagId = 0;
+		//int date = 1;
+		//int accx = 2;
+		//int accy = 3;
+		//int accz = 4;
 		int magx = 7;
 		int magy = 8;
 		int magz = 9;
@@ -1296,8 +1296,6 @@ namespace X_Manager.Units
 
 			if (ard.Position == ard.Length) return lastGroup;
 
-
-
 			do
 			{
 
@@ -1569,7 +1567,7 @@ namespace X_Manager.Units
 			//Evento
 			if ((tsc.tsType & 32) == 32)
 			{
-
+				tsc.metadataPresent = 1;
 				for (int i = 0; i < 5; i++)
 				{
 					eventAr[i] = (byte)ard.ReadByte();
@@ -1578,26 +1576,6 @@ namespace X_Manager.Units
 				else if (eventAr[0] == 12) { tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; }
 				else if (eventAr[0] == 13) { tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0; }
 				else if (eventAr[0] == 14) { tsc.stopEvent = 3; gruppoCON[meta] = "Remote connection established."; addMilli = 0; }
-				else
-				{
-					if (metadata == 1)
-					{
-						string eve;
-						eve = "Switching to ";
-						if (nOutputs == 0)
-						{
-							eve += "OFF  ";
-						}
-						else
-						{
-							eve += nOutputs.ToString() + "Hz " + Math.Pow(2, (range + 1)).ToString() + "g " + (8 + (bit * 2)).ToString() + "bit  ";
-						}
-						//sviluppo
-						eve += tsc.ardPosition.ToString("X");
-						///sviluppo
-						gruppoCON[meta] = eve;
-					}
-				}
 			}
 			else
 			{
@@ -1661,6 +1639,23 @@ namespace X_Manager.Units
 						iend1 = 150;
 						iend2 = 300;
 						break;
+				}
+				if (metadata == 1)
+				{
+					string eve;
+					eve = "Switching to ";
+					if (nOutputs == 0)
+					{
+						eve += "OFF  ";
+					}
+					else
+					{
+						eve += nOutputs.ToString() + "Hz " + Math.Pow(2, (range + 1)).ToString() + "g " + (8 + (bit * 2)).ToString() + "bit  ";
+					}
+					//sviluppo
+					//eve += tsc.ardPosition.ToString("X");
+					///sviluppo
+					gruppoCON[meta] = eve;
 				}
 
 				findBits(bit);

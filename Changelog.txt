@@ -51,3 +51,4 @@
 1.7.1	Axy5: completata conversione Axy5 per nuovo timestamp con dati in fondo.
 	Remoto: la finestra scompare se l'unità non ha l'indirizzo vergine.
 	Remoto: possibilità di scrivere "c" nella casella indirizzo per impostare l'indirizzo vergine.
+1.7.2	Gestione schedule accelerometro axyTrek

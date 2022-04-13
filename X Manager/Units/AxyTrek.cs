@@ -305,10 +305,24 @@ namespace X_Manager
 			sp.Write("TTTTTTTTGGAC");
 			try
 			{
-				for (int i = 2; i <= 4; i++) { conf[i] = (byte)sp.ReadByte(); }
-				for (int i = 15; i <= 21; i++) { conf[i] = (byte)sp.ReadByte(); }
+				for (int i = 2; i <= 4; i++)
+				{
+					conf[i] = (byte)sp.ReadByte();
+				}
+				for (int i = 15; i <= 21; i++)
+				{
+					conf[i] = (byte)sp.ReadByte();
+				}
 				conf[22] = (byte)sp.ReadByte();
-				if (firmTotA > 2000000) conf[23] = (byte)sp.ReadByte();
+				if (firmTotA > 2000000)
+				{
+					conf[23] = (byte)sp.ReadByte();
+				}
+				if (firmTotA >= 3008000)
+				{
+					conf[25] = (byte)sp.ReadByte();
+					conf[26] = (byte)sp.ReadByte();
+				}
 			}
 			catch
 			{
@@ -331,7 +345,14 @@ namespace X_Manager
 			sp.Write(conf, 2, 3);
 			sp.Write(conf, 15, 7);
 			sp.Write(conf, 22, 1);
-			if (firmTotA > 2000000) sp.Write(conf, 23, 1);
+			if (firmTotA > 2000000)
+			{
+				sp.Write(conf, 23, 1);
+			}
+			if (firmTotA >= 3008000)
+			{
+				sp.Write(conf, 25, 2);
+			}
 			try
 			{
 				sp.ReadByte();
@@ -612,8 +633,8 @@ namespace X_Manager
 			sp.Write("S");
 			Thread.Sleep(1000);
 			int dieCount = sp.ReadByte();
-			if (dieCount == 0x53) dieCount = 2;		//S
-			if (dieCount == 0x73) dieCount = 1;		//s
+			if (dieCount == 0x53) dieCount = 2;     //S
+			if (dieCount == 0x73) dieCount = 1;     //s
 			if ((dieCount != 1) & (dieCount != 2))
 			{
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
@@ -1780,6 +1801,10 @@ namespace X_Manager
 			tsc.timeStampLength = (int)(position / bitsDiv);
 
 			int resultCode = 0;
+			if (position == 0)
+			{
+				return new double[] { };
+			}
 
 			//IntPtr doubleResultArray = Marshal.AllocCoTaskMem(sizeof(double) * nOutputs * 3);
 

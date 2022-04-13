@@ -28,6 +28,8 @@ namespace X_Manager
 		//byte[] unitFirmware;
 		UInt32 firmTotA;
 		//bool evitaSoglieDepth = false;
+		int burstLenght;
+		int burstPeriod;
 
 		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
 			: base()
@@ -35,18 +37,18 @@ namespace X_Manager
 			InitializeComponent();
 			this.Loaded += loaded;
 			mustWrite = false;
-			axyConfOut = new byte[25];
+			axyConfOut = new byte[29];
 			unitType = axyconf[25];
 			firmTotA = unitFirm;
 
 			if ((firmTotA < 2000001))
 			{
-				this.mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(0);
+				mainGrid.RowDefinitions[6].Height = new System.Windows.GridLength(0);
 				sendButton.Margin = new Thickness(25);
 			}
 			else if ((firmTotA < 3000000))
 			{
-				this.mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(74);
+				mainGrid.RowDefinitions[6].Height = new System.Windows.GridLength(74);
 				sendButton.Margin = new Thickness(10);
 				WsHardwareRB.Visibility = Visibility.Hidden;
 				WsHardwareRB.IsEnabled = false;
@@ -56,7 +58,7 @@ namespace X_Manager
 			}
 			else
 			{
-				this.mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(74);
+				mainGrid.RowDefinitions[6].Height = new System.Windows.GridLength(74);
 				sendButton.Margin = new Thickness(10);
 				if ((firmTotA < 3001000))
 				{
@@ -65,7 +67,7 @@ namespace X_Manager
 				}
 				else
 				{
-					this.WSGrid.ColumnDefinitions[1].Width = new System.Windows.GridLength(0);
+					WSGrid.ColumnDefinitions[1].Width = new System.Windows.GridLength(0);
 					WsHardwareRB.Visibility = Visibility.Hidden;
 					WsHardwareRB.IsEnabled = false;
 					WsEnabledRB.Content = "Enabled";
@@ -76,6 +78,13 @@ namespace X_Manager
 			if (firmTotA < 3004000)
 			{
 				pressureCB.IsEnabled = false;
+			}
+
+			if (firmTotA < 3008000)
+			{
+				mainGrid.Children.RemoveAt(3);
+				ghostRow.Height = new GridLength(0);
+				Height = 710;
 			}
 
 			foreach (RadioButton c in rates.Children)
@@ -191,7 +200,7 @@ namespace X_Manager
 					mDebug = 1;
 					break;
 			}
-			if ((firmTotA > 2000000))
+			if (firmTotA > 2000000)
 			{
 				switch (axyconf[23])
 				{
@@ -207,6 +216,21 @@ namespace X_Manager
 					default:
 						WsDisabledRB.IsChecked = true;
 						break;
+				}
+			}
+
+			if (firmTotA >= 3008000)
+			{
+				contCB.IsChecked = false;
+				burstpTB.Text = axyconf[26].ToString();
+				burstlTB.Text = axyconf[25].ToString();
+				burstLenght = axyconf[25];
+				burstPeriod = axyconf[26];
+				if (axyconf[25] == 0)
+				{
+					burstLenght = 1;
+					burstlTB.Text = "1";
+					contCB.IsChecked = true;
 				}
 			}
 
@@ -340,7 +364,8 @@ namespace X_Manager
 			var c = (CheckBox)sender;
 			if (c.Name == "temperatureCB")
 			{
-				if (!(bool)temperatureCB.IsChecked){
+				if (!(bool)temperatureCB.IsChecked)
+				{
 					pressureCB.IsChecked = false;
 				}
 			}
@@ -408,26 +433,26 @@ namespace X_Manager
 
 		private void sendConfiguration()
 		{
-			if (unitType == MainWindow.model_Co2Logger)
-			{
-				if ((bool)rate1RB.IsChecked)
-				{
-					axyConfOut[24] = 1;
-				}
-				else if ((bool)rate10RB.IsChecked)
-				{
-					axyConfOut[24] = 2;
-				}
-				else
-				{
-					axyConfOut[24] = 3;
-				}
+			//if (unitType == MainWindow.model_Co2Logger)
+			//{
+			//	if ((bool)rate1RB.IsChecked)
+			//	{
+			//		axyConfOut[24] = 1;
+			//	}
+			//	else if ((bool)rate10RB.IsChecked)
+			//	{
+			//		axyConfOut[24] = 2;
+			//	}
+			//	else
+			//	{
+			//		axyConfOut[24] = 3;
+			//	}
 
-				axyConfOut[22] = mDebug;
-				mustWrite = true;
-				this.Close();
-				return;
-			}
+			//	axyConfOut[22] = mDebug;
+			//	mustWrite = true;
+			//	this.Close();
+			//	return;
+			//}
 
 			if ((rate50RB.IsChecked == true))
 			{
@@ -450,14 +475,15 @@ namespace X_Manager
 				axyConfOut[15] = 4;
 			}
 
-			if ((unitType == MainWindow.model_axy4) || (unitType == MainWindow.model_axyDepth))
-			{
-				if ((mDebug == 1))
-				{
-					axyConfOut[15] += 8;
-				}
+			//if ((unitType == MainWindow.model_axy4) || (unitType == MainWindow.model_axyDepth))
+			//{
+			
+			//if ((mDebug == 1))
+			//{
+			//	axyConfOut[15] += 8;
+			//}
 
-			}
+			//}
 
 			byte ccount = 0;
 			foreach (RadioButton c in ranges.Children)
@@ -508,24 +534,87 @@ namespace X_Manager
 			catch { }
 
 			axyConfOut[22] = mDebug;
-			if ((unitType == MainWindow.model_axyTrek))
-			{
-				if ((firmTotA > 2000000))
-				{
-					axyConfOut[23] = 0;
-					if ((bool)WsEnabledRB.IsChecked)
-					{
-						axyConfOut[23] = 1;
-					}
 
-					if ((bool)WsHardwareRB.IsChecked)
-					{
-						axyConfOut[23] = 2;
-					}
+			if ((firmTotA > 2000000))
+			{
+				axyConfOut[23] = 0;
+				if ((bool)WsEnabledRB.IsChecked)
+				{
+					axyConfOut[23] = 1;
+				}
+
+				if ((bool)WsHardwareRB.IsChecked)
+				{
+					axyConfOut[23] = 2;
 				}
 			}
+
+			if (firmTotA >= 3008000)
+			{
+				axyConfOut[26] = (byte)burstPeriod;
+				axyConfOut[25] = (byte)burstLenght;
+				if ((bool)contCB.IsChecked)
+				{
+					axyConfOut[25] = 0;
+				}
+			}
+
 			mustWrite = true;
-			this.Close();
+			Close();
+		}
+
+		private void contChanged(object sender, RoutedEventArgs e)
+		{
+			if ((bool)contCB.IsChecked)
+			{
+				burstlTB.IsEnabled = false;
+				burstpTB.IsEnabled = false;
+			}
+			else
+			{
+				burstlTB.IsEnabled = true;
+				burstpTB.IsEnabled = true;
+			}
+		}
+
+		private void burstLenghValidate(object sender, RoutedEventArgs e)
+		{
+			int p = burstLenght;
+			int.TryParse(burstlTB.Text, out p);
+			if ((p > 0) & (p < 256))
+			{
+				burstLenght = p;
+			}
+			burstlTB.Text = burstLenght.ToString();
+		}
+
+		private void burstPeriodValidate(object sender, RoutedEventArgs e)
+		{
+			int p = burstPeriod;
+			int.TryParse(burstpTB.Text, out p);
+			if ((p > 0) & (p < 256))
+			{
+				burstPeriod = p;
+			}
+			burstpTB.Text = burstPeriod.ToString();
+		}
+
+		private void burstLenghtKey(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Enter)
+			{
+				e.Handled = true;
+				burstLenghValidate(null, new RoutedEventArgs());
+			}
+		}
+
+		private void burstPeriodKey(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Enter)
+			{
+				e.Handled = true;
+				burstPeriodValidate(null, new RoutedEventArgs());
+			}
 		}
 	}
 }

@@ -126,7 +126,7 @@
             </StackPanel>
             <!-- Colonna 1 Picture-->
             <StackPanel x:Name="realTimeSP" Orientation="Horizontal" Panel.ZIndex="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Grid.Column="1" Margin="10,10,10,0" Width="Auto" Height="30">
-                <Button Content="Real Time" Height="30" VerticalAlignment="Top" Click="realTimeClick" />
+                <Button Content="Real Time" Click="realTimeClick" />
             </StackPanel>
             <!-- <Canvas AllowDrop="True" Background="Transparent" Margin="10,10,10,0" Grid.Column="1" > -->
             <TabControl x:Name ="mainTabControl" Grid.Column="1" Background="#FF181818" Margin="10,0,10,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" SelectionChanged="tabControlTabChanged">

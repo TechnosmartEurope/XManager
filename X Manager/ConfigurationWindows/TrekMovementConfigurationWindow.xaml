@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:X_Manager"
         xmlns:dc="clr-namespace:X_Manager"
         mc:Ignorable="d"
-        Title="CONFIGURATION" Height="710" Width="403"
+        Title="CONFIGURATION" Height="790" Width="403"
     Background="#FF181818"
     ResizeMode="NoResize" ScrollViewer.VerticalScrollBarVisibility="Disabled"
     WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterOwner" KeyDown="ctrlManager">
@@ -15,6 +15,7 @@
             <RowDefinition Height="54"/>
             <RowDefinition Height="240"/>
             <RowDefinition Height="70"/>
+            <RowDefinition Height="80" x:Name="ghostRow"/>
             <RowDefinition Height="110"/>
             <RowDefinition Height="74"/>
             <RowDefinition Height="74"/>
@@ -57,8 +58,38 @@
                 <RadioButton Name="bits10RB" Grid.Column="1" HorizontalAlignment="Left" Content="10 bit" TabIndex="10" Margin="32,0,0,1"/>
             </Grid>
         </GroupBox>
-        
-        <GroupBox Grid.Row="3" Name="TDgroupBox" Header="TEMPERATURE AND DEPTH LOGGING" Foreground="#FF00AADE" Margin="0,0,0,5">
+
+        <GroupBox Grid.Row="3" Header="SCHEDULE" Foreground="#FF00AADE" x:Name="schedGB" Padding="0" >
+            <Grid Margin="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="2*"/>
+                </Grid.ColumnDefinitions>
+                
+                <CheckBox Grid.Column="0" x:Name="contCB" Content="Continuous" VerticalAlignment="Bottom"
+                          FontSize="18" Margin="20,0,0,0" Checked="contChanged" Unchecked="contChanged"/>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1.2*"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Burst lenght" HorizontalAlignment="Center" Grid.Row="0" />
+                    <TextBox x:Name="burstlTB" Text="255" Grid.Row="1" VerticalContentAlignment="Center" LostFocus="burstLenghValidate" PreviewKeyDown="burstLenghtKey"/>
+                </Grid>
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1.2*"/>
+                        <RowDefinition Height="2*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock  Text="Burst period" HorizontalAlignment="Center" Grid.Row="0"/>
+                    <TextBox x:Name="burstpTB" Text="255" Grid.Row="1" VerticalContentAlignment="Center" LostFocus="burstPeriodValidate" PreviewKeyDown="burstPeriodKey"/>
+                </Grid>
+                
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Grid.Row="4" Name="TDgroupBox" Header="TEMPERATURE AND DEPTH LOGGING" Foreground="#FF00AADE" Margin="0,0,0,5">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="3*"/>
@@ -96,7 +127,7 @@
             </Grid>
         </GroupBox>
         
-        <GroupBox Grid.Row="4" Header="MOVEMENT THRESHOLDS" Foreground="#FF00AADE" HorizontalAlignment="Right" Width="397" >
+        <GroupBox Grid.Row="5" Header="MOVEMENT THRESHOLDS" Foreground="#FF00AADE" HorizontalAlignment="Right" Width="397" >
             <Grid Margin="0,0,0,0" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
@@ -126,7 +157,7 @@
             </StackPanel>-->
         </GroupBox>
         
-        <GroupBox Grid.Row="5" Name="WaterSwitchGB" Header="WATERSWITCH" Foreground="#FF00AADE" HorizontalAlignment="Right" Width="397" >
+        <GroupBox Grid.Row="6" Name="WaterSwitchGB" Header="WATERSWITCH" Foreground="#FF00AADE" HorizontalAlignment="Right" Width="397" >
             <Grid Margin="0,0,0,0" x:Name="WSGrid" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
@@ -141,7 +172,7 @@
 
         </GroupBox>
 
-        <Button x:Name="sendButton" Grid.Row="6" Content="Send configuration" FontSize="20" Margin="10" Click="sendConf" TabIndex="15"/>
+        <Button x:Name="sendButton" Grid.Row="7" Content="Send configuration" FontSize="20" Margin="10" Click="sendConf" TabIndex="15"/>
 
     </Grid>
 </local:ConfigurationWindow>

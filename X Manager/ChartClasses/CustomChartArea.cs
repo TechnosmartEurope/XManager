@@ -12,7 +12,7 @@ namespace X_Manager.ChartClasses
     {
         public CustomChartArea() : base()
         {
-            this.BackColor = System.Drawing.Color.Black;
+            this.BackColor = Color.Black;
             this.AxisX.LineColor = Color.WhiteSmoke;
 
             this.AxisY.MajorGrid.LineColor = Color.FromArgb(0xff, 0x40, 0x40, 0x60);

@@ -49,7 +49,7 @@ namespace X_Manager
 
         private void loaded(object sender, EventArgs e)
         {
-            ((System.Windows.Controls.Image)(playGrid.Children[0])).Source = new BitmapImage(new Uri("pack://application:,,,/Resources/PLAY BUTTON.png"));
+            ((Image)(playGrid.Children[0])).Source = new BitmapImage(new Uri("pack://application:,,,/Resources/PLAY BUTTON.png"));
             ((System.Windows.Controls.Image)(accGrid.Children[0])).Source = new BitmapImage(new Uri("pack://application:,,,/Resources/ACC ON.png"));
             ((System.Windows.Controls.Image)(gyroGrid.Children[0])).Source = new BitmapImage(new Uri("pack://application:,,,/Resources/GYRO ON.png"));
             ((System.Windows.Controls.Image)(compGrid.Children[0])).Source = new BitmapImage(new Uri("pack://application:,,,/Resources/COMP ON.png"));
