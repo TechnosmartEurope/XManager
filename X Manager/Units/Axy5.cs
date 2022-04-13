@@ -42,7 +42,7 @@ namespace X_Manager.Units
 			public int stopEvent;
 			public int timeStampLength;
 			public int metadataPresent;
-			public long ardPosition;
+			//public long ardPosition;
 		}
 
 		string[] gruppoCON;// = new string[];
@@ -65,39 +65,12 @@ namespace X_Manager.Units
 		int meta = 12;
 		int ardPosition = 13;
 
-		const int pref_pressMetri = 0;
-		const int pref_millibars = 1;
-		const int pref_dateFormat = 2;
-		const int pref_timeFormat = 3;
-		const int pref_fillEmpty = 4;
-		const int pref_sameColumn = 5;
-		const int pref_battery = 6;
-		const int pref_override_time = 15;
-		const int pref_metadata = 16;
-
-		const byte ts_ext = 0b_0000_0001;
-		const byte ts_temp = 0b_0000_0010;
-		const byte ts_press = 0b_0000_0100;
-		const byte ts_batt = 0b_0000_1000;
-		const byte ts_coord = 0b_0001_0000;
-		const byte ts_event = 0b_0010_0000;
-		const byte ts_actvity = 0b_0100_0000;
-		const byte ts_water = 0b_1000_0000;
-
-		const byte ts_adcVal = 0b_0000_0010;
-		const byte ts_adcThr = 0b_0000_0100;
-		const byte ts_mag = 0b_0000_1000;
-		const byte ts_sched = 0b_0001_0000;
-		const byte ts_time = 0b_0010_0000;
-		const byte ts_multi = 0b_0100_0000;
-		const byte ts_escape = 0b_1000_0000;
-
 		int iend1;
 		int iend2;
 
 		//byte dateFormatPreference;
 		//byte timeFormatPreference;
-		string[] prefs;
+		//string[] prefs;
 		int prefBattery = 0;
 		bool repeatEmptyValues = true;
 		//byte bitsDiv;
@@ -110,7 +83,6 @@ namespace X_Manager.Units
 		CultureInfo dateCi;
 		//byte cifreDec;
 		const string cifreDecString = "0.00000";
-		int debugLevel;
 		int metadata = 0;
 		bool overrideTime;
 		int temperatureEn;
@@ -127,7 +99,7 @@ namespace X_Manager.Units
 		int rate;
 		int range;
 		int bit;
-		double x, y, z;
+		//double x, y, z;
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 		string dateTimeFormat;
 
@@ -473,7 +445,7 @@ namespace X_Manager.Units
 
 		}
 
-		public unsafe override void download(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
+		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
@@ -597,16 +569,16 @@ namespace X_Manager.Units
 
 			int firstLoop = 1;
 
-			uint blockSize;
+			//uint blockSize;
 
 			if (dieCount == 1)
 			{
-				blockSize = 0x40000;
+				//blockSize = 0x40000;
 				goto _loopSingleDie;
 			}
 			else
 			{
-				blockSize = 0x20000;
+				//blockSize = 0x20000;
 				goto _loopDualDie;
 			}
 
@@ -813,7 +785,7 @@ namespace X_Manager.Units
 			if (position > 0) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					try
 					{
@@ -827,7 +799,7 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
 		}
 
-		public unsafe override void downloadRemote(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
+		public unsafe override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
@@ -1006,7 +978,7 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					try
 					{
@@ -1115,7 +1087,7 @@ namespace X_Manager.Units
 
 			try
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					fDel(fileNameMdp);
 				}
@@ -1137,11 +1109,10 @@ namespace X_Manager.Units
 			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 		}
 
-		public override void convert(MainWindow parent, string fileName, string preferenceFile)
+		public override void convert(string fileName, string[] prefs)
 		{
 
 			string barStatus = "";
-			prefs = File.ReadAllLines(MainWindow.prefFile);
 
 			//Imposta le preferenze di conversione
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
@@ -1277,26 +1248,28 @@ namespace X_Manager.Units
 
 			ard.ReadByte();
 
-			csvPlaceHeader(ref csv);
+			csvPlaceHeader(ref csv, prefs);
 
 			gruppoCON[0] = shortFileName;
 			gruppoSENZA[0] = shortFileName;
 
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+			//	new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+			progMax = ard.Length - 1;
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+			progressWorker.RunWorkerAsync();
 
 			while (!convertStop)
 			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-							new Action(() => parent.statusProgressBar.Value = ard.Position));
-				if (detectEof(ref ard)) break;
 
-#if DEBUG
-				if (ard.Position > 0x1e68e7)
-				{
-					int a = 0;
-				}
-#endif
+				while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+
+				progVal = ard.Position;
+				Interlocked.Exchange(ref progLock, 0);
+				//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+				//			new Action(() => parent.statusProgressBar.Value = ard.Position));
+				if (detectEof(ref ard)) break;
 
 				decodeTimeStamp(ref ard, ref timeStampO, true);
 
@@ -1316,11 +1289,13 @@ namespace X_Manager.Units
 				{
 					MessageBox.Show(ex.Message);
 				}
-
-
 			}
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.Position));
+			while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+			progVal = ard.Position;
+			Thread.Sleep(300);
+			progVal = -1;
+			Interlocked.Exchange(ref progLock, 0);
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.Position));
 
 			csv.Close();
 			ard.Close();
@@ -1563,7 +1538,7 @@ namespace X_Manager.Units
 			tsc.tsType = ard.ReadByte();
 
 			//TIMESTAMP ESTESO
-			if ((tsc.tsType & ts_ext) == ts_ext)
+			if ((tsc.tsType & ts_ext1) == ts_ext1)
 			{
 				try
 				{
@@ -1590,7 +1565,7 @@ namespace X_Manager.Units
 			//TEMPERATURA INTERNA
 			if (temperatureEn > 0)
 			{
-				if ((tsc.tsType & ts_temp) == ts_temp)
+				if ((tsc.tsType & ts_temperature) == ts_temperature)
 				{
 					if (isDepth == 0)
 					{
@@ -1773,7 +1748,7 @@ namespace X_Manager.Units
 			//PRESSIONE E TEMPERATURA ESTERNA
 			if (pressureEn > 0)
 			{
-				if ((tsc.tsType & ts_press) == ts_press)
+				if ((tsc.tsType & ts_pressure) == ts_pressure)
 				{
 					try
 					{
@@ -1799,7 +1774,7 @@ namespace X_Manager.Units
 			//BATTERIA
 			if (prefBattery == 1)
 			{
-				if ((tsc.tsType & ts_batt) == ts_batt)
+				if ((tsc.tsType & ts_battery) == ts_battery)
 				{
 					tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
 					gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
@@ -1818,7 +1793,7 @@ namespace X_Manager.Units
 			//ADC VALORE
 			if (adcEn > 0)
 			{
-				if ((tsc.tsTypeExt1 & ts_adcVal) == ts_adcVal)
+				if ((tsc.tsTypeExt1 & ts_adcValue) == ts_adcValue)
 				{
 					tsc.adcVal = ard.ReadByte() * 256 + ard.ReadByte();
 					gruppoCON[adcVal] = tsc.adcVal.ToString("0000");
@@ -1884,7 +1859,7 @@ namespace X_Manager.Units
 
 		}
 
-		private void csvPlaceHeader(ref BinaryWriter csv)
+		private void csvPlaceHeader(ref BinaryWriter csv, string[] prefs)
 		{
 
 			int contoPlace;
@@ -1910,12 +1885,12 @@ namespace X_Manager.Units
 			else
 			{
 				press--;
-				adcVal--;
-				batt--;
-				meta--;
 				magx--;
 				magy--;
 				magz--;
+				adcVal--;
+				batt--;
+				meta--;
 				ardPosition--;
 			}
 
@@ -1926,12 +1901,12 @@ namespace X_Manager.Units
 			}
 			else
 			{
-				adcVal--;
-				batt--;
-				meta--;
 				magx--;
 				magy--;
 				magz--;
+				adcVal--;
+				batt--;
+				meta--;
 				ardPosition--;
 			}
 
@@ -1994,13 +1969,16 @@ namespace X_Manager.Units
 
 			if (repeatEmptyValues)
 			{
-				gruppoCON[temp] = 0.ToString("00.00", nfi);
-				gruppoCON[press] = 0.ToString("0000.00", nfi);
-				gruppoCON[magx] = 0.ToString("#0.0", nfi);
-				gruppoCON[magy] = 0.ToString("#0.0", nfi);
-				gruppoCON[magz] = 0.ToString("#0.0", nfi);
-				gruppoCON[adcVal] = 0.ToString("0000");
-				gruppoCON[batt] = 0.ToString("0.00", nfi);
+				if (temperatureEn > 0) gruppoCON[temp] = 0.ToString("00.00", nfi);
+				if (pressureEn > 0) gruppoCON[press] = 0.ToString("0000.00", nfi);
+				if (magEn > 0)
+				{
+					gruppoCON[magx] = 0.ToString("#0.0", nfi);
+					gruppoCON[magy] = 0.ToString("#0.0", nfi);
+					gruppoCON[magz] = 0.ToString("#0.0", nfi);
+				}
+				if (adcEn > 0) gruppoCON[adcVal] = 0.ToString("0000");
+				if (prefBattery > 0) gruppoCON[batt] = 0.ToString("0.00", nfi);
 			}
 
 
@@ -2151,7 +2129,8 @@ namespace X_Manager.Units
 							gCoeff = 62.52;
 							break;
 						case 3:
-							gCoeff = 187.58;
+							//gCoeff = 187.58;
+							gCoeff = 125;
 							break;
 					}
 					break;
@@ -2168,7 +2147,8 @@ namespace X_Manager.Units
 							gCoeff = 15.63;
 							break;
 						case 3:
-							gCoeff = 46.9;
+							//gCoeff = 46.9;
+							gCoeff = 31.25;
 							break;
 					}
 					break;

@@ -228,7 +228,7 @@ namespace X_Manager.Units
             sp.Write("B");
         }
 
-        public unsafe override void download(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
+        public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
         {
             convertStop = false;
             uint actMemory = fromMemory;
@@ -364,7 +364,7 @@ namespace X_Manager.Units
             if (!convertStop) extractArds(fileNameMdp, fileName, true);
             else
             {
-                if (MainWindow.lastSettings[6].Equals("false"))
+                if (Parent.lastSettings[6].Equals("false"))
                 {
                     try
                     {
@@ -464,7 +464,7 @@ namespace X_Manager.Units
 
             try
             {
-                if ((MainWindow.lastSettings[6].Equals("false")) | (!connected)) fDel(fileNameMdp);
+                if ((Parent.lastSettings[6].Equals("false")) | (!connected)) fDel(fileNameMdp);
                 else
                 {
                     if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
@@ -480,18 +480,11 @@ namespace X_Manager.Units
             if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
         }
 
-        public override void convert(MainWindow parent, string fileName, string preferenceFile)
+        public override void convert(string fileName, string[] prefs)
         {
-            const int pref_dateFormat = 2;
-            const int pref_timeFormat = 3;
-            const int pref_fillEmpty = 4;
-            const int pref_sameColumn = 5;
-            const int pref_battery = 6;
-            const int pref_metadata = 16;
 
             timeStamp timeStampO = new timeStamp();
             string barStatus = "";
-            string[] prefs = System.IO.File.ReadAllLines(MainWindow.prefFile);
 
             string shortFileName;
             string addOn = "";
@@ -586,8 +579,12 @@ namespace X_Manager.Units
 
             csvPlaceHeader(ref csv);
 
+            //Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+            //    new Action(() => parent.statusProgressBar.Maximum = ard.BaseStream.Length - 1));
+            progMax = ard.BaseStream.Length - 1;
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
                 new Action(() => parent.statusProgressBar.Maximum = ard.BaseStream.Length - 1));
+            progressWorker.RunWorkerAsync();
 
             decodeFirstTimeStamp(ref ard, ref timeStampO);
 
@@ -617,8 +614,12 @@ namespace X_Manager.Units
 
             while (!convertStop)
             {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
+                //Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+                //            new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
+                while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+
+                progVal = ard.BaseStream.Position;
+                Interlocked.Exchange(ref progLock, 0);
                 if (detectEof(ref ard)) break;
 
                 decodeTimeStamp(ref ard, ref timeStampO);
@@ -637,8 +638,12 @@ namespace X_Manager.Units
                 catch { }
 
             }
-
-            Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
+            while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+            progVal = ard.BaseStream.Position;
+            Thread.Sleep(300);
+            progVal = -1;
+            Interlocked.Exchange(ref progLock, 0);
+            //Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
 
             csv.Close();
             ard.Close();

@@ -26,7 +26,6 @@ namespace X_Manager
 		bool evitaSoglie = false;
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[6];
-
 		struct timeStamp
 		{
 			public int tsType;
@@ -87,7 +86,7 @@ namespace X_Manager
 		ushort adcThreshold = 0;
 		//bool adcMagmin = false;
 		uint contoCoord;
-		byte debugLevel;
+		
 		bool addGpsTime;
 		//uint sogliaNeg;
 		//uint rendiNeg;
@@ -97,7 +96,7 @@ namespace X_Manager
 		byte bitsDiv;
 		string dateFormatParameter;
 		byte dateFormat;
-		byte timeFormat;
+		//byte timeFormat;
 		bool inMeters = false;
 		bool prefBattery = false;
 		bool repeatEmptyValues = true;
@@ -610,7 +609,7 @@ namespace X_Manager
 			return temp;
 		}
 
-		public unsafe override void download(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
+		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
@@ -818,7 +817,7 @@ namespace X_Manager
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					try
 					{
@@ -831,7 +830,7 @@ namespace X_Manager
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
 		}
 
-		public unsafe override void downloadRemote(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
+		public unsafe override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
@@ -1035,7 +1034,7 @@ namespace X_Manager
 			}
 			else
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					try
 					{
@@ -1156,7 +1155,7 @@ namespace X_Manager
 
 			try
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					fDel(fileNameMdp);
 				}
@@ -1175,35 +1174,21 @@ namespace X_Manager
 			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 		}
 
-		public override void convert(MainWindow parent, string fileName, string preferenceFile)
+		public override void convert(string fileName, string[] prefs)
 		{
-			const int pref_pressMetri = 0;
-			const int pref_millibars = 1;
-			const int pref_dateFormat = 2;
-			const int pref_timeFormat = 3;
-			const int pref_fillEmpty = 4;
-			const int pref_sameColumn = 5;
-			const int pref_battery = 6;
-			const int pref_txt = 7;
-			const int pref_kml = 8;
-			const int pref_metadata = 16;
-			const int pref_leapSeconds = 17;
-			const int pref_removeNonGps = 18;
-
 			bool makeTxt = false;
 			bool makeKml = false;
 			timeStamp timeStampO = new timeStamp();
 			byte[] ev = new byte[5];
 			string barStatus = "";
-			string[] prefs = System.IO.File.ReadAllLines(MainWindow.prefFile);
 			debugLevel = parent.stDebugLevel;
-			oldUnitDebug = parent.oldUnitDebug;
+			oldUnitDebug = parent.stOldUnitDebug;
 			addGpsTime = parent.addGpsTime;
 			bool removeNonGps = false;
 
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
-			if ((MainWindow.lastSettings[5] == "air")) isDepth = 0;
+			if ((Parent.lastSettings[5] == "air")) isDepth = 0;
 
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 			if (addGpsTime) repeatEmptyValues = false;
@@ -1224,7 +1209,7 @@ namespace X_Manager
 
 			timeStampO.pressOffset = double.Parse(prefs[pref_millibars]);
 			dateFormat = byte.Parse(prefs[pref_dateFormat]);
-			timeFormat = byte.Parse(prefs[pref_timeFormat]);
+			//timeFormat = byte.Parse(prefs[pref_timeFormat]);
 			switch (dateFormat)
 			{
 				case 1:
@@ -1322,17 +1307,19 @@ namespace X_Manager
 				primaCoordinata = true;
 				contoCoord = 0;
 				//string
-				kml.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Path_Top));
-				kml.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Path_Top));
+				kml.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Folder_Path_Top));
+				kml.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
 				//placemark
-				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Final_Top_1 +
-					Path.GetFileNameWithoutExtension(fileName) + X_Manager.Properties.Resources.Final_Top_2));
+				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Final_Top_1 +
+					Path.GetFileNameWithoutExtension(fileName) + Properties.Resources.Final_Top_2));
 			}
 
 			byte[] ardBuffer;// = new byte[ardFile.BaseStream.Length];
 			bool headerMissing = true;
 
+
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => barStatus = (string)parent.statusLabel.Content));
+
 			int sesMax = sesAdd.Count;
 			int sesCounter = 1;
 			long infRemPosition;
@@ -1500,21 +1487,23 @@ namespace X_Manager
 					headerMissing = false;
 				}
 
+				progMax = ard.Length - 1;
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 					new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+				progressWorker.RunWorkerAsync();
 
 				string sBuffer = "";
 
-
+				//var oldPos = ard.Position;
+				//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+				//	new Action(() => progressUpdate(0, (int)(ard.Length - 1))));
 				while (!convertStop)
 				{
 
-					if ((ard.Position % 128) == 0)
-					{
+					while (Interlocked.Exchange(ref progLock, 2) > 0){}
 
-						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-									new Action(() => parent.statusProgressBar.Value = ard.Position));
-					}
+					progVal = ard.Position;
+					Interlocked.Exchange(ref progLock, 0);
 
 					if (detectEof(ref ard)) break;
 
@@ -1562,6 +1551,12 @@ namespace X_Manager
 					}
 				}
 
+				while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+				progVal = (int)ard.Position;
+				Thread.Sleep(300);
+				progVal = -1;
+				Interlocked.Exchange(ref progLock, 0);
+
 				if (exten.Contains("rem"))
 				{
 					File.AppendAllText(logFile, "        end: " + (sesCounter - 1).ToString() + ": "
@@ -1570,8 +1565,8 @@ namespace X_Manager
 
 				if (makeTxt) txtWrite(ref timeStampO, ref txt);
 
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-					new Action(() => parent.statusProgressBar.Value = ard.Position));
+				//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+				//	new Action(() => parent.statusProgressBar.Value = ard.Position));
 
 				//	csv.Write(Encoding.ASCII.GetBytes(sBuffer));
 				if (convertStop & exten.Contains("rem"))
@@ -1612,14 +1607,14 @@ namespace X_Manager
 					placeMark.Close();
 
 					//Scrive l'header finale nel file kml string
-					System.IO.File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Path_Bot);
-					System.IO.File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Folder_Bot);
+					File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Path_Bot);
+					File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Folder_Bot);
 
 					//Accorpa kml placemark e string
-					System.IO.File.AppendAllText(fileNamePlaceMark, System.IO.File.ReadAllText(fileNameKml));
+					File.AppendAllText(fileNamePlaceMark, System.IO.File.ReadAllText(fileNameKml));
 
 					//Chiude il kml placemark
-					System.IO.File.AppendAllText(fileNamePlaceMark, X_Manager.Properties.Resources.Final_Bot);
+					File.AppendAllText(fileNamePlaceMark, X_Manager.Properties.Resources.Final_Bot);
 					//Elimina il kml string temporaneo
 					fDel(fileNameKml);
 				}
@@ -1978,7 +1973,7 @@ namespace X_Manager
 					}
 					catch
 					{
-						int a = 0;
+						//int a = 0;
 					}
 
 				}

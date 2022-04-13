@@ -29,17 +29,24 @@ using FT_HANDLE = System.UInt32;
 
 namespace X_Manager
 {
-	public partial class MainWindow : Window
+	public partial class MainWindow : Parent
 	{
 
 		#region DichiarazioniFTDI
 
-		public string ftdiSerialNumber;
+		
 #if X64
 		public const string ftdiLibraryName = "FTD2XX.dll";
 #else
 		public const string ftdiLibraryName = "FTD2XX.dll";
 #endif
+
+		//[DllImport("kernel32.dll")]
+		//static extern bool AttachConsole(int dwProcessId);
+		//private const int ATTACH_PARENT_PROCESS = -1;
+
+		//[DllImport("kernel32.dll")]
+		//static extern bool FreeConsole();
 
 		public const int FT_LIST_NUMBER_ONLY = -2147483648;
 		public const int FT_LIST_BY_INDEX = 0x40000000;
@@ -154,8 +161,8 @@ namespace X_Manager
 
 		#region Dichiarazioni
 
-		Units.Unit oUnit;
-		Units.Unit cUnit;
+		Unit oUnit;
+		Unit cUnit;
 		//ConfigurationWindow confForm;
 		public const int Baudrate_base = 115200;
 		public const int Baudrate_1M = 1000000;
@@ -183,21 +190,15 @@ namespace X_Manager
 		UInt16 convFile;
 		int realTimeType = 0;
 
-		public static string[] lastSettings;
-		public System.IO.Ports.SerialPort sp;
+		bool askOverwrite = true;
+
 		byte[] unitFirmware = new byte[15];
 
 		//byte[] unitModel = new byte[1];
 		public byte[] axyconf = new byte[30];
 		bool positionCanSend = false;
-		public string csvSeparator;
 		BackgroundWorker startUpMonitorBW;
-		public byte stDebugLevel;
-		public bool oldUnitDebug;
-		public bool remote = false;
-		public bool addGpsTime = false;
-
-
+		
 		//Costanti e pseudo constanti
 		const string STR_noComPortAvailable = "No COM port available. Please connect a data cable.";
 		const string STR_unitNotReady = "Unit not ready: please reconnect again.";
@@ -224,15 +225,69 @@ namespace X_Manager
 		#endregion
 
 		#region Interfaccia
+
+		
 		public MainWindow()
 		{
 			InitializeComponent();
 			sp = new System.IO.Ports.SerialPort();
-			this.Loaded += mainWindowLoaded;
+			Loaded += mainWindowLoaded;
+			parseArgIn();
+			progressBarStopButton = progressBarStopButtonM;
+			statusProgressBar = statusProgressBarM;
+			statusLabel = statusLabelM;
+			etaLabel = etaLabelM;
+			progressBarStopButtonColumn = progressBarStopButtonColumnM;
+		}
+
+		private void parseArgIn()
+		{
+			List<string> args = new List<string>();
+			args = Environment.GetCommandLineArgs().ToList<string>();
+			args.RemoveAt(0);
+			int parCount = 0;
+			while (args.Count > 0)
+			{
+				parCount++;
+				if (parCount == 1000)
+				{
+					break;
+				}
+				string arg = args[0];
+				args.RemoveAt(0);
+				switch (arg)
+				{
+					case "-c":
+						Console.WriteLine("Provola");
+						break;
+					case "-f":
+						try
+						{
+							convFiles.Add(args[0]);
+							args.RemoveAt(0);
+							askOverwrite = true;
+						}
+						catch { }
+						break;
+					case "-i":
+						askOverwrite = false;
+						break;
+					case "-v":
+						string testo = "";
+						foreach (var a in Environment.GetCommandLineArgs())
+						{
+							testo += a + "\r\n";
+						}
+						MessageBox.Show(testo);
+						break;
+				}
+			}
 		}
 
 		private void mainWindowLoaded(object sender, EventArgs e)
 		{
+			Console.WriteLine("Loaded.");
+
 			loadUserPrefs();
 			uiDisconnected();
 			initPicture();
@@ -265,6 +320,11 @@ namespace X_Manager
 
 			progressBarStopButton.IsEnabled = false;
 			progressBarStopButtonColumn.Width = new GridLength(0);
+
+			if (convFiles.Count > 0)
+			{
+				convertDataLaunch();
+			}
 		}
 
 		private void ComPortComboBox_DropDownOpened(object sender, EventArgs e)
@@ -522,7 +582,7 @@ namespace X_Manager
 
 		}
 
-		public void downloadFinished()
+		public override void downloadFinished()
 		{
 			warningShow("Download completed.");
 			mainGrid.IsEnabled = true;
@@ -545,7 +605,7 @@ namespace X_Manager
 			}
 		}
 
-		public void downloadFailed()
+		public override void downloadFailed()
 		{
 			badShow(STR_unitNotReady);
 			mainGrid.IsEnabled = true;
@@ -1006,7 +1066,7 @@ namespace X_Manager
 			{
 				//comPortComboBox.IsEnabled = false;
 				connectButton.IsEnabled = false;
-				warningShow(STR_noComPortAvailable);
+				//warningShow(STR_noComPortAvailable);
 			}
 			else
 			{
@@ -1523,10 +1583,10 @@ namespace X_Manager
 
 			// /sviluppo
 			mainGrid.IsEnabled = false;
-			Thread downloadThread = new Thread(() => oUnit.download(this, saveRaw.FileName, fromMemory, toMemory, baudrate));
+			Thread downloadThread = new Thread(() => oUnit.download(saveRaw.FileName, fromMemory, toMemory, baudrate));
 			if (oUnit.remote)
 			{
-				downloadThread = new Thread(() => oUnit.downloadRemote(this, saveRaw.FileName, fromMemory, toMemory, baudrate));
+				downloadThread = new Thread(() => oUnit.downloadRemote(saveRaw.FileName, fromMemory, toMemory, baudrate));
 			}
 
 			downloadThread.SetApartmentState(ApartmentState.STA);
@@ -1535,6 +1595,7 @@ namespace X_Manager
 
 		private void convertDataClick(object sender, RoutedEventArgs e)
 		{
+			askOverwrite = true;
 			lastSettings = System.IO.File.ReadAllLines(iniFile);
 			Microsoft.Win32.OpenFileDialog fOpen = new Microsoft.Win32.OpenFileDialog();
 			if (File.Exists(lastSettings[4]))
@@ -1551,21 +1612,33 @@ namespace X_Manager
 				return;
 			}
 
+			lastSettings[4] = System.IO.Path.GetDirectoryName(fOpen.FileName);
+			File.WriteAllLines(iniFile, lastSettings);
+			convFiles = new List<string>();
+			convFiles.AddRange(fOpen.FileNames);
+
+			convertDataLaunch();
+
+		}
+
+		private void convertDataLaunch()
+		{
 			ConversionPreferences cp = new ConversionPreferences();
 			cp.Owner = this;
 			cp.ShowDialog();
 			if ((cp.goOn == false))
 			{
+				if (!askOverwrite)  //In caso di chiamata esterna, termina l'app
+				{
+					Close();
+				}
 				return;
 			}
 
-			lastSettings[4] = System.IO.Path.GetDirectoryName(fOpen.FileName);
-			File.WriteAllLines(iniFile, lastSettings);
 			stDebugLevel = cp.debugLevel;
-			oldUnitDebug = cp.OldUnitDebug;
+			stOldUnitDebug = cp.OldUnitDebug;
 			addGpsTime = cp.addGpsTime;
-			convFiles = new List<string>();
-			convFiles.AddRange(fOpen.FileNames);
+
 			mainGrid.IsEnabled = false;
 			convFileTot = (ushort)convFiles.Count;
 			convFile = 0;
@@ -1942,6 +2015,7 @@ namespace X_Manager
 				{
 #pragma warning disable
 					if (System.IO.Path.GetExtension(filename).Contains("ard")) ;
+					askOverwrite = true;
 					//Implementare drag drop di file ard
 #pragma warning restore
 
@@ -2023,7 +2097,7 @@ namespace X_Manager
 
 		#region Conversione
 
-		public void nextFile()
+		public override void nextFile()
 		{
 			const int type_ard = 1;
 			const int type_rem = 2;
@@ -2048,6 +2122,10 @@ namespace X_Manager
 			catch
 			{
 				GoOn = false;
+				if (!askOverwrite)  //Chiamata esterna: al termine della conversione chiude il programma
+				{
+					Close();
+				}
 			}
 
 			if (GoOn)
@@ -2079,7 +2157,7 @@ namespace X_Manager
 					}
 					foreach (string nomefile in nomiFile)
 					{
-						if (System.IO.File.Exists(nomefile))
+						if (File.Exists(nomefile) & askOverwrite)
 						{
 							YesNo yn = new YesNo((System.IO.Path.GetFileName(nomefile) + " already exists. Do you want to overwrite it?"), "OVERWRITE");
 							if ((yn.ShowDialog() == YesNo.no))
@@ -2102,7 +2180,7 @@ namespace X_Manager
 					{
 						FileSystem.DeleteFile(nomefile);
 						//File.Delete(nomefile);
-						
+
 					}
 					catch { }
 				}
@@ -2198,12 +2276,13 @@ namespace X_Manager
 			mainGrid.IsEnabled = false;
 			cUnit.convertStop = false;
 			Thread conversionThread;
+			string[] prefsOut = File.ReadAllLines(prefFile);
 			if ((fileType == type_ard) | (fileType == type_rem))
 			{
 				statusProgressBar.Maximum = FileLength;
 				progressBarStopButton.IsEnabled = true;
 				progressBarStopButtonColumn.Width = new GridLength(80);
-				conversionThread = new Thread(() => cUnit.convert(this, fileName, prefFile));
+				conversionThread = new Thread(() => cUnit.convert(fileName, prefsOut));
 			}
 			else
 			{
@@ -2274,6 +2353,15 @@ namespace X_Manager
 			}
 			iFile.Position = pos;
 			return outt;
+		}
+
+		public override string getStatusLabelContent()
+		{
+			return (string)statusLabel.Content;
+		}
+		private void Window_Closing(object sender, CancelEventArgs e)
+		{
+			
 		}
 
 

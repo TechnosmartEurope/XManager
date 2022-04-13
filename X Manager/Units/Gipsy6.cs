@@ -18,6 +18,7 @@ namespace X_Manager.Units
 {
 	class Gipsy6 : Units.Unit
 	{
+#pragma warning disable
 		struct timeStamp
 		{
 			public int tsType;
@@ -344,7 +345,7 @@ namespace X_Manager.Units
 			sp.Write("TTTTTTTTTGGAO");
 		}
 
-		public override void download(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
+		public override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 
 			//Passa alla gestione FTDI D2XX
@@ -525,7 +526,7 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					try
 					{
@@ -740,7 +741,7 @@ namespace X_Manager.Units
 		//	if (!convertStop) extractArds(fileNameMdp, fileName, true);
 		//	else
 		//	{
-		//		if (MainWindow.lastSettings[6].Equals("false"))
+		//		if (Parent.lastSettings[6].Equals("false"))
 		//		{
 		//			try
 		//			{
@@ -868,7 +869,7 @@ namespace X_Manager.Units
 
 			try
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					System.IO.File.Delete(fileNameMdp);
 				}
@@ -887,25 +888,14 @@ namespace X_Manager.Units
 			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 		}
 
-		public override void convert(MainWindow parent, string fileName, string preferenceFile)
+		public override void convert(string fileName, string[] prefs)
 		{
-			const int pref_pressMetri = 0;
-			const int pref_millibars = 1;
-			const int pref_dateFormat = 2;
-			const int pref_timeFormat = 3;
-			const int pref_fillEmpty = 4;
-			const int pref_sameColumn = 5;
-			const int pref_battery = 6;
-			const int pref_txt = 7;
-			const int pref_kml = 8;
-			const int pref_metadata = 16;
-
+			
 			bool makeTxt = false;
 			bool makeKml = false;
 			timeStamp timeStampO = new timeStamp();
 			byte[] ev = new byte[5];
 			string barStatus = "";
-			string[] prefs = System.IO.File.ReadAllLines(MainWindow.prefFile);
 			debugLevel = parent.stDebugLevel;
 
 			string shortFileName;
@@ -933,7 +923,7 @@ namespace X_Manager.Units
 
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
-			if ((MainWindow.lastSettings[5] == "air")) isDepth = 0;
+			if ((Parent.lastSettings[5] == "air")) isDepth = 0;
 
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 
@@ -1009,19 +999,27 @@ namespace X_Manager.Units
 			csvPlaceHeader(ref csv);
 			ard.Position = 0xa3;
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+			progMax = ard.Length - 1;
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+				new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+			progressWorker.RunWorkerAsync();
 
 			string sBuffer = "";
 
 			while (!convertStop)
 			{
 
-				if ((ard.Position % 128) == 0)
-				{
+				//if ((ard.Position % 128) == 0)
+				//{
 
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-								new Action(() => parent.statusProgressBar.Value = ard.Position));
-				}
+				//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+				//				new Action(() => parent.statusProgressBar.Value = ard.Position));
+				//}
+				while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+
+				progVal = ard.Position;
+				Interlocked.Exchange(ref progLock, 0);
 
 				if (detectEof(ref ard)) break;
 				try
@@ -1072,8 +1070,13 @@ namespace X_Manager.Units
 
 			if (makeTxt) txtWrite(ref timeStampO, ref txt);
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusProgressBar.Value = ard.Position));
+			while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+			progVal = ard.Position;
+			Thread.Sleep(300);
+			progVal = -1;
+			Interlocked.Exchange(ref progLock, 0);
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+			//	new Action(() => parent.statusProgressBar.Value = ard.Position));
 
 			if (makeKml)
 			{
@@ -1638,5 +1641,8 @@ namespace X_Manager.Units
 			if (ard.Position >= ard.Length) return true;
 			else return false;
 		}
+
+#pragma warning enable
 	}
+
 }

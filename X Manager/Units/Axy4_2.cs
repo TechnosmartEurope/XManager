@@ -30,6 +30,7 @@ namespace X_Manager.Units
 			public DateTime orario;
 			public byte stopEvent;
 			public byte timeStampLength;
+			//public long ardPosition;
 		}
 
 		byte dateFormat;
@@ -46,7 +47,6 @@ namespace X_Manager.Units
 		//uint sogliaNeg;
 		//uint rendiNeg;
 		double gCoeff;
-		//byte debugLevel;
 		string dateFormatParameter;
 		ushort addMilli;
 		CultureInfo dateCi;
@@ -54,6 +54,7 @@ namespace X_Manager.Units
 		string cifreDecString;
 		bool metadata;
 		bool overrideTime;
+		string ardPos = "";
 
 		//double mediaFreq = 0;    //sviluppo
 		//double contoFreq = 0;     //sviluppo
@@ -306,7 +307,7 @@ namespace X_Manager.Units
 
 		}
 
-		public unsafe override void download(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
+		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
@@ -366,7 +367,7 @@ namespace X_Manager.Units
 				catch { }
 				return;
 			}
-				
+
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
@@ -475,7 +476,7 @@ namespace X_Manager.Units
 								firstLoop = true;
 							}
 						}
-						
+
 					}
 					else
 					{
@@ -508,7 +509,7 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					try
 					{
@@ -522,7 +523,7 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
 		}
 
-		public unsafe override void downloadRemote(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
+		public unsafe override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
@@ -718,7 +719,7 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					try
 					{
@@ -817,7 +818,7 @@ namespace X_Manager.Units
 
 			try
 			{
-				if (MainWindow.lastSettings[6].Equals("false"))
+				if (Parent.lastSettings[6].Equals("false"))
 				{
 					fDel(fileNameMdp);
 				}
@@ -839,20 +840,11 @@ namespace X_Manager.Units
 			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 		}
 
-		public override void convert(MainWindow parent, string fileName, string preferenceFile)
+		public override void convert(string fileName, string[] prefs)
 		{
-			const int pref_dateFormat = 2;
-			const int pref_timeFormat = 3;
-			const int pref_fillEmpty = 4;
-			const int pref_sameColumn = 5;
-			const int pref_battery = 6;
-			const int pref_override_time = 15;
-			const int pref_metadata = 16;
 
 			timeStamp timeStampO = new timeStamp();
 			string barStatus = "";
-			string[] prefs = System.IO.File.ReadAllLines(MainWindow.prefFile);
-
 			string shortFileName;
 			string addOn = "";
 			string exten = Path.GetExtension(fileName);
@@ -869,6 +861,7 @@ namespace X_Manager.Units
 			}
 
 			//Imposta le preferenze di conversione
+			debugLevel = parent.stDebugLevel;
 
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 
@@ -912,6 +905,8 @@ namespace X_Manager.Units
 
 			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
+			if (debugLevel == 3) metadata = true;
+
 
 			//Legge i parametri di logging
 			ard.ReadByte();
@@ -949,13 +944,21 @@ namespace X_Manager.Units
 
 			csvPlaceHeader(ref csv);
 
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+			//	new Action(() => parent.statusProgressBar.Maximum = ard.BaseStream.Length - 1));
+			progMax = ard.BaseStream.Length - 1;
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				new Action(() => parent.statusProgressBar.Maximum = ard.BaseStream.Length - 1));
+			progressWorker.RunWorkerAsync();
 
 			while (!convertStop)
 			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-							new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
+				//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+				//			new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
+				while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+
+				progVal = ard.BaseStream.Position;
+				Interlocked.Exchange(ref progLock, 0);
 				if (detectEof(ref ard)) break;
 
 				decodeTimeStamp(ref ard, ref timeStampO);
@@ -982,8 +985,12 @@ namespace X_Manager.Units
 			//mediaFreq = mediaFreq / contoFreq;
 			//MessageBox.Show(mediaFreq.ToString());
 			///sviluppo
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
+			while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+			progVal = ard.BaseStream.Position;
+			Thread.Sleep(300);
+			progVal = -1;
+			Interlocked.Exchange(ref progLock, 0);
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
 
 			csv.Close();
 			ard.Close();
@@ -1114,6 +1121,7 @@ namespace X_Manager.Units
 			}
 
 			//Inserisce i metadati
+
 			if (metadata)
 			{
 				contoTab += 1;
@@ -1132,12 +1140,13 @@ namespace X_Manager.Units
 							additionalInfo += "Memory full.";
 							break;
 					}
-					textOut += additionalInfo + "\r\n";
+					textOut += additionalInfo + ardPos + "\r\n";
 					return textOut;
 				}
+
 			}
 
-			textOut += additionalInfo + "\r\n";
+			textOut += additionalInfo + ardPos + "\r\n";
 
 			if (tsLoc.stopEvent > 0) return textOut;
 
@@ -1326,9 +1335,11 @@ namespace X_Manager.Units
 
 		private void decodeTimeStamp(ref BinaryReader ard, ref timeStamp tsc)
 		{
-			tsc.stopEvent = 0;
+			if (debugLevel == 3) ardPos = "  " + ard.BaseStream.Position.ToString("X");
 
+			tsc.stopEvent = 0;
 			tsc.tsType = ard.ReadByte();
+
 			if (firmTotA < 2000)
 			{
 				tsc.tsType = convertTimeStamp(tsc.tsType);

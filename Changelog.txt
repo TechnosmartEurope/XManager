@@ -64,3 +64,8 @@
 	Possibilità di impostare il trek come solare da software.
 	AxyTrek: scrittura coordinate nel csv anche nei periodi in cui l'accelerometro è in burst-off.
 1.8.3	Possibilità di scegliere se il csv dal rem deve contenere le sessioni senza gps
+1.9.0	Utilizzo conversione da riga di comando
+	Doppio click su file ard fa partire il sw in conversione
+	Aggiunta indicazione ETA in conversione
+	Axy5: aggiunta posizione ard nel csv - colonna metadati, in caso di debug=3
+	Bugfix: Axy5, se selezionato "fill empty fields" crashava

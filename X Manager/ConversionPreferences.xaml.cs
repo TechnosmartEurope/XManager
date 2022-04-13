@@ -82,6 +82,7 @@ namespace X_Manager
 			catch
 			{
 				string newPrefs = "millibars\r\n";
+				var dt = DateTime.Now;
 				newPrefs += "1016\r\n";
 				newPrefs += "1\r\n";
 				newPrefs += "1\r\n";
@@ -90,12 +91,12 @@ namespace X_Manager
 				newPrefs += "False\r\n";
 				newPrefs += "True\r\n";
 				newPrefs += "True\r\n";
-				newPrefs += DateTime.Now.Hour.ToString() + "\r\n";
-				newPrefs += DateTime.Now.Minute.ToString() + "\r\n";
-				newPrefs += DateTime.Now.Second.ToString() + "\r\n";
-				newPrefs += DateTime.Now.Date.Year.ToString() + "\r\n";
-				newPrefs += DateTime.Now.Date.Month.ToString() + "\r\n";
-				newPrefs += DateTime.Now.Date.Day.ToString() + "\r\n";
+				newPrefs += dt.Hour.ToString() + "\r\n";
+				newPrefs += dt.Minute.ToString() + "\r\n";
+				newPrefs += dt.Second.ToString() + "\r\n";
+				newPrefs += dt.Date.Year.ToString() + "\r\n";
+				newPrefs += dt.Date.Month.ToString() + "\r\n";
+				newPrefs += dt.Date.Day.ToString() + "\r\n";
 				newPrefs += "False\r\n";
 				newPrefs += "True\r\n";
 				newPrefs += "2\r\n";
