@@ -689,6 +689,7 @@ namespace X_Manager.ConfigurationWindows
 			{
 				canvas.Children.Remove(offlineGrid);
 
+				//Cerca di ottenere la posizione del dispositivo dal S.O.
 				GeoCoordinateWatcher watcher = new GeoCoordinateWatcher();
 				try
 				{
@@ -699,9 +700,12 @@ namespace X_Manager.ConfigurationWindows
 					MessageBox.Show(ex.Message);
 				}
 
+				//Imposta il punto di centratura della mappa sulla posizione del dispositivo, se disponibile
 				Point pos = new Point(12, 41);
+				zoom = 5;
 				if (!watcher.Position.Location.IsUnknown)
 				{
+					zoom = 6;
 					pos.X = watcher.Position.Location.Longitude;
 					pos.Y = watcher.Position.Location.Latitude;
 				}
@@ -709,6 +713,7 @@ namespace X_Manager.ConfigurationWindows
 				Point tl = new Point(180, -58.011);
 				Point br = new Point(-180, 58.011);
 
+				//Se uno o più riquadri sono selezionati, sposta il punto di centratura della mappa in modo tale da comprendere i riquadri selezionati
 				for (int i = 0; i < 10; i++)
 				{
 					if (squareAr[i].X1 > -200)

@@ -40,7 +40,7 @@ namespace X_Manager.ConfigurationWindows
 			acqOn = BitConverter.ToInt16(conf, 32);     //32-33
 			acqOff = BitConverter.ToInt16(conf, 34);    //34-35
 			altOn = BitConverter.ToInt16(conf, 36);     //36-37
-			nSat = conf[38] & 0x7f;                     //38
+			nSat = conf[38] & 0x3f;                     //38
 			gsv = conf[39];                             //39
 			sdTime = BitConverter.ToUInt32(conf, 40);    //40-43
 			sddDate = BitConverter.ToUInt32(conf, 44);    //44-47
@@ -283,6 +283,7 @@ namespace X_Manager.ConfigurationWindows
 
 			conf[38] = (byte)nSat;
 			conf[39] = (byte)gsv;
+			conf[38] &= 0x3f;
 			if (earlyStopCB.IsChecked == true) conf[38] += 0x80;
 			if (enhancedAccuracyCB.IsChecked == true) conf[38] += 0x40;
 

@@ -107,6 +107,7 @@ namespace X_Manager.Units
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 		string dateTimeFormat;
 		bool schedTs = false;
+		byte[] group;
 
 		public Axy5(object p)
 			: base(p)
@@ -116,6 +117,7 @@ namespace X_Manager.Units
 			modelCode = model_axy5;
 			modelName = "Axy-5";
 			debugLevel = parent.stDebugLevel;
+			group = new byte[2000];
 		}
 
 		public override string askFirmware()
@@ -568,7 +570,7 @@ namespace X_Manager.Units
 			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
 
 			//Tenta l'apertura della porta seriale
-			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);	
+			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
 			if (FT_Status != MainWindow.FT_STATUS.FT_OK)
 			{
 				MainWindow.FT_Close(FT_Handle);
@@ -595,7 +597,7 @@ namespace X_Manager.Units
 			while (pageCounter < toBeDownloaded)
 			{
 				//COSTRUZIONE COMANDO
-				if (firstLoop > 0)          //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)
+				if (firstLoop > 0)		  //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)
 				{
 					address = BitConverter.GetBytes(actMemory);
 					Array.Reverse(address);
@@ -613,7 +615,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					outBuffer[0] = (byte)'O';                       //Pagina successiva: si invia soltanto 'O'
+					outBuffer[0] = (byte)'O';					   //Pagina successiva: si invia soltanto 'O'
 					bytesToWrite = 1;
 				}
 
@@ -632,7 +634,7 @@ namespace X_Manager.Units
 				}
 
 				//RITORNATO BUFFER VUOTO O INCOMPLETO
-				else if (bytesReturned != 4096)                     //La pagina è arrivata incompleta, la si richiede nuovamente iducendo il loop a invare 'A' al prossimo comando
+				else if (bytesReturned != 4096)					 //La pagina è arrivata incompleta, la si richiede nuovamente iducendo il loop a invare 'A' al prossimo comando
 				{
 					firstLoop = 1;
 					continue;
@@ -641,7 +643,7 @@ namespace X_Manager.Units
 				//BUFFER ARRIVATO OK
 				pageCounter += 0x1000;
 				actMemory += 0x1000;
-				if (actMemory == 0x_2000_0000)      //Effetto Pacman
+				if (actMemory == 0x_2000_0000)	  //Effetto Pacman
 				{
 					actMemory = 0;
 				}
@@ -653,15 +655,15 @@ namespace X_Manager.Units
 				}
 
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = pageCounter)); //Aggiornamento progress bar
-				if (convertStop) break;      //Premuto il tasto stop
+				if (convertStop) break;	  //Premuto il tasto stop
 			}
-			
+
 			goto _endLoop;
 
 		_loopDualDie:
 			while (pageCounter < toBeDownloaded)
 			{
-				if (firstLoop > 0)       // A
+				if (firstLoop > 0)	   // A
 				{
 					address = BitConverter.GetBytes(actMemory);
 					Array.Reverse(address);
@@ -702,7 +704,7 @@ namespace X_Manager.Units
 					actMemory += 4096;
 					position += 4096;
 					pageCounter += 4096;
-					if (((actMemory + 4096) % 0x20000) == 0)         //a
+					if (((actMemory + 4096) % 0x20000) == 0)		 //a
 					{
 						for (int i = 1; i < 3; i++)
 						{
@@ -1209,8 +1211,7 @@ namespace X_Manager.Units
 			ardFile.Close();
 
 			MemoryStream ard = new MemoryStream(ardBuffer);
-
-			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
+			StreamWriter csv = new StreamWriter(fileNameCsv);
 
 			ard.Position = 1;
 			firmTotA = (uint)(ard.ReadByte() * 1000000 + ard.ReadByte() * 1000 + ard.ReadByte());
@@ -1228,20 +1229,20 @@ namespace X_Manager.Units
 
 			findTDAdcEnable(ard.ReadByte());   //Temperatura, pressione e adc abilitati
 
-			dtPeriod = ard.ReadByte();                 //TD periodo di logging (non serve al software)
+			dtPeriod = ard.ReadByte();				 //TD periodo di logging (non serve al software)
 
 			findMagEnable(ard.ReadByte());  //Frequenza magnetometro
 
-			if (ard.ReadByte() == 1)        //Controlla se è presente la prima estensione dell'header con schedule e schedule remoto
+			if (ard.ReadByte() == 1)		//Controlla se è presente la prima estensione dell'header con schedule e schedule remoto
 			{
 				padding = 8;
-				int movThreshold = ard.ReadByte();              //Legge le soglie di movimento
+				int movThreshold = ard.ReadByte();			  //Legge le soglie di movimento
 				int movLatency = ard.ReadByte();
 				schedule = new byte[30];
 				ard.Read(schedule, 0, 30);
 				remSched = new byte[3];
 				ard.Read(remSched, 0, 3);
-				ard.ReadByte();             //Byte per futura estensione dello schedule
+				ard.ReadByte();			 //Byte per futura estensione dello schedule
 			}
 
 			for (int i = 0; i < padding; i++)
@@ -1274,8 +1275,8 @@ namespace X_Manager.Units
 
 			csvPlaceHeader(ref csv, prefs);
 
-			gruppoCON[0] = shortFileName;
-			gruppoSENZA[0] = shortFileName;
+			gruppoCON[0] = shortFileName + csvSeparator;
+			gruppoSENZA[0] = shortFileName + csvSeparator;
 
 			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 			//	new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
@@ -1303,7 +1304,7 @@ namespace X_Manager.Units
 				if (timeStampO.stopEvent > 0)
 				{
 					timeStampO.metadataPresent = 1;
-					csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, new double[] { }, shortFileName)));
+					groupConverter(ref timeStampO, new double[] { }, shortFileName, ref csv);
 					if (timeStampO.stopEvent == 5)
 					{
 						MessageBox.Show("WARNING: corrupted data. Please dont't delete this ard file and contact Technosmart.");
@@ -1313,8 +1314,7 @@ namespace X_Manager.Units
 
 				try
 				{
-					csv.Write(Encoding.ASCII.GetBytes(
-						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
+					groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName, ref csv);
 				}
 				catch (Exception ex)
 				{
@@ -1326,7 +1326,6 @@ namespace X_Manager.Units
 			Thread.Sleep(300);
 			progVal = -1;
 			Interlocked.Exchange(ref progLock, 0);
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.Position));
 
 			csv.Close();
 			ard.Close();
@@ -1341,7 +1340,7 @@ namespace X_Manager.Units
 
 		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
 		{
-			byte[] group = new byte[2000];
+			//byte[] group = new byte[2000];
 			bool badGroup = false;
 			int position = 0;
 			int dummy, dummyExt1, dummyExt2;
@@ -1399,18 +1398,18 @@ namespace X_Manager.Units
 					else
 					{
 						if (dummyExt1 == 0x02)
-                        {
+						{
 							int b = ard.ReadByte();
 							ard.Position -= 2;
 							if (b != 0xab)
-                            {
+							{
 								MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
 								ard.WriteByte(0x00);
 								ard.Position -= 1;
 							}
-                        }
-                        else
-                        {
+						}
+						else
+						{
 							MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
 						}
 					}
@@ -1446,7 +1445,7 @@ namespace X_Manager.Units
 			tsc.timeStampLength = (int)(position / (3 + bit));
 			if (position == 0)
 			{
-				return new double[0];
+				return new double[] { group[0], group[1], group[2] };
 			}
 
 			//Se non ha informazioni circa la frequenza, la stima dalla lunghezza del gruppo
@@ -1512,12 +1511,9 @@ namespace X_Manager.Units
 			//svilluppo
 		}
 
-		private string groupConverter(ref timeStamp tsLoc, double[] group, string unitName)
+		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref StreamWriter fOut)
 		{
-			//sviluppo
-			//gCoeff = 1;
-			//iend2 = group.Length;
-			///sviluppo
+
 			if (group.Length == 0)
 			{
 				if (nOutputs == 0)
@@ -1536,17 +1532,19 @@ namespace X_Manager.Units
 				}
 			}
 
-			string textOut;
+			fOut.Write(gruppoCON[0]);
+			fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
+			fOut.Write((group[0] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+			fOut.Write((group[1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+			fOut.Write((group[2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+			int gLen = gruppoCON.Length - 1;
+			for (int i = 3; i < gLen; i++)
+			{
+				fOut.Write(gruppoCON[i] + csvSeparator);
+			}
+			fOut.Write(gruppoCON[gLen] + "\r\n");
 
-			gruppoCON[1] = tsLoc.orario.ToString(dateTimeFormat);
-
-			gruppoCON[2] = (group[0] * gCoeff).ToString(cifreDecString, nfi);
-			gruppoCON[3] = (group[1] * gCoeff).ToString(cifreDecString, nfi);
-			gruppoCON[4] = (group[2] * gCoeff).ToString(cifreDecString, nfi);
-
-			textOut = string.Join(csvSeparator, gruppoCON) + "\r\n";
-
-			if (iend2 == 0) return textOut;
+			if (iend2 == 0) return;
 
 			string[] gruppo = gruppoCON;
 			if (metadata == 1) gruppo[meta] = "";
@@ -1559,28 +1557,43 @@ namespace X_Manager.Units
 
 			for (int i = 3; i < iend1; i += 3)
 			{
+				fOut.Write(gruppoCON[0]);
 				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
-				gruppo[1] = tsLoc.orario.ToString(dateTimeFormat);
+				fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
+				fOut.Write((group[i] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+				fOut.Write((group[i + 1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+				fOut.Write((group[i + 2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 
-				gruppo[2] = (group[i] * gCoeff).ToString(cifreDecString, nfi);
-				gruppo[3] = (group[i + 1] * gCoeff).ToString(cifreDecString, nfi);
-				gruppo[4] = (group[i + 2] * gCoeff).ToString(cifreDecString, nfi);
-
-				textOut += string.Join(csvSeparator, gruppo) + "\r\n";
+				for (int j = 3; j < gLen; j++)
+				{
+					fOut.Write(gruppo[j] + csvSeparator);
+				}
+				fOut.Write(gruppo[gLen] + "\r\n");
 			}
 
+			fOut.Write(gruppoCON[0]);
 			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
-			gruppo[1] = tsLoc.orario.ToString(dateTimeFormat);
-
-			gruppo[2] = (group[iend1] * gCoeff).ToString(cifreDecString, nfi);
-			gruppo[3] = (group[iend1 + 1] * gCoeff).ToString(cifreDecString, nfi);
-			gruppo[4] = (group[iend1 + 2] * gCoeff).ToString(cifreDecString, nfi);
+			fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
+			fOut.Write((group[iend1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+			fOut.Write((group[iend1 + 1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+			fOut.Write((group[iend1 + 2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+			//gruppo[1] = tsLoc.orario.ToString(dateTimeFormat);
+			//gruppo[2] = (group[iend1] * gCoeff).ToString(cifreDecString, nfi);
+			//gruppo[3] = (group[iend1 + 1] * gCoeff).ToString(cifreDecString, nfi);
+			//gruppo[4] = (group[iend1 + 2] * gCoeff).ToString(cifreDecString, nfi);
 			if (magEn == 2)
 			{
 				gruppo[magx] = tsLoc.magX[1].ToString("#0.0", nfi);
 				gruppo[magy] = tsLoc.magY[1].ToString("#0.0", nfi);
 				gruppo[magz] = tsLoc.magZ[1].ToString("#0.0", nfi);
-				textOut += string.Join(csvSeparator, gruppo) + "\r\n";
+
+				for (int i = 3; i < gLen; i++)
+				{
+					fOut.Write(gruppo[i] + csvSeparator);
+				}
+				fOut.Write(gruppo[gLen] + "\r\n");
+
+				//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
 				if (!repeatEmptyValues)
 				{
 					gruppo[magx] = gruppo[magy] = gruppo[magz] = "";
@@ -1588,40 +1601,36 @@ namespace X_Manager.Units
 			}
 			else
 			{
-				textOut += string.Join(csvSeparator, gruppo) + "\r\n";
+				//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
+				for (int i = 3; i < gLen; i++)
+				{
+					fOut.Write(gruppo[i] + csvSeparator);
+				}
+				fOut.Write(gruppo[gLen] + "\r\n");
 			}
-
-			//if (addMilli2Hz > 0)
-			//{
-			//	tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli2Hz);
-			//	gruppo[1] = tsLoc.orario.ToString(dateTimeFormat);
-			//	if (!repeatEmptyValues)
-			//	{
-			//		gruppo[2] = gruppo[3] = gruppo[4] = "";
-			//	}
-			//	gruppo[magx] = tsLoc.magX[1].ToString(cifreDecString, nfi);
-			//	gruppo[magy] = tsLoc.magY[1].ToString(cifreDecString, nfi);
-			//	gruppo[magz] = tsLoc.magZ[1].ToString(cifreDecString, nfi);
-			//	textOut += string.Join(csvSeparator, gruppo) + "\r\n";
-			//	if (!repeatEmptyValues)
-			//	{
-			//		gruppo[magx] = gruppo[magy] = gruppo[magz] = "";
-			//	}
-			//}
 
 			for (int i = iend1 + 3; i < iend2; i += 3)
 			{
+				fOut.Write(gruppo[0]);
 				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
-				gruppo[1] = tsLoc.orario.ToString(dateTimeFormat);
+				fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
+				fOut.Write((group[i] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+				fOut.Write((group[i + 1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+				fOut.Write((group[i + 2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
+				//gruppo[1] = tsLoc.orario.ToString(dateTimeFormat);
+				//gruppo[2] = (group[i] * gCoeff).ToString(cifreDecString, nfi);
+				//gruppo[3] = (group[i + 1] * gCoeff).ToString(cifreDecString, nfi);
+				//gruppo[4] = (group[i + 2] * gCoeff).ToString(cifreDecString, nfi);
 
-				gruppo[2] = (group[i] * gCoeff).ToString(cifreDecString, nfi);
-				gruppo[3] = (group[i + 1] * gCoeff).ToString(cifreDecString, nfi);
-				gruppo[4] = (group[i + 2] * gCoeff).ToString(cifreDecString, nfi);
-
-				textOut += string.Join(csvSeparator, gruppo) + "\r\n";
+				//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
+				for (int j = 3; j < gLen; j++)
+				{
+					fOut.Write(gruppo[j] + csvSeparator);
+				}
+				fOut.Write(gruppo[gLen] + "\r\n");
 			}
 
-			return textOut;
+			//return textOut;
 		}
 
 		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc, bool header)
@@ -2041,7 +2050,7 @@ namespace X_Manager.Units
 
 		}
 
-		private void csvPlaceHeader(ref BinaryWriter csv, string[] prefs)
+		private void csvPlaceHeader(ref StreamWriter csv, string[] prefs)
 		{
 
 			int contoPlace;
@@ -2165,7 +2174,7 @@ namespace X_Manager.Units
 
 
 			csvHeader += "\r\n";
-			csv.Write(Encoding.ASCII.GetBytes(csvHeader));
+			csv.Write(csvHeader);
 		}
 
 		void writeInfo(string fileNameInfo)

@@ -1456,6 +1456,15 @@ namespace X_Manager.Units
 			textOut += magAdditionalInfo + additionalInfo + ardPos + "\r\n";
 
 			if (tsLoc.stopEvent > 0) return textOut;
+			if (rate == 1)
+			{
+				if (firmTotA >= 3000000)
+				{
+					return textOut;
+				}
+				tsLoc.orario = tsLoc.orario.AddSeconds(1);
+				dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi);
+			}
 
 			if (!repeatEmptyValues)
 			{
@@ -1468,11 +1477,7 @@ namespace X_Manager.Units
 			}
 
 			milli += addMilli;
-			if (rate == 1)
-			{
-				tsLoc.orario = tsLoc.orario.AddSeconds(1);
-				dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi);
-			}
+	
 			dateTimeS += ".";
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 

@@ -22,15 +22,15 @@ namespace X_Manager.Units
 	{
 		//Tipi unità
 		bool disposed = false;
-		public const int model_axyDepth_legacy = 255;
-		public const int model_axy3_connecting = 253;
-		public const int model_axy4_legacy = 252;
-		public const int model_axyDepth = 127;
-		public const int model_axy2 = 126;
-		public const int model_axy3 = 125;
-		public const int model_axy4 = 124;
-		public const int model_Co2Logger = 123;
-		public const int model_axy5 = 122;
+		public const int model_axyDepth_legacy = 255;		//0xff
+		public const int model_axy3_connecting = 253;		//0xfd
+		public const int model_axy4_legacy = 252;			//0xfc
+		public const int model_axyDepth = 127;				//0x7f
+		public const int model_axy2 = 126;					//0x7e
+		public const int model_axy3 = 125;					//0x7d
+		public const int model_axy4 = 124;					//0x7c
+		public const int model_Co2Logger = 123;				//0x7b
+		public const int model_axy5 = 122;					//0x7a
 		public const int model_drop_off = 11;
 		public const int model_AGM1_calib = 10;
 		public const int model_Gipsy6 = 10;

@@ -1398,6 +1398,7 @@ namespace X_Manager.Units
 
 			Interlocked.Increment(ref conversionDone);
 		}
+		
 		private double[] extractGroup(ref MemoryStream ard, ref TimeStamp tsc)
 		{
 			byte[] group = new byte[2000];
@@ -1463,6 +1464,7 @@ namespace X_Manager.Units
 			//return doubleResultArray;
 			return new double[] { };
 		}
+		
 		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t, ref int pos)
 		{
 

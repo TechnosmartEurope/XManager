@@ -982,15 +982,15 @@ namespace X_Manager.Units
 				z = group[11 + more] * 256 + group[10 + more];
 
 				if (x > sogliaNeg) x -= rendiNeg;
-				x *= dpsCoeff;
+				x *= teslaCoeff;
 				x = Math.Round(x, cifreDec);
 
 				if (y > sogliaNeg) y -= rendiNeg;
-				y *= dpsCoeff;
+				y *= teslaCoeff;
 				y = Math.Round(y, cifreDec);
 
 				if (z > sogliaNeg) z -= rendiNeg;
-				z *= dpsCoeff;
+				z *= teslaCoeff;
 				z = Math.Round(z, cifreDec);
 
 				compx = x.ToString(cifreDecString, nfi);
@@ -1173,15 +1173,15 @@ namespace X_Manager.Units
 					z = group[i + 11 + more] * 256 + group[i + 10 + more];
 
 					if (x > sogliaNeg) x -= rendiNeg;
-					x *= dpsCoeff;
+					x *= teslaCoeff;
 					x = Math.Round(x, cifreDec);
 
 					if (y > sogliaNeg) y -= rendiNeg;
-					y *= dpsCoeff;
+					y *= teslaCoeff;
 					y = Math.Round(y, cifreDec);
 
 					if (z > sogliaNeg) z -= rendiNeg;
-					z *= dpsCoeff;
+					z *= teslaCoeff;
 					z = Math.Round(z, cifreDec);
 
 					compx = x.ToString(cifreDecString, nfi);

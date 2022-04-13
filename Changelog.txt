@@ -138,4 +138,8 @@
 	Implementato pulsante per aggiornamento live della batteria.
 	All'apertura della configurazione gipsy6, controlla se ci sono più di 1024 tiles nella cache e elimina quelle di troppo.
 	Il geofencing si abilita/disabilita automaticamente verificando la presenza di almeno un'area e almeno un orario. Tolta  la spunta "Enabled".
-	
+1.14.6	Bugfix: la conversione axy4.5 (sia normale che depth) in caso di 1Hz incrementava l'orario di due secondi invece che 1
+	Posizione di default geofencing in caso nessun rettangolo sia abilitato portata a coordinate 0,0
+	Bugfix: Nella finestra di configurazione Gipsy6_Basic non venivano correttamente inviati i parametri Early Stop e Enhanced Accuracy
+	Bugfix: AGM. Venivano usati i coefficienti del giroscopio nella conversione del magnetometro in modalità acc-linked.
+	Axy5-Conversione: Passaggio da BinaryWriter a StreamWriter

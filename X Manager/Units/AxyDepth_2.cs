@@ -927,13 +927,13 @@ namespace X_Manager.Units
 
 				if (timeStampO.stopEvent > 0)
 				{
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName)));
+					csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName)));
 					break;
 				}
 
 				try
 				{
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
+					csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
 				}
 				catch
 				{ }
@@ -1149,6 +1149,17 @@ namespace X_Manager.Units
 
 			if (tsLoc.stopEvent > 0) return textOut;
 
+			if (rate == 1)
+			{
+				if (firmTotA >= 3000000)
+                {
+					return textOut;
+                }
+				tsLoc.orario = tsLoc.orario.AddSeconds(1);
+				dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi);
+			}
+			milli += addMilli;
+
 			if (!repeatEmptyValues)
 			{
 				if (magen > 0)
@@ -1159,12 +1170,6 @@ namespace X_Manager.Units
 				for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
 			}
 
-			milli += addMilli;
-			if (rate == 1)
-			{
-				tsLoc.orario = tsLoc.orario.AddSeconds(1);
-				dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi);
-			}
 			dateTimeS += ".";
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
