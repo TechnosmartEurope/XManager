@@ -1,0 +1,16 @@
+﻿<UserControl x:Class="X_Manager.ConfigurationWindows.TimePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
+             mc:Ignorable="d" Background="#FF202020"
+             d:DesignHeight="36" d:DesignWidth="224">
+    <Grid>
+        <StackPanel Orientation="Horizontal">
+            <CheckBox x:Name="enabledCB" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="True" />
+            <TextBlock x:Name="timeTB" Text="23-24" VerticalAlignment="Center" Foreground="White" FontSize="14"/>
+            <ComboBox x:Name="settingsCB" Margin="20,0,0,0" Width="80" Height="26" FontSize="16" VerticalAlignment="Center" VerticalContentAlignment="Center" MinHeight="0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -25,8 +25,9 @@ namespace X_Manager.ConfigurationWindows
 		int[] maxs = new int[5] { 65000, 65000, 2147483647, 6, 90 };
 		int[] mins = new int[5] { 10, 2, 0, 0, 0 };
 		byte[] conf;
+		DateTime date;
 
-		public BasicsConfiguration(ref byte[] conf)
+		public BasicsConfiguration(byte[] conf)
 			: base()
 		{
 			InitializeComponent();
@@ -36,10 +37,10 @@ namespace X_Manager.ConfigurationWindows
 
 			on = conf[33] * 256 + conf[32];
 			off = conf[35] * 256 + conf[34];
-			sdt = conf[39] << 24 + conf[38] << 16 + conf[37] << 8 + conf[36];
+			sdt = (conf[39] << 24) + (conf[38] << 16) + (conf[37] << 8) + conf[36];
 			nSat = conf[44];
 			gsv = conf[45];
-			int anno = conf[41] * 256 + conf[40];
+			int anno = ((conf[41] * 256) + conf[40]);
 			int mese = conf[42];
 			int giorno = conf[43];
 			date = new DateTime(anno, mese, giorno);
@@ -67,6 +68,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			satTB.Text = nSat.ToString();
 			gsvTB.Text = gsv.ToString();
+
 		}
 
 		private void sdtCB_Checked(object sender, RoutedEventArgs e)
@@ -81,7 +83,7 @@ namespace X_Manager.ConfigurationWindows
 			{
 				startDelayTimeTB.Visibility = Visibility.Visible;
 				minLabel.Visibility = Visibility.Visible;
-				sdt = conf[39] << 24 + conf[38] << 16 + conf[37] << 8 + conf[36];
+				sdt = (conf[39] << 24) + (conf[38] << 16) + (conf[37] << 8) + conf[36];
 				if (sdt == 0)
 				{
 					sdt = 360;
@@ -100,7 +102,7 @@ namespace X_Manager.ConfigurationWindows
 			else
 			{
 				startDelayDateDP.Visibility = Visibility.Visible;
-				int anno = conf[41] * 256 + conf[40];
+				int anno = (conf[41] * 256 + conf[40]);
 				int mese = conf[42];
 				int giorno = conf[43];
 				date = new DateTime(anno, mese, giorno);
@@ -110,7 +112,14 @@ namespace X_Manager.ConfigurationWindows
 
 		private void validate(object sender, RoutedEventArgs e)
 		{
-			validate(sender);
+			if (sender is TextBox)
+			{
+				validate((TextBox)sender);
+			}
+			else
+			{
+				validate((DatePicker)sender);
+			}
 		}
 
 		private void startDelayDateDP_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
@@ -121,17 +130,42 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		private void validate(object sender, KeyEventArgs e)
+		private void onTB_GotFocus(object sender, RoutedEventArgs e)
 		{
-			if (e.Key == Key.Enter)
+			if (sender is TextBox)
 			{
-				validate(sender);
+				((TextBox)sender).SelectAll();
+			}
+			else
+			{
+				((DatePicker)sender).IsDropDownOpen = true;
 			}
 		}
 
-		private void validate(object sender)
+		private void validate(object sender, KeyEventArgs e)
 		{
-			TextBox s = (TextBox)sender;
+		if (e.Key == Key.Enter)
+			{
+				if (sender is TextBox)
+				{
+					validate((TextBox)sender);
+				}
+				else
+				{
+					validate((DatePicker)sender);
+				}
+				
+			}
+		}
+
+		private void validate(DatePicker s)
+		{
+			MessageBox.Show(s.SelectedDate.ToString());
+		}
+
+		private void validate(TextBox s)
+		{
+			//TextBox s = (TextBox)sender;
 			int index = 100;
 			for (int i = 0; i < 5; i++)
 			{
@@ -174,8 +208,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 		}
-		DateTime date;
-
+		
 		public override void copyValues()
 		{
 			conf[33] = (byte)(on >> 8);

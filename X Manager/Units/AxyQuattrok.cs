@@ -221,7 +221,7 @@ namespace X_Manager
 			return name;
 		}
 
-		public override uint askMaxMemory()
+		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
 			sp.Write("TTTTTTTGGAm");
@@ -236,8 +236,8 @@ namespace X_Manager
 			{
 				throw new Exception(unitNotReady);
 			}
-			maxMemory = m;
-			return maxMemory;
+			mem_max_physical_address = m;
+			return new uint[] { mem_max_physical_address };
 
 		}
 

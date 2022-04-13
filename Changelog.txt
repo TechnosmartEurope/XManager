@@ -87,5 +87,7 @@
 	Inizio scrittura classi di configurazione GiPSy6
 	Bugfix: la conversione Axy5 ignorava sensore depth/aria convertendo sempre acqua
 	Bugfix: errata interpretazione dell'header per le info su temperatura, pressione e adc abilitati.
-1.10.1	Ripristinata conversione presisone aria nell'axy5.
+1.10.1	Ripristinata conversione pressione aria nell'axy5.
 	Continuazione sviluppo finestre interffaccia gipsy6
+1.10.2	Messagi di warning in caso di mdp o ard corrotti nell'Axy5.
+	Sviluppo splippy map per il gipsy6

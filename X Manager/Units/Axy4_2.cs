@@ -172,7 +172,7 @@ namespace X_Manager.Units
 			return name;
 		}
 
-		public override uint askMaxMemory()
+		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
 			sp.Write("TTTTTTTGGAm");
@@ -187,8 +187,8 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
-			maxMemory = m;
-			return maxMemory;
+			mem_max_physical_address = m;
+			return new uint[] { mem_max_physical_address };
 		}
 
 		public override uint[] askMemory()
@@ -383,10 +383,9 @@ namespace X_Manager.Units
 			MainWindow.FT_STATUS FT_Status;
 			FT_HANDLE FT_Handle = 0;
 			byte[] outBuffer = new byte[50];
-			byte[] inBuffer = new byte[4096];
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[8];
-
+			byte[] fileBuffer = new byte[toMemory];
 			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
 
 			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
@@ -423,10 +422,11 @@ namespace X_Manager.Units
 					outBuffer[0] = 79;
 					bytesToWrite = 1;
 				}
-				fixed (byte* outP = outBuffer, inP = inBuffer)
+				
+				fixed (byte* outP = outBuffer, inP = &fileBuffer[actMemory])
 				{
 					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
+					FT_Status = MainWindow.FT_Read(FT_Handle, inP, 4096, ref bytesReturned);
 				}
 
 				if (FT_Status != MainWindow.FT_STATUS.FT_OK)
@@ -435,7 +435,7 @@ namespace X_Manager.Units
 					fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
 					MainWindow.FT_Close(FT_Handle);
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					fo.Write(inBuffer);
+					fo.Write(fileBuffer, 0, (int)actMemory);
 					fo.Close();
 					return;
 				}
@@ -445,10 +445,15 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					actMemory += 4096;
-					if ((actMemory % 0x20000) == 0)
+					actMemory += 4096;      //Prima di scrivere incrementa l'indirizzo per capire se sono state scaricate le ultime pagine di un blocco
+					
+					if ((actMemory % 0x20000) == 0)	
 					{
-						if (dieCount == 2)
+						if ((actMemory % 0x40000) == 0)
+						{
+							firstLoop = true;
+						}
+						if (dieCount == 2)		//Nel caso le riscarica singolarmente, per ovviare al bug della memoria dual die
 						{
 							actMemory -= 4096;
 							for (int i = 0; i < 2; i++)
@@ -458,29 +463,15 @@ namespace X_Manager.Units
 								Array.Copy(address, 0, outBuffer, 1, 3);
 								outBuffer[0] = 97;
 								bytesToWrite = 4;
-								fixed (byte* outP = outBuffer, inP = inBuffer)
+								fixed (byte* outP = outBuffer, inP = &fileBuffer[actMemory])
 								{
 									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+									FT_Status = MainWindow.FT_Read(FT_Handle, inP, 2048, ref bytesReturned);
 								}
-								fo.Write(inBuffer, 0, 2048);
 								actMemory += 2048;
 							}
 							firstLoop = true;
 						}
-						else
-						{
-							fo.Write(inBuffer, 0, 4096);
-							if ((actMemory % 0x40000) == 0)
-							{
-								firstLoop = true;
-							}
-						}
-
-					}
-					else
-					{
-						fo.Write(inBuffer, 0, 4096);
 					}
 				}
 
@@ -489,6 +480,7 @@ namespace X_Manager.Units
 				if (convertStop) actMemory = toMemory;
 			}
 
+			fo.Write(fileBuffer);
 			fo.Write(firmwareArray, 0, firmwareArray.Length);
 			for (int i = firmwareArray.Length; i <= 2; i++)
 			{
@@ -522,6 +514,222 @@ namespace X_Manager.Units
 			Thread.Sleep(300);
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
 		}
+		//public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
+		//{
+		//	convertStop = false;
+		//	uint actMemory = fromMemory;
+		//	System.IO.FileMode fm = System.IO.FileMode.Create;
+		//	if (fromMemory != 0) fm = System.IO.FileMode.Append;
+		//	string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
+		//	var fo = new System.IO.BinaryWriter(File.Open(fileNameMdp, fm));
+
+		//	sp.Write("TTTTTTTTTTTTGGAe");
+		//	try
+		//	{
+		//		sp.ReadByte();
+		//	}
+		//	catch
+		//	{
+		//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+		//		try
+		//		{
+		//			fo.Close();
+		//		}
+		//		catch { }
+		//		return;
+		//	}
+
+		//	Thread.Sleep(70);
+		//	byte b = (byte)(baudrate / 1000000);
+		//	sp.Write(new byte[] { b }, 0, 1);
+		//	sp.BaudRate = baudrate;
+
+		//	Thread.Sleep(200);
+		//	if (firmTotA < 2006004)
+		//	{
+		//		Thread.Sleep(750);
+		//	}
+
+		//	sp.Write("S");
+		//	Thread.Sleep(200);
+
+		//	int dieCount = 0;
+		//	try
+		//	{
+		//		dieCount = sp.ReadByte();
+		//		if (dieCount == 0x53) dieCount = 2;
+		//		if (dieCount == 0x73) dieCount = 1;
+		//		if ((dieCount != 1) & (dieCount != 2))
+		//		{
+		//			throw new Exception(unitNotReady);
+		//		}
+		//	}
+		//	catch
+		//	{
+		//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+		//		try
+		//		{
+		//			fo.Close();
+		//		}
+		//		catch { }
+		//		return;
+		//	}
+
+
+		//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
+		//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
+
+		//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
+		//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
+		//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
+		//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
+
+		//	//Passa alla gestione FTDI D2XX
+		//	sp.Close();
+
+		//	MainWindow.FT_STATUS FT_Status;
+		//	FT_HANDLE FT_Handle = 0;
+		//	byte[] outBuffer = new byte[50];
+		//	byte[] inBuffer = new byte[4096];
+		//	byte[] tempBuffer = new byte[2048];
+		//	byte[] address = new byte[8];
+
+		//	uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
+
+		//	FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
+		//	if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+		//	{
+		//		MainWindow.FT_Close(FT_Handle);
+		//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+		//		try
+		//		{
+		//			fo.Close();
+		//		}
+		//		catch { }
+		//		return;
+		//	}
+
+		//	MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
+		//	MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
+
+		//	bool firstLoop = true;
+
+
+		//	while (actMemory < toMemory)
+		//	{
+		//		if (((actMemory % 0x2000000) == 0) | (firstLoop))
+		//		{
+		//			address = BitConverter.GetBytes(actMemory);
+		//			Array.Reverse(address);
+		//			Array.Copy(address, 0, outBuffer, 1, 3);
+		//			outBuffer[0] = 65;
+		//			bytesToWrite = 4;
+		//			firstLoop = false;
+		//		}
+		//		else
+		//		{
+		//			outBuffer[0] = 79;
+		//			bytesToWrite = 1;
+		//		}
+		//		fixed (byte* outP = outBuffer, inP = inBuffer)
+		//		{
+		//			FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+		//			FT_Status = MainWindow.FT_Read(FT_Handle, inP, 4096, ref bytesReturned);
+		//		}
+
+		//		if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+		//		{
+		//			outBuffer[0] = 88;
+		//			fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
+		//			MainWindow.FT_Close(FT_Handle);
+		//			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+		//			fo.Write(inBuffer);
+		//			fo.Close();
+		//			return;
+		//		}
+		//		else if (bytesReturned != 4096)
+		//		{
+		//			firstLoop = true;
+		//		}
+		//		else
+		//		{
+		//			actMemory += 4096;
+		//			if ((actMemory % 0x20000) == 0)
+		//			{
+		//				if (dieCount == 2)
+		//				{
+		//					actMemory -= 4096;
+		//					for (int i = 0; i < 2; i++)
+		//					{
+		//						address = BitConverter.GetBytes(actMemory);
+		//						Array.Reverse(address);
+		//						Array.Copy(address, 0, outBuffer, 1, 3);
+		//						outBuffer[0] = 97;
+		//						bytesToWrite = 4;
+		//						fixed (byte* outP = outBuffer, inP = inBuffer)
+		//						{
+		//							FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+		//							FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+		//						}
+		//						fo.Write(inBuffer, 0, 2048);
+		//						actMemory += 2048;
+		//					}
+		//					firstLoop = true;
+		//				}
+		//				else
+		//				{
+		//					fo.Write(inBuffer, 0, 4096);
+		//					if ((actMemory % 0x40000) == 0)
+		//					{
+		//						firstLoop = true;
+		//					}
+		//				}
+
+		//			}
+		//			else
+		//			{
+		//				fo.Write(inBuffer, 0, 4096);
+		//			}
+		//		}
+
+		//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
+
+		//		if (convertStop) actMemory = toMemory;
+		//	}
+
+		//	fo.Write(firmwareArray, 0, firmwareArray.Length);
+		//	for (int i = firmwareArray.Length; i <= 2; i++)
+		//	{
+		//		fo.Write(new byte[] { 0xff }, 0, 1);
+		//	}
+		//	fo.Write(new byte[] { model_axy4, (byte)254 }, 0, 2);
+
+		//	fo.Close();
+		//	outBuffer[0] = 88;
+		//	bytesToWrite = 1;
+		//	fixed (byte* outP = outBuffer)
+		//	{
+		//		FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+		//	}
+		//	MainWindow.FT_Close(FT_Handle);
+		//	sp.BaudRate = 115200;
+		//	sp.Open();
+		//	if (!convertStop) extractArds(fileNameMdp, fileName, true);
+		//	else
+		//	{
+		//		if (Parent.lastSettings[6].Equals("false"))
+		//		{
+		//			try
+		//			{
+		//				fDel(fileNameMdp);
+		//			}
+		//			catch { }
+		//		}
+		//	}
+
+		//	Thread.Sleep(300);
+		//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
+		//}
 
 		public unsafe override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{

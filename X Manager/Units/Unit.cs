@@ -78,8 +78,10 @@ namespace X_Manager.Units
 		public bool configurePositionButtonEnabled = false;
 		public bool configureMovementButtonEnabled = true;
 		protected bool realTimeSPVisibility = false;
-		protected UInt32 maxMemory;
-		protected UInt32 memory;
+		protected UInt32 mem_min_physical_address;
+		protected UInt32 mem_max_physical_address;
+		protected UInt32 mem_address;
+		protected UInt32 mem_max_logical_address;
 		protected string name;
 		public byte modelCode = 0;
 		protected string modelName;
@@ -140,6 +142,8 @@ namespace X_Manager.Units
 			progressWorker.RunWorkerCompleted += prog_endWork;
 		}
 
+		public virtual void changeBaudrate(ref SerialPort sp, int newBaudrate)
+		{}
 		public static string askModel(ref SerialPort sp)
 		{
 			sp.Write("TTTTTTTGGAf");
@@ -220,7 +224,7 @@ namespace X_Manager.Units
 
 		}
 
-		public abstract UInt32 askMaxMemory();
+		public abstract UInt32[] askMaxMemory();
 
 		public abstract UInt32[] askMemory();
 

@@ -198,7 +198,6 @@ namespace X_Manager
 			leapSecondsUD.Value = int.Parse(lastPrefs[pref_leapSeconds]);
 
 			removeNonGps.IsChecked = bool.Parse(lastPrefs[pref_nonGps]);
-			
 			//removeNonGps.IsChecked = false;
 			//if (lastPrefs[pref_nonGps] == "True")
 			//{

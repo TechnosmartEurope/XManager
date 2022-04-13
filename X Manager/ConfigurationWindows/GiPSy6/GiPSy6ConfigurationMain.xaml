@@ -4,16 +4,21 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
-        mc:Ignorable="d"
-        Title="GiPSy6ConfigurationMain" Height="760" Width="900" Loaded="loaded">
-    <Grid Background="#FF202020">
-        <StackPanel Orientation="Horizontal" Height="40" VerticalAlignment="Top" Background="DarkGray">
+        mc:Ignorable="d" Background="#FF202020"
+        Title="GiPSy6ConfigurationMain" Height="820" Width="968" Loaded="loaded">
+    <Grid Background="#FF202020" VerticalAlignment="Top">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="720"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" Background="DarkGray">
             <Button x:Name="backB" Content="&lt;--" Background="#FF404040" FontSize="20" FontWeight="Bold" Height="40" VerticalAlignment="Top" Click="backClick"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Height="40" VerticalAlignment="Top" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" HorizontalAlignment="Right">
             <Button x:Name="forthB" Content="-->" Background="#FF404040" FontSize="20" FontWeight="Bold" Click="forthClick" />
         </StackPanel>
-        <Frame x:Name="Gipsy6ConfigurationBrowser" Margin="0,40,0,0" NavigationUIVisibility="Hidden" >
+        <Frame Grid.Row="1" x:Name="Gipsy6ConfigurationBrowser" NavigationUIVisibility="Hidden"
+               VerticalAlignment="Top" VerticalContentAlignment="Top" Height="768" MaxHeight="720" >
             
         </Frame>
     </Grid>

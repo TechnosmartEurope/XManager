@@ -133,6 +133,9 @@
   <data name="CheckedSymbol" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\CheckedSymbol.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="clock" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\clock.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="COMP_OFF" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\COMP OFF.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -254,6 +257,9 @@ Number of additional Leap Seconds used for the correction of GPS time.</value>
   <data name="lookat4" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\lookat4.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="map" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\map.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
   <data name="Movebank_Top" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\Movebank_Top.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
@@ -313,6 +319,12 @@ Number of additional Leap Seconds used for the correction of GPS time.</value>
   </data>
   <data name="technosmartLogoBlurred" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\technosmartLogoBlurred.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tile_background_loading" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tile_background_loading.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="tile_background_offline" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\tile_background_offline.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Xceed_Wpf_Toolkit" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Xceed.Wpf.Toolkit.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

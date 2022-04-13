@@ -10,6 +10,8 @@ using System.IO;
 using FTD2XX_NET;
 using System.Runtime.InteropServices;
 using System.Globalization;
+using System.Runtime.Versioning;
+using System.Windows.Annotations;
 //using System.Diagnostics;
 #if X64
 using FT_HANDLE = System.UInt64;
@@ -118,6 +120,7 @@ namespace X_Manager
 		bool metadata;
 		bool oldUnitDebug = false;
 		int leapSeconds;
+		long infRemPosition;
 
 		DateTime nullDate = new DateTime(1970, 1, 1, 0, 0, 0);
 		DateTime recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
@@ -220,7 +223,7 @@ namespace X_Manager
 			return name;
 		}
 
-		public override uint askMaxMemory()
+		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
 			sp.Write("TTTTTTTGGAm");
@@ -235,9 +238,8 @@ namespace X_Manager
 			{
 				throw new Exception(unitNotReady);
 			}
-			maxMemory = m;
-			return maxMemory;
-
+			mem_max_physical_address = m;
+			return new uint[] { mem_max_physical_address };
 		}
 
 		public override uint[] askMemory()
@@ -1081,7 +1083,7 @@ namespace X_Manager
 					}
 					counter++;
 					fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "_S" + counter.ToString() + ".ard";
-					if (System.IO.File.Exists(fileNameArd))
+					if (File.Exists(fileNameArd))
 					{
 						if (resp < 11)
 						{
@@ -1257,7 +1259,7 @@ namespace X_Manager
 			{
 				try
 				{
-					ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+					ardFile = new BinaryReader(File.Open(fileName, FileMode.Open));
 					break;
 				}
 				catch (Exception fileError)
@@ -1302,20 +1304,20 @@ namespace X_Manager
 
 			if (makeTxt)
 			{
-				if ((System.IO.File.Exists(FileNametxt)) & (exten.Contains("ard"))) fDel(FileNametxt);
-				txt = new System.IO.BinaryWriter(File.OpenWrite(FileNametxt));
+				if ((File.Exists(FileNametxt)) & (exten.Contains("ard"))) fDel(FileNametxt);
+				txt = new BinaryWriter(File.OpenWrite(FileNametxt));
 			}
 			if (makeKml)
 			{
-				if ((System.IO.File.Exists(fileNameKml)) & (exten.Contains("ard"))) fDel(fileNameKml);
-				if ((System.IO.File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) fDel(fileNamePlaceMark);
+				if ((File.Exists(fileNameKml)) & (exten.Contains("ard"))) fDel(fileNameKml);
+				if ((File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) fDel(fileNamePlaceMark);
 				kml = new System.IO.BinaryWriter(File.OpenWrite(fileNameKml));
 				placeMark = new System.IO.BinaryWriter(File.OpenWrite(fileNamePlaceMark));
 				primaCoordinata = true;
 				contoCoord = 0;
 				//string
-				kml.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Folder_Path_Top));
-				kml.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
+				kml.Write(Encoding.ASCII.GetBytes(Properties.Resources.Folder_Path_Top));
+				kml.Write(Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
 				//placemark
 				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Final_Top_1 +
 					Path.GetFileNameWithoutExtension(fileName) + Properties.Resources.Final_Top_2));
@@ -1329,10 +1331,9 @@ namespace X_Manager
 
 			int sesMax = sesAdd.Count;
 			int sesCounter = 1;
-			long infRemPosition;
 			ardFile.Close();
 
-			string logFile = System.IO.Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
+			string logFile = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
 			try
 			{
 				fDel(logFile);
@@ -1341,7 +1342,7 @@ namespace X_Manager
 
 			while (sesAdd.Count > 0)
 			{
-				ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+				ardFile = new BinaryReader(File.Open(fileName, FileMode.Open));
 				long bufLen;
 				if (sesAdd.Count > 1)
 				{
@@ -1511,16 +1512,17 @@ namespace X_Manager
 
 				if (exten.Contains("rem") & !convertStop)
 				{
-					File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ": "
-						+ startTime.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: "
-						+ csv.BaseStream.Position.ToString("X4") + "\tREM Position: " + infRemPosition.ToString("X4"));
+					File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ":\tCSV Position: " + csv.BaseStream.Position.ToString("X4")
+						+ "\tREM Position: " + infRemPosition.ToString("X4") + "\r\n"
+					+ "START:  " + startTime.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss"));
+
 					if ((startTime == new DateTime(1, 1, 1, 1, 1, 1)) & removeNonGps)
 					{
 						File.AppendAllText(logFile, "\tGPS FIX MISSING: This session contains no gps fix and won't be included in the csv file.\r\n");
 
 						continue;
 					}
-					File.AppendAllText(logFile, "\r\n");
+					//File.AppendAllText(logFile, "\r\n");
 				}
 
 				timeStampO.orario = startTime;
@@ -1622,8 +1624,7 @@ namespace X_Manager
 
 				if (exten.Contains("rem"))
 				{
-					File.AppendAllText(logFile, "        end: " + (sesCounter - 1).ToString() + ": "
-						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n\r\n");
+					File.AppendAllText(logFile, "\t\tSTOP: " + timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n\r\n");
 				}
 
 				if (makeTxt) txtWrite(ref timeStampO, ref txt);
@@ -1818,6 +1819,7 @@ namespace X_Manager
 					tsc.altH = b & 15;
 				}
 				tsc.gsvSum = (ard.ReadByte() * 256 + ard.ReadByte());
+				
 			}
 
 
@@ -1878,14 +1880,13 @@ namespace X_Manager
 			}
 
 			tsc.orario = tsc.orario.AddSeconds(secondAmount);
-
 		}
 
 		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
 		{
-			byte[] group = new byte[2000];
+			List<byte> group = new List<byte>();
 			bool badGroup = false;
-			long position = 0;
+			//long position = 0;
 			byte dummy, dummyExt;
 			ushort badPosition = 1000;
 
@@ -1901,8 +1902,9 @@ namespace X_Manager
 
 					if (dummyExt == 0xab)
 					{
-						group[position] = (byte)0xab;
-						position += 1;
+						//group[position] = (byte)0xab;
+						group.Add(0xab);
+						//position += 1;
 						dummy = 0;
 					}
 					else
@@ -1916,12 +1918,15 @@ namespace X_Manager
 				}
 				else
 				{
-					if (position < badPosition)
+					//if (position < badPosition)
+					if (group.Count < badPosition)
 					{
-						group[position] = dummy;
-						position++;
+						//group[position] = dummy;
+						group.Add(dummy);
+						//position++;
 					}
-					else if ((position == badPosition) && (!badGroup))
+					//else if ((position == badPosition) && (!badGroup))
+					else if ((group.Count == badPosition) && (!badGroup))
 					{
 						badGroup = true;
 						//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
@@ -1929,48 +1934,31 @@ namespace X_Manager
 				}
 
 
-			} while ((dummy != (byte)0xab) && (ard.Position < ard.Length));
+			} while ((dummy != 0xab) && (ard.Position < ard.Length));
 
-			//Array.Resize(ref group, (int)position);
-			tsc.timeStampLength = (int)(position / bitsDiv);
+			tsc.timeStampLength = (int)(group.Count / bitsDiv);
 
 			int resultCode = 0;
-			if (position == 0)
+			if (group.Count == 0)
 			{
 				return new double[] { };
 			}
 
-			//IntPtr doubleResultArray = Marshal.AllocCoTaskMem(sizeof(double) * nOutputs * 3);
-
 			double[] doubleResult = new double[3 * nOutputs];
 			if (bits)
 			{
-				resultCode = resample4(group, tsc.timeStampLength, doubleResult, nOutputs);
+				resultCode = resample4(group.ToArray(), tsc.timeStampLength, doubleResult, nOutputs);
 			}
 			else
 			{
-				resultCode = resample3(group, tsc.timeStampLength, doubleResult, nOutputs);
+				resultCode = resample3(group.ToArray(), tsc.timeStampLength, doubleResult, nOutputs);
 			}
-			//doubleResult = new double[(nOutputs * 3)];
-			//Marshal.Copy(doubleResultArray, doubleResult, 0, nOutputs * 3);
-			//Marshal.FreeCoTaskMem(doubleResultArray);
 			return doubleResult;
-
-
-			//int resultCode = 0;
-			//double[] doubleOutArray;
-			//byte[] byteInputArray = new byte[] { 255, 255, 255 };
-			//IntPtr outArray = Marshal.AllocCoTaskMem(sizeof(double) * nOutputs * 3);
-
-			//resultCode = resample3(byteInputArray, nInputs, outArray, nOutputs);
-			//doubleOutArray = new double[nOutputs * 3];
-			//Marshal.Copy(outArray, doubleOutArray, 0, nOutputs * 3);
-			//Marshal.FreeCoTaskMem(outArray);
-
 		}
 
 		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref string textOut, ref long offset)
 		{
+			if (group == null) return;
 			short iend;
 			if (group.Length == 0)
 			{
@@ -2052,7 +2040,6 @@ namespace X_Manager
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			additionalInfo = "";
-			//if (debugLevel > 2) additionalInfo += csvSeparator + tsLoc.timeStampLength.ToString();  //sviluppo
 			if (debugLevel > 2)
 			{
 				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X");
@@ -2255,8 +2242,8 @@ namespace X_Manager
 						if ((timeStamp0 & 16) == 16)
 						{
 							br.Read(coordinate, 0, 22);
-							break;
-							//if (coordinate[8] != 80) break;
+							//break;
+							if (coordinate[8] != 80) break;
 						}
 						if ((timeStamp0 & 32) == 32)
 						{
@@ -2477,13 +2464,13 @@ namespace X_Manager
 			if ((((tsc.tsType & 32) == 32) && (debugLevel > 0)))
 			{
 				coord = (dateTimeS + '\t');
-				decodeEvent(ref coord, ref tsc);
-				if ((coord != ""))
+				string coord2 = "";
+				decodeEvent(ref coord2, ref tsc);
+				if ((coord2 != ""))
 				{
-					coord += "\r\n";
-					txtW.Write(System.Text.Encoding.ASCII.GetBytes(coord));
+					coord += coord2 + "\r\n";
+					txtW.Write(Encoding.ASCII.GetBytes(coord));
 				}
-
 			}
 
 			if ((tsc.tsType & 16) == 16)
@@ -2501,8 +2488,9 @@ namespace X_Manager
 				coord += "\t" + altSegno + ((tsc.altH * 256 + tsc.altL) * 2).ToString() + "\t" + speed.ToString("0.0") + "\t";
 				coord += tsc.nSat.ToString() + "\t" + tsc.DOP.ToString() + "." + tsc.DOPdec.ToString();
 				coord += "\t" + tsc.gsvSum.ToString() + "\r\n";
-				txtW.Write(System.Text.Encoding.ASCII.GetBytes(coord));
+				txtW.Write(Encoding.ASCII.GetBytes(coord));
 			}
+
 
 		}
 
@@ -2516,8 +2504,8 @@ namespace X_Manager
 				if ((contoCoord == 10000))
 				{
 					//  se arrivato a 10000 coordinate apre un nuovo <coordinates>
-					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Path_Bot));
-					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Path_Top));
+					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Path_Bot));
+					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
 					contoCoord = 0;
 				}
 				kmlW.Write(System.Text.Encoding.ASCII.GetBytes("\t\t\t\t\t" + coordinataKml.cSstring + "\r\n"));

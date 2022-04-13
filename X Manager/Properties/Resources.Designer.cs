@@ -113,6 +113,16 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap clock {
+            get {
+                object obj = ResourceManager.GetObject("clock", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap COMP_OFF {
             get {
                 object obj = ResourceManager.GetObject("COMP_OFF", resourceCulture);
@@ -335,6 +345,30 @@ namespace X_Manager.Properties {
         }
         
         /// <summary>
+        ///   Cerca una stringa localizzata simile a &lt;!doctype html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///  &lt;head&gt;
+        ///    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/css/ol.css&quot; type=&quot;text/css&quot;&gt;
+        ///    &lt;style&gt;
+        ///      .map {
+        ///        height: 400px;
+        ///        width: 100%;
+        ///      }
+        ///    &lt;/style&gt;
+        ///    &lt;script src=&quot;https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.3/build/ol.js&quot;&gt;&lt;/script&gt;
+        ///    &lt;title&gt;OpenLayers example&lt;/title&gt;
+        ///  &lt;/head&gt;
+        ///  &lt;body&gt;
+        ///    &lt;h2&gt;My Map&lt;/h2&gt;
+        ///    &lt;div id=&quot;map&quot; class=&quot;map&quot;&gt;&lt;/ [stringa troncata]&quot;;.
+        /// </summary>
+        internal static string map {
+            get {
+                return ResourceManager.GetString("map", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Cerca una stringa localizzata simile a TagID	timestamp	location-lat	location-long	height-above-msl	ground-speed	satellite-count	hdop	maximum-signal-strengt
         ///.
         /// </summary>
@@ -553,6 +587,26 @@ namespace X_Manager.Properties {
         internal static System.Drawing.Bitmap technosmartLogoBlurred {
             get {
                 object obj = ResourceManager.GetObject("technosmartLogoBlurred", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap tile_background_loading {
+            get {
+                object obj = ResourceManager.GetObject("tile_background_loading", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap tile_background_offline {
+            get {
+                object obj = ResourceManager.GetObject("tile_background_offline", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

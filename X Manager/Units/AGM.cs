@@ -127,7 +127,7 @@ namespace X_Manager.Units
 			return firmware;
 		}
 
-		public override uint askMaxMemory()
+		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
 			sp.Write("TTTTTTTGGAm");
@@ -142,8 +142,8 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
-			maxMemory = m;
-			return maxMemory;
+			mem_max_physical_address = m;
+			return new uint[] { mem_max_physical_address };
 		}
 
 		public override uint[] askMemory()
@@ -235,9 +235,13 @@ namespace X_Manager.Units
 
 			Thread.Sleep(200);
 			sp.Write("S");
-			Thread.Sleep(400);
+			Thread.Sleep(1100);
 
-			if (sp.ReadByte() != 0x53)
+			int dieCount = sp.ReadByte();
+			
+			if (dieCount == 0x53) dieCount = 2;     //S
+			if (dieCount == 0x73) dieCount = 1;     //s
+			if ((dieCount != 1) & (dieCount != 2))
 			{
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 				try
@@ -285,8 +289,8 @@ namespace X_Manager.Units
 			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
 
 			bool firstLoop = true;
-			bool mem4Gb = false;
-			if (firmTotA > 1999999) mem4Gb = true;
+			//bool mem4Gb = false;
+			//if (firmTotA > 1999999) mem4Gb = true;
 
 			while (actMemory < toMemory)
 			{
@@ -327,25 +331,37 @@ namespace X_Manager.Units
 				else
 				{
 					actMemory += 4096;
-					if (((actMemory % 0x20000) == 0) && mem4Gb)
+					if (((actMemory % 0x20000) == 0))
 					{
-						actMemory -= 4096;
-						for (int i = 0; i < 2; i++)
+						if (dieCount == 2)
 						{
-							address = BitConverter.GetBytes(actMemory);
-							Array.Reverse(address);
-							Array.Copy(address, 0, outBuffer, 1, 3);
-							outBuffer[0] = 97;
-							bytesToWrite = 4;
-							fixed (byte* outP = outBuffer, inP = inBuffer)
+							actMemory -= 4096;
+							for (int i = 0; i < 2; i++)
 							{
-								FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-								FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								address = BitConverter.GetBytes(actMemory);
+								Array.Reverse(address);
+								Array.Copy(address, 0, outBuffer, 1, 3);
+								outBuffer[0] = 97;
+								bytesToWrite = 4;
+								fixed (byte* outP = outBuffer, inP = inBuffer)
+								{
+									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+								}
+								fo.Write(inBuffer, 0, 2048);
+								actMemory += 2048;
 							}
-							fo.Write(inBuffer, 0, 2048);
-							actMemory += 2048;
+							firstLoop = true;
 						}
-						firstLoop = true;
+						else
+						{
+							fo.Write(inBuffer, 0, 4096);
+							if ((actMemory % 0x40000) == 0)
+							{
+								firstLoop = true;
+							}
+
+						}
 					}
 					else
 					{

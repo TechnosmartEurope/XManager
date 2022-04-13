@@ -10,6 +10,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 #if X64
 using FT_HANDLE = System.UInt64;
@@ -216,7 +217,7 @@ namespace X_Manager.Units
 			return name;
 		}
 
-		public override uint askMaxMemory()
+		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
 			sp.Write("TTTTTTTGGAm");
@@ -231,8 +232,8 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
-			maxMemory = m;
-			return maxMemory;
+			mem_max_physical_address = m;
+			return new uint[] { mem_max_physical_address };
 		}
 
 		public override uint[] askMemory()
@@ -256,20 +257,20 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
-			if (mStart > mStop)
-			{
-				memory = mStart - mStop;
-			}
-			else if (mStart < mStop)
-			{
-				memory = maxMemory - mStop + mStart;
-			}
-			else
-			{
-				memory = 0;
-			}
+			//if (mStart > mStop)
+			//{
+			//	memory = mStart - mStop;
+			//}
+			//else if (mStart < mStop)
+			//{
+			//	memory = maxMemory - mStop + mStart;
+			//}
+			//else
+			//{
+			//	memory = 0;
+			//}
 
-			return new UInt32[] { memory, mStop, mStart };
+			return new UInt32[] { mStart, mStop };
 		}
 
 		public override void eraseMemory()
@@ -532,7 +533,7 @@ namespace X_Manager.Units
 			}
 			else
 			{
-				toBeDownloaded = (int)maxMemory - (int)fromMemory + (int)toMemory;
+				toBeDownloaded = (int)mem_max_physical_address - (int)fromMemory + (int)toMemory;
 			}
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
@@ -998,6 +999,8 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusLabel.Content = "Creating Ard file(s)..."));
 			var mdp = new BinaryReader(System.IO.File.Open(fileNameMdp, FileMode.Open));
 
+			long sessionLength = 0;
+
 			BinaryWriter ard = BinaryWriter.Null;
 			//ushort packLength = 255;
 			//ushort firstPackLength = 254;
@@ -1025,7 +1028,7 @@ namespace X_Manager.Units
 						}
 						counter++;
 						fileNameArd = Path.GetDirectoryName(fileNameMdp) + "\\" + fileName + "_S" + counter.ToString() + ".ard";
-						if (System.IO.File.Exists(fileNameArd))
+						if (File.Exists(fileNameArd))
 						{
 							if (resp < 11)
 							{
@@ -1041,10 +1044,11 @@ namespace X_Manager.Units
 								do
 								{
 									fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileNameArd) + " (1)" + ".ard";
-								} while (System.IO.File.Exists(fileNameArd));
+								} while (File.Exists(fileNameArd));
 							}
 						}
-						ard = new System.IO.BinaryWriter(System.IO.File.Open(fileNameArd, FileMode.Create));
+						sessionLength = mdp.BaseStream.Position - 2;
+						ard = new BinaryWriter(File.Open(fileNameArd, FileMode.Create));
 						ard.Write(new byte[] { modelCode }, 0, 1);
 						if (!connected)
 						{
@@ -1079,6 +1083,10 @@ namespace X_Manager.Units
 					ard.Write(mdp.ReadBytes(255));
 				}
 			}
+
+			sessionLength = mdp.BaseStream.Position - sessionLength;
+			long ardLength = ard.BaseStream.Length;
+
 			try
 			{
 				mdp.Close();
@@ -1086,27 +1094,35 @@ namespace X_Manager.Units
 			}
 			catch { }
 
-			try
+			if (ardLength < (sessionLength * .7))
 			{
-				if (Parent.lastSettings[6].Equals("false"))
+				string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + "_sendme.mdp";
+				File.Move(fileNameMdp, newFileNameMdp);
+				MessageBox.Show("X Manager encountered a problem while extracting the ard file. Please don't delete the mdp file marked with \"sendme\" and contact Technosmart.");
+			}
+			else
+			{
+				try
 				{
-					fDel(fileNameMdp);
-				}
-				else
-				{
-					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
+					if (Parent.lastSettings[6].Equals("false"))
 					{
-						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						if (System.IO.File.Exists(newFileNameMdp))
+						fDel(fileNameMdp);
+					}
+					else
+					{
+						if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
 						{
-							fDel(newFileNameMdp);
+							string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
+							if (File.Exists(newFileNameMdp))
+							{
+								fDel(newFileNameMdp);
+							}
+							File.Move(fileNameMdp, newFileNameMdp);
 						}
-						//string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						System.IO.File.Move(fileNameMdp, newFileNameMdp);
 					}
 				}
+				catch { }
 			}
-			catch { }
 			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 		}
 
@@ -1182,14 +1198,14 @@ namespace X_Manager.Units
 			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
 			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
 			string fileNameInfo = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
-			BinaryReader ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+			BinaryReader ardFile = new BinaryReader(File.Open(fileName, FileMode.Open));
 			byte[] ardBuffer = new byte[ardFile.BaseStream.Length];
 			ardFile.Read(ardBuffer, 0, (int)ardFile.BaseStream.Length);
 			ardFile.Close();
 
 			MemoryStream ard = new MemoryStream(ardBuffer);
 
-			BinaryWriter csv = new BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
 
 			ard.Position = 1;
 			firmTotA = (uint)(ard.ReadByte() * 1000000 + ard.ReadByte() * 1000 + ard.ReadByte());
@@ -1266,7 +1282,10 @@ namespace X_Manager.Units
 			while (!convertStop)
 			{
 
-				while (Interlocked.Exchange(ref progLock, 2) > 0) { }
+				while (Interlocked.Exchange(ref progLock, 2) > 0)
+				{
+					
+				}
 
 				progVal = ard.Position;
 				Interlocked.Exchange(ref progLock, 0);
@@ -1279,13 +1298,17 @@ namespace X_Manager.Units
 				if (timeStampO.stopEvent > 0)
 				{
 					timeStampO.metadataPresent = 1;
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, new double[] { 0, 0, 0 }, shortFileName)));
+					csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, new double[] { }, shortFileName)));
+					if (timeStampO.stopEvent == 5)
+					{
+						MessageBox.Show("WARNING: corrupted data. Please dont't delete this ard file and contact Technosmart.");
+					}
 					break;
 				}
 
 				try
 				{
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(
+					csv.Write(Encoding.ASCII.GetBytes(
 						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
 				}
 				catch (Exception ex)
@@ -1302,6 +1325,11 @@ namespace X_Manager.Units
 
 			csv.Close();
 			ard.Close();
+
+			if (timeStampO.stopEvent == 5)
+			{
+				File.Move(fileName, Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "_corrupted.ard");
+			}
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 		}
@@ -1573,6 +1601,8 @@ namespace X_Manager.Units
 			}
 			//tsc.ardPosition = ard.Position;
 
+
+
 			tsc.tsTypeExt1 = 0;
 			//tsc.tsTypeExt2 = 0;
 			tsc.stopEvent = 0;
@@ -1640,7 +1670,7 @@ namespace X_Manager.Units
 					if (eventAr[0] == 11) { tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0; }
 					else if (eventAr[0] == 12) { tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; }
 					else if (eventAr[0] == 13) { tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0; }
-					else if (eventAr[0] == 14) { tsc.stopEvent = 3; gruppoCON[meta] = "Remote connection established."; addMilli = 0; }
+					else if (eventAr[0] == 14) { tsc.stopEvent = 4; gruppoCON[meta] = "Remote connection established."; addMilli = 0; }
 				}
 			}
 			else
@@ -1761,6 +1791,10 @@ namespace X_Manager.Units
 				catch
 				{
 					MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
+					tsc.stopEvent = 5;
+					gruppoCON[meta] = "DATA ERROR at Location 0x." + ard.Position.ToString("X"); addMilli = 0;
+					tsc.temperature = ard.Position;
+					tsc.tsTypeExt1 &= 0xfe;
 				}
 			}
 
