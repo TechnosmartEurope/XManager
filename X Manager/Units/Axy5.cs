@@ -1253,6 +1253,11 @@ namespace X_Manager.Units
 
 			while (!convertStop)
 			{
+
+				//sviluppo
+				
+				///sviluppo
+
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 							new Action(() => parent.statusProgressBar.Value = ard.Position));
 				if (detectEof(ref ard)) break;

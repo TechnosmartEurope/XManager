@@ -1268,15 +1268,15 @@ namespace X_Manager.Units
 			//tsmask.7   Giroscopio 1Hz
 			if ((tsc.tsType & 0x80) == 0x80)
 			{
-				tsc.gyro[0] = ard.ReadByte() + ard.ReadByte() * 256;
+				tsc.gyro[0] = ard.ReadByte() * 256 + ard.ReadByte();
 				if (tsc.gyro[0] > sogliaNeg) tsc.gyro[0] -= rendiNeg;
 				tsc.gyro[0] *= dpsCoeff;
 
-				tsc.gyro[1] = ard.ReadByte() + ard.ReadByte() * 256;
+				tsc.gyro[1] = ard.ReadByte() * 256 + ard.ReadByte();
 				if (tsc.gyro[1] > sogliaNeg) tsc.gyro[1] -= rendiNeg;
 				tsc.gyro[1] *= dpsCoeff;
 
-				tsc.gyro[2] = ard.ReadByte() + ard.ReadByte() * 256;
+				tsc.gyro[2] = ard.ReadByte() * 256 + ard.ReadByte();
 				if (tsc.gyro[2] > sogliaNeg) tsc.gyro[2] -= rendiNeg;
 				tsc.gyro[2] *= dpsCoeff;
 			}

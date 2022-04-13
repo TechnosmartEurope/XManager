@@ -70,6 +70,7 @@ namespace X_Manager
 			public int inWater;
 			public int inAdc;
 			public int ADC;
+			//public long ardPosition;
 		}
 
 		public struct coordKml
@@ -1461,6 +1462,7 @@ namespace X_Manager
 					}
 
 					if (detectEof(ref ard)) break;
+
 					try
 					{
 						decodeTimeStamp(ref ard, ref timeStampO, firmTotA);

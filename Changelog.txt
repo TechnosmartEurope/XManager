@@ -52,3 +52,4 @@
 	Remoto: la finestra scompare se l'unità non ha l'indirizzo vergine.
 	Remoto: possibilità di scrivere "c" nella casella indirizzo per impostare l'indirizzo vergine.
 1.7.2	Gestione schedule accelerometro axyTrek
+1.7.3	AGM: corretta conversione giroscopio 1Hz.
