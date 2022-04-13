@@ -35,14 +35,14 @@ namespace X_Manager.ConfigurationWindows
 			ctrAr = new List<TextBox> { onTB, offTB, startDelayTimeTB, satTB, gsvTB };
 			this.conf = conf;
 
-			on = conf[33] * 256 + conf[32];
-			off = conf[35] * 256 + conf[34];
-			sdt = (conf[39] << 24) + (conf[38] << 16) + (conf[37] << 8) + conf[36];
-			nSat = conf[44];
-			gsv = conf[45];
-			int anno = ((conf[41] * 256) + conf[40]);
+			on = BitConverter.ToInt16(conf, 32);		//32-33
+			off = BitConverter.ToInt16(conf, 34);		//34-35
+			sdt = BitConverter.ToInt32(conf, 36);		//36-39
+			int anno = BitConverter.ToInt16(conf, 40);	//40-41
 			int mese = conf[42];
 			int giorno = conf[43];
+			nSat = conf[44];
+			gsv = conf[45];
 			date = new DateTime(anno, mese, giorno);
 
 			onTB.Text = on.ToString();
@@ -211,22 +211,22 @@ namespace X_Manager.ConfigurationWindows
 		
 		public override void copyValues()
 		{
-			conf[33] = (byte)(on >> 8);
 			conf[32] = (byte)(on & 0xff);
-			conf[35] = (byte)(off >> 8);
+			conf[33] = (byte)(on >> 8);
 			conf[34] = (byte)(off & 0xff);
+			conf[35] = (byte)(off >> 8);
 
-			conf[39] = (byte)(sdt >> 24);
-			conf[38] = (byte)((sdt >> 16) & 0xff);
-			conf[37] = (byte)((sdt >> 8) & 0xff);
 			conf[36] = (byte)(sdt & 0xff);
-			conf[44] = (byte)nSat;
-			conf[45] = (byte)gsv;
+			conf[37] = (byte)((sdt >> 8) & 0xff);
+			conf[38] = (byte)((sdt >> 16) & 0xff);
+			conf[39] = (byte)(sdt >> 24);
 
-			conf[41] = (byte)(date.Year >> 8);
 			conf[40] = (byte)(date.Year & 0xff);
+			conf[41] = (byte)(date.Year >> 8);
 			conf[42] = (byte)(date.Month);
 			conf[43] = (byte)(date.Day);
+			conf[44] = (byte)nSat;
+			conf[45] = (byte)gsv;
 		}
 
 	}

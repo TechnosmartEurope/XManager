@@ -63,10 +63,10 @@ namespace X_Manager.ConfigurationWindows
 
 			}
 
-			sch[0] = (uint)((conf[52] << 24) + (conf[53] << 16) + (conf[54] << 8) + conf[55]);
-			sch[1] = (uint)((conf[56] << 24) + (conf[57] << 16) + (conf[58] << 8) + conf[59]);
-			sch[2] = (uint)((conf[84] << 24) + (conf[85] << 16) + (conf[86] << 8) + conf[87]);
-			sch[3] = (uint)((conf[88] << 24) + (conf[89] << 16) + (conf[90] << 8) + conf[91]);
+			sch[0] = BitConverter.ToUInt32(conf, 52);	//52-55
+			sch[1] = BitConverter.ToUInt32(conf, 56);	//56-59
+			sch[2] = BitConverter.ToUInt32(conf, 84);	//84-87
+			sch[3] = BitConverter.ToUInt32(conf, 88);	//88-91
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -155,25 +155,25 @@ namespace X_Manager.ConfigurationWindows
 			{
 				sch[i] *= (uint)Math.Pow(60, cbArr[i].SelectedIndex);
 			}
-			conf[52] = (byte)(sch[0] >> 24);
-			conf[53] = (byte)(sch[0] >> 16);
-			conf[54] = (byte)(sch[0] >> 8);
-			conf[55] = (byte)(sch[0] & 0xff);
+			conf[55] = (byte)(sch[0] >> 24);
+			conf[54] = (byte)(sch[0] >> 16);
+			conf[53] = (byte)(sch[0] >> 8);
+			conf[52] = (byte)(sch[0] & 0xff);
 
-			conf[56] = (byte)(sch[1] >> 24);
-			conf[57] = (byte)(sch[1] >> 16);
-			conf[58] = (byte)(sch[1] >> 8);
-			conf[59] = (byte)(sch[1] & 0xff);
+			conf[59] = (byte)(sch[1] >> 24);
+			conf[58] = (byte)(sch[1] >> 16);
+			conf[57] = (byte)(sch[1] >> 8);
+			conf[56] = (byte)(sch[1] & 0xff);
 
-			conf[84] = (byte)(sch[2] >> 24);
-			conf[85] = (byte)(sch[2] >> 16);
-			conf[86] = (byte)(sch[2] >> 8);
-			conf[87] = (byte)(sch[2] & 0xff);
+			conf[87] = (byte)(sch[2] >> 24);
+			conf[86] = (byte)(sch[2] >> 16);
+			conf[85] = (byte)(sch[2] >> 8);
+			conf[84] = (byte)(sch[2] & 0xff);
 
-			conf[88] = (byte)(sch[3] >> 24);
-			conf[89] = (byte)(sch[3] >> 16);
-			conf[90] = (byte)(sch[3] >> 8);
-			conf[91] = (byte)(sch[3] & 0xff);
+			conf[91] = (byte)(sch[3] >> 24);
+			conf[90] = (byte)(sch[3] >> 16);
+			conf[89] = (byte)(sch[3] >> 8);
+			conf[88] = (byte)(sch[3] & 0xff);
 
 			for (int i = 0; i < 24; i++)
 			{

@@ -22,9 +22,10 @@ namespace X_Manager.Units
 	{
 #pragma warning disable
 
-		int mPos = 0;
 		struct TimeStamp
 		{
+			private int _pos;
+
 			public int tsType;
 			public int tsTypeExt1;
 			public int tsTypeExt2;
@@ -39,9 +40,9 @@ namespace X_Manager.Units
 			public double press;
 			public double pressOffset;
 			public double altitude;
-			public int altSegno;
-			public int eo;
-			public int ns;
+			//public int altSegno;
+			//public int eo;
+			//public int ns;
 			//public int latGradi;
 			//public int latMinuti;
 			//public int latMinDecH;
@@ -58,7 +59,6 @@ namespace X_Manager.Units
 			public double dop;
 			public int sat;
 			public int gsvSum;
-
 			public int timeStampLength;
 			public DateTime dateTime;
 			public byte[] infoAr;
@@ -68,8 +68,19 @@ namespace X_Manager.Units
 			public int inWater;
 			public int inAdc;
 			public int ADC;
+			public int pos
+			{
+				get => _pos;
+				set
+				{
+					_pos = value + (((value / 0x1fe) + 1) * 2);
+				}
+			}
 
-			public int goDone;
+			public void resetPos(int initVal)
+			{
+				_pos = initVal;
+			}
 
 			public TimeStamp clone()
 			{
@@ -83,16 +94,15 @@ namespace X_Manager.Units
 				tout.press = this.press;
 				tout.pressOffset = this.pressOffset;
 				tout.altitude = this.altitude;
-				tout.altSegno = this.altSegno;
-				tout.eo = this.eo;
-				tout.ns = this.ns;
+				//tout.altSegno = this.altSegno;
+				//tout.eo = this.eo;
+				//tout.ns = this.ns;
 				tout.lat = this.lat;
 				tout.lon = this.lon;
 				tout.speed = this.speed;
 				tout.dop = this.dop;
 				tout.sat = this.sat;
 				tout.gsvSum = this.gsvSum;
-
 				tout.timeStampLength = this.timeStampLength;
 				tout.dateTime = this.dateTime;
 				tout.infoAr = new byte[this.infoAr.Length];
@@ -104,8 +114,7 @@ namespace X_Manager.Units
 				tout.inWater = this.inWater;
 				tout.inAdc = this.inAdc;
 				tout.ADC = this.ADC;
-
-				tout.goDone = this.goDone;
+				tout.resetPos(this.pos);
 
 				return tout;
 			}
@@ -121,34 +130,16 @@ namespace X_Manager.Units
 			"Power OFF",
 		};
 
-		//public struct coordKml
-		//{
-		//	public string cSstring;
-		//	public string cPlacemark;
-		//	public string cName;
-		//	public string cClass;
-		//}
-
-		//byte debugLevel;
-		//byte dateFormat;
-		//byte timeFormat;
-		//bool inMeters = false;
-		//bool prefBattery = false;
 		bool repeatEmptyValues = false;
-		//int isDepth = 1;
-		//bool sameColumn = false;
-		//bool angloTime = false;
-		//string dateFormatParameter;
-		//bool metadata;
-		//ushort adcThreshold = 0;
-		//bool adcLog = false;
-		//bool adcStop = false;
-		//bool primaCoordinata;
-		//uint contoCoord;
+
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 
 		BackgroundWorker txtBGW;
-		BinaryWriter txtBW;
+		BackgroundWorker kmlBGW;
+		private static Semaphore txtSem;
+		private static Semaphore kmlSem;
+		private static long lastTimestamp = 0;
+		private static long conversionDone = 0;
 
 		new byte[] firmwareArray = new byte[3];
 
@@ -684,11 +675,11 @@ namespace X_Manager.Units
 				buffSize = (mem_max_physical_address - mem_max_logical_address) + (mem_address - mem_min_physical_address);
 			}
 
-			buffSize -= (buffSize / 0x200) * 2;
-			buffSize += 2;
+			//buffSize -= (buffSize / 0x200) * 2;
+			//buffSize += 2;
 
 			convertStop = false;
-			inBuffer = new byte[buffSize];
+			inBuffer = new byte[buffSize + 2];
 			int buffPointer = 0;
 
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".gp6";
@@ -728,7 +719,7 @@ namespace X_Manager.Units
 
 			bool ok = true;
 
-			while (buffPointer < buffSize - 2)
+			while (buffPointer < buffSize)
 			{
 				if (convertStop)
 				{
@@ -737,13 +728,11 @@ namespace X_Manager.Units
 				try
 				{
 					sp.Write(new byte[] { 66 }, 0, 1);
-					sp.ReadByte();
-					sp.ReadByte();
-					for (int i = 0; i < 0x1fe; i++)
+					for (int i = 0; i < 0x200; i++)
 					{
 						inBuffer[buffPointer + i] = (byte)sp.ReadByte();
 					}
-					buffPointer += 0x1fe;
+					buffPointer += 0x200;
 				}
 				catch (Exception ex)
 				{
@@ -938,60 +927,157 @@ namespace X_Manager.Units
 
 		public override void convert(string fileName, string[] prefs)
 		{
+
+			//Reinizializza le variabili statiche (in caso di più file da convertire)
+			conversionDone = 0;
+			lastTimestamp = 0;
+
+			//Crea e avvia il thread per la scrittura del file txt
+			string txtName = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + ".txt";
+			List<TimeStamp> txtList = new List<TimeStamp>();
+			txtSem = new Semaphore(0, 0x7fff);
+			txtBGW = new BackgroundWorker();
+			txtBGW.DoWork += (s, args) =>
+			{
+				txtBGW_doWork(ref txtList, txtName);
+			};
+			txtBGW.RunWorkerAsync();
+
+			//Crea e avvia il thread per la scrittura del file kml
+			string kmlName = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName);
+			List<TimeStamp> kmlList = new List<TimeStamp>();
+			kmlSem = new Semaphore(0, 0x7fff);
+			kmlBGW = new BackgroundWorker();
+			kmlBGW.DoWork += (s, args) =>
+			{
+				kmlBGW_doWork(ref kmlList, kmlName);
+			};
+			kmlBGW.RunWorkerAsync();
+
+			//Carica il file gp6 in memoria e lo chiude
 			BinaryReader gp6File = new System.IO.BinaryReader(new FileStream(fileName, FileMode.Open));
-			byte[] gp6 = gp6File.ReadBytes((int)gp6File.BaseStream.Length);
+			int filePointer = 0;
+			byte[] gp6 = new byte[(gp6File.BaseStream.Length / 512) * 510];
+			for (int i = 0; i < (gp6File.BaseStream.Length / 0x200); i++)
+			{
+				gp6File.ReadBytes(2);
+				gp6File.BaseStream.Read(gp6, filePointer, 510);
+				filePointer += 510;
+			}
 			gp6File.Close();
 
-			txtBGW = new BackgroundWorker();
-
+			//Inizializza le variabili
 			int pos = 0;
 			int end = gp6.Length;
 			TimeStamp timeStamp = new TimeStamp();
-			List<TimeStamp> tsList = new List<TimeStamp>();
 			List<byte> noStampBuffer = new List<byte>();
-			string txtName = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + ".txt";
-			txtBW = new BinaryWriter(new FileStream(txtName, FileMode.Create));
-			txtBGW.DoWork += (s, args) =>
+
+			int relTxt = 0;
+			int relkml = 0;
+
+			//Inizializza la progress bar
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
 			{
-				txtBGW_doWork(ref tsList);
-			};
-			txtBGW.RunWorkerAsync();
+				parent.statusProgressBar.IsIndeterminate = false;
+				parent.statusProgressBar.Minimum = 0;
+				parent.statusProgressBar.Maximum = end;
+				parent.statusProgressBar.Value = 0;
+			}));
+
+			//Cicla nel buffer decodificando i timestamp e aggiungendoli alla pila
 			while (pos < end)
 			{
-				noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);
-				//tsCopy = timeStamp.clone();
-				tsList.Add(timeStamp.clone());
+				//if (pos != 0)
+				//{
+				//	txtSem.WaitOne();
+				//	kmlSem.WaitOne();
+				//}
+				noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);   //decodifica il timestamp
+
+				//Aggiorna la progress bar, sostituire con aggiornamento a scatti
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+				{
+					parent.statusProgressBar.Value = pos;
+				}));
+
+				//Acquisisce l'acccesso alla pila txt
+				lock (txtList)
+				{
+					txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+				}
+				relTxt = txtSem.Release();   //sblocca il thread txt
+											 //sviluppo
+				if (relTxt > 1000)
+				{
+					int a = 0;
+				}
+				///sviluppo
+
+				//Acquisisce l'acccesso alla pila kml
+				lock (kmlList)
+				{
+					kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
+				}
+
+				relkml = kmlSem.Release();   //sblocca il thread kml
+
+				//sviluppo
+				if (relkml > 1000)
+				{
+					int b = 0;
+				}
+				///sviluppo
+
 				if (noStampBuffer.Count == 1)
 				{
 					break;
 				}
-				//while (tsCopy.goDone == 1) { }
-				//tsCopy.goDone = 1;
 			}
-			timeStamp.goDone = 2;
-			tsList.Add(timeStamp);
+			Interlocked.Increment(ref lastTimestamp);   //Segnala ai thread che non saranno più aggiunti timestamp alle pile
+			txtSem.Release();   //rilascia il thread txt per l'ultima volta
+			kmlSem.Release();   //rilascia il thread kml per l'ultima volta
 
+			//aspetta che i thread abbiano finito di scrivere i rispettivi file
+			while (Interlocked.Read(ref conversionDone) < 2)
+			{
+				Thread.Sleep(200);
+			}
+
+			MessageBox.Show("Pranzo completato");
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+				new Action(() => parent.nextFile()));
 		}
 
-		//private void txtBGW_doWork(object sender, DoWorkEventArgs e)
-		private void txtBGW_doWork(ref List<TimeStamp> tL)
+		private void txtBGW_doWork(ref List<TimeStamp> tL, string txtName)
 		{
+			BinaryWriter txtBW;
+			txtBW = new BinaryWriter(new FileStream(txtName, FileMode.Create));
 			//								data   ora    lon   lat   alt   eve   batt
 			string[] tabs = new string[10];
 			string fileOut = "";
-			//var t = (TimeStamp)e.Argument;
-			//t.goDone = 0;
 			var t = new TimeStamp();
 			while (true)
 			{
-				//while (t.goDone == 0) ;
-				while (tL.Count == 0) ;
-				t = tL[0];
-				tL.RemoveAt(0);
-				if (t.goDone == 2)
-				{
-					break;
+				if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
+				{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
+					txtSem.WaitOne();
 				}
+				lock (tL)
+				{
+					if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
+					{
+						break;
+					}
+					t = tL[0];
+					tL.RemoveAt(0);
+					//sviluppo
+					int cc = tL.Count;
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+					((MainWindow)parent).batteryLabel.Content = cc.ToString()));
+					///sviluppo
+				}
+
+				//Si scrive il timestmap nel txt
 				if (!repeatEmptyValues)
 				{
 					tabs = new string[10];
@@ -1012,6 +1098,9 @@ namespace X_Manager.Units
 				{
 					tabs[5] = decodeEvent(ref t);
 				}
+				//sviluppo
+				tabs[9] = t.pos.ToString("X");
+				///sviluppo
 
 				for (int i = 0; i < 9; i++)
 				{
@@ -1020,16 +1109,139 @@ namespace X_Manager.Units
 				fileOut += (tabs[9] + "\r\n");
 				if (fileOut.Length > 0x1000000) //16MB
 				{
-					txtBW.Write(fileOut.ToArray());
+					txtBW.Write(fileOut);
 					fileOut = "";
 				}
-				t.goDone = 0;
+
+				//txtSem.Release();
 			}
-			txtBW.Write(fileOut.ToArray());
-			t.goDone = 0;
+			txtBW.Write(fileOut);
 			txtBW.Close();
+
+			Interlocked.Increment(ref conversionDone);
 		}
 
+		private void kmlBGW_doWork(ref List<TimeStamp> tL, string kmlName)
+		{
+			//								data   ora    lon   lat   alt   eve   batt
+
+			BinaryWriter kml;
+			BinaryWriter placeMark;
+			kml = new BinaryWriter(new FileStream(kmlName + "_temp.kml", FileMode.Create));
+			placeMark = new BinaryWriter(new FileStream(kmlName + ".kml", FileMode.Create));
+
+			string kmlS = Properties.Resources.Folder_Path_Top + Properties.Resources.Path_Top;
+			string placeS = Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2;
+
+			int contoCoord = 0;
+			bool primaCoordinata = true;
+			string temp = "";
+
+			var t = new TimeStamp();
+			while (true)
+			{
+				if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
+				{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
+					kmlSem.WaitOne();
+				}
+				lock (tL)
+				{
+					if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, esce dal loop
+					{
+						break;
+					}
+					//sviluppo
+					int cc = tL.Count;
+					//sviluppo
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+						((MainWindow)parent).unitNameTextBox.Text = cc.ToString()));
+					///sviluppo
+					t = tL[0];
+					tL.RemoveAt(0);
+				}
+
+				if (t.sat > 0) //Si scrive il timestmap nel kml
+				{
+					if (contoCoord == 10000)
+					{
+						kmlS += Properties.Resources.Path_Bot + Properties.Resources.Path_Top;
+						contoCoord = 0;
+					}
+
+					temp = "";
+					temp += t.lon.ToString("00.000000", nfi) + ",";
+					temp += t.lat.ToString("00.000000", nfi) + ",";
+					temp += t.altitude.ToString("0000.0", nfi);
+
+					kmlS += "\t\t\t\t\t" + temp + "\r\n";
+
+					if (primaCoordinata)
+					{
+						primaCoordinata = false;
+						//Segnaposto di start
+						placeS += Properties.Resources.lookat1;
+						placeS += t.lon.ToString("00.000000", nfi);
+						placeS += Properties.Resources.lookat2;
+						placeS += t.lat.ToString("00.000000", nfi);
+						placeS += Properties.Resources.lookat3;
+						placeS += t.altitude.ToString("0000.0", nfi);
+						placeS += Properties.Resources.lookat4;
+						//Coordinata placemark
+						placeS += Properties.Resources.Placemarks_Start_Top + "\r\n\t\t\t\t\t<coordinates>" + temp + "</coordinates>\r\n";
+						placeS += Properties.Resources.Placemarks_Start_Bot + Properties.Resources.Folder_Generics_Top;
+					}
+
+					char cl = (char)(49 + (t.speed / 10));
+					if (cl > 55)
+					{
+						cl = '9';
+					}
+
+					placeS += Properties.Resources.Placemarks_Generic_Top_1 + t.dateTime.ToString("dd/MM/yyyy HH:mm:ss");
+					placeS += Properties.Resources.Placemarks_Generic_Top_2 + cl.ToString() + Properties.Resources.Placemarks_Generic_Top_3;
+					placeS += t.altitude.ToString() + Properties.Resources.Placemarks_Generic_Top_4 + t.speed.ToString();
+					placeS += Properties.Resources.Placemarks_Generic_Top_5 + "\r\n\t\t\t\t\t<coordinates>" + temp + "</coordinates>\r\n";
+					placeS += X_Manager.Properties.Resources.Placemarks_Generic_Bot;
+
+					contoCoord++;
+					if (kmlS.Length > 0x1000000)    //16MB
+					{
+						kml.Write(kmlS);
+						kmlS = "";
+					}
+
+					if (placeS.Length > 0x1000000)  //16MB
+					{
+						placeMark.Write(placeS);
+						placeS = "";
+					}
+				}
+				//kmlSem.Release();
+			}
+			kml.Write(kmlS);
+			placeMark.Write(placeS);
+			//Scrive il segnaposto di stop nel fime kml dei placemarks
+			placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
+			placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
+				"\r\n\t\t\t\t\t+<coordinates>" + temp + "</coordinates>\r\n" + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
+
+			kml.Close();
+			placeMark.Close();
+
+			//Scrive l'header finale nel file kml string
+			File.AppendAllText(kmlName + "_temp.kml", X_Manager.Properties.Resources.Path_Bot);
+			File.AppendAllText(kmlName + "_temp.kml", X_Manager.Properties.Resources.Folder_Bot);
+
+			//Accorpa kml placemark e string
+			File.AppendAllText(kmlName + ".kml", System.IO.File.ReadAllText(kmlName + "_temp.kml"));
+
+			//Chiude il kml placemark
+			File.AppendAllText(kmlName + ".kml", X_Manager.Properties.Resources.Final_Bot);
+			//Elimina il kml string temporaneo
+			fDel(kmlName + "_temp.kml");
+
+			Interlocked.Increment(ref conversionDone);
+		}
 		private double[] extractGroup(ref MemoryStream ard, ref TimeStamp tsc)
 		{
 			byte[] group = new byte[2000];
@@ -1317,14 +1529,16 @@ namespace X_Manager.Units
 			//Cerca un timestamp o un nostamp
 			List<byte> bufferNoStamp = new List<byte>();
 			byte test = gp6[pos];
+			int max = gp6.Length - 1;
 			while (true)
 			{
-				while ((test != 0xab) & (test != 0xac) & (test != 0xff) & (test != 0x0a))
+				while ((test != 0xab) & (pos < max) && (test != 0xac) && (test != 0x0a))
 				{
 					pos++;
 					test = gp6[pos];
 				}
-				if (test == 0xff | test == 0x0a)
+				//if (test == 0xff | test == 0x0a)
+				if (test == 0x0a | pos == max)
 				{
 					List<byte> lout = new List<byte>();
 					lout.Add(0xff);
@@ -1345,9 +1559,11 @@ namespace X_Manager.Units
 					break;
 				}
 			}
+			t.pos = pos;
 			pos++;
 			t.tsType = gp6[pos];
 			pos++;
+			t.tsTypeExt1 = t.tsTypeExt2 = 0;
 			if ((t.tsType & ts_ext1) == ts_ext1)
 			{
 				t.tsTypeExt1 = gp6[pos];
@@ -1371,7 +1587,7 @@ namespace X_Manager.Units
 				pos += 2;
 			}
 
-			//Inserire Coordinata
+			//Coordinata
 			if ((t.tsType & ts_coordinate) == ts_coordinate)
 			{
 				if (gp6[pos] > 0x7f)
@@ -1391,6 +1607,7 @@ namespace X_Manager.Units
 					t.altitude *= 0.128;
 					t.altitude -= 1000;
 					pos += 9;
+					t.sat = 8; //In caso di coordinata da flash interna, forza il n. di satelliti a 8 per consentire la conversione del kml
 				}
 
 			}
@@ -1437,6 +1654,10 @@ namespace X_Manager.Units
 				}
 
 
+			}
+			else
+			{
+				t.dateTime.AddSeconds(1);
 			}
 
 			return bufferNoStamp;
@@ -1509,15 +1730,6 @@ namespace X_Manager.Units
 
 		//}
 
-		private void txtWrite(ref TimeStamp timeStampO, ref BinaryWriter txt)
-		{
-
-		}
-
-		private void kmlWrite(ref TimeStamp timeStampO, ref BinaryWriter kml, ref BinaryWriter placeMark)
-		{
-
-		}
 
 		//private coordKml decoderKml(ref TimeStamp tsc)
 		//{

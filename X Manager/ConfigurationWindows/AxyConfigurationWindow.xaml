@@ -14,7 +14,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="54"/>
             <RowDefinition Height="240"/>
-            <RowDefinition Height="70"/>
+            <RowDefinition Height="72"/>
             <RowDefinition Height="74"/>
             <RowDefinition Height="74"/>
             <RowDefinition Height="74"/>
@@ -29,7 +29,7 @@
             </Grid.ColumnDefinitions>
             <GroupBox Grid.Column="0" Header="SAMPLE RATE (Hz)" Foreground="#FF00AADE" x:Name="sampleRateGB">
                 <StackPanel Name="rates" Orientation="Vertical">
-                    <RadioButton Name="rate1RB"  Content="1" Margin="20,10,0,0" TabIndex="0" />
+                    <RadioButton Name="rate1RB"  Content="1" Margin="20,10,0,0" TabIndex="0" Checked="setThresholdUdsEvent"/>
                     <RadioButton Name="rate10RB" Content="10" Margin="20,10,0,0" TabIndex="1" Checked="setThresholdUdsEvent"/>
                     <RadioButton Name="rate25RB" Content="25" Margin="20,10,0,0" TabIndex="2" Checked="setThresholdUdsEvent"/>
                     <RadioButton Name="rate50RB" Content="50" Margin="20,10,0,0" TabIndex="3" Checked="setThresholdUdsEvent"/>
@@ -45,16 +45,33 @@
                 </StackPanel>
             </GroupBox>
         </Grid>
-        <GroupBox Grid.Row="2" Header="RESOLUTION" Foreground="#FF00AADE" Margin="0,0,0,5">
-            <Grid Margin="0,0,0,0" >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
-                <RadioButton Name="bits8RB" Grid.Column="0"  HorizontalAlignment="Left" Content="8 bit" TabIndex="9" Margin="20,0,0,0"   />
-                <RadioButton Name="bits10RB" Grid.Column="1" HorizontalAlignment="Left" Content="10 bit" TabIndex="10" Margin="32,0,0,1"/>
-            </Grid>
-        </GroupBox>
+        <Grid Grid.Row="2" x:Name="magGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="5*" x:Name="magCol"/>
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0" Header="RESOLUTION (bit)" Foreground="#FF00AADE" Margin="0,0,5,5">
+                <Grid Margin="0,0,0,0" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <RadioButton Name="bits8RB" Grid.Column="0"  HorizontalAlignment="Left" Content="8" TabIndex="9" Margin="20,0,0,0"   />
+                    <RadioButton Name="bits10RB" Grid.Column="1" HorizontalAlignment="Left" Content="10" TabIndex="10" Margin="32,0,0,1"/>
+                </Grid>
+            </GroupBox>
+            <GroupBox Grid.Column="1" x:Name="magGB" Header="MAGNETOMETER" Foreground="#FF00AADE" Margin="5,0,0,5">
+                <StackPanel Orientation="Horizontal">
+                <ComboBox Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="magCB">
+                    <ComboBoxItem>OFF</ComboBoxItem>
+                    <ComboBoxItem>1</ComboBoxItem>
+                    <ComboBoxItem>2</ComboBoxItem>
+                </ComboBox>
+                    <Label Content="Hz" x:Name="magL"/>
+                </StackPanel>
+            </GroupBox>
+            
+        </Grid>
         <GroupBox Grid.Row="3" Name="TDgroupBox" Header="TEMPERATURE AND DEPTH LOGGING" Foreground="#FF00AADE" Margin="0,0,0,5">
             <Grid Margin="-10,0" HorizontalAlignment="Right" Width="395">
                 <Grid.ColumnDefinitions>

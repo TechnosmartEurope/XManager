@@ -69,6 +69,9 @@ namespace X_Manager.Units
 		int iend1;
 		int iend2;
 
+		int tsCheck = 0;
+		int tsInvalid = 0;
+
 		//byte dateFormatPreference;
 		//byte timeFormatPreference;
 		//string[] prefs;
@@ -174,7 +177,7 @@ namespace X_Manager.Units
 				sp.Write(dateAr, 0, 6);
 				if (sp.ReadByte() == 0x75)
 				{
-					for(int i = 0; i < 8; i++)
+					for (int i = 0; i < 8; i++)
 					{
 						sp.ReadByte();
 					}
@@ -1344,7 +1347,6 @@ namespace X_Manager.Units
 
 			do
 			{
-
 				dummy = ard.ReadByte();
 				if (dummy == 0xab)
 				{
@@ -1381,12 +1383,18 @@ namespace X_Manager.Units
 						}
 						else
 						{
+							//tsCheck++;
 							ard.Position -= 2;
+							return new double[12];
 						}
+					}
+					else if (dummyExt1 == 0)
+					{
+						ard.Position -= 1;
 					}
 					else
 					{
-						ard.Position -= 1;
+						//MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
 					}
 				}
 				else
@@ -1478,10 +1486,20 @@ namespace X_Manager.Units
 				resultCode = resample5(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
 			}
 			return doubleResultArray;
+
+			//sviluppo. togliere dopo sviluppo
+			//double[] doubleResultArray = new double[position];
+			//Array.Copy(group, doubleResultArray, doubleResultArray.Length);
+			//return (doubleResultArray);
+			//svilluppo
 		}
 
 		private string groupConverter(ref timeStamp tsLoc, double[] group, string unitName)
 		{
+			//sviluppo
+			//gCoeff = 1;
+			//iend2 = group.Length;
+			///sviluppo
 			if (group.Length == 0)
 			{
 				if (nOutputs == 0)
@@ -1572,6 +1590,7 @@ namespace X_Manager.Units
 			//		gruppo[magx] = gruppo[magy] = gruppo[magz] = "";
 			//	}
 			//}
+
 			for (int i = iend1 + 3; i < iend2; i += 3)
 			{
 				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
@@ -1597,9 +1616,6 @@ namespace X_Manager.Units
 			{
 				gruppoCON[ardPosition] = ard.Position.ToString("X");
 			}
-			//tsc.ardPosition = ard.Position;
-
-
 
 			tsc.tsTypeExt1 = 0;
 			//tsc.tsTypeExt2 = 0;
@@ -1631,6 +1647,17 @@ namespace X_Manager.Units
 			//{
 			//	tsc.tsTypeExt1 = 0;
 			//}
+
+			//Controllo alternanza header - footer
+			tsCheck++;
+			if ((tsCheck == 2) | (tsInvalid == 1))
+			{
+				MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
+				tsc.stopEvent = 5;
+				gruppoCON[meta] = "DATA ERROR at Location 0x." + ard.Position.ToString("X"); addMilli = 0;
+				tsc.temperature = ard.Position;
+				tsc.tsTypeExt1 &= 0xfe;
+			}
 
 			//TEMPERATURA INTERNA
 			if (temperatureEn == 1)
@@ -1804,6 +1831,7 @@ namespace X_Manager.Units
 					while (t != 0xab) t = (byte)ard.ReadByte();
 					ard.Read(new byte[0x3e], 0, 0x3e);
 					header = true;
+					tsCheck--;
 					goto _inizio;
 				}
 			}
@@ -1813,6 +1841,13 @@ namespace X_Manager.Units
 			return;
 
 		_footer:
+
+			//Controllo alternanza header - footer
+			tsCheck--;
+			if (tsCheck < 0)
+			{
+				tsInvalid = 1;
+			}
 
 			//PRESSIONE E TEMPERATURA ESTERNA
 			if (pressureEn > 0)

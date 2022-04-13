@@ -1996,15 +1996,15 @@ namespace X_Manager.ConfigurationWindows
 				}
 				c += 16;
 			}
-			conf[c] = (byte)(sch[0] >> 24);
-			conf[c + 1] = (byte)(sch[0] >> 16);
-			conf[c + 2] = (byte)(sch[0] >> 8);
-			conf[c + 3] = (byte)sch[0];
+			conf[c + 3] = (byte)(sch[0] >> 24);
+			conf[c + 2] = (byte)(sch[0] >> 16);
+			conf[c + 1] = (byte)(sch[0] >> 8);
+			conf[c] = (byte)sch[0];
 
-			conf[c + 4] = (byte)(sch[1] >> 24);
-			conf[c + 5] = (byte)(sch[1] >> 16);
-			conf[c + 6] = (byte)(sch[1] >> 8);
-			conf[c + 7] = (byte)sch[1];
+			conf[c + 7] = (byte)(sch[1] >> 24);
+			conf[c + 6] = (byte)(sch[1] >> 16);
+			conf[c + 5] = (byte)(sch[1] >> 8);
+			conf[c + 4] = (byte)sch[1];
 
 			c += 8;
 			for (int i = 0; i < 24; i++)

@@ -30,6 +30,7 @@ namespace X_Manager.Units
 			public DateTime orario;
 			public byte stopEvent;
 			public byte timeStampLength;
+			public double magX_A, magY_A, magZ_A, magX_B, magY_B, magZ_B;
 			//public long ardPosition;
 		}
 
@@ -55,6 +56,9 @@ namespace X_Manager.Units
 		bool metadata;
 		bool overrideTime;
 		string ardPos = "";
+		int magen;
+		double[] magData_A = new double[3];
+		double[] magData_B = new double[3];
 
 		//double mediaFreq = 0;    //sviluppo
 		//double contoFreq = 0;     //sviluppo
@@ -207,7 +211,7 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
-			
+
 			mem_address = m;
 			mem_max_logical_address = 0;
 			return new uint[] { mem_max_logical_address, mem_address };
@@ -253,7 +257,18 @@ namespace X_Manager.Units
 			sp.Write("TTTTTTTTTTTTGGAC");
 			try
 			{
-				for (int i = 15; i <= 17; i++) { conf[i] = (byte)sp.ReadByte(); }
+				for (int i = 15; i <= 17; i++)
+				{
+					conf[i] = (byte)sp.ReadByte();
+				}
+				if (firmTotA >= 3000000)
+				{
+					if (firmTotA >= 3001000)
+					{
+						conf[19] = (byte)sp.ReadByte();
+					}
+					conf[21] = (byte)sp.ReadByte();
+				}
 			}
 			catch
 			{
@@ -270,6 +285,14 @@ namespace X_Manager.Units
 			{
 				sp.ReadByte();
 				sp.Write(conf, 15, 3);
+				if (firmTotA >= 3000000)
+				{
+					if (firmTotA >= 3001000)
+					{
+						sp.Write(conf, 19, 1);
+					}
+					sp.Write(conf, 21, 1);
+				}
 				sp.ReadByte();
 			}
 			catch
@@ -425,7 +448,7 @@ namespace X_Manager.Units
 					outBuffer[0] = 79;
 					bytesToWrite = 1;
 				}
-				
+
 				fixed (byte* outP = outBuffer, inP = &fileBuffer[actMemory])
 				{
 					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
@@ -449,14 +472,14 @@ namespace X_Manager.Units
 				else
 				{
 					actMemory += 4096;      //Prima di scrivere incrementa l'indirizzo per capire se sono state scaricate le ultime pagine di un blocco
-					
-					if ((actMemory % 0x20000) == 0)	
+
+					if ((actMemory % 0x20000) == 0)
 					{
 						if ((actMemory % 0x40000) == 0)
 						{
 							firstLoop = true;
 						}
-						if (dieCount == 2)		//Nel caso le riscarica singolarmente, per ovviare al bug della memoria dual die
+						if (dieCount == 2)      //Nel caso le riscarica singolarmente, per ovviare al bug della memoria dual die
 						{
 							actMemory -= 4096;
 							for (int i = 0; i < 2; i++)
@@ -1125,10 +1148,14 @@ namespace X_Manager.Units
 			byte rrb = ard.ReadByte();
 			rate = findSamplingRate(rrb);
 			rateComp = rate;
-			if (rate == 1) rateComp = 10;
+			if (rate == 1 & firmTotA < 3001000) rateComp = 10;
 			range = findRange(rrb);
 			bits = findBits(rrb);
 			bitsDiv = findBytesPerSample();
+			if (firmTotA >= 3000000)
+			{
+				magen = ard.ReadByte();
+			}
 
 			Array.Resize(ref lastGroup, ((rateComp * 3)));
 			nOutputs = rateComp;
@@ -1176,13 +1203,13 @@ namespace X_Manager.Units
 
 				if (timeStampO.stopEvent > 0)
 				{
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName)));
+					csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName)));
 					break;
 				}
 
 				try
 				{
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(
+					csv.Write(Encoding.ASCII.GetBytes(
 						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
 				}
 				catch (Exception ex)
@@ -1233,12 +1260,42 @@ namespace X_Manager.Units
 						position += 1;
 						dummy = 0;
 					}
+					else if (dummyExt == 0xac)
+					{
+						if (ard.BaseStream.Position < ard.BaseStream.Length - 6)
+						{
+							tsc.magX_B = ard.ReadByte();
+							tsc.magX_B += (ard.ReadByte() * 256);
+							if (tsc.magX_B > 32767)
+							{
+								tsc.magX_B -= 65536;
+							}
+							tsc.magX_B *= 1.5;
+
+							tsc.magY_B = ard.ReadByte();
+							tsc.magY_B += (ard.ReadByte() * 256);
+							if (tsc.magY_B > 32767)
+							{
+								tsc.magY_B -= 65536;
+							}
+							tsc.magY_B *= 1.5;
+
+							tsc.magZ_B = ard.ReadByte();
+							tsc.magZ_B += (ard.ReadByte() * 256);
+							if (tsc.magZ_B > 32767)
+							{
+								tsc.magZ_B -= 65536;
+							}
+							tsc.magZ_B *= 1.5;
+						}
+						dummy = 0;
+					}
 					else
 					{
 						ard.BaseStream.Position -= 1;
 						if (badGroup)
 						{
-							System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+							File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
 						}
 					}
 				}
@@ -1288,7 +1345,7 @@ namespace X_Manager.Units
 
 			double x, y, z;
 			string ampm = "";
-			string textOut, dateTimeS, additionalInfo;
+			string textOut, dateTimeS, additionalInfo, magAdditionalInfo;
 			string dateS = "";
 			ushort milli;
 			NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
@@ -1317,9 +1374,28 @@ namespace X_Manager.Units
 			if (angloTime) textOut += " " + ampm;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
+			magAdditionalInfo = "";
 			additionalInfo = "";
 
-			contoTab = 1;
+			contoTab = 0;
+
+			//Inserisce il magnetometro
+			if (magen > 0)
+			{
+				//contoTab += 3;
+				if (((tsLoc.tsTypeExt1 & 8) == 8) | repeatEmptyValues)
+				{
+					magAdditionalInfo += csvSeparator + tsLoc.magX_A.ToString("#.0");
+					magAdditionalInfo += csvSeparator + tsLoc.magY_A.ToString("#.0");
+					magAdditionalInfo += csvSeparator + tsLoc.magZ_A.ToString("#.0");
+				}
+				else
+				{
+					magAdditionalInfo += csvSeparator + csvSeparator + csvSeparator;
+				}
+			}
+
+			contoTab += 1;
 			additionalInfo += csvSeparator;
 			if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString(nfi);
 
@@ -1351,18 +1427,22 @@ namespace X_Manager.Units
 							additionalInfo += "Memory full.";
 							break;
 					}
-					textOut += additionalInfo + ardPos + "\r\n";
+					textOut += magAdditionalInfo + additionalInfo + ardPos + "\r\n";
 					return textOut;
 				}
 
 			}
 
-			textOut += additionalInfo + ardPos + "\r\n";
+			textOut += magAdditionalInfo + additionalInfo + ardPos + "\r\n";
 
 			if (tsLoc.stopEvent > 0) return textOut;
 
 			if (!repeatEmptyValues)
 			{
+				if (magen > 0)
+				{
+					magAdditionalInfo = csvSeparator + csvSeparator + csvSeparator;
+				}
 				additionalInfo = "";
 				for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
 			}
@@ -1371,9 +1451,11 @@ namespace X_Manager.Units
 			dateTimeS += ".";
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
-			var iend = (short)((rateComp * 3));
+			//var iend1 = (short)((rateComp * 3) / 2);
+			var iend2 = (short)(rateComp * 3);
+			var iend1 = (((iend2 / 2) / 3) + 1) * 3;
 
-			for (short i = 3; i < iend; i += 3)
+			for (short i = 3; i < iend1; i += 3)
 			{
 				x = group[i];
 				y = group[i + 1];
@@ -1393,9 +1475,62 @@ namespace X_Manager.Units
 				if (angloTime) textOut += " " + ampm;
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
-				textOut += additionalInfo + "\r\n";
+				textOut += magAdditionalInfo + additionalInfo + "\r\n";
 				milli += addMilli;
 			}
+
+			if (rateComp == 1) return textOut;
+
+			x = group[iend1]; y = group[iend1 + 1]; z = group[iend1 + 2];
+
+			x *= gCoeff; //x = Math.Round(x, cifreDec);
+			y *= gCoeff; //y = Math.Round(y, cifreDec);
+			z *= gCoeff; //z = Math.Round(z, cifreDec);
+
+			textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
+			if (angloTime) textOut += " " + ampm;
+			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
+
+			if (magen == 2)
+			{
+				magAdditionalInfo = csvSeparator + tsLoc.magX_B.ToString("#.0");
+				magAdditionalInfo += csvSeparator + tsLoc.magY_B.ToString("#.0");
+				magAdditionalInfo += csvSeparator + tsLoc.magZ_B.ToString("#.0");
+			}
+
+			textOut += magAdditionalInfo + additionalInfo + ardPos + "\r\n";
+			if (!repeatEmptyValues)
+			{
+				if (magen > 0)
+				{
+					magAdditionalInfo = csvSeparator + csvSeparator + csvSeparator;
+				}
+			}
+
+			for (int i = iend1 + 3; i < iend2; i += 3)
+			{
+				x = group[i];
+				y = group[i + 1];
+				z = group[i + 2];
+
+				x *= gCoeff; //x = Math.Round(x, cifreDec);
+				y *= gCoeff; //y = Math.Round(y, cifreDec);
+				z *= gCoeff; //z = Math.Round(z, cifreDec);
+
+				if (rate == 1)
+				{
+					tsLoc.orario = tsLoc.orario.AddSeconds(1);
+					dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+				}
+				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
+
+				if (angloTime) textOut += " " + ampm;
+				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
+
+				textOut += magAdditionalInfo + additionalInfo + "\r\n";
+				milli += addMilli;
+			}
+
 
 			return textOut;
 		}
@@ -1573,7 +1708,6 @@ namespace X_Manager.Units
 				return;
 			}
 
-
 			if ((tsc.tsType & 1) == 1)
 			{
 				try
@@ -1597,10 +1731,19 @@ namespace X_Manager.Units
 				{
 					return;
 				}
-				if (tsc.temperature > 511) tsc.temperature -= 1024;
-				tsc.temperature = Math.Round(((tsc.temperature * 0.1221) + 22.5), 2, MidpointRounding.AwayFromZero);
-
+				if (((int)tsc.temperature & 0xff) == 0)
+				{
+					tsc.temperature /= 256;
+					if (tsc.temperature > 127) tsc.temperature -= 256;  //x firmware su board axy5
+					tsc.temperature += 25;
+				}
+				else
+				{
+					if (tsc.temperature > 511) tsc.temperature -= 1024;
+					tsc.temperature = Math.Round(((tsc.temperature * 0.1221) + 22.5), 2, MidpointRounding.AwayFromZero);
+				}
 			}
+
 
 			if ((tsc.tsType & 8) == 8)
 			{
@@ -1609,9 +1752,38 @@ namespace X_Manager.Units
 
 			tsc.orario = tsc.orario.AddSeconds(1);
 
-			if ((tsc.tsType & 1) == 1)
+			if ((tsc.tsType & 1) == 0) return;
+
+			if ((tsc.tsTypeExt1 & 8) == 8)
 			{
-				if (((tsc.tsTypeExt1 & 32) == 32) && (!overrideTime))
+				tsc.magX_A = ard.ReadByte();
+				tsc.magX_A += (ard.ReadByte() * 256);
+				if (tsc.magX_A > 32767)
+				{
+					tsc.magX_A -= 65536;
+				}
+				tsc.magX_A *= 1.5;
+
+				tsc.magY_A = ard.ReadByte();
+				tsc.magY_A += (ard.ReadByte() * 256);
+				if (tsc.magY_A > 32767)
+				{
+					tsc.magY_A -= 65536;
+				}
+				tsc.magY_A *= 1.5;
+
+				tsc.magZ_A = ard.ReadByte();
+				tsc.magZ_A += (ard.ReadByte() * 256);
+				if (tsc.magZ_A > 32767)
+				{
+					tsc.magZ_A -= 65536;
+				}
+				tsc.magZ_A *= 1.5;
+			}
+
+			if ((tsc.tsTypeExt1 & 32) == 32)
+			{
+				if (!overrideTime)
 				{
 					int anno = ard.ReadByte();
 					anno = ((anno >> 4) * 10) + (anno & 15) + 2000;
@@ -1634,10 +1806,13 @@ namespace X_Manager.Units
 					minuti = ((minuti >> 4) * 10) + (minuti & 15);
 
 					tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
-
-					//overrideTime = true;
-
 				}
+				else
+				{
+					ard.ReadBytes(8);
+				}
+				//overrideTime = true;
+
 			}
 
 		}
@@ -1654,7 +1829,11 @@ namespace X_Manager.Units
 				csvHeader = csvHeader + csvSeparator + "Date" + csvSeparator + "Time";
 			}
 
-			csvHeader = csvHeader + csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
+			csvHeader = csvHeader + csvSeparator + "accX" + csvSeparator + "accY" + csvSeparator + "accZ";
+			if (magen > 0)
+			{
+				csvHeader += csvSeparator + "magX" + csvSeparator + "magY" + csvSeparator + "magZ";
+			}
 			csvHeader = csvHeader + csvSeparator + "Temp. (°C)";
 			if (prefBattery)
 			{

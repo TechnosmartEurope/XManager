@@ -1314,8 +1314,8 @@ namespace X_Manager
 			{
 				if ((File.Exists(fileNameKml)) & (exten.Contains("ard"))) fDel(fileNameKml);
 				if ((File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) fDel(fileNamePlaceMark);
-				kml = new System.IO.BinaryWriter(File.OpenWrite(fileNameKml));
-				placeMark = new System.IO.BinaryWriter(File.OpenWrite(fileNamePlaceMark));
+				kml = new BinaryWriter(File.OpenWrite(fileNameKml));
+				placeMark = new BinaryWriter(File.OpenWrite(fileNamePlaceMark));
 				primaCoordinata = true;
 				contoCoord = 0;
 				//string
@@ -2507,11 +2507,11 @@ namespace X_Manager
 				if ((contoCoord == 10000))
 				{
 					//  se arrivato a 10000 coordinate apre un nuovo <coordinates>
-					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Path_Bot));
-					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
+					kmlW.Write(Encoding.ASCII.GetBytes(Properties.Resources.Path_Bot));
+					kmlW.Write(Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
 					contoCoord = 0;
 				}
-				kmlW.Write(System.Text.Encoding.ASCII.GetBytes("\t\t\t\t\t" + coordinataKml.cSstring + "\r\n"));
+				kmlW.Write(Encoding.ASCII.GetBytes("\t\t\t\t\t" + coordinataKml.cSstring + "\r\n"));
 				contoCoord++;
 
 				if (primaCoordinata)
@@ -2521,8 +2521,8 @@ namespace X_Manager
 					lookAtValues = coordinataKml.cPlacemark.Split(',');
 					lookAtValues[0] = lookAtValues[0].Remove(0, (lookAtValues[0].IndexOf(">") + 1));
 					lookAtValues[2] = lookAtValues[2].Remove(lookAtValues[2].IndexOf("<"), (lookAtValues[2].Length - lookAtValues[2].IndexOf("<")));
-					buffer = System.Text.Encoding.ASCII.GetBytes(
-						X_Manager.Properties.Resources.lookat1 + lookAtValues[0] + X_Manager.Properties.Resources.lookat2 + lookAtValues[1]
+					buffer = Encoding.ASCII.GetBytes(
+						Properties.Resources.lookat1 + lookAtValues[0] + X_Manager.Properties.Resources.lookat2 + lookAtValues[1]
 						+ X_Manager.Properties.Resources.lookat3 + lookAtValues[2] + X_Manager.Properties.Resources.lookat4);
 					placeMarkW.Write(buffer, 0, buffer.Length - 1);
 					buffer = System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Start_Top + coordinataKml.cPlacemark
