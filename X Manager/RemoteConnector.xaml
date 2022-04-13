@@ -35,6 +35,9 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
+                <!-- sviluppo -->
+                <TextBox x:Name="sviluppoTB" Grid.Column="0" Text="Prova"></TextBox>
+                <!-- sviluppo -->
                 <Rectangle x:Name="r1" Grid.Column="1" Height="35" Width="70" Fill="#FF424242" />
                 <Rectangle x:Name="r2" Grid.Column="2" Height="35" Width="70" Fill="#FF424242" />
                 <Rectangle x:Name="r3" Grid.Column="3" Height="35" Width="70" Fill="#FF424242" />

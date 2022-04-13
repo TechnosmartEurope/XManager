@@ -909,7 +909,7 @@ namespace X_Manager.Units
 			bits = findBits(rrb);
 			bitsDiv = findBytesPerSample();
 
-			Array.Resize(ref lastGroup, ((rate * 3)));
+			Array.Resize(ref lastGroup, ((rateComp * 3)));
 			nOutputs = rateComp;
 
 			cifreDec = 3; cifreDecString = "0.000";
@@ -954,7 +954,10 @@ namespace X_Manager.Units
 					csv.Write(System.Text.Encoding.ASCII.GetBytes(
 						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
 				}
-				catch { }
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.ToString());
+				}
 
 			}
 
@@ -1071,9 +1074,9 @@ namespace X_Manager.Units
 
 			x = group[0]; y = group[1]; z = group[2];
 
-			x *= gCoeff; x = Math.Round(x, cifreDec);
-			y *= gCoeff; y = Math.Round(y, cifreDec);
-			z *= gCoeff; z = Math.Round(z, cifreDec);
+			x *= gCoeff; //x = Math.Round(x, cifreDec);
+			y *= gCoeff; //y = Math.Round(y, cifreDec);
+			z *= gCoeff; //z = Math.Round(z, cifreDec);
 
 			textOut = unitName + csvSeparator + dateTimeS + ".000";
 			if (angloTime) textOut += " " + ampm;
@@ -1131,7 +1134,7 @@ namespace X_Manager.Units
 			dateTimeS += ".";
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
-			var iend = (short)((rate * 3));
+			var iend = (short)((rateComp * 3));
 
 			for (short i = 3; i < iend; i += 3)
 			{
@@ -1139,9 +1142,9 @@ namespace X_Manager.Units
 				y = group[i + 1];
 				z = group[i + 2];
 
-				x *= gCoeff; x = Math.Round(x, cifreDec);
-				y *= gCoeff; y = Math.Round(y, cifreDec);
-				z *= gCoeff; z = Math.Round(z, cifreDec);
+				x *= gCoeff; //x = Math.Round(x, cifreDec);
+				y *= gCoeff; //y = Math.Round(y, cifreDec);
+				z *= gCoeff; //z = Math.Round(z, cifreDec);
 
 				if (rate == 1)
 				{
@@ -1234,16 +1237,16 @@ namespace X_Manager.Units
 				switch (range)
 				{
 					case 2:
-						gCoeff = 15.63;
+						gCoeff = 0.01563;
 						break;
 					case 4:
-						gCoeff = 31.26;
+						gCoeff = 0.03126;
 						break;
 					case 8:
-						gCoeff = 62.52;
+						gCoeff = 0.06252;
 						break;
 					case 16:
-						gCoeff = 187.58;
+						gCoeff = 0.18758;
 						break;
 				}
 				return false;
@@ -1253,16 +1256,16 @@ namespace X_Manager.Units
 				switch (range)
 				{
 					case 2:
-						gCoeff = 3.9;
+						gCoeff = 0.0039;
 						break;
 					case 4:
-						gCoeff = 7.82;
+						gCoeff = 0.00782;
 						break;
 					case 8:
-						gCoeff = 15.63;
+						gCoeff = 0.01563;
 						break;
 					case 16:
-						gCoeff = 46.9;
+						gCoeff = 0.0469;
 						break;
 				}
 				return true;

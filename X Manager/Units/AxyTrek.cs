@@ -1198,8 +1198,6 @@ namespace X_Manager
 				if ((adcTemp & 8) == 8) adcStop = true;
 				//if ((adcTemp & 4) == 4) adcMagmin = true;
 				if ((adcTemp & 2) == 2) adcLog = true;
-
-
 			}
 			//Legge i coefficienti di profondità
 			//ard.BaseStream.Position = pos;

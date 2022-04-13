@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using System.IO.Ports;
 using System.Threading;
 using System.Windows.Threading;
+using System.Diagnostics;
 
 namespace X_Manager
 {
@@ -84,6 +85,7 @@ namespace X_Manager
 
         private void communicationAttempt(byte address)
         {
+			//Stopwatch sw = new Stopwatch();
             sp.ReadTimeout = 3000;
             byte status = 0;
             byte connCount = 0;
@@ -91,12 +93,13 @@ namespace X_Manager
             {
                 try
                 {
-                    status = (byte)sp.ReadByte();
-                    if (status < 3)
+					status = (byte)sp.ReadByte();
+					//sw.Start();
+					if (status < 3)
                     {
                         connCount++;
                     }
-                    if (connCount == 45)
+                    if (connCount == 15)
                     {
                         status = 2;
                     }
@@ -113,41 +116,42 @@ namespace X_Manager
                     status = 255;
                     return;
                 }
-                if (status != 0)
+                if (status == 0)
                 {
-                    if (status == 1)    //L'unità ha risposto
-                    {
-                        stop = 1;
-                        Thread.Sleep(100);
-                        sp.Write("ATX");
-                        Thread.Sleep(500);
-                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
-                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));
-                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.finalize(1)));
-                    }
-                    else if (status==2)   //Raggiunto massimo numero di tentativi
-                    {
-                        stop = 2;
-                        Thread.Sleep(100);
-                        sp.Write("ATX");
-                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
-                        Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));
-                    }
+					if (stop == 0)
+					{
+						//Thread.Sleep(800);
+						//sw.Stop();
+						//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.sviluppoTB.Text = sw.Elapsed.Milliseconds.ToString()));
+						//sw.Reset();
+						sp.Write(new byte[] { 65, 84, 65, 87, address }, 0, 5);
+					}
+					else
+					{
+						sp.Write("ATX");
+					}					
                 }
                 else
                 {
-                    if (stop == 0)
-                    {
-                        Thread.Sleep(800);
-                        sp.Write(new byte[] { 65, 84, 65, 87, address }, 0, 5);
-                    }
-                    else
-                    {
-                        sp.Write("ATX");
-                    }
-                }
-
-
+					if (status == 1)    //L'unità ha risposto
+					{
+						stop = 1;
+						Thread.Sleep(100);
+						sp.Write("ATX");
+						Thread.Sleep(500);
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.finalize(1)));
+					}
+					else if (status == 2)   //Raggiunto massimo numero di tentativi
+					{
+						stop = 2;
+						Thread.Sleep(100);
+						sp.Write("ATX");
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));
+					}
+				}
             }
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
             Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));

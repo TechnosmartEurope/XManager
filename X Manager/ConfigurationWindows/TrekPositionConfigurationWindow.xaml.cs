@@ -295,7 +295,7 @@ namespace X_Manager.ConfigurationWindows
 			conf[160] = (byte)(((UInt16)st.ADCValueUD.Value) >> 8);
 			conf[161] = (byte)(((UInt16)st.ADCValueUD.Value) & 0xff);
 			if ((string)st.magMinB.Content == ">") conf[160] += 4;
-			if ((string)st.adcTrigger.Content == ">") conf[160] += 8;
+			if ((bool)st.adcTrigger.IsChecked) conf[160] += 8;
 
 			conf[140] = (byte)(((UInt16)st.startDelayNud.Value) >> 8);
 			conf[141] = (byte)(((UInt16)st.startDelayNud.Value) & 0xff);

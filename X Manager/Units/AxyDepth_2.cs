@@ -825,7 +825,7 @@ namespace X_Manager.Units
             bits = findBits(rrb);
             bitsDiv = findBytesPerSample();
 
-            Array.Resize(ref lastGroup, (rate * 3));
+            Array.Resize(ref lastGroup, (rateComp * 3));
             nOutputs = rateComp;
 
             cifreDec = 3;
@@ -1050,7 +1050,7 @@ namespace X_Manager.Units
             dateTimeS += ".";
             if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
-            var iend = (short)((rate * 3));
+            var iend = (short)((rateComp * 3));
 
             for (short i = 3; i < iend; i += 3)
             {

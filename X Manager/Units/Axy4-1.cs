@@ -562,7 +562,7 @@ namespace X_Manager.Units
             bitsDiv = findBytesPerSample();
 
             //Array.Resize(ref lastGroup, ((rate * 3)));
-            lastGroup = new double[(rate * 3)];
+            lastGroup = new double[(rateComp * 3)];
 
             nOutputs = rateComp;
 
@@ -732,7 +732,7 @@ namespace X_Manager.Units
             dateTimeS += ".";
             if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
-            var iend = (short)((rate * 3));
+            var iend = (short)((rateComp * 3));
 
             for (short i = 3; i < iend; i += 3)
             {
