@@ -172,7 +172,14 @@ namespace X_Manager.Units
 				dateAr[4] = (byte)dateToSend.Month;
 				dateAr[5] = (byte)(dateToSend.Year - 2000);
 				sp.Write(dateAr, 0, 6);
-				sp.ReadByte();
+				if (sp.ReadByte() == 0x75)
+				{
+					for(int i = 0; i < 8; i++)
+					{
+						sp.ReadByte();
+					}
+				}
+
 			}
 			catch
 			{
@@ -441,10 +448,9 @@ namespace X_Manager.Units
 		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			convertStop = false;
-			uint actMemory = fromMemory;
-			System.IO.FileMode fm = System.IO.FileMode.Create;
-			if (fromMemory != 0) fm = System.IO.FileMode.Append;
-			//string fileNameMdp_base = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
+			uint actMemory = mem_max_logical_address;
+			FileMode fm = FileMode.Create;
+
 			string fileNameMdp_base = Path.GetFileNameWithoutExtension(fileName);
 			int numAct = -1;
 			foreach (string file in Directory.GetFiles(Path.GetDirectoryName(fileName)))
@@ -518,13 +524,14 @@ namespace X_Manager.Units
 
 			int position = 0;
 			int toBeDownloaded;
-			if (fromMemory < toMemory)
+			uint stopMemory = (mem_address & 0xfffff000) + 0x1000;
+			if (mem_address > mem_max_logical_address)
 			{
-				toBeDownloaded = (int)toMemory - (int)fromMemory;
+				toBeDownloaded = (int)mem_address - (int)mem_max_logical_address;
 			}
 			else
 			{
-				toBeDownloaded = (int)mem_max_physical_address - (int)fromMemory + (int)toMemory;
+				toBeDownloaded = (int)mem_max_physical_address - (int)mem_max_logical_address + (int)mem_address;
 			}
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
@@ -577,7 +584,7 @@ namespace X_Manager.Units
 
 		_loopSingleDie:
 
-			while (actMemory != toMemory)
+			while (actMemory != stopMemory)
 			{
 				//COSTRUZIONE COMANDO
 				if (firstLoop > 0)          //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)

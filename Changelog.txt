@@ -96,3 +96,5 @@
 1.10.3	Allineamento vettori fisici e logici e funzioni per tutte le unità
 	Correzione separatore decimale in temperatura e pressione Axy5
 	Bugfix: Download Axy5 non funzionava dopo migrazione a nuovo sistema vettori fisici e logici memoria
+1.10.4	Download settato su firmware 1.7.0 - MPLAB X
+	Sistemata gestione memoria Axy5 e aggiornamento progress bar

@@ -706,8 +706,9 @@ namespace X_Manager
 
 		private void setPBMemory(uint[] actM, uint[] maxM)
 		{
-			statusProgressBar.Maximum = maxM[1];
-			statusProgressBar.Minimum = maxM[0];
+			statusProgressBar.Maximum = maxM[1] - maxM[0];
+			statusProgressBar.Minimum = 0;
+
 			if (actM[0] < actM[1])
 			{
 				statusProgressBar.Value = actM[1] - actM[0];
@@ -1401,7 +1402,7 @@ namespace X_Manager
 				{
 					oUnit.eraseMemory();
 					Thread.Sleep(50);
-					uint[] maxM = oUnit.askMemory();
+					uint[] maxM = oUnit.askMaxMemory();
 					Thread.Sleep(50);
 					uint[] actM = oUnit.askMemory();
 					setPBMemory(actM, maxM);
@@ -1613,7 +1614,7 @@ namespace X_Manager
 				if ((oUnit is Axy5) | (oUnit is Gipsy6))
 				{
 					fromMemory = oUnit.mem_max_logical_address;
-					toMemory = (oUnit.mem_address & 0xfffff000) + 0x1000;
+					toMemory = oUnit.mem_address;
 				}
 				else          //Chiede di sovrascrivere o continuare il download in caso di memorie senza effetto pacman
 				{
@@ -1721,7 +1722,7 @@ namespace X_Manager
 			}
 
 			//fOpen.FileName = "*.ard";
-			fOpen.Filter = "Axy Raw Data (*.ard, *.rem)|*.ard;*.rem|Memory dump file|*.memDump;*.mdp";
+			fOpen.Filter = "Sensor Raw Data | *.ard;*.rem;*.gp6;*.memDump;*.mdp";
 
 			fOpen.Multiselect = true;
 			if ((fOpen.ShowDialog() == false))
@@ -2219,6 +2220,7 @@ namespace X_Manager
 			const int type_ard = 1;
 			const int type_rem = 2;
 			const int type_mdp = 3;
+			const int type_gp6 = 4;
 
 
 			convFile++;
@@ -2288,6 +2290,10 @@ namespace X_Manager
 					{
 						fileHeader = "REM ";
 					}
+					if (System.IO.Path.GetExtension(fileName).Contains("gp6"))
+					{
+						fileType = type_gp6;
+					}
 					foreach (string nomefile in nomiFile)
 					{
 						if (File.Exists(nomefile) & askOverwrite)
@@ -2353,6 +2359,11 @@ namespace X_Manager
 			{
 				model = (byte)fs.ReadByte();
 			}
+			else if (fileType == type_gp6)
+			{
+				fs.Position = fs.Length - 2;
+				model = (byte)fs.ReadByte();
+			}
 			else
 			{
 				try
@@ -2413,7 +2424,7 @@ namespace X_Manager
 			cUnit.convertStop = false;
 			Thread conversionThread;
 			string[] prefsOut = File.ReadAllLines(prefFile);
-			if ((fileType == type_ard) | (fileType == type_rem))
+			if ((fileType == type_ard) | (fileType == type_rem) | (fileType == type_gp6))
 			{
 				statusProgressBar.Maximum = FileLength;
 				progressBarStopButton.IsEnabled = true;

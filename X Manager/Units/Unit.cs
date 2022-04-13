@@ -52,6 +52,7 @@ namespace X_Manager.Units
 		public const byte ts_ext2 = 0b_0000_0001;
 		public const byte ts_adcValue = 0b0000_0010;
 		public const byte ts_adcThreshold = 0b0000_0100;
+		public const byte ts_info = 0b0000_0100;
 		public const byte ts_mag = 0b_0000_1000;
 		public const byte ts_sched = 0b_0001_0000;
 		public const byte ts_time = 0b0010_0000;

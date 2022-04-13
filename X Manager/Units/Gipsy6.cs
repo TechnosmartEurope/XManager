@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Threading;
 using System.Globalization;
 using System.IO.Ports;
+using System.ComponentModel;
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -20,7 +21,9 @@ namespace X_Manager.Units
 	class Gipsy6 : Units.Unit
 	{
 #pragma warning disable
-		struct timeStamp
+
+		int mPos = 0;
+		struct TimeStamp
 		{
 			public int tsType;
 			public int tsTypeExt1;
@@ -57,41 +60,95 @@ namespace X_Manager.Units
 			public int gsvSum;
 
 			public int timeStampLength;
-			public DateTime orario;
-
+			public DateTime dateTime;
+			public byte[] infoAr;
 			public byte[] eventAr;
 			public bool isEvent;
 			public int stopEvent;
 			public int inWater;
 			public int inAdc;
 			public int ADC;
+
+			public int goDone;
+
+			public TimeStamp clone()
+			{
+				var tout = new TimeStamp();
+				tout.tsType = this.tsType;
+				tout.tsTypeExt1 = this.tsTypeExt1;
+				tout.tsTypeExt2 = this.tsTypeExt2;
+				tout.ore = this.ore;
+				tout.batteryLevel = this.batteryLevel;
+				tout.temperature = this.temperature;
+				tout.press = this.press;
+				tout.pressOffset = this.pressOffset;
+				tout.altitude = this.altitude;
+				tout.altSegno = this.altSegno;
+				tout.eo = this.eo;
+				tout.ns = this.ns;
+				tout.lat = this.lat;
+				tout.lon = this.lon;
+				tout.speed = this.speed;
+				tout.dop = this.dop;
+				tout.sat = this.sat;
+				tout.gsvSum = this.gsvSum;
+
+				tout.timeStampLength = this.timeStampLength;
+				tout.dateTime = this.dateTime;
+				tout.infoAr = new byte[this.infoAr.Length];
+				tout.eventAr = new byte[this.eventAr.Length];
+				Array.Copy(this.infoAr, tout.infoAr, infoAr.Length);
+				Array.Copy(this.eventAr, tout.eventAr, eventAr.Length);
+				tout.isEvent = this.isEvent;
+				tout.stopEvent = this.stopEvent;
+				tout.inWater = this.inWater;
+				tout.inAdc = this.inAdc;
+				tout.ADC = this.ADC;
+
+				tout.goDone = this.goDone;
+
+				return tout;
+			}
 		}
 
-		public struct coordKml
-		{
-			public string cSstring;
-			public string cPlacemark;
-			public string cName;
-			public string cClass;
-		}
+		static readonly string[] events = {
+			"Power ON.",
+			"","",
+			"Start searching for satellites...",
+			"No visible satellite. Going to sleep...",
+			"GPS Schedule {0} {1} {2}",
+			"","","",
+			"Power OFF",
+		};
 
-		byte debugLevel;
-		byte dateFormat;
-		byte timeFormat;
-		bool inMeters = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
-		int isDepth = 1;
-		bool sameColumn = false;
-		bool angloTime = false;
-		string dateFormatParameter;
-		bool metadata;
-		ushort adcThreshold = 0;
-		bool adcLog = false;
-		bool adcStop = false;
-		bool primaCoordinata;
-		uint contoCoord;
+		//public struct coordKml
+		//{
+		//	public string cSstring;
+		//	public string cPlacemark;
+		//	public string cName;
+		//	public string cClass;
+		//}
+
+		//byte debugLevel;
+		//byte dateFormat;
+		//byte timeFormat;
+		//bool inMeters = false;
+		//bool prefBattery = false;
+		bool repeatEmptyValues = false;
+		//int isDepth = 1;
+		//bool sameColumn = false;
+		//bool angloTime = false;
+		//string dateFormatParameter;
+		//bool metadata;
+		//ushort adcThreshold = 0;
+		//bool adcLog = false;
+		//bool adcStop = false;
+		//bool primaCoordinata;
+		//uint contoCoord;
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
+
+		BackgroundWorker txtBGW;
+		BinaryWriter txtBW;
 
 		new byte[] firmwareArray = new byte[3];
 
@@ -111,9 +168,16 @@ namespace X_Manager.Units
 			sp.ReadExisting();
 			int test = 0;
 			bool goon = false;
-			for (int y = 0; y < 4; y++)
+			for (int y = 0; y < 4; y++) //(rimettere y < 4 dopo sviluppo
 			{
-				sp.Write("TTTTTTTGGA" + command);
+				//sp.Write(new byte[] { 0 }, 0, 1);
+				sp.Write("TTTTTTGGA" + command);
+				//sviluppo
+				if (command == "m")
+				{
+					y = 0;
+				}
+				///sviluppo
 				goon = true;
 				try
 				{
@@ -121,6 +185,8 @@ namespace X_Manager.Units
 				}
 				catch
 				{
+					Thread.Sleep(500);
+					sp.Write(new byte[] { 0 }, 0, 1);
 					continue;               //Dopo il timeout di 3 ms non è arrivata la risposta: il comando viene reinviato
 				}
 				if (test == command.ToArray()[0])   //Il comando è arrivato giusto, si manda conferma e si continua
@@ -326,13 +392,13 @@ namespace X_Manager.Units
 			}
 			try
 			{
-				mem_address = (UInt32)sp.ReadByte(); mem_address *= 256;
-				mem_address += (UInt32)sp.ReadByte(); mem_address *= 256;
-				mem_address += (UInt32)sp.ReadByte(); mem_address *= 256;
+				mem_address = (UInt32)sp.ReadByte(); mem_address <<= 8;
+				mem_address += (UInt32)sp.ReadByte(); mem_address <<= 8;
+				mem_address += (UInt32)sp.ReadByte(); mem_address <<= 8;
 				mem_address += (UInt32)sp.ReadByte();
-				mem_max_logical_address = (UInt32)sp.ReadByte(); mem_max_logical_address *= 256;
-				mem_max_logical_address += (UInt32)sp.ReadByte(); mem_max_logical_address *= 256;
-				mem_max_logical_address += (UInt32)sp.ReadByte(); mem_max_logical_address *= 256;
+				mem_max_logical_address = (UInt32)sp.ReadByte(); mem_max_logical_address <<= 8;
+				mem_max_logical_address += (UInt32)sp.ReadByte(); mem_max_logical_address <<= 8;
+				mem_max_logical_address += (UInt32)sp.ReadByte(); mem_max_logical_address <<= 8;
 				mem_max_logical_address += (UInt32)sp.ReadByte();
 			}
 			catch
@@ -591,8 +657,7 @@ namespace X_Manager.Units
 			MainWindow.FT_STATUS FT_Status;
 			FT_HANDLE FT_Handle = 0;
 			byte[] outBuffer = new byte[50];
-			//byte[] add = new byte[3] { 0, 0, 0 };
-			byte[] inBuffer = new byte[4096];
+			byte[] inBuffer;// = new byte[0x200];
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[8];
 
@@ -619,22 +684,24 @@ namespace X_Manager.Units
 				buffSize = (mem_max_physical_address - mem_max_logical_address) + (mem_address - mem_min_physical_address);
 			}
 
+			buffSize -= (buffSize / 0x200) * 2;
+			buffSize += 2;
+
 			convertStop = false;
-			byte[] buffOut = new byte[buffSize];
+			inBuffer = new byte[buffSize];
 			int buffPointer = 0;
 
-			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
+			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".gp6";
 
 			//if (fromMemory != 0) fm = System.IO.FileMode.Append;
 
-			//var fo = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
-
-			//sp.Write("TTTTGGAD");
 			if (!ask("D"))
 			{
 				throw new Exception(unitNotReady);
 				return;
 			}
+
+			sp.ReadTimeout = 600;
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
@@ -659,7 +726,9 @@ namespace X_Manager.Units
 				return;
 			}
 
-			while (buffPointer < buffSize)
+			bool ok = true;
+
+			while (buffPointer < buffSize - 2)
 			{
 				if (convertStop)
 				{
@@ -668,316 +737,41 @@ namespace X_Manager.Units
 				try
 				{
 					sp.Write(new byte[] { 66 }, 0, 1);
-					sp.Read(outBuffer, buffPointer, 0x200);
-					buffPointer += 0x200;
+					sp.ReadByte();
+					sp.ReadByte();
+					for (int i = 0; i < 0x1fe; i++)
+					{
+						inBuffer[buffPointer + i] = (byte)sp.ReadByte();
+					}
+					buffPointer += 0x1fe;
 				}
-				catch
+				catch (Exception ex)
 				{
+					ok = false;
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					return;
+					break;
 				}
-
-
-				//		try
-				//		{
-				//			temp = (byte)sp.ReadByte();
-				//			for (int i = 0; i < 4096; i++)
-				//			{
-				//				inBuffer[i] = (byte)(sp.ReadByte());
-				//			}
-				//		}
-				//		catch
-				//		{
-				//			firstLoop = true;
-				//		}
-
-				//		actMemory += 4096;
-				//		if ((actMemory % 0x20000) == 0)
-				//		{
-				//			actMemory -= 4096;
-				//			for (int i = 0; i < 2; i++)
-				//			{
-				//				address = BitConverter.GetBytes(actMemory);
-				//				Array.Reverse(address);
-				//				Array.Copy(address, 0, outBuffer, 1, 3);
-				//				outBuffer[0] = 97;
-				//				bytesToWrite = 4;
-
-				//				sp.Write(outBuffer, 0, (int)1);
-				//				Thread.Sleep(1);
-				//				sp.Write(outBuffer, 1, (int)(3));
-
-				//				try
-				//				{
-				//					temp = (byte)sp.ReadByte();
-				//					for (int j = 0; j < 2048; j++)
-				//					{
-				//						inBuffer[j] = (byte)(sp.ReadByte());
-				//					}
-				//				}
-				//				catch
-				//				{
-				//					firstLoop = true;
-				//				}
-
-				//				fo.Write(inBuffer, 0, 2048);
-				//				actMemory += 2048;
-				//			}
-				//			firstLoop = true;
-				//		}
-				//		else
-				//		{
-				//			fo.Write(inBuffer, 0, 4096);
-				//		}
-
-				//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
-
-				//		if (convertStop) actMemory = toMemory;
 			}
 
-			//	fo.Write(firmwareArray, 0, 3);
-			//	fo.Write(new byte[] { model_Gipsy6, (byte)254 }, 0, 2);
-			//	fo.Close();
-			//	sp.Write("X");
+			inBuffer[inBuffer.Length - 2] = 0x0a;
+			inBuffer[inBuffer.Length - 1] = 0x00;
 
-			//	sp.BaudRate = 115200;
+			var fo = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
 
-			//	if (!convertStop) extractArds(fileNameMdp, fileName, true);
-			//	else
-			//	{
-			//		if (Parent.lastSettings[6].Equals("false"))
-			//		{
-			//			try
-			//			{
-			//				System.IO.File.Delete(fileNameMdp);
-			//			}
-			//			catch { }
-			//		}
-			//	}
-			//	Thread.Sleep(300);
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
-			//}
+			fo.Write(inBuffer, 0, inBuffer.Length);
+			fo.Close();
 
-			//public unsafe override void download(MainWindow parent, string fileName, uint fromMemory, uint toMemory, int baudrate)
-			//{
-			//	convertStop = false;
-			//	uint actMemory = fromMemory;
-			//	System.IO.FileMode fm = System.IO.FileMode.Create;
-			//	if (fromMemory != 0) fm = System.IO.FileMode.Append;
-			//	string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
-			//	var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
-
-			//	sp.Write("TTTTTTTTTTTTGGAD");
-			//	try
-			//	{
-			//		sp.ReadByte();
-			//	}
-			//	catch
-			//	{
-			//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-			//		try
-			//		{
-			//			fo.Close();
-			//		}
-			//		catch { }
-			//		return;
-			//	}
-
-			//	Thread.Sleep(200);
-			//	byte b = (byte)(baudrate / 1000000);
-			//	sp.Write(new byte[] { b }, 0, 1);
-			//	Thread.Sleep(10);
-			//	sp.BaudRate = baudrate;
-
-			//	Thread.Sleep(400);
-			//	sp.Write("S");
-			//	Thread.Sleep(100);
-			//	if (sp.ReadByte() != (byte)0x53)
-			//	{
-			//		Thread.Sleep(10);
-			//		sp.ReadExisting();
-			//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-			//		try
-			//		{
-			//			fo.Close();
-			//		}
-			//		catch { }
-			//		return;
-			//	}
-
-			//	//sviluppo
-			//	//byte[] ob = new byte[4]{ 0x41, 0, 0, 0 };
-			//	//byte[] ib = new byte[4096];
-			//	//sp.Write(ob, 0, 1);
-			//	//Thread.Sleep(1);
-			//	//sp.Write(ob, 1, 3);
-			//	//for (int d = 0; d < 4096; d++)
-			//	//{
-			//	//	ib[d] = (byte)sp.ReadByte();
-			//	//}
-			//	///sviluppo
-
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
-
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
-
-			//	//Passa alla gestione FTDI D2XX
-			//	sp.Close();
-
-			//	MainWindow.FT_STATUS FT_Status;
-			//	FT_HANDLE FT_Handle = 0;
-			//	byte[] outBuffer = new byte[50];
-			//	//byte[] add = new byte[3] { 0, 0, 0 };
-			//	byte[] inBuffer = new byte[4096];
-			//	byte[] tempBuffer = new byte[2048];
-			//	byte[] address = new byte[8];
-
-			//	uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
-
-			//	FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
-
-
-			//	if (FT_Status != MainWindow.FT_STATUS.FT_OK)
-			//	{
-			//		MainWindow.FT_Close(FT_Handle);
-			//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-			//		try
-			//		{
-			//			fo.Close();
-			//		}
-			//		catch { }
-			//		return;
-			//	}
-
-
-			//	MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
-			//	MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
-
-			//	bool firstLoop = true;
-
-			//	while (actMemory < toMemory)
-			//	{
-			//		if (((actMemory % 0x2000000) == 0) | (firstLoop))
-			//		{
-			//			address = BitConverter.GetBytes(actMemory);
-			//			Array.Reverse(address);
-			//			Array.Copy(address, 0, outBuffer, 1, 3);
-			//			outBuffer[0] = 65;
-			//			bytesToWrite = 4;
-			//			firstLoop = false;
-			//		}
-			//		else
-			//		{
-			//			outBuffer[0] = 79;
-			//			bytesToWrite = 1;
-			//		}
-
-			//		fixed (byte* outP = outBuffer, inP = inBuffer)
-			//		{
-			//			if (bytesToWrite == 0)
-			//			{
-			//				FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			//			}
-			//			else
-			//			{
-			//				FT_Status = MainWindow.FT_Write(FT_Handle, outP, 0, ref bytesWritten);
-			//				Thread.Sleep(1);
-			//				FT_Status = MainWindow.FT_Write(FT_Handle, (outP + 1), 3, ref bytesWritten);
-			//				//MessageBox.Show((*outP).ToString() + " " + (*(outP + 1)).ToString() + " " + (*(outP + 2)).ToString() + " " + (*(outP + 3)).ToString());
-			//			}
-			//			//sviluppo
-			//			FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)1, ref bytesReturned);
-			//			///sviluppo
-			//			FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
-
-			//		}
-
-			//		if (FT_Status != MainWindow.FT_STATUS.FT_OK)
-			//		{
-			//			outBuffer[0] = 88;
-			//			fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
-			//			MainWindow.FT_Close(FT_Handle);
-			//			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-			//			fo.Write(inBuffer);
-			//			fo.Close();
-			//			return;
-			//		}
-			//		else if (bytesReturned != 4096)
-			//		{
-			//			firstLoop = true;
-			//		}
-			//		else
-			//		{
-			//			actMemory += 4096;
-			//			if ((actMemory % 0x20000) == 0)
-			//			{
-			//				actMemory -= 4096;
-			//				for (int i = 0; i < 2; i++)
-			//				{
-			//					address = BitConverter.GetBytes(actMemory);
-			//					Array.Reverse(address);
-			//					Array.Copy(address, 0, outBuffer, 1, 3);
-			//					outBuffer[0] = 97;
-			//					bytesToWrite = 4;
-			//					fixed (byte* outP = outBuffer, inP = inBuffer)
-			//					{
-			//						FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			//						FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
-			//					}
-			//					fo.Write(inBuffer, 0, 2048);
-			//					actMemory += 2048;
-			//				}
-			//				firstLoop = true;
-			//			}
-			//			else
-			//			{
-			//				fo.Write(inBuffer, 0, 4096);
-			//			}
-			//		}
-
-			//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
-
-			//		if (convertStop) actMemory = toMemory;
-			//	}
-
-			//	fo.Write(firmwareArray, 0, 3);
-			//	fo.Write(new byte[] { model_axyTrek, (byte)254 }, 0, 2);
-
-			//	fo.Close();
-			//	outBuffer[0] = 88;
-			//	bytesToWrite = 1;
-			//	fixed (byte* outP = outBuffer)
-			//	{
-			//		FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			//	}
-			//	MainWindow.FT_Close(FT_Handle);
-			//	sp.BaudRate = 115200;
-			//	sp.Open();
-			//	if (!convertStop) extractArds(fileNameMdp, fileName, true);
-			//	else
-			//	{
-			//		if (Parent.lastSettings[6].Equals("false"))
-			//		{
-			//			try
-			//			{
-			//				System.IO.File.Delete(fileNameMdp);
-			//			}
-			//			catch { }
-			//		}
-			//	}
-			//	Thread.Sleep(300);
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
+			if (ok)
+			{
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
+			}
 		}
 
 		public override void abortConf() { }
 
 		public override void setConf(byte[] conf)
 		{
-			
+
 			for (int j = 0; j < 3; j++)
 			{
 				if (!ask("c"))
@@ -1144,228 +938,99 @@ namespace X_Manager.Units
 
 		public override void convert(string fileName, string[] prefs)
 		{
+			BinaryReader gp6File = new System.IO.BinaryReader(new FileStream(fileName, FileMode.Open));
+			byte[] gp6 = gp6File.ReadBytes((int)gp6File.BaseStream.Length);
+			gp6File.Close();
 
-			bool makeTxt = false;
-			bool makeKml = false;
-			timeStamp timeStampO = new timeStamp();
-			byte[] ev = new byte[5];
-			string barStatus = "";
-			debugLevel = parent.stDebugLevel;
+			txtBGW = new BackgroundWorker();
 
-			string shortFileName;
-
-			string addOn = "";
-			string exten = Path.GetExtension(fileName);
-			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
-
-			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-			string FileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
-			string fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
-			string fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
-
-			BinaryReader ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
-			byte[] ardBuffer = new byte[ardFile.BaseStream.Length];
-			ardFile.Read(ardBuffer, 0, (int)ardFile.BaseStream.Length);
-			ardFile.Close();
-
-			MemoryStream ard = new MemoryStream(ardBuffer);
-
-			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
-			BinaryWriter txt = BinaryWriter.Null;
-			BinaryWriter kml = BinaryWriter.Null;
-			BinaryWriter placeMark = BinaryWriter.Null;
-
-			//Imposta le preferenze di conversione
-			timeStampO.eventAr = ev;
-			if ((Parent.lastSettings[5] == "air")) isDepth = 0;
-
-			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
-
-			dateSeparator = csvSeparator;
-			if ((prefs[pref_sameColumn] == "True"))
+			int pos = 0;
+			int end = gp6.Length;
+			TimeStamp timeStamp = new TimeStamp();
+			List<TimeStamp> tsList = new List<TimeStamp>();
+			List<byte> noStampBuffer = new List<byte>();
+			string txtName = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + ".txt";
+			txtBW = new BinaryWriter(new FileStream(txtName, FileMode.Create));
+			txtBGW.DoWork += (s, args) =>
 			{
-				sameColumn = true;
-				dateSeparator = " ";
-			}
-
-			if (prefs[pref_txt] == "True") makeTxt = true;
-			if (prefs[pref_kml] == "True") makeKml = true;
-			if (prefs[pref_battery] == "True") prefBattery = true;
-			if (prefs[pref_pressMetri] == "meters") inMeters = true;
-			if (prefs[pref_timeFormat] == "2") angloTime = true;
-
-			timeStampO.pressOffset = double.Parse(prefs[pref_millibars]);
-			dateFormat = byte.Parse(prefs[pref_dateFormat]);
-			timeFormat = byte.Parse(prefs[pref_timeFormat]);
-			switch (dateFormat)
+				txtBGW_doWork(ref tsList);
+			};
+			txtBGW.RunWorkerAsync();
+			while (pos < end)
 			{
-				case 1:
-					dateFormatParameter = "dd/MM/yyyy";
-					break;
-				case 2:
-					dateFormatParameter = "MM/dd/yyyy";
-					break;
-				case 3:
-					dateFormatParameter = "yyyy/MM/dd";
-					break;
-				case 4:
-					dateFormatParameter = "yyyy/dd/MM";
-					break;
-			}
-			metadata = false;
-			if (prefs[pref_metadata] == "True") metadata = true;
-			timeStampO.inAdc = 0;
-			timeStampO.inWater = 0;
-
-			//byte[] uf = new byte[16];
-			ard.Position = 1;
-			firmTotA = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
-
-			//long pos = ard.Position;
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusLabel.Content = barStatus + " - Converting"));
-
-			shortFileName = Path.GetFileNameWithoutExtension(fileName);
-
-			if (makeTxt)
-			{
-				if (System.IO.File.Exists(FileNametxt)) System.IO.File.Delete(FileNametxt);
-				txt = new System.IO.BinaryWriter(File.OpenWrite(FileNametxt));
-			}
-			if (makeKml)
-			{
-				if (System.IO.File.Exists(fileNameKml)) System.IO.File.Delete(fileNameKml);
-				if (System.IO.File.Exists(fileNamePlaceMark)) System.IO.File.Delete(fileNamePlaceMark);
-				kml = new System.IO.BinaryWriter(File.OpenWrite(fileNameKml));
-				placeMark = new System.IO.BinaryWriter(File.OpenWrite(fileNamePlaceMark));
-				primaCoordinata = true;
-				contoCoord = 0;
-				//string
-				kml.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Path_Top));
-				kml.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Path_Top));
-				//placemark
-				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Final_Top_1 +
-					Path.GetFileNameWithoutExtension(fileName) + X_Manager.Properties.Resources.Final_Top_2));
-			}
-
-			csvPlaceHeader(ref csv);
-			ard.Position = 0xa3;
-
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
-			progMax = ard.Length - 1;
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
-			progressWorker.RunWorkerAsync();
-
-			string sBuffer = "";
-
-			while (!convertStop)
-			{
-
-				//if ((ard.Position % 128) == 0)
-				//{
-
-				//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				//				new Action(() => parent.statusProgressBar.Value = ard.Position));
-				//}
-				while (Interlocked.Exchange(ref progLock, 2) > 0) { }
-
-				progVal = ard.Position;
-				Interlocked.Exchange(ref progLock, 0);
-
-				if (detectEof(ref ard)) break;
-				try
+				noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);
+				//tsCopy = timeStamp.clone();
+				tsList.Add(timeStamp.clone());
+				if (noStampBuffer.Count == 1)
 				{
-					decodeTimeStamp(ref ard, ref timeStampO, firmTotA);
-				}
-				catch
-				{
-
-				}
-
-				if (timeStampO.stopEvent > 0)
-				{
-					groupConverter(ref timeStampO, lastGroup, shortFileName, ref sBuffer);
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
 					break;
 				}
-
-				try
-				{
-					groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName, ref sBuffer);
-
-					if (sBuffer.Length > 0x400)
-					{
-						csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
-						sBuffer = "";
-					}
-
-					//csv.Write(System.Text.Encoding.ASCII.GetBytes(
-					//    groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message);
-				}
-
-				if (((timeStampO.tsType & 32) == 32) | ((timeStampO.tsType & 16) == 16))
-				{
-					if (makeTxt) txtWrite(ref timeStampO, ref txt);
-				}
-				if ((timeStampO.tsType & 16) == 16)
-				{
-					if (makeKml) kmlWrite(ref timeStampO, ref kml, ref placeMark);
-				}
+				//while (tsCopy.goDone == 1) { }
+				//tsCopy.goDone = 1;
 			}
+			timeStamp.goDone = 2;
+			tsList.Add(timeStamp);
 
-			csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
-
-			if (makeTxt) txtWrite(ref timeStampO, ref txt);
-
-			while (Interlocked.Exchange(ref progLock, 2) > 0) { }
-			progVal = ard.Position;
-			Thread.Sleep(300);
-			progVal = -1;
-			Interlocked.Exchange(ref progLock, 0);
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-			//	new Action(() => parent.statusProgressBar.Value = ard.Position));
-
-			if (makeKml)
-			{
-				//Scrive il segnaposto di stop nel fime kml dei placemarks
-				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
-				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
-					(decoderKml(ref timeStampO)).cPlacemark + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
-				kml.Close();
-				placeMark.Close();
-
-				//Scrive l'header finale nel file kml string
-				System.IO.File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Path_Bot);
-				System.IO.File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Folder_Bot);
-
-				//Accorpa kml placemark e string
-				System.IO.File.AppendAllText(fileNamePlaceMark, System.IO.File.ReadAllText(fileNameKml));
-
-				//Chiude il kml placemark
-				System.IO.File.AppendAllText(fileNamePlaceMark, X_Manager.Properties.Resources.Final_Bot);
-				//Elimina il kml string temporaneo
-				System.IO.File.Delete(fileNameKml);
-			}
-
-			if (makeTxt) txt.Close();
-			csv.Close();
-			ard.Close();
-
-			//sw.Stop();
-			//MessageBox.Show(sw.Elapsed.TotalSeconds.ToString());
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.nextFile()));
 		}
 
-		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
+		//private void txtBGW_doWork(object sender, DoWorkEventArgs e)
+		private void txtBGW_doWork(ref List<TimeStamp> tL)
+		{
+			//								data   ora    lon   lat   alt   eve   batt
+			string[] tabs = new string[10];
+			string fileOut = "";
+			//var t = (TimeStamp)e.Argument;
+			//t.goDone = 0;
+			var t = new TimeStamp();
+			while (true)
+			{
+				//while (t.goDone == 0) ;
+				while (tL.Count == 0) ;
+				t = tL[0];
+				tL.RemoveAt(0);
+				if (t.goDone == 2)
+				{
+					break;
+				}
+				if (!repeatEmptyValues)
+				{
+					tabs = new string[10];
+				}
+				tabs[0] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
+				tabs[1] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				if ((t.tsType & ts_battery) == ts_battery)
+				{
+					tabs[6] = t.batteryLevel.ToString("0.00") + "V";
+				}
+				if ((t.tsType & ts_coordinate) == ts_coordinate)
+				{
+					tabs[2] = t.lat.ToString("00.000000", nfi);
+					tabs[3] = t.lon.ToString("00.000000", nfi);
+					tabs[4] = Math.Round(t.altitude, 1).ToString("#.0");
+				}
+				if ((t.tsType & ts_event) == ts_event)
+				{
+					tabs[5] = decodeEvent(ref t);
+				}
+
+				for (int i = 0; i < 9; i++)
+				{
+					fileOut += (tabs[i] + "\t");
+				}
+				fileOut += (tabs[9] + "\r\n");
+				if (fileOut.Length > 0x1000000) //16MB
+				{
+					txtBW.Write(fileOut.ToArray());
+					fileOut = "";
+				}
+				t.goDone = 0;
+			}
+			txtBW.Write(fileOut.ToArray());
+			t.goDone = 0;
+			txtBW.Close();
+		}
+
+		private double[] extractGroup(ref MemoryStream ard, ref TimeStamp tsc)
 		{
 			byte[] group = new byte[2000];
 			bool badGroup = false;
@@ -1431,466 +1096,433 @@ namespace X_Manager.Units
 			return new double[] { };
 		}
 
-		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref string sBuffer)
+		//private void groupConverter(ref TimeStamp tsLoc, double[] group, string unitName, ref string sBuffer)
+		//{
+		//	string dateTimeS;
+		//	string ampm = "";
+		//	string dateS = "";
+		//	//int contoTab = 0;
+
+		//	//Compila data e ora
+		//	dateS = tsLoc.orario.ToString(dateFormatParameter);
+		//	var dateCi = new CultureInfo("it-IT");
+		//	if (angloTime) dateCi = new CultureInfo("en-US");
+		//	dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
+		//	if (angloTime)
+		//	{
+		//		ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
+		//		dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
+		//	}
+
+		//	sBuffer += unitName + csvSeparator + dateTimeS + ".000";
+
+		//	//Inserisce le coordinate
+		//	if (((tsLoc.tsType & ts_coordinate) == ts_coordinate) | repeatEmptyValues)
+		//	{
+		//		sBuffer += csvSeparator + tsLoc.lon.ToString("000.0000000") + csvSeparator + tsLoc.lat.ToString("00.0000000");
+		//		sBuffer += csvSeparator + tsLoc.altitude.ToString("0.00") + csvSeparator + tsLoc.speed.ToString("0.00") + csvSeparator + tsLoc.dop.ToString("0.00");
+		//		sBuffer += csvSeparator + tsLoc.sat.ToString() + csvSeparator + tsLoc.gsvSum.ToString();    //rimuovere "X4" dopo sviluppo
+		//	}
+		//	else
+		//	{
+		//		sBuffer += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
+		//	}
+		//	//contoTab=7;
+
+		//	//Inserisce la batteria
+		//	if (prefBattery)
+		//	{
+		//		if (((tsLoc.tsType & ts_battery) == ts_battery) | repeatEmptyValues)
+		//		{
+		//			sBuffer += csvSeparator + (tsLoc.batteryLevel.ToString("0.00"));
+		//		}
+		//		else
+		//		{
+		//			sBuffer += csvSeparator;
+		//		}
+		//		//contoTab++;
+		//	}
+
+		//	//Inserisce i metadati
+		//	if (metadata)
+		//	{
+		//		if (((tsLoc.tsType & ts_event) == ts_event) | repeatEmptyValues)
+		//		{
+		//			sBuffer += csvSeparator + decodeEvent(ref tsLoc);
+		//		}
+		//		else
+		//		{
+		//			sBuffer += csvSeparator;
+		//		}
+		//		//contoTab++;
+		//	}
+
+		//	sBuffer += "\r\n";
+
+
+
+		//	//double x, y, z;
+		//	//int milli = 0;
+		//	//string activityWater = "";
+
+		//	//textOut = "";
+		//	//x = group[0] * gCoeff;
+		//	//y = group[1] * gCoeff;
+		//	//z = group[2] * gCoeff;
+
+		//	//textOut += unitName + csvSeparator + dateTimeS + ".000";
+		//	//if (angloTime) textOut += " " + ampm;
+		//	//textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
+
+		//	//additionalInfo = "";
+		//	//if (debugLevel > 2) additionalInfo += csvSeparator + tsLoc.timeStampLength.ToString();  //sviluppo
+
+		//	//contoTab += 1;
+		//	//if ((tsLoc.tsType & 64) == 64) activityWater = "Active";
+		//	//else activityWater = "Inactive";
+		//	//if ((tsLoc.tsType & 128) == 128) activityWater += "/Wet";
+		//	//else activityWater += "/Dry";
+
+		//	//additionalInfo += csvSeparator + activityWater;
+
+		//	//if (pressureEnabled > 0)
+		//	//{
+		//	//	contoTab += 1;
+		//	//	additionalInfo += csvSeparator;
+		//	//	if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
+		//	//}
+		//	//if (temperatureEnabled > 0)
+		//	//{
+		//	//	contoTab += 1;
+		//	//	additionalInfo += csvSeparator;
+		//	//	if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
+		//	//}
+
+		//	////Inserire la coordinata.
+		//	//contoTab += 7;
+		//	//if (((tsLoc.tsType & 16) == 16) | repeatEmptyValues)
+		//	//{
+		//	//	string altSegno, eo, ns;
+		//	//	altSegno = eo = ns = "-";
+		//	//	if (tsLoc.altSegno == 0) altSegno = "";
+		//	//	if (tsLoc.eo == 1) eo = "";
+		//	//	if (tsLoc.ns == 1) ns = "";
+		//	//	double speed = tsLoc.vel * 3.704;
+		//	//	double lon, lat = 0;
+
+		//	//	lon = ((tsLoc.lonMinuti + (tsLoc.lonMinDecH / 100.0) + (tsLoc.lonMinDecL / 10000.0) + (tsLoc.lonMinDecLL / 100000.0)) / 60) + tsLoc.lonGradi;
+		//	//	lat = ((tsLoc.latMinuti + (tsLoc.latMinDecH / 100.0) + (tsLoc.latMinDecL / 10000.0) + (tsLoc.latMinDecLL / 100000.0)) / 60) + tsLoc.latGradi;
+
+		//	//	additionalInfo += csvSeparator + ns + lat.ToString("#00.00000", nfi);
+		//	//	additionalInfo += csvSeparator + eo + lon.ToString("#00.00000", nfi);
+		//	//	additionalInfo += csvSeparator + altSegno + ((tsLoc.altH * 256 + tsLoc.altL) * 2).ToString();
+		//	//	additionalInfo += csvSeparator + speed.ToString("0.0", nfi);
+		//	//	additionalInfo += csvSeparator + tsLoc.nSat.ToString();
+		//	//	additionalInfo += csvSeparator + tsLoc.DOP.ToString() + "." + tsLoc.DOPdec.ToString();
+		//	//	additionalInfo += csvSeparator + tsLoc.gsvSum.ToString();
+		//	//}
+		//	//else
+		//	//{
+		//	//	additionalInfo += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
+		//	//}
+
+		//	////Inserisce il sensore analogico
+		//	//if (adcLog)
+		//	//{
+		//	//	contoTab += 1;
+		//	//	additionalInfo += csvSeparator;
+		//	//	if (((tsLoc.tsTypeExt1 & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.ADC.ToString("0000");
+		//	//}
+
+		//	//if (adcStop)
+		//	//{
+		//	//	contoTab += 1;
+		//	//	additionalInfo += csvSeparator;
+		//	//	if (((tsLoc.tsTypeExt1 & 4) == 4) | repeatEmptyValues) additionalInfo += "Threshold crossed";
+		//	//}
+
+		//	////Inserisce la batteria
+		//	//if (prefBattery)
+		//	//{
+		//	//	contoTab += 1;
+		//	//	additionalInfo += csvSeparator;
+		//	//	if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString("0.00", nfi);
+		//	//}
+
+		//	////Inserisce i metadati
+		//	//if (metadata)
+		//	//{
+		//	//	contoTab += 1;
+		//	//	additionalInfo += csvSeparator;
+		//	//	if (tsLoc.stopEvent > 0)
+		//	//	{
+		//	//		switch (tsLoc.stopEvent)
+		//	//		{
+		//	//			case 1:
+		//	//				additionalInfo += "Low battery.";
+		//	//				break;
+		//	//			case 2:
+		//	//				additionalInfo += "Power off command received.";
+		//	//				break;
+		//	//			case 3:
+		//	//				additionalInfo += "Memory full.";
+		//	//				break;
+		//	//		}
+		//	//		textOut += additionalInfo + "\r\n";
+		//	//		return;// textOut;
+		//	//	}
+		//	//}
+
+		//	//textOut += additionalInfo + "\r\n";
+
+		//	//if (tsLoc.stopEvent > 0) return;// textOut;
+
+		//	//if (!repeatEmptyValues)
+		//	//{
+		//	//	additionalInfo = "";
+		//	//	for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
+		//	//}
+
+		//	//milli += addMilli;
+		//	//dateTimeS += ".";
+		//	//if (tsLoc.stopEvent > 0) bitsDiv = 1;
+
+		//	//var iend = (short)(rate * 3);
+
+		//	//for (short i = 3; i < iend; i += 3)
+		//	//{
+		//	//	x = group[i] * gCoeff;
+		//	//	y = group[i + 1] * gCoeff;
+		//	//	z = group[i + 2] * gCoeff;
+
+		//	//	if (rate == 1)
+		//	//	{
+		//	//		tsLoc.orario = tsLoc.orario.AddSeconds(1);
+		//	//		dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+		//	//	}
+		//	//	textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
+
+		//	//	if (angloTime) textOut += " " + ampm;
+		//	//	textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
+
+		//	//	textOut += additionalInfo + "\r\n";
+		//	//	milli += addMilli;
+		//	//}
+		//}
+
+
+		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t, ref int pos)
 		{
-			string dateTimeS;
-			string ampm = "";
-			string dateS = "";
-			//int contoTab = 0;
 
-			//Compila data e ora
-			dateS = tsLoc.orario.ToString(dateFormatParameter);
-			var dateCi = new CultureInfo("it-IT");
-			if (angloTime) dateCi = new CultureInfo("en-US");
-			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
-			if (angloTime)
+			//Cerca un timestamp o un nostamp
+			List<byte> bufferNoStamp = new List<byte>();
+			byte test = gp6[pos];
+			while (true)
 			{
-				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
-				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
-			}
-
-			sBuffer += unitName + csvSeparator + dateTimeS + ".000";
-
-			//Inserisce le coordinate
-			if (((tsLoc.tsType & ts_coordinate) == ts_coordinate) | repeatEmptyValues)
-			{
-				sBuffer += csvSeparator + tsLoc.lon.ToString("000.0000000") + csvSeparator + tsLoc.lat.ToString("00.0000000");
-				sBuffer += csvSeparator + tsLoc.altitude.ToString("0.00") + csvSeparator + tsLoc.speed.ToString("0.00") + csvSeparator + tsLoc.dop.ToString("0.00");
-				sBuffer += csvSeparator + tsLoc.sat.ToString() + csvSeparator + tsLoc.gsvSum.ToString();    //rimuovere "X4" dopo sviluppo
-			}
-			else
-			{
-				sBuffer += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
-			}
-			//contoTab=7;
-
-			//Inserisce la batteria
-			if (prefBattery)
-			{
-				if (((tsLoc.tsType & ts_battery) == ts_battery) | repeatEmptyValues)
+				while ((test != 0xab) & (test != 0xac) & (test != 0xff) & (test != 0x0a))
 				{
-					sBuffer += csvSeparator + (tsLoc.batteryLevel.ToString("0.00"));
+					pos++;
+					test = gp6[pos];
+				}
+				if (test == 0xff | test == 0x0a)
+				{
+					List<byte> lout = new List<byte>();
+					lout.Add(0xff);
+					return lout;
+				}
+				if (test == 0xac)
+				{
+					//no stamp: 0xAC seguito da due byte di buffersize b e b byte di buffer
+					int noSize = gp6[pos + 1] * 256 + gp6[pos + 2];
+					pos += 3;
+					bufferNoStamp.AddRange(gp6.Skip(pos).Take(noSize));
+					pos += noSize;
+					test = gp6[pos];
+					continue;
 				}
 				else
 				{
-					sBuffer += csvSeparator;
+					break;
 				}
-				//contoTab++;
 			}
-
-			//Inserisce i metadati
-			if (metadata)
+			pos++;
+			t.tsType = gp6[pos];
+			pos++;
+			if ((t.tsType & ts_ext1) == ts_ext1)
 			{
-				if (((tsLoc.tsType & ts_event) == ts_event) | repeatEmptyValues)
-				{
-					sBuffer += csvSeparator + decodeEvent(ref tsLoc);
-				}
-				else
-				{
-					sBuffer += csvSeparator;
-				}
-				//contoTab++;
+				t.tsTypeExt1 = gp6[pos];
+				pos++;
 			}
-
-			sBuffer += "\r\n";
-
-
-
-			//double x, y, z;
-			//int milli = 0;
-			//string activityWater = "";
-
-			//textOut = "";
-			//x = group[0] * gCoeff;
-			//y = group[1] * gCoeff;
-			//z = group[2] * gCoeff;
-
-			//textOut += unitName + csvSeparator + dateTimeS + ".000";
-			//if (angloTime) textOut += " " + ampm;
-			//textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
-
-			//additionalInfo = "";
-			//if (debugLevel > 2) additionalInfo += csvSeparator + tsLoc.timeStampLength.ToString();  //sviluppo
-
-			//contoTab += 1;
-			//if ((tsLoc.tsType & 64) == 64) activityWater = "Active";
-			//else activityWater = "Inactive";
-			//if ((tsLoc.tsType & 128) == 128) activityWater += "/Wet";
-			//else activityWater += "/Dry";
-
-			//additionalInfo += csvSeparator + activityWater;
-
-			//if (pressureEnabled > 0)
-			//{
-			//	contoTab += 1;
-			//	additionalInfo += csvSeparator;
-			//	if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
-			//}
-			//if (temperatureEnabled > 0)
-			//{
-			//	contoTab += 1;
-			//	additionalInfo += csvSeparator;
-			//	if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
-			//}
-
-			////Inserire la coordinata.
-			//contoTab += 7;
-			//if (((tsLoc.tsType & 16) == 16) | repeatEmptyValues)
-			//{
-			//	string altSegno, eo, ns;
-			//	altSegno = eo = ns = "-";
-			//	if (tsLoc.altSegno == 0) altSegno = "";
-			//	if (tsLoc.eo == 1) eo = "";
-			//	if (tsLoc.ns == 1) ns = "";
-			//	double speed = tsLoc.vel * 3.704;
-			//	double lon, lat = 0;
-
-			//	lon = ((tsLoc.lonMinuti + (tsLoc.lonMinDecH / 100.0) + (tsLoc.lonMinDecL / 10000.0) + (tsLoc.lonMinDecLL / 100000.0)) / 60) + tsLoc.lonGradi;
-			//	lat = ((tsLoc.latMinuti + (tsLoc.latMinDecH / 100.0) + (tsLoc.latMinDecL / 10000.0) + (tsLoc.latMinDecLL / 100000.0)) / 60) + tsLoc.latGradi;
-
-			//	additionalInfo += csvSeparator + ns + lat.ToString("#00.00000", nfi);
-			//	additionalInfo += csvSeparator + eo + lon.ToString("#00.00000", nfi);
-			//	additionalInfo += csvSeparator + altSegno + ((tsLoc.altH * 256 + tsLoc.altL) * 2).ToString();
-			//	additionalInfo += csvSeparator + speed.ToString("0.0", nfi);
-			//	additionalInfo += csvSeparator + tsLoc.nSat.ToString();
-			//	additionalInfo += csvSeparator + tsLoc.DOP.ToString() + "." + tsLoc.DOPdec.ToString();
-			//	additionalInfo += csvSeparator + tsLoc.gsvSum.ToString();
-			//}
-			//else
-			//{
-			//	additionalInfo += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
-			//}
-
-			////Inserisce il sensore analogico
-			//if (adcLog)
-			//{
-			//	contoTab += 1;
-			//	additionalInfo += csvSeparator;
-			//	if (((tsLoc.tsTypeExt1 & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.ADC.ToString("0000");
-			//}
-
-			//if (adcStop)
-			//{
-			//	contoTab += 1;
-			//	additionalInfo += csvSeparator;
-			//	if (((tsLoc.tsTypeExt1 & 4) == 4) | repeatEmptyValues) additionalInfo += "Threshold crossed";
-			//}
-
-			////Inserisce la batteria
-			//if (prefBattery)
-			//{
-			//	contoTab += 1;
-			//	additionalInfo += csvSeparator;
-			//	if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString("0.00", nfi);
-			//}
-
-			////Inserisce i metadati
-			//if (metadata)
-			//{
-			//	contoTab += 1;
-			//	additionalInfo += csvSeparator;
-			//	if (tsLoc.stopEvent > 0)
-			//	{
-			//		switch (tsLoc.stopEvent)
-			//		{
-			//			case 1:
-			//				additionalInfo += "Low battery.";
-			//				break;
-			//			case 2:
-			//				additionalInfo += "Power off command received.";
-			//				break;
-			//			case 3:
-			//				additionalInfo += "Memory full.";
-			//				break;
-			//		}
-			//		textOut += additionalInfo + "\r\n";
-			//		return;// textOut;
-			//	}
-			//}
-
-			//textOut += additionalInfo + "\r\n";
-
-			//if (tsLoc.stopEvent > 0) return;// textOut;
-
-			//if (!repeatEmptyValues)
-			//{
-			//	additionalInfo = "";
-			//	for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
-			//}
-
-			//milli += addMilli;
-			//dateTimeS += ".";
-			//if (tsLoc.stopEvent > 0) bitsDiv = 1;
-
-			//var iend = (short)(rate * 3);
-
-			//for (short i = 3; i < iend; i += 3)
-			//{
-			//	x = group[i] * gCoeff;
-			//	y = group[i + 1] * gCoeff;
-			//	z = group[i + 2] * gCoeff;
-
-			//	if (rate == 1)
-			//	{
-			//		tsLoc.orario = tsLoc.orario.AddSeconds(1);
-			//		dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
-			//	}
-			//	textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
-
-			//	if (angloTime) textOut += " " + ampm;
-			//	textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
-
-			//	textOut += additionalInfo + "\r\n";
-			//	milli += addMilli;
-			//}
-		}
-
-		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc, uint fTotA)
-		{
-			tsc.stopEvent = 0;
-			int secondAmount = 1;
-
-			tsc.tsType = ard.ReadByte();
-
-			//Flag timestamp esteso
-			if ((tsc.tsType & ts_ext1) == ts_ext1)
+			if ((t.tsTypeExt1 & ts_ext2) == ts_ext2)
 			{
-				tsc.tsTypeExt1 = ard.ReadByte();
-				if ((tsc.tsTypeExt1 & 1) == 1)
-				{
-					tsc.tsTypeExt2 = ard.ReadByte();
-				}
-				else
-				{
-					tsc.tsTypeExt2 = 0;
-				}
-			}
-			else
-			{
-				tsc.tsTypeExt1 = 0;
+				t.tsTypeExt2 = gp6[pos];
+				pos++;
 			}
 
-			//Temperatura (evntualmente anche pressione)	//Ancora non implementate!
-			//if ((tsc.tsType & 2) == 2)
-			//{
-			//	if (temperatureEnabled == 2)
-			//	{
-			//		tsc.temperature = ard.ReadByte() + ard.ReadByte() * 256;
-			//		tsc.temperature = (uint)(tsc.temperature) >> 6;
-			//		if (tsc.temperature > 511)
-			//		{
-			//			tsc.temperature -= 1024;
-			//		}
-			//		tsc.temperature = (tsc.temperature * 0.1221) + 22.5;
-			//	}
-			//	else
-			//	{
-			//		if (isDepth == 1)
-			//		{
-			//			if (fTotA > 2000000)
-			//			{
-			//				if (pressureDepth5837(ref ard, ref tsc)) return;
-			//			}
-			//			else
-			//			{
-			//				if (pressureDepth(ref ard, ref tsc)) return;
-			//			}
-			//		}
-			//		else
-			//		{
-			//			if (pressureAir(ref ard, ref tsc)) return;
-			//		}
-			//	}
-			//}
+			//Inserire Pressione
+			//Inserire Temperatura
 
 			//Batteria
-			if ((tsc.tsType & ts_battery) == ts_battery)
+			if ((t.tsType & ts_battery) == ts_battery)
 			{
-				tsc.batteryLevel = ((ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096);
+				t.batteryLevel = gp6[pos] * 256;
+				t.batteryLevel += gp6[pos];
+				t.batteryLevel = (t.batteryLevel * 6.6) / 4096; //Rimettere *6 dopo sviluppo
+				pos += 2;
 			}
 
-			//Coordinata
-			if ((tsc.tsType & ts_coordinate) == ts_coordinate)
+			//Inserire Coordinata
+			if ((t.tsType & ts_coordinate) == ts_coordinate)
 			{
-				int anno = ard.ReadByte() * 256 + ard.ReadByte();
-				int mese = ard.ReadByte();
-				int giorno = ard.ReadByte();
-				int ore = ard.ReadByte();
-				int minuti = ard.ReadByte();
-				int secondi = ard.ReadByte();
-
-				ard.ReadByte(); //FixType
-
-				tsc.lon = ard.ReadByte() + (ard.ReadByte() << 8) + (ard.ReadByte() << 16) + (ard.ReadByte() << 24);
-				if (tsc.lon > 2_147_483_647) tsc.lon -= 4_294_967_296;
-				tsc.lon /= 10000000;
-				tsc.lat = ard.ReadByte() + (ard.ReadByte() << 8) + (ard.ReadByte() << 16) + (ard.ReadByte() << 24);
-				if (tsc.lat > 2_147_483_647) tsc.lat -= 4_294_967_296;
-				tsc.lat /= 10000000;
-
-				tsc.altitude = ard.ReadByte() + (ard.ReadByte() << 8) + (ard.ReadByte() << 16) + (ard.ReadByte() << 24);
-				if (tsc.altitude > 2_147_483_647) tsc.altitude -= 4_294_967_296;
-				tsc.altitude /= 1000;
-
-				tsc.speed = ard.ReadByte() + (ard.ReadByte() << 8) + (ard.ReadByte() << 16) + (ard.ReadByte() << 24);
-				if (tsc.speed > 2_147_483_647) tsc.speed -= 4_294_967_296;
-				tsc.speed *= 3.6;
-				tsc.speed /= 10000;
-
-				tsc.dop = ard.ReadByte() + (ard.ReadByte() << 8);
-				tsc.dop /= 100;
-				tsc.sat = ard.ReadByte();
-				tsc.gsvSum = ard.ReadByte() * 256 + ard.ReadByte();
-
-			}
-
-
-			//evento
-			if ((tsc.tsType & ts_event) == ts_event)
-			{
-				int eventType = ard.ReadByte();
-				int eventLenght = eventType / 10;
-				ard.Read(tsc.eventAr, 1, eventLenght);
-				tsc.eventAr[0] = (byte)eventType;
-
-				if (tsc.eventAr[0] == 11) tsc.stopEvent = 1;
-				else if (tsc.eventAr[0] == 12) tsc.stopEvent = 2;
-				else if (tsc.eventAr[0] == 13) tsc.stopEvent = 3;
-
-			}
-
-			//Attività/acqua
-			tsc.inWater = 0;
-			if ((tsc.tsType & ts_water) == ts_water) tsc.inWater = 1;
-
-			//Parametri estesi
-			if ((tsc.tsType & ts_ext1) == ts_ext1)
-			{
-				if ((tsc.tsTypeExt1 & ts_adcValue) == ts_adcValue) tsc.ADC = (ard.ReadByte() * 256 + ard.ReadByte());
-				tsc.inAdc = 0;
-				if ((tsc.tsTypeExt1 & ts_adcThreshold) == ts_adcThreshold)
+				if (gp6[pos] > 0x7f)
 				{
-					tsc.inAdc = 1;
+					int llon;
+					llon = gp6[pos + 1] << 24;
+					llon += gp6[pos + 2] << 16;
+					llon += gp6[pos + 3] << 8;
+					t.lon = llon / 10000000.0;
+					int llat;
+					llat = gp6[pos + 4] << 24;
+					llat += gp6[pos + 5] << 16;
+					llat += gp6[pos + 6] << 8;
+					t.lat = llat / 10000000.0;
+					t.altitude = gp6[pos + 7] << 8;
+					t.altitude += gp6[pos + 8];
+					t.altitude *= 0.128;
+					t.altitude -= 1000;
+					pos += 9;
 				}
-				if ((tsc.tsTypeExt1 & ts_time) == ts_time)
-				{
-					int anno = ard.ReadByte();
-					anno = ((anno / 16) * 10) + (anno % 16);
-					anno += 2000;
-					int mese = ard.ReadByte();
-					mese = ((mese / 16) * 10) + (mese % 16);
-					int giorno = ard.ReadByte();
-					giorno = ((giorno / 16) * 10) + (giorno % 16);
-					int ore = ard.ReadByte();
-					ore = ((ore / 16) * 10) + (ore % 16);
-					int minuti = ard.ReadByte();
-					minuti = ((minuti / 16) * 10) + (minuti % 16);
-					int secondi = ard.ReadByte();
-					secondi = ((secondi / 16) * 10) + (secondi % 16);
-					tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
-					secondAmount = 0;
-				}
+
 			}
 
-			tsc.orario = tsc.orario.AddSeconds(secondAmount);
+			//Evento
+			if ((t.tsType & ts_event) == ts_event)
+			{
+				t.eventAr = new byte[5];
+				Array.Copy(gp6, pos, t.eventAr, 0, 5);
+				pos += 5;
+			}
+
+			//Inserire Accelerometro
+
+			if ((t.tsTypeExt1 == 0) & (t.tsTypeExt2 == 0))
+			{
+				return bufferNoStamp;
+			}
+
+			//Info
+			if ((t.tsTypeExt1 & ts_info) == ts_info)
+			{
+				byte infoLength = gp6[pos];
+				pos++;
+				t.infoAr = new byte[infoLength];
+				Array.Copy(gp6, pos, t.infoAr, 0, infoLength);
+				pos += infoLength;
+			}
+
+			//Data e Ora
+			if ((t.tsTypeExt1 & ts_time) == ts_time)
+			{
+				byte second = gp6[pos];
+				if (second > 0x7f)
+				{
+					second -= 0x80;
+					t.dateTime = new DateTime((gp6[pos + 6] * 256 + gp6[pos + 5]), gp6[pos + 4], gp6[pos + 3], gp6[pos + 2], gp6[pos + 1], second);
+					pos += 7;
+				}
+				else
+				{
+					t.dateTime = new DateTime(t.dateTime.Year, t.dateTime.Month, t.dateTime.Day, gp6[pos + 2], gp6[pos + 1], second);
+					pos += 3;
+				}
+
+
+			}
+
+			return bufferNoStamp;
 
 		}
 
-		private string decodeEvent(ref timeStamp ts)
+		private string decodeEvent(ref TimeStamp ts)
 		{
-			string outS = "";
+			string outs;
 			switch (ts.eventAr[0])
 			{
-				case 0:
-					return "Power ON.";
-				case 1:
-					return "Delayed Start";
-				case 2:
-					return "Start searching for satellites...";
-				case 3:
-					return "Poor signal.";
-				case 4:
-					return "Signal Obtained";
 				case 5:
-					return "Switching to Continuous";
-				case 6:
-					return "Switchinf to Off";
-				case 20:
-					outS = "Fix obtained (" + ts.eventAr[1].ToString() + "-" + ts.eventAr[2].ToString() + ")";
-					return outS;
-				case 30:
-					outS = "Signal lost (nsat: " + ts.eventAr[1].ToString() + " gsv:" + (ts.eventAr[2] * 256 + ts.eventAr[3]).ToString() + ")";
-					return outS;
+					outs = String.Format(events[ts.eventAr[0]], ts.eventAr[1], ts.eventAr[2], ts.eventAr[3]);
+					break;
 				default:
-					return "Unknown event.";
+					outs = events[ts.eventAr[0]];
+					break;
 			}
+			return outs;
 		}
 
-		private void csvPlaceHeader(ref BinaryWriter csv)
-		{
-			string csvHeader = "TagID";
-			if (sameColumn)
-			{
-				csvHeader = csvHeader + csvSeparator + "Timestamp";
-			}
-			else
-			{
-				csvHeader = csvHeader + csvSeparator + "Date" + csvSeparator + "Time";
-			}
+		//private void csvPlaceHeader(ref BinaryWriter csv)
+		//{
+		//	string csvHeader = "TagID";
+		//	if (sameColumn)
+		//	{
+		//		csvHeader = csvHeader + csvSeparator + "Timestamp";
+		//	}
+		//	else
+		//	{
+		//		csvHeader = csvHeader + csvSeparator + "Date" + csvSeparator + "Time";
+		//	}
 
-			//csvHeader = csvHeader + csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
-			//csvHeader = csvHeader + csvSeparator + "Activity";
-			//if (pressureEnabled > 0)
-			//{
-			//	if (inMeters)
-			//	{
-			//		if (isDepth == 1)
-			//		{
-			//			csvHeader = csvHeader + csvSeparator + "Depth";
-			//		}
-			//		else
-			//		{
-			//			csvHeader = csvHeader + csvSeparator + "Altitude";
-			//		}
+		//	//csvHeader = csvHeader + csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
+		//	//csvHeader = csvHeader + csvSeparator + "Activity";
+		//	//if (pressureEnabled > 0)
+		//	//{
+		//	//	if (inMeters)
+		//	//	{
+		//	//		if (isDepth == 1)
+		//	//		{
+		//	//			csvHeader = csvHeader + csvSeparator + "Depth";
+		//	//		}
+		//	//		else
+		//	//		{
+		//	//			csvHeader = csvHeader + csvSeparator + "Altitude";
+		//	//		}
 
-			//	}
-			//	else
-			//	{
-			//		csvHeader = csvHeader + csvSeparator + "Pressure";
-			//	}
-			//}
-			//if (temperatureEnabled > 0)
-			//{
-			//	csvHeader += csvSeparator + "Temp. (°C)";
-			//}
+		//	//	}
+		//	//	else
+		//	//	{
+		//	//		csvHeader = csvHeader + csvSeparator + "Pressure";
+		//	//	}
+		//	//}
+		//	//if (temperatureEnabled > 0)
+		//	//{
+		//	//	csvHeader += csvSeparator + "Temp. (°C)";
+		//	//}
 
-			csvHeader += csvSeparator + "loc.lat" + csvSeparator + "loc.lon" + csvSeparator + "alt"
-				+ csvSeparator + "speed" + csvSeparator + "hdop" + csvSeparator + "sat.count" + csvSeparator + "signal";
-			if (adcLog) csvHeader += csvSeparator + "Sensor Raw";
-			if (adcStop) csvHeader += csvSeparator + "Sensor State";
-			if (prefBattery) csvHeader += csvSeparator + "batt(V)";
-			if (metadata) csvHeader += csvSeparator + "metadata";
+		//	csvHeader += csvSeparator + "loc.lat" + csvSeparator + "loc.lon" + csvSeparator + "alt"
+		//		+ csvSeparator + "speed" + csvSeparator + "hdop" + csvSeparator + "sat.count" + csvSeparator + "signal";
+		//	if (adcLog) csvHeader += csvSeparator + "Sensor Raw";
+		//	if (adcStop) csvHeader += csvSeparator + "Sensor State";
+		//	if (prefBattery) csvHeader += csvSeparator + "batt(V)";
+		//	if (metadata) csvHeader += csvSeparator + "metadata";
 
-			csvHeader += "\r\n";
+		//	csvHeader += "\r\n";
 
-			csv.Write(System.Text.Encoding.ASCII.GetBytes(csvHeader));
+		//	csv.Write(System.Text.Encoding.ASCII.GetBytes(csvHeader));
 
-		}
+		//}
 
-		private void txtWrite(ref timeStamp timeStampO, ref BinaryWriter txt)
-		{
-
-		}
-
-		private void kmlWrite(ref timeStamp timeStampO, ref BinaryWriter kml, ref BinaryWriter placeMark)
+		private void txtWrite(ref TimeStamp timeStampO, ref BinaryWriter txt)
 		{
 
 		}
 
-		private coordKml decoderKml(ref timeStamp tsc)
+		private void kmlWrite(ref TimeStamp timeStampO, ref BinaryWriter kml, ref BinaryWriter placeMark)
 		{
-			return new coordKml();
+
 		}
+
+		//private coordKml decoderKml(ref TimeStamp tsc)
+		//{
+		//	return new coordKml();
+		//}
 
 		private bool detectEof(ref MemoryStream ard)
 		{
