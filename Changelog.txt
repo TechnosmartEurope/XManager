@@ -63,3 +63,4 @@
 1.8.2	I file eliminati vengono spostati nel cestino
 	Possibilità di impostare il trek come solare da software.
 	AxyTrek: scrittura coordinate nel csv anche nei periodi in cui l'accelerometro è in burst-off.
+1.8.3	Possibilità di scegliere se il csv dal rem deve contenere le sessioni senza gps

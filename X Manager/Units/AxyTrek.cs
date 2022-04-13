@@ -71,7 +71,7 @@ namespace X_Manager
 			public int inAdc;
 			public int ADC;
 			public int slowData;
-			//public long ardPosition;
+			public long ardPosition;
 		}
 
 		public struct coordKml
@@ -862,6 +862,7 @@ namespace X_Manager
 				sp.Write("R");
 				//Thread.Sleep(100);
 				dieCount = sp.ReadByte();
+				sp.ReadExisting();
 				if (dieCount == 0x52) dieCount = 2;
 				if (dieCount == 0x72) dieCount = 1;
 				if ((dieCount != 1) & (dieCount != 2))
@@ -1187,6 +1188,7 @@ namespace X_Manager
 			const int pref_kml = 8;
 			const int pref_metadata = 16;
 			const int pref_leapSeconds = 17;
+			const int pref_removeNonGps = 18;
 
 			bool makeTxt = false;
 			bool makeKml = false;
@@ -1197,6 +1199,7 @@ namespace X_Manager
 			debugLevel = parent.stDebugLevel;
 			oldUnitDebug = parent.oldUnitDebug;
 			addGpsTime = parent.addGpsTime;
+			bool removeNonGps = false;
 
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
@@ -1240,6 +1243,8 @@ namespace X_Manager
 			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
 			leapSeconds = int.Parse(prefs[pref_leapSeconds]);
+			removeNonGps = bool.Parse(prefs[pref_removeNonGps]);
+
 			timeStampO.inAdc = 0;
 			timeStampO.inWater = 0;
 
@@ -1254,7 +1259,28 @@ namespace X_Manager
 			string fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
 			string fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
 
-			BinaryReader ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+			BinaryReader ardFile = null;
+
+			for (int i = 0; i < 3; i++)
+			{
+				try
+				{
+					ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+					break;
+				}
+				catch (Exception fileError)
+				{
+					if (i == 2)
+					{
+						MessageBox.Show(fileError.Message);
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+										new Action(() => parent.nextFile()));
+						return;
+					}
+					Thread.Sleep(1000);
+				}
+			}
+
 			var sesAdd = new List<long>();
 
 			if (exten.Contains("rem"))
@@ -1273,6 +1299,7 @@ namespace X_Manager
 			}
 			else
 			{
+				removeNonGps = false;
 				sesAdd.Add(0);
 			}
 
@@ -1432,15 +1459,27 @@ namespace X_Manager
 
 				long pos = ard.Position;
 				//ard.Close();
-				timeStampO.orario = findStartTime(ref ard, ref prefs, pos);
+				//timeStampO.orario = findStartTime(ref ard, ref prefs, pos);
+				//in caso di rem, se la sessione non contiene il fix gps viene tolta dal csv
+
+				DateTime startTime = findStartTime(ref ard, ref prefs, pos, exten.Contains("rem"));
 				ard.Position = pos;
+
 				if (exten.Contains("rem"))
 				{
-					System.IO.File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ": "
-						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: "
-						+ csv.BaseStream.Position.ToString("X4") + "\tREM Position: " + infRemPosition.ToString("X4") + "\r\n");
+					File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ": "
+						+ startTime.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: "
+						+ csv.BaseStream.Position.ToString("X4") + "\tREM Position: " + infRemPosition.ToString("X4"));
+					if ((startTime == new DateTime(1, 1, 1, 1, 1, 1)) & removeNonGps)
+					{
+						File.AppendAllText(logFile, "\tGPS FIX MISSING: This session contains no gps fix and won't be included in the csv file.\r\n");
+
+						continue;
+					}
+					File.AppendAllText(logFile, "\r\n");
 				}
 
+				timeStampO.orario = startTime;
 				sesCounter++;
 
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
@@ -1490,18 +1529,18 @@ namespace X_Manager
 
 					if (timeStampO.stopEvent > 0)
 					{
-						groupConverter(ref timeStampO, lastGroup, shortFileName, ref sBuffer);
+						groupConverter(ref timeStampO, lastGroup, shortFileName, ref sBuffer, ref infRemPosition);
 						csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
 						break;
 					}
 
 					try
 					{
-						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName, ref sBuffer);
+						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName, ref sBuffer, ref infRemPosition);
 
 						if (sBuffer.Length > 0x400)
 						{
-							csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
+							csv.Write(Encoding.ASCII.GetBytes(sBuffer));
 							sBuffer = "";
 						}
 
@@ -1525,8 +1564,8 @@ namespace X_Manager
 
 				if (exten.Contains("rem"))
 				{
-					System.IO.File.AppendAllText(logFile, "        end: " + sesCounter.ToString() + ": "
-						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n");
+					File.AppendAllText(logFile, "        end: " + (sesCounter - 1).ToString() + ": "
+						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n\r\n");
 				}
 
 				if (makeTxt) txtWrite(ref timeStampO, ref txt);
@@ -1534,8 +1573,10 @@ namespace X_Manager
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 					new Action(() => parent.statusProgressBar.Value = ard.Position));
 
+				//	csv.Write(Encoding.ASCII.GetBytes(sBuffer));
 				if (convertStop & exten.Contains("rem"))
 				{
+
 					ard.Close();
 					csv.Close();
 					File.Delete(fileNameCsv);
@@ -1587,17 +1628,10 @@ namespace X_Manager
 			}
 
 			if (makeTxt) txt.Close();
+
 			csv.Close();
 
 			ardFile.Close();
-
-
-
-
-
-
-
-
 			//sw.Stop();
 			//MessageBox.Show(sw.Elapsed.TotalSeconds.ToString());
 
@@ -1607,6 +1641,7 @@ namespace X_Manager
 
 		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc, uint fTotA)
 		{
+			tsc.ardPosition = ard.Position;
 			tsc.stopEvent = 0;
 			ushort secondAmount = 1;
 			tsc.slowData = 0;
@@ -1745,7 +1780,10 @@ namespace X_Manager
 				if (tsc.eventAr[0] == 11) tsc.stopEvent = 1;
 				else if (tsc.eventAr[0] == 12) tsc.stopEvent = 2;
 				else if (tsc.eventAr[0] == 13) tsc.stopEvent = 3;
-				else if (tsc.eventAr[0] == 14) tsc.stopEvent = 4;
+				else if (tsc.eventAr[0] == 14)
+				{
+					tsc.stopEvent = 4;
+				}
 
 			}
 
@@ -1832,7 +1870,6 @@ namespace X_Manager
 			} while ((dummy != (byte)0xab) && (ard.Position < ard.Length));
 
 			//Array.Resize(ref group, (int)position);
-
 			tsc.timeStampLength = (int)(position / bitsDiv);
 
 			int resultCode = 0;
@@ -1870,7 +1907,7 @@ namespace X_Manager
 
 		}
 
-		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref string textOut)
+		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref string textOut, ref long offset)
 		{
 			short iend;
 			if (group.Length == 0)
@@ -1922,15 +1959,30 @@ namespace X_Manager
 			{
 				textOut += " " + ampm;
 			}
-
 			if (addGpsTime)
 			{
 				if ((tsLoc.tsType & 16) == 16)
 				{
-					textOut += " (GPS: " + tsLoc.ore.ToString("00") + ":" + tsLoc.minuti.ToString("00") + ":" + tsLoc.secondi.ToString("00") + ")";
+					textOut += " (GPS: " + tsLoc.ore.ToString("00") + ":" + tsLoc.minuti.ToString("00") + ":" + tsLoc.secondi.ToString("00") + ") ";
+					DateTime dtDiff;
+					try
+					{
+						dtDiff = new DateTime(tsLoc.orario.Year, tsLoc.orario.Month, tsLoc.orario.Day,
+						tsLoc.ore, tsLoc.minuti, tsLoc.secondi);
+						double ts = (dtDiff - tsLoc.orario).TotalSeconds;
+						textOut += ts.ToString();
+						if (Math.Abs(ts) > 5)
+						{
+							textOut += " W";
+						}
+					}
+					catch
+					{
+						int a = 0;
+					}
+
 				}
 			}
-
 			x = group[0] * gCoeff;
 			y = group[1] * gCoeff;
 			z = group[2] * gCoeff;
@@ -1938,8 +1990,11 @@ namespace X_Manager
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			additionalInfo = "";
-			if (debugLevel > 2) additionalInfo += csvSeparator + tsLoc.timeStampLength.ToString();  //sviluppo
-
+			//if (debugLevel > 2) additionalInfo += csvSeparator + tsLoc.timeStampLength.ToString();  //sviluppo
+			if (debugLevel > 2)
+			{
+				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X");
+			}
 			contoTab += 1;
 			if ((tsLoc.tsType & 64) == 64) activityWater = "Active";
 			else activityWater = "Inactive";
@@ -2076,7 +2131,7 @@ namespace X_Manager
 			//return textOut;
 		}
 
-		private DateTime findStartTime(ref MemoryStream br, ref string[] prefs, long pos)
+		private DateTime findStartTime(ref MemoryStream br, ref string[] prefs, long pos, bool isRem)
 		{
 			//BinaryReader br = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
 			const int pref_h = 9;
@@ -2093,6 +2148,10 @@ namespace X_Manager
 
 			DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
 				int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]));
+			if (isRem)
+			{
+				dt = new DateTime(1, 1, 1, 1, 1, 1);
+			}
 
 			byte timeStamp0 = 0;
 			byte timeStamp1 = 0;

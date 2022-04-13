@@ -1560,7 +1560,7 @@ namespace X_Manager
 			}
 
 			lastSettings[4] = System.IO.Path.GetDirectoryName(fOpen.FileName);
-			System.IO.File.WriteAllLines(iniFile, lastSettings);
+			File.WriteAllLines(iniFile, lastSettings);
 			stDebugLevel = cp.debugLevel;
 			oldUnitDebug = cp.OldUnitDebug;
 			addGpsTime = cp.addGpsTime;

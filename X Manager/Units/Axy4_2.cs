@@ -1412,6 +1412,9 @@ namespace X_Manager.Units
 					minuti = ((minuti >> 4) * 10) + (minuti & 15);
 
 					tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
+
+					//overrideTime = true;
+
 				}
 			}
 
