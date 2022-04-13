@@ -1755,6 +1755,12 @@ namespace X_Manager
 				}
 				fromMemory = dr.startAddress;
 				toMemory = dr.finalAddress;
+				if ((oUnit is Gipsy6) | (oUnit is Axy5))
+				{
+					oUnit.mem_address = toMemory;
+					oUnit.mem_max_logical_address = fromMemory;
+				}
+
 			}
 
 

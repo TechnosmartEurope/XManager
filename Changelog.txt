@@ -116,3 +116,5 @@
 	Bugfix: lettura batteria Gipsy6
 	AxyQuattrok: sistemati zero e span
 	Bugfix: conversione Axy4/Depth_2 a 1Hz
+1.13.1	Bugfix: il manual range download veniva ignorato con gipsy6 e axy5
+	Bugfix: Axy5 falliva download in caso di memory full

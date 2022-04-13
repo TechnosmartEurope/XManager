@@ -527,7 +527,13 @@ namespace X_Manager.Units
 
 			int position = 0;
 			int toBeDownloaded;
-			uint stopMemory = (mem_address & 0xfffff000) + 0x1000;
+			uint stopMemory = mem_address & 0xfffff000;
+			if ((mem_address & 0xfff) != 0)
+			{
+				stopMemory += 0x1000;
+			}
+			
+			
 			if (mem_address > mem_max_logical_address)
 			{
 				toBeDownloaded = (int)mem_address - (int)mem_max_logical_address;
@@ -571,6 +577,7 @@ namespace X_Manager.Units
 			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
 
 			int firstLoop = 1;
+			int pageCounter = 0;
 
 			//uint blockSize;
 
@@ -587,7 +594,7 @@ namespace X_Manager.Units
 
 		_loopSingleDie:
 
-			while (actMemory != stopMemory)
+			while (pageCounter < toBeDownloaded)
 			{
 				//COSTRUZIONE COMANDO
 				if (firstLoop > 0)          //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)
@@ -634,6 +641,7 @@ namespace X_Manager.Units
 				}
 
 				//BUFFER ARRIVATO OK
+				pageCounter += 0x1000;
 				actMemory += 0x1000;
 				if (actMemory == 0x_2000_0000)      //Effetto Pacman
 				{
@@ -649,14 +657,14 @@ namespace X_Manager.Units
 				}
 
 				//fileOut.Write(inBuffer, 0, 4096);
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = position)); //Aggiornamento progress bar
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = pageCounter)); //Aggiornamento progress bar
 				if (convertStop) break;      //Premuto il tasto stop
 			}
-
+			
 			goto _endLoop;
 
 		_loopDualDie:
-			while (actMemory != toMemory)
+			while (pageCounter < toBeDownloaded)
 			{
 				if (firstLoop > 0)       // A
 				{
@@ -698,6 +706,7 @@ namespace X_Manager.Units
 				{
 					actMemory += 4096;
 					position += 4096;
+					pageCounter += 4096;
 					if (((actMemory + 4096) % 0x20000) == 0)         //a
 					{
 						for (int i = 1; i < 3; i++)
@@ -737,7 +746,7 @@ namespace X_Manager.Units
 					}
 				}
 
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = position));
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = pageCounter));
 
 				if (convertStop) break;// actMemory = toMemory;
 			}
