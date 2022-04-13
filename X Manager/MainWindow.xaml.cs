@@ -12,7 +12,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Management;
+using Microsoft.VisualBasic.FileIO;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -401,14 +401,19 @@ namespace X_Manager
 		{
 			if (Keyboard.Modifiers == ModifierKeys.Control)
 			{
+				//Apertura cartella program Data
 				if (e.Key == Key.D)
 				{
 					System.Diagnostics.Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder);
 				}
-				else if (e.Key == Key.S)
+
+				//Arresto conversione
+				else if (e.Key == Key.P)
 				{
 					convertStop = true;
 				}
+
+				//Axy4d come axy4
 				else if (e.Key == Key.D4)
 				{
 					if (connectButton.Content.Equals("Connect"))
@@ -420,6 +425,8 @@ namespace X_Manager
 					}
 					Console.Beep();
 				}
+
+				//Axy4d come axy depth
 				else if (e.Key == Key.D5)
 				{
 					if (connectButton.Content.Equals("Connect"))
@@ -433,6 +440,7 @@ namespace X_Manager
 					Console.Beep();
 				}
 
+				//Trek locale
 				else if (e.Key == Key.L)
 				{
 					startUpMonitor.Text = "";
@@ -448,6 +456,8 @@ namespace X_Manager
 					}
 
 				}
+
+				//Trek remoto
 				else if (e.Key == Key.R)
 				{
 					startUpMonitor.Text = "";
@@ -461,6 +471,51 @@ namespace X_Manager
 						}
 					}
 					Console.Beep();
+				}
+
+				//Trek solare
+				else if (e.Key == Key.S)
+				{
+					startUpMonitor.Text = "";
+					if (connectButton.Content.Equals("Connect"))
+					{
+						if (sp.IsOpen)
+						{
+							sp.Write("T");
+							Thread.Sleep(5);
+							sp.Write("TTTTTTTTTTTTTGGAS");
+						}
+					}
+					Console.Beep();
+				}
+
+				//Trek non solare
+				else if (e.Key == Key.N)
+				{
+					startUpMonitor.Text = "";
+					if (connectButton.Content.Equals("Connect"))
+					{
+						if (sp.IsOpen)
+						{
+							sp.Write("T");
+							Thread.Sleep(5);
+							sp.Write("TTTTTTTTTTTTTGGAs");
+						}
+					}
+					Console.Beep();
+				}
+
+				//Pubblicazione help
+				else
+				{
+					startUpMonitor.Text = "LISTA COMANDI:\r\n";
+					startUpMonitor.Text += "\tD: Apertura cartella ProgramData";
+					startUpMonitor.Text += "\t4: Axy4D come Axy4";
+					startUpMonitor.Text += "\t5: Axy4D come AxyDepth";
+					startUpMonitor.Text += "\tR: AxyTrek Remoto";
+					startUpMonitor.Text += "\tL: AxyTrek Locale";
+					startUpMonitor.Text += "\tS: AxyTrek Solare";
+					startUpMonitor.Text += "\tN: AxyTrek Non solare";
 				}
 
 			}
@@ -1079,6 +1134,11 @@ namespace X_Manager
 						modelLabel.Content = model;
 						getConf();
 						getRemote();
+						getSolar();
+						if (oUnit.solar)
+						{
+							modelLabel.Content += " (s)";
+						}
 						oUnit.connected = true;
 					}
 					catch
@@ -1712,7 +1772,24 @@ namespace X_Manager
 
 		private void getRemote()
 		{
-			if (!(bool)sp.IsOpen)
+			if (!sp.IsOpen)
+			{
+				sp.Open();
+			}
+			Thread.Sleep(10);
+			remote = false;
+			string title = "X MANAGER";
+			if (oUnit.isRemote())
+			{
+				remote = true;
+				title += " REMOTE";
+			}
+			this.Title = title;
+		}
+
+		private void getSolar()
+		{
+			if (!sp.IsOpen)
 			{
 				sp.Open();
 			}
@@ -2023,7 +2100,9 @@ namespace X_Manager
 				{
 					try
 					{
-						System.IO.File.Delete(nomefile);
+						FileSystem.DeleteFile(nomefile);
+						//File.Delete(nomefile);
+						
 					}
 					catch { }
 				}

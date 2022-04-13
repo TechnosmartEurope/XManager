@@ -59,4 +59,7 @@
 	Bugfix: Conversione axy5, crashava se si toglievano i metadati nelle opzioni di conversione
 1.8.1	Bugfix: conversione .rem, durante la ricerca gps la barra di avanzamento non procedeva correttamente
 	Interfaccia configurazione Axy5 ora "responsive", con scrollbar e padding per risoluzioni più basse
-	Bigfix: La finestra di salvataggio download puntava agli "ard1" per tutte le unità escludendo gli "ard"
+	Bugfix: La finestra di salvataggio download puntava agli "ard1" per tutte le unità escludendo gli "ard"
+1.8.2	I file eliminati vengono spostati nel cestino
+	Possibilità di impostare il trek come solare da software.
+	AxyTrek: scrittura coordinate nel csv anche nei periodi in cui l'accelerometro è in burst-off.

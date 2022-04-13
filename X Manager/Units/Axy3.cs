@@ -324,7 +324,8 @@ namespace X_Manager.Units
                 {
                     try
                     {
-                        System.IO.File.Delete(fileNameMdp);
+                        //System.IO.File.Delete(fileNameMdp);
+                        fDel(fileNameMdp);
                     }
                     catch { }
                 }
@@ -384,7 +385,8 @@ namespace X_Manager.Units
                         }
                         if ((resp == yes) | (resp == yes_alaways))
                         {
-                            System.IO.File.Delete(fileNameArd);
+                            //System.IO.File.Delete(fileNameArd);
+                            fDel(fileNameArd);
                         }
                         else
                         {
@@ -432,13 +434,13 @@ namespace X_Manager.Units
 
             try
             {
-                if ((MainWindow.lastSettings[6].Equals("false")) | (!connected)) System.IO.File.Delete(fileNameMdp);
+                if ((MainWindow.lastSettings[6].Equals("false")) | (!connected)) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
                 else
                 {
                     if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
                     {
                         string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-                        if (System.IO.File.Exists(newFileNameMdp)) System.IO.File.Delete(newFileNameMdp);
+                        if (System.IO.File.Exists(newFileNameMdp)) fDel(newFileNameMdp); //System.IO.File.Delete(newFileNameMdp);
                         //string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
                         System.IO.File.Move(fileNameMdp, newFileNameMdp);
                     }

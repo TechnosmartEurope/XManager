@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.IO.Ports;
+using Microsoft.VisualBasic.FileIO;
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -65,6 +66,7 @@ namespace X_Manager.Units
         protected byte[] firmwareArray;
         public bool connected;
         public bool remote = false;
+        public bool solar = false;
         public volatile bool convertStop;
         protected int nInputs;
         protected int nOutputs;
@@ -291,6 +293,11 @@ namespace X_Manager.Units
             return false;
         }
 
+        public virtual bool isSolar()
+        {
+            return true;
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposed)
@@ -308,6 +315,14 @@ namespace X_Manager.Units
             GC.SuppressFinalize(this);
         }
 
+        internal void fDel(string fileName)
+        {
+            try
+            {
+                FileSystem.DeleteFile(fileName,UIOption.OnlyErrorDialogs,RecycleOption.SendToRecycleBin);
+            }
+            catch { }
+        }
     }
 
 

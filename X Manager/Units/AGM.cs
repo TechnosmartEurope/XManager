@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using Microsoft.VisualBasic.FileIO;
 using System.Windows;
 using System.IO;
 using System.Windows.Threading;
@@ -375,13 +375,7 @@ namespace X_Manager.Units
 			else
 			{
 				if (MainWindow.lastSettings[6].Equals("false"))
-				{
-					try
-					{
-						System.IO.File.Delete(fileNameMdp);
-					}
-					catch { }
-				}
+					fDel(fileNameMdp);
 			}
 
 			Thread.Sleep(300);
@@ -438,7 +432,7 @@ namespace X_Manager.Units
 						}
 						if ((resp == yes) | (resp == yes_alaways))
 						{
-							System.IO.File.Delete(fileNameArd);
+							fDel(fileNameArd);
 						}
 						else
 						{
@@ -486,14 +480,14 @@ namespace X_Manager.Units
 
 			try
 			{
-				if ((MainWindow.lastSettings[6].Equals("false")) | (!connected)) System.IO.File.Delete(fileNameMdp);
+				if ((MainWindow.lastSettings[6].Equals("false")) | (!connected)) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
 				else
 				{
 					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
 					{
 						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						if (System.IO.File.Exists(newFileNameMdp)) System.IO.File.Delete(newFileNameMdp);
-						//string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
+						if (System.IO.File.Exists(newFileNameMdp)) fDel(newFileNameMdp); //System.IO.File.Delete(newFileNameMdp);
+																					 //string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
 						System.IO.File.Move(fileNameMdp, newFileNameMdp);
 					}
 				}

@@ -70,6 +70,7 @@ namespace X_Manager
 			public int inWater;
 			public int inAdc;
 			public int ADC;
+			public int slowData;
 			//public long ardPosition;
 		}
 
@@ -122,7 +123,7 @@ namespace X_Manager
 		public AxyTrek(object p)
 			: base(p)
 		{
-			base.positionCanSend = true;
+			positionCanSend = true;
 			configurePositionButtonEnabled = true;
 			modelCode = model_axyTrek;
 			modelName = "Axy-Trek";
@@ -395,6 +396,20 @@ namespace X_Manager
 				try
 				{
 					if (sp.ReadByte() == 1) remote = true;
+				}
+				catch { throw new Exception(unitNotReady); }
+			}
+			return remote;
+		}
+
+		public override bool isSolar()
+		{
+			if (firmTotA >= 3008001)
+			{
+				sp.Write("TTTTTTTTTTGGAi");
+				try
+				{
+					if (sp.ReadByte() == 1) solar = true;
 				}
 				catch { throw new Exception(unitNotReady); }
 			}
@@ -699,7 +714,7 @@ namespace X_Manager
 					address = BitConverter.GetBytes(actMemory);
 					Array.Reverse(address);
 					Array.Copy(address, 0, outBuffer, 1, 3);
-					outBuffer[0] = 65;	//A
+					outBuffer[0] = 65;  //A
 					bytesToWrite = 4;
 					firstLoop = false;
 				}
@@ -807,7 +822,7 @@ namespace X_Manager
 				{
 					try
 					{
-						System.IO.File.Delete(fileNameMdp);
+						fDel(fileNameMdp);
 					}
 					catch { }
 				}
@@ -1023,7 +1038,7 @@ namespace X_Manager
 				{
 					try
 					{
-						System.IO.File.Delete(fileNameMdp);
+						fDel(fileNameMdp);
 					}
 					catch { }
 				}
@@ -1072,7 +1087,7 @@ namespace X_Manager
 						}
 						if ((resp == yes) | (resp == yes_alaways))
 						{
-							System.IO.File.Delete(fileNameArd);
+							fDel(fileNameArd);
 						}
 						else
 						{
@@ -1142,14 +1157,14 @@ namespace X_Manager
 			{
 				if (MainWindow.lastSettings[6].Equals("false"))
 				{
-					System.IO.File.Delete(fileNameMdp);
+					fDel(fileNameMdp);
 				}
 				else
 				{
 					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
 					{
 						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						if (System.IO.File.Exists(newFileNameMdp)) System.IO.File.Delete(newFileNameMdp);
+						if (System.IO.File.Exists(newFileNameMdp)) fDel(newFileNameMdp);
 						//string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
 						System.IO.File.Move(fileNameMdp, newFileNameMdp);
 					}
@@ -1268,13 +1283,13 @@ namespace X_Manager
 
 			if (makeTxt)
 			{
-				if ((System.IO.File.Exists(FileNametxt)) & (exten.Contains("ard"))) System.IO.File.Delete(FileNametxt);
+				if ((System.IO.File.Exists(FileNametxt)) & (exten.Contains("ard"))) fDel(FileNametxt);
 				txt = new System.IO.BinaryWriter(File.OpenWrite(FileNametxt));
 			}
 			if (makeKml)
 			{
-				if ((System.IO.File.Exists(fileNameKml)) & (exten.Contains("ard"))) System.IO.File.Delete(fileNameKml);
-				if ((System.IO.File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) System.IO.File.Delete(fileNamePlaceMark);
+				if ((System.IO.File.Exists(fileNameKml)) & (exten.Contains("ard"))) fDel(fileNameKml);
+				if ((System.IO.File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) fDel(fileNamePlaceMark);
 				kml = new System.IO.BinaryWriter(File.OpenWrite(fileNameKml));
 				placeMark = new System.IO.BinaryWriter(File.OpenWrite(fileNamePlaceMark));
 				primaCoordinata = true;
@@ -1298,7 +1313,7 @@ namespace X_Manager
 			string logFile = System.IO.Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
 			try
 			{
-				System.IO.File.Delete(logFile);
+				fDel(logFile);
 			}
 			catch { }
 
@@ -1565,7 +1580,7 @@ namespace X_Manager
 					//Chiude il kml placemark
 					System.IO.File.AppendAllText(fileNamePlaceMark, X_Manager.Properties.Resources.Final_Bot);
 					//Elimina il kml string temporaneo
-					System.IO.File.Delete(fileNameKml);
+					fDel(fileNameKml);
 				}
 				catch { }
 
@@ -1594,6 +1609,7 @@ namespace X_Manager
 		{
 			tsc.stopEvent = 0;
 			ushort secondAmount = 1;
+			tsc.slowData = 0;
 
 			tsc.tsType = ard.ReadByte();
 
@@ -1615,9 +1631,10 @@ namespace X_Manager
 				tsc.tsTypeExt1 = 0;
 			}
 
-			//Temperatura (evntualmente anche pressione)
+			//Temperatura (eventualmente anche pressione)
 			if ((tsc.tsType & 2) == 2)
 			{
+				tsc.slowData++;
 				if (temperatureEnabled == 2)
 				{
 					tsc.temperature = ard.ReadByte() + ard.ReadByte() * 256;
@@ -1651,13 +1668,14 @@ namespace X_Manager
 			//Batteria
 			if ((tsc.tsType & 8) == 8)
 			{
+				tsc.slowData++;
 				tsc.batteryLevel = ((ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096);
 			}
 
 			//Coordinata
 			if ((tsc.tsType & 16) == 16)
 			{
-
+				tsc.slowData++;
 				ushort diffMask = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());  //Legge la maschera
 				byte[] fissi = new byte[6];//= ard.ReadBytes(6);                                    //Legge i dati fissi
 				ard.Read(fissi, 0, 6);
@@ -1709,6 +1727,7 @@ namespace X_Manager
 			//evento
 			if ((tsc.tsType & 32) == 32)
 			{
+				tsc.slowData++;
 				int b = ard.ReadByte();
 				int debugCheck = ard.ReadByte();
 				ard.Position -= 2;
@@ -1737,14 +1756,27 @@ namespace X_Manager
 			//Parametri estesi
 			if ((tsc.tsType & 1) == 1)
 			{
-				if ((tsc.tsTypeExt1 & 2) == 2) tsc.ADC = (ard.ReadByte() * 256 + ard.ReadByte());
+				//ADC log
+				if ((tsc.tsTypeExt1 & 2) == 2)
+				{
+					tsc.slowData++;
+					tsc.ADC = (ard.ReadByte() * 256 + ard.ReadByte());
+				}
+
+				//ADC Threshold
 				tsc.inAdc = 0;
 				if ((tsc.tsTypeExt1 & 0x4) == 0x4)
 				{
 					tsc.inAdc = 1;
 				}
-				if ((tsc.tsTypeExt1 & 0x40) == 0x40) secondAmount = (byte)ard.ReadByte();
+
+				//Timestamp multiplo
+				if ((tsc.tsTypeExt1 & 0x40) == 0x40)
+				{
+					secondAmount = (byte)ard.ReadByte();
+				}
 			}
+
 			tsc.orario = tsc.orario.AddSeconds(secondAmount);
 
 		}
@@ -1840,7 +1872,23 @@ namespace X_Manager
 
 		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref string textOut)
 		{
-			if (group.Length == 0) return;
+			short iend;
+			if (group.Length == 0)
+			{
+				if (tsLoc.slowData > 0)
+				{
+					group = new double[] { 0, 0, 0, };
+					iend = 0;
+				}
+				else
+				{
+					return;
+				}
+			}
+			else
+			{
+				iend = (short)(rate * 3);
+			}
 
 			double x, y, z;
 			string dateTimeS, additionalInfo;
@@ -2004,8 +2052,6 @@ namespace X_Manager
 			milli += addMilli;
 			dateTimeS += ".";
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
-
-			var iend = (short)(rate * 3);
 
 			for (short i = 3; i < iend; i += 3)
 			{
@@ -2175,7 +2221,7 @@ namespace X_Manager
 				dt = dt.AddSeconds(-secondiAdd);
 				dt = dt.AddSeconds(leapSeconds * -1);
 			}
-			catch { }			
+			catch { }
 
 			return dt;
 		}
