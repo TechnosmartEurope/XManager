@@ -1158,29 +1158,6 @@ namespace X_Manager
 			oldUnitDebug = parent.oldUnitDebug;
 			addGpsTime = parent.addGpsTime;
 
-			string shortFileName;
-
-			string addOn = "";
-			string exten = Path.GetExtension(fileName);
-			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
-
-			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-			string FileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
-			string fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
-			string fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
-
-			BinaryReader ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
-			byte[] ardBuffer = new byte[ardFile.BaseStream.Length];
-			ardFile.Read(ardBuffer, 0, (int)ardFile.BaseStream.Length);
-			ardFile.Close();
-
-			MemoryStream ard = new MemoryStream(ardBuffer);
-
-			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
-			BinaryWriter txt = BinaryWriter.Null;
-			BinaryWriter kml = BinaryWriter.Null;
-			BinaryWriter placeMark = BinaryWriter.Null;
-
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
 			if ((MainWindow.lastSettings[5] == "air")) isDepth = 0;
@@ -1226,115 +1203,53 @@ namespace X_Manager
 			timeStampO.inAdc = 0;
 			timeStampO.inWater = 0;
 
-			byte[] uf = new byte[16];
-			ard.Position = 1;
-			firmTotA = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
-			firmTotB = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
+			string shortFileName;
 
-			byte[] coeffCheck = new byte[12];// = ard.ReadBytes(12);
-			ard.Read(coeffCheck, 0, 12);
+			string addOn = "";
+			string exten = Path.GetExtension(fileName);
+			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
 
+			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
+			string FileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
+			string fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
+			string fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
 
-			byte adcFlag = coeffCheck[0];
-			int coeffSum12 = 0;
-			foreach (byte b in coeffCheck) { coeffSum12 += b; }
-			//coeffChek = ard.ReadBytes(4);
-			ard.Read(coeffCheck, 0, 4);
-			int coeffSum16 = coeffSum12;
-			foreach (byte b in coeffCheck) { coeffSum16 += b; }
-			//long pos = 0;
-			bool adcPresence = false;
-			if (adcFlag != 0)                   //Se il primo byte non è zero, sicuramente non c'è l'info adc
+			BinaryReader ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+			var sesAdd = new List<long>();
+
+			if (exten.Contains("rem"))
 			{
-				adcPresence = false;                        //no adc
+				ardFile.BaseStream.Position = 0x10;
+				long sesAddPointer = ardFile.ReadByte() + ardFile.ReadByte() * 0x100 + ardFile.ReadByte() * 0x10000 + ardFile.ReadByte() * 0x1000000;
+				ardFile.BaseStream.Position = sesAddPointer + 0x10;
+				long newAdd = 0;
+				do
+				{
+					newAdd = BitConverter.ToInt64(ardFile.ReadBytes(8), 0);
+					ardFile.ReadBytes(8);
+					sesAdd.Add(newAdd);
+				} while (newAdd != 0);
+				sesAdd.RemoveAt(sesAdd.Count - 1);
 			}
 			else
-			{                                   //Altrimenti potrebbero essere a zero i coeff adc. In questo caso:
-				if (coeffSum16 == 0)                        //16 byte consecutivi a zero vuol dire PRESENZA di info adc e coefficienti a zero (4 + 12)
-				{
-					adcPresence = true;
-				}
-				else
-				{                                           //I 16 byte non sono tutti a zero: in questo caso:
-					if (coeffSum12 == 0)                        //Sono a zero tutti e solo i primi 12, vuol dire NO info adc e coefficienti a zero
-					{
-						adcPresence = false;                //no adc
-					}
-					else
-					{                                           //I primi 12 byte non sono tutti a zero: i primi 4 sono le info adc e successivamente ci sono i coefficienti
-						adcPresence = true;                 //si adc
-					}
-				}
-			}
-			ard.Position = 7;
-
-			//Controlla se l'ard contiene le informazioni sul sensore Analogico
-			if (adcPresence)
 			{
-				ard.ReadByte();
-				adcThreshold = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());
-				byte adcTemp = (byte)ard.ReadByte();
-				if ((adcTemp & 8) == 8) adcStop = true;
-				//if ((adcTemp & 4) == 4) adcMagmin = true;
-				if ((adcTemp & 2) == 2) adcLog = true;
-			}
-			//Legge i coefficienti di profondità
-			//ard.BaseStream.Position = pos;
-			convCoeffs = new double[] { 0, 0, 0, 0, 0, 0 };
-			for (int u = 0; u <= 5; u++) convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
-
-			//Legge i parametri di logging
-			pressureEnabled = ard.ReadByte();
-			temperatureEnabled = pressureEnabled;
-			pressureEnabled /= 16;
-			temperatureEnabled &= 15;
-
-			byte rrb = (byte)ard.ReadByte();
-			rate = findSamplingRate(rrb);
-			range = findRange(rrb);
-			bits = findBits(rrb);
-			bitsDiv = findBytesPerSample();
-			nOutputs = rate;
-			findDebugStampPar();
-			Array.Resize(ref lastGroup, ((rate * 3)));
-
-			//cifreDec = 3;
-			cifreDecString = "0.000";
-			if (bits)
-			{
-				//cifreDec = 4;
-				cifreDecString = "0.0000";
+				sesAdd.Add(0);
 			}
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => barStatus = (string)parent.statusLabel.Content));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusLabel.Content = barStatus + " - Searching for a GPS fix..."));
-
-			byte abCheck = (byte)ard.ReadByte();
-			while (abCheck != (byte)0xab) abCheck = (byte)ard.ReadByte();
-
-			long pos = ard.Position;
-			//ard.Close();
-			timeStampO.orario = findStartTime(fileName, ref prefs, pos);
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusLabel.Content = barStatus + " - Converting"));
-			//ard = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open));
-			//ard.BaseStream.Position = pos;
-			shortFileName = Path.GetFileNameWithoutExtension(fileName);
-
-			//Stopwatch sw = new Stopwatch();
-			//sw.Start();
+			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+			BinaryWriter txt = BinaryWriter.Null;
+			BinaryWriter kml = BinaryWriter.Null;
+			BinaryWriter placeMark = BinaryWriter.Null;
 
 			if (makeTxt)
 			{
-				if (System.IO.File.Exists(FileNametxt)) System.IO.File.Delete(FileNametxt);
+				if ((System.IO.File.Exists(FileNametxt)) & (exten.Contains("ard"))) System.IO.File.Delete(FileNametxt);
 				txt = new System.IO.BinaryWriter(File.OpenWrite(FileNametxt));
 			}
 			if (makeKml)
 			{
-				if (System.IO.File.Exists(fileNameKml)) System.IO.File.Delete(fileNameKml);
-				if (System.IO.File.Exists(fileNamePlaceMark)) System.IO.File.Delete(fileNamePlaceMark);
+				if ((System.IO.File.Exists(fileNameKml)) & (exten.Contains("ard"))) System.IO.File.Delete(fileNameKml);
+				if ((System.IO.File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) System.IO.File.Delete(fileNamePlaceMark);
 				kml = new System.IO.BinaryWriter(File.OpenWrite(fileNameKml));
 				placeMark = new System.IO.BinaryWriter(File.OpenWrite(fileNamePlaceMark));
 				primaCoordinata = true;
@@ -1347,101 +1262,302 @@ namespace X_Manager
 					Path.GetFileNameWithoutExtension(fileName) + X_Manager.Properties.Resources.Final_Top_2));
 			}
 
+			byte[] ardBuffer;// = new byte[ardFile.BaseStream.Length];
+			bool headerMissing = true;
 
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => barStatus = (string)parent.statusLabel.Content));
+			int sesMax = sesAdd.Count;
+			int sesCounter = 1;
+			long infRemPosition;
 
-			csvPlaceHeader(ref csv);
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
-
-			string sBuffer = "";
-
-
-			while (!convertStop)
+			string logFile = System.IO.Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
+			try
 			{
+				System.IO.File.Delete(logFile);
+			}
+			catch { }
 
-				if ((ard.Position % 128) == 0)
+			while (sesAdd.Count > 0)
+			{
+				long bufLen;
+				if (sesAdd.Count > 1)
 				{
-
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-								new Action(() => parent.statusProgressBar.Value = ard.Position));
+					bufLen = sesAdd[1] - sesAdd[0];
 				}
-
-				if (detectEof(ref ard)) break;
-				try
+				else
 				{
-					decodeTimeStamp(ref ard, ref timeStampO, firmTotA);
+					bufLen = ardFile.BaseStream.Length - sesAdd[0];
 				}
-				catch
-				{
+				ardFile.BaseStream.Position = sesAdd[0];
+				infRemPosition = sesAdd[0];
+				sesAdd.RemoveAt(0);
+				ardBuffer = new byte[bufLen];
+				ardFile.Read(ardBuffer, 0, (int)bufLen);
 
+				//ardFile.Close();
+
+				MemoryStream ard = new MemoryStream(ardBuffer);
+
+
+
+				byte[] uf = new byte[16];
+				ard.Position = 1;
+				firmTotA = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
+				firmTotB = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
+
+				byte[] coeffCheck = new byte[12];// = ard.ReadBytes(12);
+				ard.Read(coeffCheck, 0, 12);
+
+
+				byte adcFlag = coeffCheck[0];
+				int coeffSum12 = 0;
+				foreach (byte b in coeffCheck) { coeffSum12 += b; }
+				//coeffChek = ard.ReadBytes(4);
+				ard.Read(coeffCheck, 0, 4);
+				int coeffSum16 = coeffSum12;
+				foreach (byte b in coeffCheck) { coeffSum16 += b; }
+				//long pos = 0;
+				bool adcPresence = false;
+				if (adcFlag != 0)                   //Se il primo byte non è zero, sicuramente non c'è l'info adc
+				{
+					adcPresence = false;                        //no adc
 				}
-
-				if (timeStampO.stopEvent > 0)
-				{
-					groupConverter(ref timeStampO, lastGroup, shortFileName, ref sBuffer);
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
-					break;
-				}
-
-				try
-				{
-					groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName, ref sBuffer);
-
-					if (sBuffer.Length > 0x400)
+				else
+				{                                   //Altrimenti potrebbero essere a zero i coeff adc. In questo caso:
+					if (coeffSum16 == 0)                        //16 byte consecutivi a zero vuol dire PRESENZA di info adc e coefficienti a zero (4 + 12)
 					{
-						csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
-						sBuffer = "";
+						adcPresence = true;
+					}
+					else
+					{                                           //I 16 byte non sono tutti a zero: in questo caso:
+						if (coeffSum12 == 0)                        //Sono a zero tutti e solo i primi 12, vuol dire NO info adc e coefficienti a zero
+						{
+							adcPresence = false;                //no adc
+						}
+						else
+						{                                           //I primi 12 byte non sono tutti a zero: i primi 4 sono le info adc e successivamente ci sono i coefficienti
+							adcPresence = true;                 //si adc
+						}
+					}
+				}
+				ard.Position = 7;
+
+				//Controlla se l'ard contiene le informazioni sul sensore Analogico
+				if (adcPresence)
+				{
+					ard.ReadByte();
+					adcThreshold = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());
+					byte adcTemp = (byte)ard.ReadByte();
+					if ((adcTemp & 8) == 8) adcStop = true;
+					//if ((adcTemp & 4) == 4) adcMagmin = true;
+					if ((adcTemp & 2) == 2) adcLog = true;
+				}
+				//Legge i coefficienti di profondità
+				//ard.BaseStream.Position = pos;
+				convCoeffs = new double[] { 0, 0, 0, 0, 0, 0 };
+				for (int u = 0; u <= 5; u++) convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
+
+				//Legge i parametri di logging
+				pressureEnabled = ard.ReadByte();
+				temperatureEnabled = pressureEnabled;
+				pressureEnabled /= 16;
+				temperatureEnabled &= 15;
+
+				byte rrb = (byte)ard.ReadByte();
+				rate = findSamplingRate(rrb);
+				range = findRange(rrb);
+				bits = findBits(rrb);
+				bitsDiv = findBytesPerSample();
+				nOutputs = rate;
+				findDebugStampPar();
+				Array.Resize(ref lastGroup, ((rate * 3)));
+
+				//cifreDec = 3;
+				cifreDecString = "0.000";
+				if (bits)
+				{
+					//cifreDec = 4;
+					cifreDecString = "0.0000";
+				}
+
+				string sesInfo = "";
+				if (exten.Contains("rem"))
+				{
+					sesInfo = " (Session " + sesCounter.ToString() + "/" + sesMax.ToString() + ")";
+				}
+
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+					new Action(() => parent.statusLabel.Content = barStatus + sesInfo + " - Searching for a GPS fix..."));
+
+				byte abCheck = (byte)ard.ReadByte();
+				while (abCheck != (byte)0xab) abCheck = (byte)ard.ReadByte();
+
+				long pos = ard.Position;
+				//ard.Close();
+				timeStampO.orario = findStartTime(ref ard, ref prefs, pos);
+				ard.Position = pos;
+				if (exten.Contains("rem"))
+				{
+					System.IO.File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ": "
+						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: " 
+						+ csv.BaseStream.Position.ToString("X4")+"\tREM Position: "+infRemPosition.ToString("X4") + "\r\n");
+				}
+
+				sesCounter++;
+
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+					new Action(() => parent.statusLabel.Content = barStatus + sesInfo + " - Converting"));
+				//ard = new System.IO.BinaryReader(File.Open(fileName, FileMode.Open));
+				//ard.BaseStream.Position = pos;
+				shortFileName = Path.GetFileNameWithoutExtension(fileName);
+
+				//Stopwatch sw = new Stopwatch();
+				//sw.Start();
+
+
+
+				if (headerMissing)
+				{
+					csvPlaceHeader(ref csv);
+					headerMissing = false;
+				}
+
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+					new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+
+				string sBuffer = "";
+
+
+				while (!convertStop)
+				{
+
+					if ((ard.Position % 128) == 0)
+					{
+
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+									new Action(() => parent.statusProgressBar.Value = ard.Position));
 					}
 
-					//csv.Write(System.Text.Encoding.ASCII.GetBytes(
-					//    groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message);
+					if (detectEof(ref ard)) break;
+					try
+					{
+						decodeTimeStamp(ref ard, ref timeStampO, firmTotA);
+					}
+					catch
+					{
+
+					}
+
+					if (timeStampO.stopEvent > 0)
+					{
+						groupConverter(ref timeStampO, lastGroup, shortFileName, ref sBuffer);
+						csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
+						break;
+					}
+
+					try
+					{
+						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName, ref sBuffer);
+
+						if (sBuffer.Length > 0x400)
+						{
+							csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
+							sBuffer = "";
+						}
+
+						//csv.Write(System.Text.Encoding.ASCII.GetBytes(
+						//    groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(ex.Message);
+					}
+
+					if (((timeStampO.tsType & 32) == 32) | ((timeStampO.tsType & 16) == 16))
+					{
+						if (makeTxt) txtWrite(ref timeStampO, ref txt);
+					}
+					if ((timeStampO.tsType & 16) == 16)
+					{
+						if (makeKml) kmlWrite(ref timeStampO, ref kml, ref placeMark);
+					}
 				}
 
-				if (((timeStampO.tsType & 32) == 32) | ((timeStampO.tsType & 16) == 16))
+				if (exten.Contains("rem"))
 				{
-					if (makeTxt) txtWrite(ref timeStampO, ref txt);
+					System.IO.File.AppendAllText(logFile, "        end: " + sesCounter.ToString() + ": "
+						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n");
 				}
-				if ((timeStampO.tsType & 16) == 16)
+
+				if (makeTxt) txtWrite(ref timeStampO, ref txt);
+
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+					new Action(() => parent.statusProgressBar.Value = ard.Position));
+
+				if (convertStop & exten.Contains("rem"))
 				{
-					if (makeKml) kmlWrite(ref timeStampO, ref kml, ref placeMark);
+					ard.Close();
+					csv.Close();
+					File.Delete(fileNameCsv);
+					try
+					{
+						txt.Close();
+						File.Delete(FileNametxt);
+					}
+					catch { }
+					try
+					{
+						placeMark.Close();
+						kml.Close();
+						File.Delete(fileNamePlaceMark);
+						File.Delete(fileNameKml);
+					}
+					catch { }
 				}
+
+				ard.Close();
+
 			}
-
-			if (makeTxt) txtWrite(ref timeStampO, ref txt);
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusProgressBar.Value = ard.Position));
 
 			if (makeKml)
 			{
-				//Scrive il segnaposto di stop nel fime kml dei placemarks
-				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
-				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
-					(decoderKml(ref timeStampO)).cPlacemark + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
-				kml.Close();
-				placeMark.Close();
+				try
+				{
+					//Scrive il segnaposto di stop nel fime kml dei placemarks
+					placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
+					placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
+						(decoderKml(ref timeStampO)).cPlacemark + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
+					kml.Close();
+					placeMark.Close();
 
-				//Scrive l'header finale nel file kml string
-				System.IO.File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Path_Bot);
-				System.IO.File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Folder_Bot);
+					//Scrive l'header finale nel file kml string
+					System.IO.File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Path_Bot);
+					System.IO.File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Folder_Bot);
 
-				//Accorpa kml placemark e string
-				System.IO.File.AppendAllText(fileNamePlaceMark, System.IO.File.ReadAllText(fileNameKml));
+					//Accorpa kml placemark e string
+					System.IO.File.AppendAllText(fileNamePlaceMark, System.IO.File.ReadAllText(fileNameKml));
 
-				//Chiude il kml placemark
-				System.IO.File.AppendAllText(fileNamePlaceMark, X_Manager.Properties.Resources.Final_Bot);
-				//Elimina il kml string temporaneo
-				System.IO.File.Delete(fileNameKml);
+					//Chiude il kml placemark
+					System.IO.File.AppendAllText(fileNamePlaceMark, X_Manager.Properties.Resources.Final_Bot);
+					//Elimina il kml string temporaneo
+					System.IO.File.Delete(fileNameKml);
+				}
+				catch { }
+
 			}
 
 			if (makeTxt) txt.Close();
 			csv.Close();
-			ard.Close();
+
+			ardFile.Close();
+
+
+
+
+
+
+
 
 			//sw.Stop();
 			//MessageBox.Show(sw.Elapsed.TotalSeconds.ToString());
@@ -1886,9 +2002,9 @@ namespace X_Manager
 			//return textOut;
 		}
 
-		private DateTime findStartTime(string fileName, ref string[] prefs, long pos)
+		private DateTime findStartTime(ref MemoryStream br, ref string[] prefs, long pos)
 		{
-			BinaryReader br = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+			//BinaryReader br = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
 			const int pref_h = 9;
 			const int pref_m = 10;
 			const int pref_s = 11;
@@ -1899,7 +2015,7 @@ namespace X_Manager
 			timeStamp tsc = new timeStamp();
 			pos -= 1;
 
-			long fileLength = br.BaseStream.Length;
+			//long fileLength = br.Length;
 
 			DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
 				int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]));
@@ -1914,58 +2030,64 @@ namespace X_Manager
 				noByteTemper = 2;
 			}
 
+
 			//br.BaseStream.Position = 7;
 			//if (br.ReadByte() == 0) br.BaseStream.Position = 25;
 			//else br.BaseStream.Position = 21;
-			br.BaseStream.Position = pos;
+			//var br = new MemoryStream(buf);
+
+			br.Position = pos;
 			ushort secondAmount = 1;
 
-			while (br.BaseStream.Position < br.BaseStream.Length)
+			while (br.Position < br.Length)
 			{
 				if (br.ReadByte() == 0xab)
 				{
-					timeStamp0 = br.ReadByte();
+					timeStamp0 = (byte)br.ReadByte();
 					secondAmount = 1;
 					if (timeStamp0 != 0xab)
 					{
-						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = br.BaseStream.Position));
-						if ((timeStamp0 & 1) == 1) timeStamp1 = br.ReadByte();
-						if ((timeStamp0 & 2) == 2) br.BaseStream.Position += noByteTemper;
-						if ((timeStamp0 & 4) == 4) br.BaseStream.Position += 3;
-						if ((timeStamp0 & 8) == 8) br.BaseStream.Position += 2;
+						double ppos = br.Position;
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ppos));
+						if ((timeStamp0 & 1) == 1) timeStamp1 = (byte)br.ReadByte();
+						if ((timeStamp0 & 2) == 2) br.Position += noByteTemper;
+						if ((timeStamp0 & 4) == 4) br.Position += 3;
+						if ((timeStamp0 & 8) == 8) br.Position += 2;
 						if ((timeStamp0 & 16) == 16)
 						{
-							coordinate = br.ReadBytes(22);
+							br.Read(coordinate, 0, 22);
 							if (coordinate[8] != 80) break;
 						}
 						if ((timeStamp0 & 32) == 32)
 						{
-							byte ev = (byte)br.BaseStream.ReadByte();       //ex b
-							int debugCheck = (byte)br.BaseStream.ReadByte();
+							byte ev = (byte)br.ReadByte();       //ex b
+							int debugCheck = (byte)br.ReadByte();
 
-							br.BaseStream.Position -= 2;
+							br.Position -= 2;
 							if ((ev == debugStampId) && (debugCheck > 2))
 							{
-								br.ReadBytes(debugStampLenght);
+								//br.ReadBytes(debugStampLenght);
+								br.Position += debugStampLenght;
 							}
 							else
 							{
-								br.ReadBytes(5);
+								//br.ReadBytes(5);
+								br.Position += 5;
 							}
 
 						}
 						if ((timeStamp0 & 1) == 1)
 						{
-							if ((timeStamp1 & 2) == 2) br.BaseStream.Position += 2;
-							if ((timeStamp1 & 0x40) == 0x40) secondAmount = br.ReadByte();
+							if ((timeStamp1 & 2) == 2) br.Position += 2;
+							if ((timeStamp1 & 0x40) == 0x40) secondAmount = (byte)br.ReadByte();
 						}
 						secondiAdd += secondAmount;
 					}
 				}
 			}
-			if (br.BaseStream.Position >= br.BaseStream.Length)
+			if (br.Position >= br.Length)
 			{
-				br.Close();
+				//br.Close();
 				return dt;
 			}
 
@@ -2012,7 +2134,7 @@ namespace X_Manager
 				tsc.mese = unchecked(coordinate[cCounter] >> 4);
 				tsc.altH = (coordinate[cCounter] & 15);
 			}
-			br.Close();
+			//br.Close();
 			secondiAdd += 1;    //Questo secondo sottratto in più viene reinserito al decoding del primo timestamp
 
 			dt = new DateTime(2000 + tsc.anno, tsc.mese, tsc.giorno, tsc.ore, tsc.minuti, tsc.secondi);

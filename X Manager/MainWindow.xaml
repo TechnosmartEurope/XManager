@@ -173,7 +173,7 @@
     <StackPanel Grid.Row="1">
         <StackPanel Orientation="Horizontal">
             <Label Content="STATUS: " Foreground="#FF00AADE" Margin="10,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-            <Label Margin="5,0,0,0" x:Name="statusLabel" x:FieldModifier="public" Width="400" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            <Label Margin="5,0,0,0" x:Name="statusLabel" x:FieldModifier="public" Width="828" VerticalAlignment="Center" HorizontalAlignment="Left"/>
         </StackPanel>
         <Grid x:Name="progressBarGrid">
             <Grid.ColumnDefinitions>

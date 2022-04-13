@@ -265,46 +265,12 @@ namespace X_Manager
 			if (lastSettings[9].Equals("M")) downloadManual.IsChecked = true;
 
 			downloadManual.Checked += downloadModeChecked;
+			downloadManual.Unchecked += downloadModeChecked;
 			downloadAutomatic.Checked += downloadModeChecked;
+			downloadAutomatic.Unchecked += downloadModeChecked;
 
 			progressBarStopButton.IsEnabled = false;
 			progressBarStopButtonColumn.Width = new GridLength(0);
-		}
-
-		private void downloadModeChecked(object sender, RoutedEventArgs e)
-		{
-			downloadManual.Checked -= downloadModeChecked;
-			downloadAutomatic.Checked -= downloadModeChecked;
-			if (((MenuItem)sender).Name.Equals("downloadAutomatic"))
-			{
-				if (downloadManual.IsChecked)
-				{
-					downloadManual.IsChecked = false;
-					string[] pre = System.IO.File.ReadAllLines(iniFile);
-					pre[9] = "A";
-					System.IO.File.WriteAllLines(iniFile, pre);
-				}
-				else
-				{
-					downloadAutomatic.IsChecked = false;
-				}
-			}
-			else
-			{
-				if (downloadAutomatic.IsChecked)
-				{
-					downloadAutomatic.IsChecked = false;
-					string[] pre = System.IO.File.ReadAllLines(iniFile);
-					pre[9] = "M";
-					System.IO.File.WriteAllLines(iniFile, pre);
-				}
-				else
-				{
-					downloadManual.IsChecked = false;
-				}
-			}
-			downloadManual.Checked += downloadModeChecked;
-			downloadAutomatic.Checked += downloadModeChecked;
 		}
 
 		private void loadUserPrefs()
@@ -687,6 +653,33 @@ namespace X_Manager
 		void realTimeConfigurationClick(object sender, RoutedEventArgs e)
 		{
 
+		}
+
+		private void downloadModeChecked(object sender, RoutedEventArgs e)
+		{
+			downloadManual.Checked -= downloadModeChecked;
+			downloadAutomatic.Checked -= downloadModeChecked;
+			downloadManual.Unchecked -= downloadModeChecked;
+			downloadAutomatic.Unchecked -= downloadModeChecked;
+			lastSettings = System.IO.File.ReadAllLines(iniFile);
+			if (((MenuItem)sender).Name.Equals("downloadAutomatic"))
+			{
+				downloadAutomatic.IsChecked = true;
+				downloadManual.IsChecked = false;
+				lastSettings[9] = "A";
+				System.IO.File.WriteAllLines(iniFile, lastSettings);
+			}
+			else
+			{
+				downloadManual.IsChecked = true;
+				downloadAutomatic.IsChecked = false;
+				lastSettings[9] = "M";
+				System.IO.File.WriteAllLines(iniFile, lastSettings);
+			}
+			downloadManual.Checked += downloadModeChecked;
+			downloadAutomatic.Checked += downloadModeChecked;
+			downloadManual.Unchecked += downloadModeChecked;
+			downloadAutomatic.Unchecked += downloadModeChecked;
 		}
 
 		void unlockUnit_Click(object sender, RoutedEventArgs e)
@@ -1412,7 +1405,7 @@ namespace X_Manager
 
 			}
 
-			
+
 			int baudrate = 3000000;
 			if (speedLegacy.IsChecked)
 			{
@@ -1458,8 +1451,9 @@ namespace X_Manager
 				fOpen.InitialDirectory = lastSettings[4];
 			}
 
-			fOpen.FileName = "*.ard";
-			fOpen.Filter = "Axy Raw Data|*.ard|Memory dump file|*.memDump;*.mdp";
+			//fOpen.FileName = "*.ard";
+			fOpen.Filter = "Axy Raw Data (*.ard, *.rem)|*.ard;*.rem|Memory dump file|*.memDump;*.mdp";
+
 			fOpen.Multiselect = true;
 			if ((fOpen.ShowDialog() == false))
 			{
@@ -1923,8 +1917,13 @@ namespace X_Manager
 
 		public void nextFile()
 		{
+			const int type_ard = 1;
+			const int type_rem = 2;
+			const int type_mdp = 3;
+
+
 			convFile++;
-			bool ardFile = true;
+			int fileType = type_ard;
 			string fileHeader = "ARD ";
 			string fileName = "";
 			string fileNameCsv;
@@ -1962,10 +1961,14 @@ namespace X_Manager
 				if ((System.IO.Path.GetExtension(fileName).Contains("Dump") || (System.IO.Path.GetExtension(fileName).Contains("dump") || System.IO.Path.GetExtension(fileName).Contains("mdp"))))
 				{
 					fileHeader = "MEMDUMP ";
-					ardFile = false;
+					fileType = type_mdp;
 				}
 				else
 				{
+					if (System.IO.Path.GetExtension(fileName).Contains("rem"))
+					{
+						fileHeader = "REM ";
+					}
 					foreach (string nomefile in nomiFile)
 					{
 						if (System.IO.File.Exists(nomefile))
@@ -2019,12 +2022,13 @@ namespace X_Manager
 			}
 
 			statusProgressBar.IsIndeterminate = true;
+			
 			statusLabel.Content = fileHeader + "File " + convFile.ToString() + "/" + convFileTot.ToString() + ": " + System.IO.Path.GetFileName(fileName) + " ";
 			convFiles.RemoveAt(0);
 			FileStream fs = File.OpenRead(fileName);
 			byte model;
 			byte fw = 0; //COntrollare cosa succede in caso di ardfile=false alla riga 1555 e poi al caso successivo (Depth)
-			if (ardFile)
+			if (fileType == type_ard)
 			{
 				model = (byte)fs.ReadByte();
 			}
@@ -2050,7 +2054,7 @@ namespace X_Manager
 					cUnit = new Axy3(this);
 					break;
 				case Unit.model_axy4:
-					if (ardFile) fw = (byte)fs.ReadByte();
+					if (fileType == type_ard) fw = (byte)fs.ReadByte();
 					if ((fw < 2)) cUnit = new Axy4_1(this);
 					else cUnit = new Axy4_2(this);
 					break;
@@ -2058,7 +2062,7 @@ namespace X_Manager
 					cUnit = new Axy5(this);
 					break;
 				case Unit.model_axyDepth:
-					if (ardFile) fw = (byte)fs.ReadByte();
+					if (fileType == type_ard) fw = (byte)fs.ReadByte();
 					if ((fw < 2)) cUnit = new AxyDepth_1(this);
 					else cUnit = new AxyDepth_2(this);
 					break;
@@ -2084,7 +2088,7 @@ namespace X_Manager
 			mainGrid.IsEnabled = false;
 			cUnit.convertStop = false;
 			Thread conversionThread;
-			if (ardFile)
+			if ((fileType == type_ard) | (fileType==type_rem))
 			{
 				statusProgressBar.Maximum = FileLength;
 				progressBarStopButton.IsEnabled = true;

@@ -46,3 +46,5 @@
 1.6.1	Invio orario alla Basestation tramite Masterstation
 1.6.2	Bufgix: non veniva riaperta la porta seriale dopo aver chiuso la finestra di connessione unità remota
 1.6.3	Aggiunta possibilità di scaricare aree di memoria custom dalle unità
+1.7.0	Conversione file .rem
+	Bugfix: Settings -> Custom range download perdeva la spunta
