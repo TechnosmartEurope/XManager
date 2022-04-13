@@ -1809,7 +1809,12 @@ namespace X_Manager.Units
 					int minuti = ard.ReadByte();
 					minuti = ((minuti >> 4) * 10) + (minuti & 15);
 
-					tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
+					try
+					{
+						tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
+					}
+					catch { }
+					
 				}
 				else
 				{

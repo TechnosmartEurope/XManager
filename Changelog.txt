@@ -103,3 +103,6 @@
 1.11.2	Bugfix: crashava alla configurazione dell'axyDepth.5
 1.11.3	Bugfix: conversione axyDepth.5
 1.11.4	Rimossa limitazione elenco porte COM
+	Bugfix: Axy5 dichiarava ard corrupted all'ultimo pre-stamp prima di evento poweroff
+	Bugfix: Axy5, in decodetimestamp rilevamento evento di fine sessione (poweroff, memfull, lowbattery) spostato a inizio timestamp esteso.
+1.11.5	Bugfix: Conversione Air nell'AxyDepth 1

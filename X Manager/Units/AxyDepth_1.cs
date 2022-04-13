@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Globalization;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using System.IO;
-using System.Runtime.InteropServices;
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -596,8 +592,8 @@ namespace X_Manager.Units
             string exten = Path.GetExtension(fileName);
             if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
             string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-            BinaryReader ard = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
-            BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+            BinaryReader ard = new BinaryReader(File.Open(fileName, FileMode.Open));
+            BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
 
             ard.BaseStream.Position = 1;
             firmTotA = (uint)(ard.ReadByte() * 1000 + ard.ReadByte());
@@ -725,20 +721,20 @@ namespace X_Manager.Units
                 }
                 catch
                 {
-                    csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName) + "\r\n"));
+                    csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName) + "\r\n"));
                     break;
                 }
 
 
                 if (timeStampO.stopEvent > 0)
                 {
-                    csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName) + "\r\n"));
+                    csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName) + "\r\n"));
                     break;
                 }
 
                 try
                 {
-                    csv.Write(System.Text.Encoding.ASCII.GetBytes(
+                    csv.Write(Encoding.ASCII.GetBytes(
                         groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
                 }
                 catch
@@ -790,7 +786,7 @@ namespace X_Manager.Units
                         ard.BaseStream.Position -= 1;
                         if (badGroup)
                         {
-                            System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+                            File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
                         }
                     }
                 }
@@ -804,10 +800,10 @@ namespace X_Manager.Units
                     else if ((position == badPosition) && (!badGroup))
                     {
                         badGroup = true;
-                        System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+                        File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
                     }
                 }
-            } while ((dummy != (byte)0xab) && (ard.BaseStream.Position < ard.BaseStream.Length));
+            } while ((dummy != 0xab) && (ard.BaseStream.Position < ard.BaseStream.Length));
 
             //Array.Resize(ref group, (int)position);
 
@@ -1081,7 +1077,15 @@ namespace X_Manager.Units
 
             if ((tsc.tsType % 10) > 0)
             {
-                pressureDepth(ref ard, ref tsc);
+                if (isDepth)
+				{
+                    pressureDepth(ref ard, ref tsc);
+				}
+				else
+				{
+                    pressureAir(ref ard, ref tsc);
+                }
+                
             }
 
             if (tsc.tsType > 9)
@@ -1137,7 +1141,7 @@ namespace X_Manager.Units
             off -= off2;
             sens -= sens2;
             tsc.temp /= 100;
-            tsc.temp = (float)Math.Round(tsc.temp, 1);
+            tsc.temp = Math.Round(tsc.temp, 1);
 
             if (((tsc.tsType % 10) == 3) | ((tsc.tsType % 10)==6))
             {
@@ -1151,73 +1155,10 @@ namespace X_Manager.Units
                 }
                 tsc.press = (float)(((d1 * sens / 2097152) - off) / 32768);
                 tsc.press /= 100;
-                tsc.press = (float)Math.Round(tsc.press, 2);
+                tsc.press = Math.Round(tsc.press, 2);
             }
             return false;
         }
-
-		//private bool pressureDepthOld(ref BinaryReader ard, ref timeStamp tsc)
-		//{
-		//	double dT;
-		//	double off;
-		//	double sens;
-		//	double d1, d2;
-
-		//	try
-		//	{
-		//		d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
-		//	}
-		//	catch
-		//	{
-		//		return true;
-		//	}
-
-		//	dT = d2 - convCoeffs[4] * 256;
-		//	tsc.temp = (float)(2000 + (dT * convCoeffs[5]) / 8388608);
-		//	off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
-		//	sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
-		//	if (tsc.temp > 2000)
-		//	{
-		//		off -= ((Math.Pow((tsc.temp - 2000), 2)) / 16);
-		//		tsc.temp -= (float)((7 * Math.Pow(dT, 2)) / 137438953472);
-		//	}
-		//	else
-		//	{
-		//		off -= 3 * ((Math.Pow((tsc.temp - 2000), 2)) / 2);
-		//		sens -= 5 * ((Math.Pow((tsc.temp - 2000), 2)) / 8);
-		//		if (tsc.temp < -1500)
-		//		{
-		//			off -= 7 * Math.Pow((tsc.temp + 1500), 2);
-		//			sens -= 4 * Math.Pow((tsc.temp + 1500), 2);
-		//		}
-		//		tsc.temp -= (float)(3 * (Math.Pow(dT, 2))) / 8589934592;
-		//	}
-		//	tsc.temp = (float)Math.Round((tsc.temp / 100), 1);
-		//	if (((tsc.tsType % 10) == 3) | ((tsc.tsType % 10) == 6))
-		//	{
-		//		try
-		//		{
-		//			d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
-		//		}
-		//		catch
-		//		{
-		//			return true;
-		//		}
-		//		tsc.press = (float)Math.Round((d1 * sens / 2097152 - off), 1);
-		//		if (inMeters)
-		//		{
-		//			tsc.press -= tsc.pressOffset;
-		//			if (tsc.press <= 0) tsc.press = 0;
-		//			else
-		//			{
-		//				tsc.press = (float)(tsc.press / 98.1);
-		//				tsc.press = (float)Math.Round(tsc.press, 2);
-		//			}
-		//		}
-		//	}
-		//	return false;
-		//}
-
 		private bool pressureDepth(ref BinaryReader ard, ref timeStamp tsc)
 		{
 			double dT;
@@ -1255,7 +1196,8 @@ namespace X_Manager.Units
 				}
 			}
 			tsc.temp = tsc.temp / 100;
-			if ((tsc.tsType & 4) == 4)
+            tsc.temp = Math.Round(tsc.temp, 2);
+            if ((tsc.tsType & 4) == 4)
 			{
 				try
 				{
@@ -1273,7 +1215,7 @@ namespace X_Manager.Units
 					else
 					{
 						tsc.press = tsc.press / 98.1;
-						//tsc.press = Math.Round(tsc.press, 2);
+						tsc.press = Math.Round(tsc.press, 2);
 					}
 				}
 			}
