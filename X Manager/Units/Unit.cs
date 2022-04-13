@@ -30,8 +30,28 @@ namespace X_Manager.Units
         public const int model_AGM1 = 9;
         public const int model_axyTrekS = 7;
         public const int model_axyTrek = 6;
-        
-        public bool positionCanSend = false;
+
+		//Maschere timestamp
+		public const byte ts_ext1 = 0b0000_0001;
+		public const byte ts_temperature = 0b0000_0010;
+		public const byte ts_pressure = 0b0000_0100;
+		public const byte ts_battery = 0b0000_1000;
+		public const byte ts_coordinate = 0b0001_0000;
+		public const byte ts_event = 0b0010_0000;
+		public const byte ts_activity = 0b0100_0000;
+		public const byte ts_water = 0b1000_0000;
+
+		public const byte ts_ext2 = 0b0000_0001;
+		public const byte ts_adcValue = 0b0000_0010;
+		public const byte ts_adcThreshold = 0b0000_0100;
+		
+
+		public const byte ts_time = 0b0010_0000;
+		public const byte ts_multi = 0b0100_0000;
+		public const byte ts_escape = 0b1000_0000;
+
+
+		public bool positionCanSend = false;
         public bool configurePositionButtonEnabled = false;
         public bool configureMovementButtonEnabled = true;
         protected bool realTimeSPVisibility = false;

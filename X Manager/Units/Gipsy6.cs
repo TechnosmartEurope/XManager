@@ -7,6 +7,7 @@ using System.Threading;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using System.Globalization;
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -88,6 +89,7 @@ namespace X_Manager.Units
 		bool adcStop = false;
 		bool primaCoordinata;
 		uint contoCoord;
+		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 
 		new byte[] firmwareArray = new byte[3];
 
@@ -1005,6 +1007,7 @@ namespace X_Manager.Units
 			}
 
 			csvPlaceHeader(ref csv);
+			ard.Position = 0xa3;
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
 
@@ -1105,23 +1108,261 @@ namespace X_Manager.Units
 
 		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
 		{
-			return new double[] { 0 };
+			byte[] group = new byte[2000];
+			bool badGroup = false;
+			long position = 0;
+			int dummy, dummyExt;
+			int badPosition = 600;
+
+			if (ard.Position == ard.Length) return lastGroup;
+
+			do
+			{
+				dummy = ard.ReadByte();
+				if (dummy == 0xab)
+				{
+					if (ard.Position < ard.Length) dummyExt = ard.ReadByte();
+					else return lastGroup;
+
+					if (dummyExt == 0xab)
+					{
+						group[position] = (byte)0xab;
+						position += 1;
+						dummy = 0;
+					}
+					else
+					{
+						ard.Position -= 1;
+						if (badGroup)
+						{
+							//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+						}
+					}
+				}
+				else
+				{
+					if (position < badPosition)
+					{
+						group[position] = (byte)dummy;
+						position++;
+					}
+					else if ((position == badPosition) && (!badGroup))
+					{
+						badGroup = true;
+						//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+					}
+				}
+			} while ((dummy != (byte)0xab) && (ard.Position < ard.Length));
+
+			//Implementare dati accelerometrici quando disponibili dall'unità
+			//tsc.timeStampLength = (byte)(position);
+
+			//int resultCode = 0;
+			//double[] doubleResultArray = new double[nOutputs * 3];
+			//if (bits)
+			//{
+			//	resultCode = resample4(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
+			//}
+			//else
+			//{
+			//	resultCode = resample3(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
+			//}
+
+			//return doubleResultArray;
+			return new double[] { };
 		}
 
-		private void groupConverter(ref timeStamp tsc, double[] group, string shortFileName, ref string sBuffer)
+		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref string sBuffer)
 		{
+			string dateTimeS;
+			string ampm = "";
+			string dateS = "";
+			int contoTab = 0;
 
+			//Compila data e ora
+			dateS = tsLoc.orario.ToString(dateFormatParameter);
+			var dateCi = new CultureInfo("it-IT");
+			if (angloTime) dateCi = new CultureInfo("en-US");
+			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
+			if (angloTime)
+			{
+				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
+				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
+			}
+			
+			string log = unitName + csvSeparator + dateTimeS + ".000";
+			if (((tsLoc.tsType & ts_coordinate) == ts_coordinate) | repeatEmptyValues)
+			{
+				log += csvSeparator + tsLoc.lon.ToString("000.0000000") + csvSeparator + tsLoc.lat.ToString("00.0000000");
+				log += csvSeparator + tsLoc.altitude + ToString() + csvSeparator + tsLoc.speed.ToString() + csvSeparator + tsLoc.dop.ToString();
+				log += csvSeparator + tsLoc.sat.ToString() + csvSeparator + tsLoc.gsvSum.ToString();
+			}
+			else
+			{
+				log += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
+			}
+
+
+
+
+			//double x, y, z;
+			//int milli = 0;
+			//string activityWater = "";
+			
+			//textOut = "";
+			//x = group[0] * gCoeff;
+			//y = group[1] * gCoeff;
+			//z = group[2] * gCoeff;
+
+			//textOut += unitName + csvSeparator + dateTimeS + ".000";
+			//if (angloTime) textOut += " " + ampm;
+			//textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
+
+			//additionalInfo = "";
+			//if (debugLevel > 2) additionalInfo += csvSeparator + tsLoc.timeStampLength.ToString();  //sviluppo
+
+			//contoTab += 1;
+			//if ((tsLoc.tsType & 64) == 64) activityWater = "Active";
+			//else activityWater = "Inactive";
+			//if ((tsLoc.tsType & 128) == 128) activityWater += "/Wet";
+			//else activityWater += "/Dry";
+
+			//additionalInfo += csvSeparator + activityWater;
+
+			//if (pressureEnabled > 0)
+			//{
+			//	contoTab += 1;
+			//	additionalInfo += csvSeparator;
+			//	if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
+			//}
+			//if (temperatureEnabled > 0)
+			//{
+			//	contoTab += 1;
+			//	additionalInfo += csvSeparator;
+			//	if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
+			//}
+
+			////Inserire la coordinata.
+			//contoTab += 7;
+			//if (((tsLoc.tsType & 16) == 16) | repeatEmptyValues)
+			//{
+			//	string altSegno, eo, ns;
+			//	altSegno = eo = ns = "-";
+			//	if (tsLoc.altSegno == 0) altSegno = "";
+			//	if (tsLoc.eo == 1) eo = "";
+			//	if (tsLoc.ns == 1) ns = "";
+			//	double speed = tsLoc.vel * 3.704;
+			//	double lon, lat = 0;
+
+			//	lon = ((tsLoc.lonMinuti + (tsLoc.lonMinDecH / 100.0) + (tsLoc.lonMinDecL / 10000.0) + (tsLoc.lonMinDecLL / 100000.0)) / 60) + tsLoc.lonGradi;
+			//	lat = ((tsLoc.latMinuti + (tsLoc.latMinDecH / 100.0) + (tsLoc.latMinDecL / 10000.0) + (tsLoc.latMinDecLL / 100000.0)) / 60) + tsLoc.latGradi;
+
+			//	additionalInfo += csvSeparator + ns + lat.ToString("#00.00000", nfi);
+			//	additionalInfo += csvSeparator + eo + lon.ToString("#00.00000", nfi);
+			//	additionalInfo += csvSeparator + altSegno + ((tsLoc.altH * 256 + tsLoc.altL) * 2).ToString();
+			//	additionalInfo += csvSeparator + speed.ToString("0.0", nfi);
+			//	additionalInfo += csvSeparator + tsLoc.nSat.ToString();
+			//	additionalInfo += csvSeparator + tsLoc.DOP.ToString() + "." + tsLoc.DOPdec.ToString();
+			//	additionalInfo += csvSeparator + tsLoc.gsvSum.ToString();
+			//}
+			//else
+			//{
+			//	additionalInfo += csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator + csvSeparator;
+			//}
+
+			////Inserisce il sensore analogico
+			//if (adcLog)
+			//{
+			//	contoTab += 1;
+			//	additionalInfo += csvSeparator;
+			//	if (((tsLoc.tsTypeExt1 & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.ADC.ToString("0000");
+			//}
+
+			//if (adcStop)
+			//{
+			//	contoTab += 1;
+			//	additionalInfo += csvSeparator;
+			//	if (((tsLoc.tsTypeExt1 & 4) == 4) | repeatEmptyValues) additionalInfo += "Threshold crossed";
+			//}
+
+			////Inserisce la batteria
+			//if (prefBattery)
+			//{
+			//	contoTab += 1;
+			//	additionalInfo += csvSeparator;
+			//	if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString("0.00", nfi);
+			//}
+
+			////Inserisce i metadati
+			//if (metadata)
+			//{
+			//	contoTab += 1;
+			//	additionalInfo += csvSeparator;
+			//	if (tsLoc.stopEvent > 0)
+			//	{
+			//		switch (tsLoc.stopEvent)
+			//		{
+			//			case 1:
+			//				additionalInfo += "Low battery.";
+			//				break;
+			//			case 2:
+			//				additionalInfo += "Power off command received.";
+			//				break;
+			//			case 3:
+			//				additionalInfo += "Memory full.";
+			//				break;
+			//		}
+			//		textOut += additionalInfo + "\r\n";
+			//		return;// textOut;
+			//	}
+			//}
+
+			//textOut += additionalInfo + "\r\n";
+
+			//if (tsLoc.stopEvent > 0) return;// textOut;
+
+			//if (!repeatEmptyValues)
+			//{
+			//	additionalInfo = "";
+			//	for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
+			//}
+
+			//milli += addMilli;
+			//dateTimeS += ".";
+			//if (tsLoc.stopEvent > 0) bitsDiv = 1;
+
+			//var iend = (short)(rate * 3);
+
+			//for (short i = 3; i < iend; i += 3)
+			//{
+			//	x = group[i] * gCoeff;
+			//	y = group[i + 1] * gCoeff;
+			//	z = group[i + 2] * gCoeff;
+
+			//	if (rate == 1)
+			//	{
+			//		tsLoc.orario = tsLoc.orario.AddSeconds(1);
+			//		dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+			//	}
+			//	textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
+
+			//	if (angloTime) textOut += " " + ampm;
+			//	textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
+
+			//	textOut += additionalInfo + "\r\n";
+			//	milli += addMilli;
+			//}
 		}
 
 		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc, uint fTotA)
 		{
 			tsc.stopEvent = 0;
-			ushort secondAmount = 1;
+			//ushort secondAmount = 1;
 
 			tsc.tsType = ard.ReadByte();
 
 			//Flag timestamp esteso
-			if ((tsc.tsType & 1) == 1)
+			if ((tsc.tsType & ts_ext1) == ts_ext1)
 			{
 				tsc.tsTypeExt1 = ard.ReadByte();
 				if ((tsc.tsTypeExt1 & 1) == 1)
@@ -1172,13 +1413,13 @@ namespace X_Manager.Units
 			//}
 
 			//Batteria
-			if ((tsc.tsType & 8) == 8)
+			if ((tsc.tsType & ts_battery) == ts_battery)
 			{
 				tsc.batteryLevel = ((ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096);
 			}
 
 			//Coordinata
-			if ((tsc.tsType & 16) == 16)
+			if ((tsc.tsType & ts_coordinate) == ts_coordinate)
 			{
 				int anno = ard.ReadByte() * 256 + ard.ReadByte();
 				int mese = ard.ReadByte();
@@ -1188,14 +1429,18 @@ namespace X_Manager.Units
 				int secondi = ard.ReadByte();
 
 				tsc.lon = (ard.ReadByte() << 24) + (ard.ReadByte() << 16) + (ard.ReadByte() << 8) + ard.ReadByte();
+				if (tsc.lon > 2_147_483_647) tsc.lon -= 4_294_967_296;
 				tsc.lon /= 10000000;
 				tsc.lat = (ard.ReadByte() << 24) + (ard.ReadByte() << 16) + (ard.ReadByte() << 8) + ard.ReadByte();
+				if (tsc.lat > 2_147_483_647) tsc.lat -= 4_294_967_296;
 				tsc.lat /= 10000000;
 
 				tsc.altitude = (ard.ReadByte() << 24) + (ard.ReadByte() << 16) + (ard.ReadByte() << 8) + ard.ReadByte();
+				if (tsc.altitude > 2_147_483_647) tsc.altitude -= 4_294_967_296;
 				tsc.altitude /= 1000;
 
 				tsc.speed = (ard.ReadByte() << 24) + (ard.ReadByte() << 16) + (ard.ReadByte() << 8) + ard.ReadByte();
+				if (tsc.speed > 2_147_483_647) tsc.speed -= 4_294_967_296;
 				tsc.speed *= 3.6;
 				tsc.speed /= 10000;
 
@@ -1203,29 +1448,16 @@ namespace X_Manager.Units
 				tsc.sat = ard.ReadByte();
 				tsc.gsvSum = ard.ReadByte() * 256 + ard.ReadByte();
 
-				ushort diffMask = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());  //Legge la maschera
-				byte[] fissi = new byte[6];//= ard.ReadBytes(6);                                    //Legge i dati fissi
-				ard.Read(fissi, 0, 6);
-
 			}
 
 
 			//evento
-			if ((tsc.tsType & 32) == 32)
+			if ((tsc.tsType & ts_event) == ts_event)
 			{
-				int b = ard.ReadByte();
-				int debugCheck = ard.ReadByte();
-				ard.Position -= 2;
-				//if ((b == debugStampId) && (debugCheck > 2))
-				//{
-				//	tsc.eventAr = new byte[debugStampLenght];
-				//	ard.Read(tsc.eventAr, 0, debugStampLenght);
-				//	tsc.eventAr[0] = 80;
-				//}
-				//else
-				//{
-				//	ard.Read(tsc.eventAr, 0, 5);
-				//}
+				int eventType = ard.ReadByte();
+				int eventLenght = eventType / 10;
+				ard.Read(tsc.eventAr, 1, eventLenght);
+				tsc.eventAr[0] = (byte)eventType;
 
 				if (tsc.eventAr[0] == 11) tsc.stopEvent = 1;
 				else if (tsc.eventAr[0] == 12) tsc.stopEvent = 2;
@@ -1235,20 +1467,35 @@ namespace X_Manager.Units
 
 			//Attività/acqua
 			tsc.inWater = 0;
-			if ((tsc.tsType & 128) == 128) tsc.inWater = 1;
+			if ((tsc.tsType & ts_water) == ts_water) tsc.inWater = 1;
 
 			//Parametri estesi
-			if ((tsc.tsType & 1) == 1)
+			if ((tsc.tsType & ts_ext1) == ts_ext1)
 			{
-				if ((tsc.tsTypeExt1 & 2) == 2) tsc.ADC = (ard.ReadByte() * 256 + ard.ReadByte());
+				if ((tsc.tsTypeExt1 & ts_adcValue) == ts_adcValue) tsc.ADC = (ard.ReadByte() * 256 + ard.ReadByte());
 				tsc.inAdc = 0;
-				if ((tsc.tsTypeExt1 & 0x4) == 0x4)
+				if ((tsc.tsTypeExt1 & ts_adcThreshold) == ts_adcThreshold)
 				{
 					tsc.inAdc = 1;
 				}
-				if ((tsc.tsTypeExt1 & 0x40) == 0x40) secondAmount = (byte)ard.ReadByte();
+				if ((tsc.tsTypeExt1 & ts_time) == ts_time)
+				{
+					int anno = ard.ReadByte();
+					anno = ((anno / 16) * 10) + (anno % 16);
+					int mese = ard.ReadByte();
+					mese = ((mese / 16) * 10) + (mese % 16);
+					int giorno = ard.ReadByte();
+					giorno = ((giorno / 16) * 10) + (giorno % 16);
+					int ore = ard.ReadByte();
+					ore = ((ore / 16) * 10) + (ore % 16);
+					int minuti = ard.ReadByte();
+					minuti = ((minuti / 16) * 10) + (minuti % 16);
+					int secondi = ard.ReadByte();
+					secondi = ((secondi / 16) * 10) + (secondi % 16);
+					tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
+				}
 			}
-			tsc.orario = tsc.orario.AddSeconds(secondAmount);
+			
 
 		}
 

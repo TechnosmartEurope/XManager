@@ -466,7 +466,7 @@ namespace X_Manager.Units
 
 			while (actMemory < toMemory)
 			{
-				if (((actMemory % 0x2000000) == 0) | (firstLoop))
+				if (((actMemory % 0x2000000) == 0) | (firstLoop))       // A
 				{
 					address = BitConverter.GetBytes(actMemory);
 					Array.Reverse(address);
@@ -503,7 +503,7 @@ namespace X_Manager.Units
 				else
 				{
 					actMemory += 4096;
-					if ((actMemory % 0x20000) == 0)
+					if ((actMemory % 0x20000) == 0)         //a
 					{
 						actMemory -= 4096;
 						for (int i = 0; i < 2; i++)
@@ -650,8 +650,6 @@ namespace X_Manager.Units
 			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
 
 			bool firstLoop = true;
-			bool mem4 = false;
-			if (firmTotA > 2999999) mem4 = true;
 
 			while (actMemory < toMemory)
 			{
@@ -691,8 +689,10 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					if (mem4 && ((actMemory % 0x20000) == 0))
+					actMemory += 4096;
+					if ((actMemory % 0x20000) == 0)
 					{
+						actMemory -= 4096;
 						for (int i = 0; i < 2; i++)
 						{
 							address = BitConverter.GetBytes(actMemory);
@@ -712,7 +712,6 @@ namespace X_Manager.Units
 					}
 					else
 					{
-						actMemory += 4096;
 						fo.Write(inBuffer, 0, 4096);
 					}
 				}

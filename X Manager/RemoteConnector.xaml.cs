@@ -68,7 +68,17 @@ namespace X_Manager
         {
             stop = 0;
             sp.Write(new byte[] { 52 }, 0, 1);
-            Thread.Sleep(250);
+
+			sp.BaudRate = 2000000;
+			Thread.Sleep(50);
+			sp.Write("+++");
+			Thread.Sleep(200);
+			sp.Write(new byte[] { 0x41, 0x54, 0x42, 0x52, 3 }, 0, 5);
+			sp.BaudRate = 115200;
+			Thread.Sleep(100);
+			sp.Write("ATX");
+
+			Thread.Sleep(250);
             sp.Write(new byte[] { 43, 43, 43 }, 0, 3);
             Thread.Sleep(250);
             byte address = byte.Parse(channelListCB.SelectedItem.ToString());
