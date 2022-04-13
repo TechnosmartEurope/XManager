@@ -685,19 +685,18 @@ namespace X_Manager
 			//Passa alla gestione FTDI D2XX
 			sp.Close();
 
-			MainWindow.FT_STATUS FT_Status;
-			FT_HANDLE FT_Handle = 0;
+			//MainWindow.FT_STATUS FT_Status;
+			//FT_HANDLE FT_Handle = 0;
 			byte[] outBuffer = new byte[50];
 			byte[] inBuffer = new byte[4096];
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[8];
 
-			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
-
-			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
-			if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+			uint bytesToWrite = 0;
+			int bytesReturned = 0;
+			FTDI_Device ft = new FTDI_Device(sp.PortName);
+			if (!ft.Open())
 			{
-				MainWindow.FT_Close(FT_Handle);
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 				try
 				{
@@ -706,14 +705,11 @@ namespace X_Manager
 				catch { }
 				return;
 			}
-
-			MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
-			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
-
+			ft.BaudRate = (uint)baudrate;
 			bool firstLoop = true;
 			bool mem4 = false;
 			if (firmTotA > 2999999) mem4 = true;
-
+			bool success = true;
 			while (actMemory < toMemory)
 			{
 				if (((actMemory % 0x2000000) == 0) | (firstLoop))
@@ -730,23 +726,14 @@ namespace X_Manager
 					outBuffer[0] = 79;
 					bytesToWrite = 1;
 				}
-				fixed (byte* outP = outBuffer, inP = inBuffer)
+				ft.Write(outBuffer, bytesToWrite);
+				bytesReturned = ft.Read(inBuffer, 4096);
+				if (bytesReturned < 0)
 				{
-					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
+					success = false;
+					break;
 				}
-
-				if (FT_Status != MainWindow.FT_STATUS.FT_OK)
-				{
-					outBuffer[0] = 88;
-					fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
-					MainWindow.FT_Close(FT_Handle);
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					fo.Write(inBuffer);
-					fo.Close();
-					return;
-				}
-				else if (bytesReturned != 4096)
+				else if (bytesReturned < 4096)
 				{
 					firstLoop = true;
 				}
@@ -766,14 +753,16 @@ namespace X_Manager
 								Array.Copy(address, 0, outBuffer, 1, 3);
 								outBuffer[0] = 97;
 								bytesToWrite = 4;
-								fixed (byte* outP = outBuffer, inP = inBuffer)
+								ft.Write(outBuffer, bytesToWrite);
+								if (ft.Read(inBuffer, 2048) < 0)
 								{
-									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+									success = false;
+									break;
 								}
 								fo.Write(inBuffer, 0, 2048);
 								actMemory += 2048;
 							}
+							if (success == false) break;
 							firstLoop = true;
 						}
 						else
@@ -783,18 +772,6 @@ namespace X_Manager
 							{
 								firstLoop = true;
 							}
-							//	address = BitConverter.GetBytes(actMemory);
-							//	Array.Reverse(address);
-							//	Array.Copy(address, 0, outBuffer, 1, 3);
-							//	outBuffer[0] = 97;
-							//	bytesToWrite = 4;
-							//	fixed (byte* outP = outBuffer, inP = inBuffer)
-							//	{
-							//		FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-							//		FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
-							//	}
-							//	fo.Write(inBuffer, 0, 4096);
-							//	actMemory += 4096;
 						}
 
 					}
@@ -813,13 +790,22 @@ namespace X_Manager
 			fo.Write(new byte[] { model_axyTrek, (byte)254 }, 0, 2);
 
 			fo.Close();
+
+			if (!success)
+			{
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+				try
+				{
+					fo.Close();
+				}
+				catch { }
+				return;
+			}
+
 			outBuffer[0] = 88;
 			bytesToWrite = 1;
-			fixed (byte* outP = outBuffer)
-			{
-				FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			}
-			MainWindow.FT_Close(FT_Handle);
+			ft.Write(outBuffer, bytesToWrite);
+			ft.Close();
 			sp.BaudRate = 115200;
 			sp.Open();
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
@@ -842,8 +828,8 @@ namespace X_Manager
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
-			System.IO.FileMode fm = System.IO.FileMode.Create;
-			if (fromMemory != 0) fm = System.IO.FileMode.Append;
+			FileMode fm = FileMode.Create;
+			if (fromMemory != 0) fm = FileMode.Append;
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
 			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
 
@@ -903,19 +889,19 @@ namespace X_Manager
 			//Passa alla gestione FTDI D2XX
 			sp.Close();
 
-			MainWindow.FT_STATUS FT_Status;
-			FT_HANDLE FT_Handle = 0;
 			byte[] outBuffer = new byte[50];
 			byte[] inBuffer = new byte[4096];
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[8];
 
-			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
+			uint bytesToWrite = 0;
+			int bytesReturned = 0;
 
-			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
-			if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+			var ft = new FTDI_Device(sp.PortName);
+
+
+			if (!ft.Open())
 			{
-				MainWindow.FT_Close(FT_Handle);
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 				try
 				{
@@ -924,12 +910,10 @@ namespace X_Manager
 				catch { }
 				return;
 			}
-
-			MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
-			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
-
+			ft.BaudRate = (uint)sp.BaudRate;
 			bool firstLoop = true;
 			bool mem4 = false;
+			bool success = true;
 			if (firmTotA > 2999999) mem4 = true;
 
 			while (actMemory < toMemory)
@@ -948,23 +932,15 @@ namespace X_Manager
 					outBuffer[0] = 79;
 					bytesToWrite = 1;
 				}
-				fixed (byte* outP = outBuffer, inP = inBuffer)
-				{
-					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP, 4096, ref bytesReturned);
-				}
+				ft.Write(outBuffer, bytesToWrite);
+				bytesReturned = ft.Read(inBuffer, 4096);
 
-				if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+				if (bytesReturned < 0)
 				{
-					outBuffer[0] = 88;
-					fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
-					MainWindow.FT_Close(FT_Handle);
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					fo.Write(inBuffer);
-					fo.Close();
-					return;
+					success = false;
+					break;
 				}
-				else if (bytesReturned != 4096)
+				else if (bytesReturned < 4096)
 				{
 					firstLoop = true;
 				}
@@ -983,14 +959,16 @@ namespace X_Manager
 								Array.Copy(address, 0, outBuffer, 1, 3);
 								outBuffer[0] = 97;
 								bytesToWrite = 4;
-								fixed (byte* outP = outBuffer, inP = inBuffer)
+								ft.Write(outBuffer, bytesToWrite);
+								if (ft.Read(inBuffer, 2048) < 2048)
 								{
-									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+									success = false;
+									break;
 								}
 								fo.Write(inBuffer, 0, 2048);
 								actMemory += 2048;
 							}
+							if (!success) break;
 							firstLoop = true;
 						}
 						else
@@ -1015,15 +993,23 @@ namespace X_Manager
 
 			fo.Write(firmwareArray, 0, 6);
 			fo.Write(new byte[] { model_axyTrek, (byte)254 }, 0, 2);
-
 			fo.Close();
+
+			if (!success)
+			{
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+				try
+				{
+					fo.Close();
+				}
+				catch { }
+				return;
+			}
+
 			outBuffer[0] = 88;
 			bytesToWrite = 1;
-			fixed (byte* outP = outBuffer)
-			{
-				FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			}
-			MainWindow.FT_Close(FT_Handle);
+			ft.Write(outBuffer, bytesToWrite);
+			ft.Close();
 
 			sp.Open();
 			Thread.Sleep(50);

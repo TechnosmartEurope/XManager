@@ -336,6 +336,7 @@
     <Compile Include="DownloadRangeInput.xaml.cs">
       <DependentUpon>DownloadRangeInput.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FTDI\FTDI_Device.cs" />
     <Compile Include="MainConsole.cs" />
     <Compile Include="MessaggioDebug.xaml.cs">
       <DependentUpon>MessaggioDebug.xaml</DependentUpon>
@@ -738,6 +739,7 @@
   <ItemGroup>
     <None Include="Changelog.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -53,7 +53,7 @@ namespace X_Manager
 
 		private void tabSelectionChanged(object sender, RoutedEventArgs e)
 		{
-			if (mainTab.SelectedIndex == (mainTab.Items.Count - 1)) 
+			if (mainTab.SelectedIndex == (mainTab.Items.Count - 1))
 			{
 				((RemoteConfigurator)(confTab.Content)).read();
 			}
@@ -92,7 +92,7 @@ namespace X_Manager
 					}
 				}
 			}
-			
+
 			//e.Handled = true;
 		}
 
@@ -110,6 +110,11 @@ namespace X_Manager
 			catch { }
 		}
 
+		public string setLatency(string portName, byte latency)
+		{
+			parent.setLatency(portName, latency);
+			return "NULL";
+		}
 		public void close()
 		{
 			Close();

@@ -99,7 +99,7 @@ namespace X_Manager
 				autoClose = false;
 			}
 
-			MainWindow.setLatency(portShortName, 1);
+			parent.setLatency(portShortName, 1);
 
 			if (wakeB.Content.Equals("BREAK"))
 			{

@@ -31,19 +31,25 @@ namespace X_Manager.Bootloader
 		readonly byte[] COMMAND_PING = { 0x03, 0x20, 0x20 };
 		readonly byte[] COMMAND_GET_CHIP_ID = { 0x03, 0x28, 0x28 };
 		readonly int bootloaderBaudRate = 1000000;
+		Parent parent;
 
 		BackgroundWorker bgw;
 
-		public Bootloader_Gipsy6(SerialPort sp, bool unitConnected)
+		public Bootloader_Gipsy6(bool unitConnected, Parent parent)
 		{
 			InitializeComponent();
 			Loaded += loaded;
 			Closing += closing;
-			this.sp = sp;
+			this.parent = parent;
+			this.sp = parent.sp;
 			this.unitConnected = unitConnected;
 			flashB.IsEnabled = false;
 
+
+			if (sp.IsOpen) sp.Close();
+
 			sp.ReadTimeout = 300;
+
 			if (!sp.IsOpen)
 			{
 				sp.Open();
@@ -101,10 +107,11 @@ namespace X_Manager.Bootloader
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
+
+			if (sp.IsOpen) sp.Close();
+
+			sp.Open();
+
 			sp.BaudRate = bootloaderBaudRate;
 			Thread.Sleep(400);
 			sp.ReadExisting();
@@ -338,6 +345,9 @@ namespace X_Manager.Bootloader
 			//bool wipeData = (bool)wipeDataCB.IsChecked;
 			//bool wipeSettings = (bool)wipeSettingsCB.IsChecked;
 			int oldReadTimeout = sp.ReadTimeout;
+			if (sp.IsOpen) sp.Close();
+			sp.Open();
+			string ftdiSerialNumber = parent.setLatency(sp.PortName, 1);
 			sp.ReadTimeout = 300;
 			bgw.ReportProgress(-1);
 			uint address = 0;

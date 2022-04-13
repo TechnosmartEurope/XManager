@@ -30,7 +30,9 @@ namespace X_Manager
 		public abstract void nextFile();
 		public abstract void downloadFailed();
 		public abstract void downloadFinished();
-
+		public virtual unsafe string setLatency(string portName, byte latency){
+			return "NULL";
+		}
 		public virtual string getStatusLabelContent()
 		{
 			return "";

@@ -21,149 +21,18 @@ using System.Windows.Interop;
 using System.ComponentModel;
 using X_Manager.Units;
 using X_Manager.ConfigurationWindows;
-using System.Reflection;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using System.Security.RightsManagement;
 using System.Windows.Media.Animation;
 
-#if X64
-using FT_HANDLE = System.UInt64;
-#else
-using FT_HANDLE = System.UInt32;
-#endif
+
 
 namespace X_Manager
 {
 	public partial class MainWindow : Parent
 	{
 
-		#region DichiarazioniFTDI
 
-
-#if X64
-		//public const string ftdiLibraryName = "ftd2xx64.dll";
-		public const string ftdiLibraryName = "ftd2xx.dll";
-#else
-		public const string ftdiLibraryName = "FTD2XX.dll";
-#endif
-
-		//[DllImport("kernel32.dll")]
-		//static extern bool AttachConsole(int dwProcessId);
-		//private const int ATTACH_PARENT_PROCESS = -1;
-
-		//[DllImport("kernel32.dll")]
-		//static extern bool FreeConsole();
-
-		public const int FT_LIST_NUMBER_ONLY = -2147483648;
-		public const int FT_LIST_BY_INDEX = 0x40000000;
-		public const int FT_LIST_ALL = 0x20000000;
-
-		// FT_OpenEx Flags (See FT_OpenEx)
-		public const int FT_OPEN_BY_SERIAL_NUMBER = 1;
-		public const int FT_OPEN_BY_DESCRIPTION = 2;
-
-		public enum FT_STATUS : int
-		{
-			FT_OK = 0,
-			FT_INVALID_HANDLE,
-			FT_DEVICE_NOT_FOUND,
-			FT_DEVICE_NOT_OPENED,
-			FT_IO_ERROR,
-			FT_INSUFFICIENT_RESOURCES,
-			FT_INVALID_PARAMETER,
-			FT_INVALID_BAUD_RATE,
-			FT_DEVICE_NOT_OPENED_FOR_ERASE,
-			FT_DEVICE_NOT_OPENED_FOR_WRITE,
-			FT_FAILED_TO_WRITE_DEVICE,
-			FT_EEPROM_READ_FAILED,
-			FT_EEPROM_WRITE_FAILED,
-			FT_EEPROM_ERASE_FAILED,
-			FT_EEPROM_NOT_PRESENT,
-			FT_EEPROM_NOT_PROGRAMMED,
-			FT_INVALID_ARGS,
-			FT_OTHER_ERROR
-		};
-		// FT_ListDevices by number only
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_ListDevices(void* pvArg1, void* pvArg2, UInt32 dwFlags);
-
-		//StringCode del dispositivo, passare il numero dispositivo, il puntatore al buffer di byte e (FT_LIST_BY_INDEX Or FT_OPEN_BY_SERIAL_NUMBER)
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_ListDevices(UInt32 pvArg1, void* pvArg2, UInt32 dwFlags);
-
-		//Numero di device presenti, passare riferimento all'int numero di dispositivi, string null e FT_LIST_NUMBER_ONLY
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_ListDevices(ref int lngNumberOfDevices, string pvArg2, int lngFlags);
-
-		//Apre il dispositivo identificato dal seriale
-		[DllImport(ftdiLibraryName)]
-		public static extern unsafe FT_STATUS FT_OpenEx(string stringCode, UInt32 dwFlags, ref FT_HANDLE ftHandle);
-
-
-		[DllImport(ftdiLibraryName)]
-		public static extern unsafe FT_STATUS FT_OpenEx(void* pvArg1, UInt32 dwFlags, ref FT_HANDLE ftHandle);
-
-		//Restituisce il numero di porta com associato al dispositivo
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_GetComPortNumber(FT_HANDLE ftHandle, ref FT_HANDLE comNumber);
-
-
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_Open(UInt32 uiPort, ref FT_HANDLE ftHandle);
-
-		[DllImport(ftdiLibraryName)]
-		public static extern unsafe FT_STATUS FT_Close(FT_HANDLE ftHandle);
-		[DllImport(ftdiLibraryName)]
-		public static extern unsafe FT_STATUS FT_Read(FT_HANDLE ftHandle, void* lpBuffer, UInt32 dwBytesToRead, ref UInt32 lpdwBytesReturned);
-		[DllImport(ftdiLibraryName)]
-		public static extern unsafe FT_STATUS FT_Write(FT_HANDLE ftHandle, void* lpBuffer, UInt32 dwBytesToRead, ref UInt32 lpdwBytesWritten);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetBaudRate(FT_HANDLE ftHandle, UInt32 dwBaudRate);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetDataCharacteristics(FT_HANDLE ftHandle, byte uWordLength, byte uStopBits, byte uParity);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetFlowControl(FT_HANDLE ftHandle, char usFlowControl, byte uXon, byte uXoff);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetDtr(FT_HANDLE ftHandle);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_ClrDtr(FT_HANDLE ftHandle);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetRts(FT_HANDLE ftHandle);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_ClrRts(FT_HANDLE ftHandle);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_GetModemStatus(FT_HANDLE ftHandle, ref UInt32 lpdwModemStatus);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetChars(FT_HANDLE ftHandle, byte uEventCh, byte uEventChEn, byte uErrorCh, byte uErrorChEn);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_Purge(FT_HANDLE ftHandle, UInt32 dwMask);
-		[DllImport(ftdiLibraryName)]
-		public static extern unsafe FT_STATUS FT_SetTimeouts(FT_HANDLE ftHandle, UInt32 dwReadTimeout, UInt32 dwWriteTimeout);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_GetQueueStatus(FT_HANDLE ftHandle, ref UInt32 lpdwAmountInRxQueue);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetBreakOn(FT_HANDLE ftHandle);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetBreakOff(FT_HANDLE ftHandle);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_GetStatus(FT_HANDLE ftHandle, ref UInt32 lpdwAmountInRxQueue, ref UInt32 lpdwAmountInTxQueue, ref UInt32 lpdwEventStatus);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetEventNotification(FT_HANDLE ftHandle, UInt32 dwEventMask, void* pvArg);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_ResetDevice(FT_HANDLE ftHandle);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetDivisor(FT_HANDLE ftHandle, char usDivisor);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_GetLatencyTimer(FT_HANDLE ftHandle, ref byte pucTimer);
-		[DllImport(ftdiLibraryName)]
-		public static extern unsafe FT_STATUS FT_SetLatencyTimer(FT_HANDLE ftHandle, byte ucTimer);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_GetBitMode(FT_HANDLE ftHandle, ref byte pucMode);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetBitMode(FT_HANDLE ftHandle, byte ucMask, byte ucEnable);
-		[DllImport(ftdiLibraryName)]
-		static extern unsafe FT_STATUS FT_SetUSBParameters(FT_HANDLE ftHandle, UInt32 dwInTransferSize, UInt32 dwOutTransferSize);
-		#endregion
 
 		#region Dichiarazioni
 
@@ -482,6 +351,7 @@ namespace X_Manager
 			//MessageBox.Show(screen.DeviceName + "  scale: " + scale.ToString() + "\r\nWidth: " + Width.ToString() + " Height: " + Height.ToString() +
 			//	"\r\nScale Transform: " + st.ToString());
 		}
+
 		private void ComPortComboBox_DropDownOpened(object sender, EventArgs e)
 		{
 			scanPorts();
@@ -580,14 +450,7 @@ namespace X_Manager
 			configureMovementButton.Content = "Accelerometer Configuration";
 			configurePositionButton.Content = "GPS configuration";
 			manageConfform = true;
-			try
-			{
-				sp.Close();
-			}
-			catch
-			{
-
-			}
+			if (sp.IsOpen) sp.Close();
 			batteryRefreshB.Visibility = Visibility.Hidden;
 			batteryRefreshB.Click -= refreshBattery;
 			if (keepAliveTimer != null)
@@ -769,7 +632,7 @@ namespace X_Manager
 							portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
 							sp.PortName = portShortName;
 							sp.BaudRate = 115200;
-							sp.Open();
+							//sp.Open();
 							uConn = false;
 
 						}
@@ -780,13 +643,9 @@ namespace X_Manager
 						}
 					}
 					uiDisconnected();
-					var boot = new Bootloader.Bootloader_Gipsy6(sp, uConn);
+					var boot = new Bootloader.Bootloader_Gipsy6(uConn, this);
 					boot.ShowDialog();
-					try
-					{
-						sp.Close();
-					}
-					catch { }
+					if (sp.IsOpen) sp.Close();
 				}
 
 				//Pubblicazione help
@@ -817,7 +676,7 @@ namespace X_Manager
 			progressBarStopButtonColumn.Width = new GridLength(0);
 			try
 			{
-				sp.ReadExisting();
+				if (sp.IsOpen) sp.ReadExisting();
 				Thread.Sleep(100);
 				uint[] maxM = oUnit.askMaxMemory();
 				Thread.Sleep(100);
@@ -1104,7 +963,7 @@ namespace X_Manager
 						warningShow("Unit not reachable.");
 						if (!eraAperta)
 						{
-							sp.Close();
+							if (sp.IsOpen) sp.Close();
 						}
 						return;
 					}
@@ -1119,7 +978,7 @@ namespace X_Manager
 			warningShow("Unit unlocked.");
 			if (!eraAperta)
 			{
-				sp.Close();
+				if (sp.IsOpen) sp.Close();
 			}
 		}
 
@@ -1364,7 +1223,7 @@ namespace X_Manager
 				if (sp.IsOpen) sp.Close();
 
 				//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
-				ftdiSerialNumber = setLatency(portShortName, 1);
+				//ftdiSerialNumber = setLatency(portShortName, 1);
 				try
 				{
 					sp.PortName = portShortName;
@@ -1378,7 +1237,7 @@ namespace X_Manager
 				}
 
 				string response;
-				spurgo();
+				sp.ReadExisting();
 
 				sp.Write("T");
 				try
@@ -1388,7 +1247,7 @@ namespace X_Manager
 					{
 						//completeCommand = false;
 						Thread.Sleep(55);
-						spurgo();
+						sp.ReadExisting();
 						sp.Write("T");
 						Thread.Sleep(5);
 						sp.Write("TTTTTTTTTTTTTTGGAP");
@@ -1418,7 +1277,7 @@ namespace X_Manager
 					catch
 					{
 						badShow(STR_unitNotReady);
-						sp.Close();
+						if (sp.IsOpen) sp.Close();
 						uiDisconnected();
 						return;
 					}
@@ -1458,7 +1317,7 @@ namespace X_Manager
 								oUnit = new AxyQuattrok(this);
 								break;
 							case "GiPSy-6":
-								oUnit = new Gipsy6(this);
+								oUnit = new Gipsy6(this);   //Nel costruttore viene chiusa la porta seriale e riaperta mediante driver ftdi
 								break;
 							case "Drop-Off":
 								oUnit = new Drop_Off(this);
@@ -1508,14 +1367,14 @@ namespace X_Manager
 				else
 				{
 					badShow(STR_unitNotReady);
-					sp.Close();
+					if (sp.IsOpen) sp.Close();
 					uiDisconnected();
 				}
 
 				if (!esito)
 				{
 					badShow(STR_unitNotReady);
-					sp.Close();
+					if (sp.IsOpen) sp.Close();
 					uiDisconnected();
 					return;
 				}
@@ -1538,10 +1397,7 @@ namespace X_Manager
 
 		void eraseButtonClick(object sender, RoutedEventArgs e)
 		{
-			if (!(bool)sp.IsOpen)
-			{
-				sp.Open();
-			}
+			oUnit.closeSerialPort(sp);
 			YesNo yn = new YesNo("Do you really want to erase the memory?", "MEMORY ERASING");
 			yn.Owner = this;
 			if (yn.ShowDialog() == 1)
@@ -1568,10 +1424,7 @@ namespace X_Manager
 
 		void configureMovementButtonClick(object sender, RoutedEventArgs e)
 		{
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
+			oUnit.closeSerialPort(sp);
 			byte[] conf;
 			byte[] accSchedule;
 			try
@@ -1667,10 +1520,7 @@ namespace X_Manager
 			}
 			else
 			{
-				if (!(bool)sp.IsOpen)
-				{
-					sp.Open();
-				}
+				oUnit.closeSerialPort(sp);
 				if ((oUnit is AxyTrek) | (oUnit is AxyQuattrok))
 				{
 					type = 1;
@@ -1692,7 +1542,10 @@ namespace X_Manager
 			else
 			{
 				uiDisconnected();
-				var boot = new Bootloader.Bootloader_Gipsy6(sp, true);
+				string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
+				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
+				ftdiSerialNumber = setLatency(portShortName, 1);
+				var boot = new Bootloader.Bootloader_Gipsy6(true, this);
 				boot.ShowDialog();
 				return;
 			}
@@ -1712,10 +1565,7 @@ namespace X_Manager
 
 		private void downloadButtonClick(object sender, RoutedEventArgs e)
 		{
-			if (!(bool)sp.IsOpen)
-			{
-				sp.Open();
-			}
+			oUnit.closeSerialPort(sp);
 			uint[] memoryLogical;
 			uint[] memoryPhysical;
 			try
@@ -1978,7 +1828,7 @@ namespace X_Manager
 					MessageBox.Show(ex.Message);
 					return;
 				}
-				sp.Close();
+				if (sp.IsOpen) sp.Close();
 
 				var remoteManagement = new RemoteManagement(ref sp, this, portShortName);
 				remoteManagement.ShowDialog();
@@ -2034,7 +1884,7 @@ namespace X_Manager
 						MessageBox.Show(ex.Message);
 						return;
 					}
-					sp.Close();
+					if (sp.IsOpen) sp.Close();
 					//Far partire finestra di configurazione unità remota con indirizzo 0xffffff
 				}
 			}
@@ -2049,7 +1899,7 @@ namespace X_Manager
 				case (0):
 					return;
 				case (2):
-					sp.Close();
+					oUnit.closeSerialPort(sp);
 					charts = new ChartWindowAGM(sp.PortName);
 					((ChartWindowAGM)charts).WindowState = WindowState.Maximized;
 					((ChartWindowAGM)charts).ShowDialog();
@@ -2130,10 +1980,7 @@ namespace X_Manager
 		private void setName()
 		{
 			if (string.IsNullOrEmpty(unitNameTextBox.Text)) return;
-			if (!(bool)sp.IsOpen)
-			{
-				sp.Open();
-			}
+			oUnit.closeSerialPort(sp);
 			try
 			{
 				oUnit.setName(unitNameTextBox.Text);
@@ -2153,10 +2000,7 @@ namespace X_Manager
 		private void getConf()
 		{
 			positionCanSend = oUnit.positionCanSend;
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
+			oUnit.closeSerialPort(sp);
 			try
 			{
 				Thread.Sleep(10);
@@ -2166,7 +2010,7 @@ namespace X_Manager
 				Thread.Sleep(10);
 				unitNameTextBox.Text = oUnit.askName();
 				Thread.Sleep(10);
-				sp.ReadExisting();
+				if (!(oUnit is Gipsy6)) sp.ReadExisting();
 				Thread.Sleep(10);
 				batteryLabel.Content = oUnit.askBattery();
 				Thread.Sleep(10);
@@ -2191,10 +2035,7 @@ namespace X_Manager
 
 		private void getRemote()
 		{
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
+			oUnit.closeSerialPort(sp);
 			Thread.Sleep(10);
 			remote = false;
 			string title = "X MANAGER";
@@ -2208,10 +2049,7 @@ namespace X_Manager
 
 		private void getSolar()
 		{
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
+			oUnit.closeSerialPort(sp);
 			Thread.Sleep(10);
 			remote = false;
 			string title = "X MANAGER";
@@ -2223,14 +2061,11 @@ namespace X_Manager
 			this.Title = title;
 		}
 
-		private void spurgo()
-		{
-			if (!(bool)sp.IsOpen)
-			{
-				sp.Open();
-			}
-			while (sp.BytesToRead != 0) sp.ReadByte();
-		}
+		//private void spurgo()
+		//{
+		//	oUnit.closeSerialPort(sp);
+		//	while (sp.BytesToRead != 0) sp.ReadByte();
+		//}
 
 		private void keepAliveTimerElapsed(Object source, System.Timers.ElapsedEventArgs e)
 		{
@@ -2418,51 +2253,7 @@ namespace X_Manager
 
 		#region Servizi FTDI
 
-		public static unsafe string setLatency(string targetSerialPortName, byte latency)
-		{
-			int deviceCount = 0;
-			string stringCode = "NULL";
-			byte[] stringCodeBuffer = new byte[64];
-			FT_HANDLE FT_Handle = 0;
-			FT_HANDLE comNumber = 0;
-			string comNumberS;
-			//string FT_Serial_Number;
 
-			// Recupera il numero di dispositivi connessi
-			if (FT_ListDevices(ref deviceCount, null, FT_LIST_NUMBER_ONLY) != FT_STATUS.FT_OK) return stringCode;
-
-			for (int i = 0; i <= deviceCount; i++)
-			{
-				//Ottiene il serial number
-				fixed (byte* pBuf = stringCodeBuffer)
-				{
-					if (FT_ListDevices((UInt32)i, pBuf, (FT_LIST_BY_INDEX | FT_OPEN_BY_SERIAL_NUMBER)) != FT_STATUS.FT_OK) continue;
-					StringBuilder sb = new StringBuilder();
-					for (int j = 0; stringCodeBuffer[j] != 0; j++)
-					{
-						sb.Append(Convert.ToChar(stringCodeBuffer[j]));
-					}
-					stringCode = sb.ToString();
-				}
-
-				//Apre il dispositivo identificato dallo StringCode
-				if (FT_OpenEx(stringCode, (UInt32)1, ref FT_Handle) != FT_STATUS.FT_OK) continue;
-
-				//Chiede il numero di porta COM associata al dispositivo
-				if (FT_GetComPortNumber(FT_Handle, ref comNumber) != FT_STATUS.FT_OK) continue;
-				comNumberS = "COM" + comNumber.ToString();
-
-				//Se la porta è quella desiderata, imposta il tempo di latenza del buffer a 1ms
-				if (comNumberS == targetSerialPortName)
-				{
-					if (FT_SetLatencyTimer(FT_Handle, latency) != FT_STATUS.FT_OK) return stringCode;
-					//ftdiSerialNumber = stringCode;
-				}
-				FT_Close(FT_Handle);
-			}
-
-			return stringCode;
-		}
 
 		#endregion
 

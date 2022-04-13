@@ -557,8 +557,6 @@ namespace X_Manager.Units
 			//Passa alla gestione FTDI D2XX
 			sp.Close();
 
-			MainWindow.FT_STATUS FT_Status;
-			FT_HANDLE FT_Handle = 0;
 			byte[] outBuffer = new byte[50];
 			byte[] inBuffer = new byte[0x_2000_0000];
 			byte[] tempBuffer = new byte[2048];
@@ -567,18 +565,13 @@ namespace X_Manager.Units
 			//byte[] fileBuffer = new byte[0x_2000_0000];
 			//MemoryStream fileOut = new MemoryStream(fileBuffer);
 
-			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
+			uint bytesToWrite = 0;//, bytesWritten = 0;
+			int bytesReturned = 0;
 
 			//Tenta l'apertura della porta seriale
-			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
-			if (FT_Status != MainWindow.FT_STATUS.FT_OK)
-			{
-				MainWindow.FT_Close(FT_Handle);
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-			}
-			//Imposta latenza e timeout
-			MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
-			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
+			FTDI_Device ft = new FTDI_Device(sp.PortName);
+			ft.Open();
+			ft.BaudRate = (uint)baudrate;
 
 			int firstLoop = 1;
 			int pageCounter = 0;
@@ -620,26 +613,20 @@ namespace X_Manager.Units
 				}
 
 				//INVIO COMANDO
-				fixed (byte* outP = outBuffer, inP = &inBuffer[position])
+				ft.Write(outBuffer, bytesToWrite);
+				bytesReturned = ft.Read(inBuffer, 0x1000);
+				if (bytesReturned < 0)
 				{
-					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
-				}
-
-				//ANOMALIA SERIALE
-				if (FT_Status != MainWindow.FT_STATUS.FT_OK)
-				{
+					//ANOMALIA SERIALE
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 					break;
 				}
-
-				//RITORNATO BUFFER VUOTO O INCOMPLETO
-				else if (bytesReturned != 4096)                  //La pagina è arrivata incompleta, la si richiede nuovamente iducendo il loop a invare 'A' al prossimo comando
+				else if (bytesReturned < 0x1000)
 				{
+					//RITORNATO BUFFER VUOTO O INCOMPLETO
 					firstLoop = 1;
 					continue;
 				}
-
 				//BUFFER ARRIVATO OK
 				pageCounter += 0x1000;
 				actMemory += 0x1000;
@@ -684,63 +671,54 @@ namespace X_Manager.Units
 					outBuffer[0] = (byte)'O';
 					bytesToWrite = 1;
 				}
-				fixed (byte* outP = outBuffer, inP = inBuffer)
-				{
-					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP + position, (uint)4096, ref bytesReturned);
-				}
+				ft.Write(outBuffer, bytesToWrite);
+				bytesReturned = ft.Read(inBuffer, 0x1000);
 
-				if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+
+				if (bytesReturned < 0)
 				{
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 					break;
 				}
-				else if (bytesReturned != 4096)
+				else if (bytesReturned < 4096)
 				{
 					firstLoop = 1;
+					continue;
 				}
-				else
+
+				actMemory += 4096;
+				position += 4096;
+				pageCounter += 4096;
+				if (((actMemory + 4096) % 0x20000) == 0)         //a
 				{
-					actMemory += 4096;
-					position += 4096;
-					pageCounter += 4096;
-					if (((actMemory + 4096) % 0x20000) == 0)         //a
+					for (int i = 1; i < 3; i++)
 					{
-						for (int i = 1; i < 3; i++)
+						address = BitConverter.GetBytes(actMemory);
+						Array.Reverse(address);
+						Array.Copy(address, 0, outBuffer, 1, 3);
+						outBuffer[0] = (byte)'a';
+						bytesToWrite = 4;
+						ft.Write(outBuffer, bytesToWrite);
+						bytesReturned = ft.Read(inBuffer, 0x800);
+						if (bytesReturned < 0)
 						{
-							address = BitConverter.GetBytes(actMemory);
-							Array.Reverse(address);
-							Array.Copy(address, 0, outBuffer, 1, 3);
-							outBuffer[0] = (byte)'a';
-							bytesToWrite = 4;
-							fixed (byte* outP = outBuffer, inP = inBuffer)
-							{
-								FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-								FT_Status = MainWindow.FT_Read(FT_Handle, inP + position, (uint)2048, ref bytesReturned);
-							}
-							if (bytesReturned < 2048)
-							{
-								i--;
-								continue;
-							}
-							if (FT_Status != MainWindow.FT_STATUS.FT_OK)
-							{
-								//outBuffer[0] = (byte)'X';
-								//fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
-								//MainWindow.FT_Close(FT_Handle);
-								Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-								break;
-							}
-							actMemory += 2048;
-							if (actMemory == 0x20000000)
-							{
-								actMemory = 0;
-							}
-							position += 2048;
+							Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+							break;
 						}
-						firstLoop = 1;
-						//if (!manual) firstLoop = 2;
+						else if (bytesReturned < 0x800)
+						{
+							i--;
+							continue;
+						}
+
+						actMemory += 2048;
+						if (actMemory == 0x20000000)
+						{
+							actMemory = 0;
+						}
+						position += 2048;
 					}
+					firstLoop = 1;
 				}
 
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = pageCounter));
@@ -750,33 +728,15 @@ namespace X_Manager.Units
 
 		_endLoop:
 
-			//if ((position == toBeDownloaded) && !manual)			//Inserirlo nel remoto!!!!!
-			//{
-			//	actMemory = ((actMemory / blockSize) * blockSize) + blockSize;
-
-			//	address = BitConverter.GetBytes(actMemory);
-			//	Array.Reverse(address);
-			//	Array.Copy(address, 0, outBuffer, 1, 3);
-			//	outBuffer[0] = (byte)'C';
-			//	bytesToWrite = 4;
-			//	fixed (byte* outP = outBuffer, inP = inBuffer)
-			//	{
-			//		FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			//	}
-			//}
-
 			Thread.Sleep(400);
 			outBuffer[0] = (byte)'X';
 			bytesToWrite = 1;
-			fixed (byte* outP = outBuffer)
-			{
-				FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			}
-			MainWindow.FT_Close(FT_Handle);
+			ft.Write(outBuffer, bytesToWrite);
+			ft.Close();
 
 			if (position > 0)
 			{
-				var fo = new System.IO.BinaryWriter(File.Open(fileNameMdp, fm));
+				var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
 				fo.Write(inBuffer, 0, (position / 4096) * 4096);
 
 				fo.Write(firmwareArray, 0, firmwareArray.Length);
@@ -810,195 +770,195 @@ namespace X_Manager.Units
 
 		public unsafe override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
-			convertStop = false;
-			uint actMemory = fromMemory;
-			System.IO.FileMode fm = System.IO.FileMode.Create;
-			if (fromMemory != 0) fm = System.IO.FileMode.Append;
-			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
-			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
+			//convertStop = false;
+			//uint actMemory = fromMemory;
+			//System.IO.FileMode fm = System.IO.FileMode.Create;
+			//if (fromMemory != 0) fm = System.IO.FileMode.Append;
+			//string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
+			//var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
 
-			byte mdrSpeed = 9;
-			mdrSpeed = 8;
-			string br = "D";
-			if (mdrSpeed == 9) br = "H";
-			sp.Write("TTTTTTTTTTTTTTGGA" + br);
-			try
-			{
-				sp.ReadByte();
-				Thread.Sleep(10);
-				sp.Write("+++");
-				Thread.Sleep(200);
-				sp.Write(new byte[] { 0x41, 0x54, 0x42, 0x52, mdrSpeed }, 0, 5);
-				Thread.Sleep(200);
-				if (mdrSpeed == 9) sp.BaudRate = 2000000;
-				else sp.BaudRate = 1500000;
-				Thread.Sleep(300);
-				sp.Write("ATX");
-				Thread.Sleep(900);
-				sp.Write("R");
-				Thread.Sleep(100);
-				sp.ReadByte();
-			}
-			catch
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
+			//byte mdrSpeed = 9;
+			//mdrSpeed = 8;
+			//string br = "D";
+			//if (mdrSpeed == 9) br = "H";
+			//sp.Write("TTTTTTTTTTTTTTGGA" + br);
+			//try
+			//{
+			//	sp.ReadByte();
+			//	Thread.Sleep(10);
+			//	sp.Write("+++");
+			//	Thread.Sleep(200);
+			//	sp.Write(new byte[] { 0x41, 0x54, 0x42, 0x52, mdrSpeed }, 0, 5);
+			//	Thread.Sleep(200);
+			//	if (mdrSpeed == 9) sp.BaudRate = 2000000;
+			//	else sp.BaudRate = 1500000;
+			//	Thread.Sleep(300);
+			//	sp.Write("ATX");
+			//	Thread.Sleep(900);
+			//	sp.Write("R");
+			//	Thread.Sleep(100);
+			//	sp.ReadByte();
+			//}
+			//catch
+			//{
+			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+			//	try
+			//	{
+			//		fo.Close();
+			//	}
+			//	catch { }
+			//	return;
+			//}
 
 
-			Thread.Sleep(50);
+			//Thread.Sleep(50);
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
 
-			//Passa alla gestione FTDI D2XX
-			sp.Close();
+			////Passa alla gestione FTDI D2XX
+			//sp.Close();
 
-			MainWindow.FT_STATUS FT_Status;
-			FT_HANDLE FT_Handle = 0;
-			byte[] outBuffer = new byte[50];
-			byte[] inBuffer = new byte[4096];
-			byte[] tempBuffer = new byte[2048];
-			byte[] address = new byte[8];
+			//MainWindow.FT_STATUS FT_Status;
+			//FT_HANDLE FT_Handle = 0;
+			//byte[] outBuffer = new byte[50];
+			//byte[] inBuffer = new byte[4096];
+			//byte[] tempBuffer = new byte[2048];
+			//byte[] address = new byte[8];
 
-			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
+			//uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
 
-			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
-			if (FT_Status != MainWindow.FT_STATUS.FT_OK)
-			{
-				MainWindow.FT_Close(FT_Handle);
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
+			//FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
+			//if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+			//{
+			//	MainWindow.FT_Close(FT_Handle);
+			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+			//	try
+			//	{
+			//		fo.Close();
+			//	}
+			//	catch { }
+			//	return;
+			//}
 
-			MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
-			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
+			//MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
+			//MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
 
-			bool firstLoop = true;
+			//bool firstLoop = true;
 
-			while (actMemory < toMemory)
-			{
-				if (((actMemory % 0x2000000) == 0) | (firstLoop))
-				{
-					address = BitConverter.GetBytes(actMemory);
-					Array.Reverse(address);
-					Array.Copy(address, 0, outBuffer, 1, 3);
-					outBuffer[0] = 65;
-					bytesToWrite = 4;
-					firstLoop = false;
-				}
-				else
-				{
-					outBuffer[0] = 79;
-					bytesToWrite = 1;
-				}
-				fixed (byte* outP = outBuffer, inP = inBuffer)
-				{
-					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
-				}
+			//while (actMemory < toMemory)
+			//{
+			//	if (((actMemory % 0x2000000) == 0) | (firstLoop))
+			//	{
+			//		address = BitConverter.GetBytes(actMemory);
+			//		Array.Reverse(address);
+			//		Array.Copy(address, 0, outBuffer, 1, 3);
+			//		outBuffer[0] = 65;
+			//		bytesToWrite = 4;
+			//		firstLoop = false;
+			//	}
+			//	else
+			//	{
+			//		outBuffer[0] = 79;
+			//		bytesToWrite = 1;
+			//	}
+			//	fixed (byte* outP = outBuffer, inP = inBuffer)
+			//	{
+			//		FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+			//		FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
+			//	}
 
-				if (FT_Status != MainWindow.FT_STATUS.FT_OK)
-				{
-					outBuffer[0] = 88;
-					fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
-					MainWindow.FT_Close(FT_Handle);
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					fo.Write(inBuffer);
-					fo.Close();
-					return;
-				}
-				else if (bytesReturned != 4096)
-				{
-					firstLoop = true;
-				}
-				else
-				{
-					actMemory += 4096;
-					if ((actMemory % 0x20000) == 0)
-					{
-						actMemory -= 4096;
-						for (int i = 0; i < 2; i++)
-						{
-							address = BitConverter.GetBytes(actMemory);
-							Array.Reverse(address);
-							Array.Copy(address, 0, outBuffer, 1, 3);
-							outBuffer[0] = 97;
-							bytesToWrite = 4;
-							fixed (byte* outP = outBuffer, inP = inBuffer)
-							{
-								FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-								FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
-							}
-							fo.Write(inBuffer, 0, 2048);
-							actMemory += 2048;
-						}
-						firstLoop = true;
-					}
-					else
-					{
-						fo.Write(inBuffer, 0, 4096);
-					}
-				}
+			//	if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+			//	{
+			//		outBuffer[0] = 88;
+			//		fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
+			//		MainWindow.FT_Close(FT_Handle);
+			//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+			//		fo.Write(inBuffer);
+			//		fo.Close();
+			//		return;
+			//	}
+			//	else if (bytesReturned != 4096)
+			//	{
+			//		firstLoop = true;
+			//	}
+			//	else
+			//	{
+			//		actMemory += 4096;
+			//		if ((actMemory % 0x20000) == 0)
+			//		{
+			//			actMemory -= 4096;
+			//			for (int i = 0; i < 2; i++)
+			//			{
+			//				address = BitConverter.GetBytes(actMemory);
+			//				Array.Reverse(address);
+			//				Array.Copy(address, 0, outBuffer, 1, 3);
+			//				outBuffer[0] = 97;
+			//				bytesToWrite = 4;
+			//				fixed (byte* outP = outBuffer, inP = inBuffer)
+			//				{
+			//					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+			//					FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
+			//				}
+			//				fo.Write(inBuffer, 0, 2048);
+			//				actMemory += 2048;
+			//			}
+			//			firstLoop = true;
+			//		}
+			//		else
+			//		{
+			//			fo.Write(inBuffer, 0, 4096);
+			//		}
+			//	}
 
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
+			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
 
-				if (convertStop) actMemory = toMemory;
-			}
+			//	if (convertStop) actMemory = toMemory;
+			//}
 
-			fo.Write(firmwareArray, 0, firmwareArray.Length);
-			fo.Write(new byte[] { model_axyTrek, (byte)254 }, 0, 2);
+			//fo.Write(firmwareArray, 0, firmwareArray.Length);
+			//fo.Write(new byte[] { model_axyTrek, (byte)254 }, 0, 2);
 
-			fo.Close();
-			outBuffer[0] = 88;
-			bytesToWrite = 1;
-			fixed (byte* outP = outBuffer)
-			{
-				FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			}
-			MainWindow.FT_Close(FT_Handle);
+			//fo.Close();
+			//outBuffer[0] = 88;
+			//bytesToWrite = 1;
+			//fixed (byte* outP = outBuffer)
+			//{
+			//	FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
+			//}
+			//MainWindow.FT_Close(FT_Handle);
 
-			sp.Open();
-			Thread.Sleep(50);
-			sp.Write("+++");
-			Thread.Sleep(200);
-			sp.Write(new byte[] { 0x41, 0x54, 0x42, 0x52, 3 }, 0, 5);
-			sp.BaudRate = 115200;
-			Thread.Sleep(100);
-			sp.Write("ATX");
+			//sp.Open();
+			//Thread.Sleep(50);
+			//sp.Write("+++");
+			//Thread.Sleep(200);
+			//sp.Write(new byte[] { 0x41, 0x54, 0x42, 0x52, 3 }, 0, 5);
+			//sp.BaudRate = 115200;
+			//Thread.Sleep(100);
+			//sp.Write("ATX");
 
-			sp.BaudRate = 115200;
+			//sp.BaudRate = 115200;
 
-			if (!convertStop) extractArds(fileNameMdp, fileName, true);
-			else
-			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
-				{
-					try
-					{
-						fDel(fileNameMdp);
-					}
-					catch { }
-				}
-			}
+			//if (!convertStop) extractArds(fileNameMdp, fileName, true);
+			//else
+			//{
+			//	if (Parent.getParameter("keepMdp").Equals("false"))
+			//	{
+			//		try
+			//		{
+			//			fDel(fileNameMdp);
+			//		}
+			//		catch { }
+			//	}
+			//}
 
-			Thread.Sleep(600);
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
+			//Thread.Sleep(600);
+			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
 		}
 
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
@@ -1653,30 +1613,6 @@ namespace X_Manager.Units
 			tsc.stopEvent = 0;
 
 			tsc.tsType = ard.ReadByte();
-
-			//sviluppo
-			//if (ard.Position > 0x0000000004bf0069)
-			//{
-			//	int g = 0;
-			//}
-			//if (tsc.tsType != 3 & tsc.tsType != 0x0b)
-			//{
-			//	if (tsc.tsType == 1)
-			//	{
-			//		byte g = (byte)ard.ReadByte();
-			//		ard.Position--;
-			//		if (g != 0xc0)
-			//		{
-			//			int t = 0;
-			//		}
-			//	}
-			//	else
-			//	{
-			//		int t = 0;
-			//	}
-
-			//}
-			///sviluppo
 
 			//TIMESTAMP ESTESO
 			if ((tsc.tsType & ts_ext1) == ts_ext1)

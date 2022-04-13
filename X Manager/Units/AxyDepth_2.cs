@@ -460,7 +460,7 @@ namespace X_Manager.Units
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
-			System.IO.FileMode fm = System.IO.FileMode.Create;
+			FileMode fm = System.IO.FileMode.Create;
 			if (fromMemory != 0) fm = System.IO.FileMode.Append;
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
 			var fo = new System.IO.BinaryWriter(File.Open(fileNameMdp, fm));
@@ -487,8 +487,13 @@ namespace X_Manager.Units
 			sp.BaudRate = baudrate;
 
 			Thread.Sleep(200);
+			if (firmTotA < 2006004)
+			{
+				Thread.Sleep(750);
+			}
+
 			sp.Write("S");
-			Thread.Sleep(50);
+			Thread.Sleep(200);
 
 			int dieCount = 0;
 			try
@@ -512,6 +517,7 @@ namespace X_Manager.Units
 				return;
 			}
 
+
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
 
@@ -523,19 +529,16 @@ namespace X_Manager.Units
 			//Passa alla gestione FTDI D2XX
 			sp.Close();
 
-			MainWindow.FT_STATUS FT_Status;
-			FT_HANDLE FT_Handle = 0;
 			byte[] outBuffer = new byte[50];
-			byte[] inBuffer = new byte[4096];
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[8];
+			byte[] fileBuffer = new byte[toMemory];
+			uint bytesToWrite = 0, bytesWritten = 0;
+			int bytesReturned = 0;
 
-			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
-
-			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
-			if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+			FTDI_Device ft = new FTDI_Device(sp.PortName);
+			if (!ft.Open())
 			{
-				MainWindow.FT_Close(FT_Handle);
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 				try
 				{
@@ -544,9 +547,8 @@ namespace X_Manager.Units
 				catch { }
 				return;
 			}
-
-			MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
-			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
+			ft.BaudRate = (uint)baudrate;
+			ft.ReadTimeout = 1000;
 
 			bool firstLoop = true;
 
@@ -566,86 +568,66 @@ namespace X_Manager.Units
 					outBuffer[0] = 79;
 					bytesToWrite = 1;
 				}
-				fixed (byte* outP = outBuffer, inP = inBuffer)
-				{
-					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
-				}
+				ft.Write(outBuffer, bytesToWrite);
+				bytesReturned = ft.Read(fileBuffer, actMemory, 0x1000);
 
-				if (FT_Status != MainWindow.FT_STATUS.FT_OK)
+				if (bytesReturned < 0)
 				{
 					outBuffer[0] = 88;
-					fixed (byte* outP = outBuffer) { FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten); }
-					MainWindow.FT_Close(FT_Handle);
+					ft.Write(outBuffer, 1);
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					fo.Write(inBuffer);
+					fo.Write(fileBuffer, 0, (int)actMemory);
 					fo.Close();
 					return;
 				}
 				else if (bytesReturned != 4096)
 				{
 					firstLoop = true;
+					continue;
 				}
-				else
-				{
-					actMemory += 4096;
-					if ((actMemory % 0x20000) == 0)
-					{
-						if (dieCount == 2)
-						{
-							actMemory -= 4096;
-							for (int i = 0; i < 2; i++)
-							{
-								address = BitConverter.GetBytes(actMemory);
-								Array.Reverse(address);
-								Array.Copy(address, 0, outBuffer, 1, 3);
-								outBuffer[0] = 97;
-								bytesToWrite = 4;
-								fixed (byte* outP = outBuffer, inP = inBuffer)
-								{
-									FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-									FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)2048, ref bytesReturned);
-								}
-								fo.Write(inBuffer, 0, 2048);
-								actMemory += 2048;
-							}
-							firstLoop = true;
-						}
-						else
-						{
-							fo.Write(inBuffer, 0, 4096);
-							if ((actMemory % 0x40000) == 0)
-							{
-								firstLoop = true;
-							}
-						}
-					}
-					else
-					{
-						fo.Write(inBuffer, 0, 4096);
-					}
-				}
+				actMemory += 4096;      //Prima di scrivere incrementa l'indirizzo per capire se sono state scaricate le ultime pagine di un blocco
 
+				if ((actMemory % 0x20000) == 0)
+				{
+					if ((actMemory % 0x40000) == 0)
+					{
+						firstLoop = true;
+					}
+					if (dieCount == 2)      //Nel caso le riscarica singolarmente, per ovviare al bug della memoria dual die
+					{
+						actMemory -= 4096;
+						for (int i = 0; i < 2; i++)
+						{
+							address = BitConverter.GetBytes(actMemory);
+							Array.Reverse(address);
+							Array.Copy(address, 0, outBuffer, 1, 3);
+							outBuffer[0] = 97;
+							bytesToWrite = 4;
+							ft.Write(outBuffer, bytesToWrite);
+							ft.Read(fileBuffer, actMemory, 0x800);
+							actMemory += 2048;
+						}
+						firstLoop = true;
+					}
+				}
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
 
 				if (convertStop) actMemory = toMemory;
 			}
 
+			fo.Write(fileBuffer);
 			fo.Write(firmwareArray, 0, firmwareArray.Length);
 			for (int i = firmwareArray.Length; i <= 2; i++)
 			{
 				fo.Write(new byte[] { 0xff }, 0, 1);
 			}
-			fo.Write(new byte[] { model_axyDepth, (byte)254 }, 0, 2);
+			fo.Write(new byte[] { model_axy4, (byte)254 }, 0, 2);
 
 			fo.Close();
 			outBuffer[0] = 88;
 			bytesToWrite = 1;
-			fixed (byte* outP = outBuffer)
-			{
-				FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-			}
-			MainWindow.FT_Close(FT_Handle);
+			ft.Write(outBuffer, 1);
+			ft.Close();
 			sp.BaudRate = 115200;
 			sp.Open();
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);

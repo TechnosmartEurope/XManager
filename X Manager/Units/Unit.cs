@@ -119,6 +119,7 @@ namespace X_Manager.Units
 		protected double progMax = 1;
 
 		public string defaultArdExtension = "ard";
+		public bool useFtdi = false;
 
 #if X64
 		[DllImport(@"resampleLib_x64.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -223,7 +224,18 @@ namespace X_Manager.Units
 
 		}
 
-		public abstract string askFirmware();
+		public virtual void closeSerialPort(SerialPort sp)
+		{
+			if (!useFtdi)
+			{
+				if (sp.IsOpen)
+				{
+					sp.Close();
+				}
+			}
+		}
+		
+public abstract string askFirmware();
 
 		public abstract string askBattery();
 
@@ -282,34 +294,46 @@ namespace X_Manager.Units
 
 		public virtual byte[] getAccSchedule()
 		{
-			if (!(bool)sp.IsOpen)
+			if (!useFtdi)
 			{
-				sp.Open();
+				if (sp.IsOpen)
+				{
+					sp.Close();
+				}
 			}
 			return new byte[] { 0 };
 		}
 
 		public virtual void setAccSchedule(byte[] schedule)
 		{
-			if (!(bool)sp.IsOpen)
+			if (!useFtdi)
 			{
-				sp.Open();
+				if (sp.IsOpen)
+				{
+					sp.Close();
+				}
 			}
 		}
 
 		public virtual void download(string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
 		{
-			if (!(bool)sp.IsOpen)
+			if (!useFtdi)
 			{
-				sp.Open();
+				if (sp.IsOpen)
+				{
+					sp.Close();
+				}
 			}
 		}
 
 		public virtual void downloadRemote(string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
 		{
-			if (!(bool)sp.IsOpen)
+			if (!useFtdi)
 			{
-				sp.Open();
+				if (sp.IsOpen)
+				{
+					sp.Close();
+				}
 			}
 		}
 
@@ -329,9 +353,12 @@ namespace X_Manager.Units
 
 		public virtual void disconnect()
 		{
-			if (!(bool)sp.IsOpen)
+			if (!useFtdi)
 			{
-				sp.Open();
+				if (sp.IsOpen)
+				{
+					sp.Close();
+				}
 			}
 			connected = false;
 		}
@@ -357,7 +384,7 @@ namespace X_Manager.Units
 			}
 		}
 
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			Dispose(true);
 			GC.SuppressFinalize(this);
