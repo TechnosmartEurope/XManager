@@ -100,3 +100,5 @@
 	Sistemata gestione memoria Axy5 e aggiornamento progress bar
 1.11.0	Gestione Axy4D con Firmware => 3.0.0 (Magnetometro/Board Axy5)
 1.11.1	Bugfix: separatore decimale magnetometro su axy4d
+1.11.2	Bugfix: crashava alla configurazione dell'axyDepth.5
+1.11.3	Bugfix: conversione axyDepth.5

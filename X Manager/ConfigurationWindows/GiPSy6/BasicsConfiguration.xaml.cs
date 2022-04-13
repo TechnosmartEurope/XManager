@@ -237,7 +237,7 @@ namespace X_Manager.ConfigurationWindows
 
 			conf[38] = (byte)nSat;
 			conf[39] = (byte)gsv;
-			if (gsvCB.IsChecked == true) nSat += 0x80;
+			if (gsvCB.IsChecked == true) conf[38] += 0x80;
 
 			conf[40] = (byte)(sdTime & 0xff);
 			conf[41] = (byte)((sdTime >> 8) & 0xff);

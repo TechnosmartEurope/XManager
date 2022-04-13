@@ -1394,7 +1394,7 @@ namespace X_Manager.Units
 					}
 					else
 					{
-						//MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
+						MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
 					}
 				}
 				else
@@ -1622,6 +1622,30 @@ namespace X_Manager.Units
 			tsc.stopEvent = 0;
 
 			tsc.tsType = ard.ReadByte();
+
+			//sviluppo
+			//if (ard.Position > 0x0000000004bf0069)
+			//{
+			//	int g = 0;
+			//}
+			//if (tsc.tsType != 3 & tsc.tsType != 0x0b)
+			//{
+			//	if (tsc.tsType == 1)
+			//	{
+			//		byte g = (byte)ard.ReadByte();
+			//		ard.Position--;
+			//		if (g != 0xc0)
+			//		{
+			//			int t = 0;
+			//		}
+			//	}
+			//	else
+			//	{
+			//		int t = 0;
+			//	}
+				
+			//}
+			///sviluppo
 
 			//TIMESTAMP ESTESO
 			if ((tsc.tsType & ts_ext1) == ts_ext1)

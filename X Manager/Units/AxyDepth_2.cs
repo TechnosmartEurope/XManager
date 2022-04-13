@@ -917,7 +917,10 @@ namespace X_Manager.Units
 				{
 					csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
 				}
-				catch { }
+				catch (Exception ex)
+				{
+					int g = 0;
+				}
 
 			}
 			while (Interlocked.Exchange(ref progLock, 2) > 0) { }
@@ -1146,6 +1149,7 @@ namespace X_Manager.Units
 
 			var iend2 = (short)(rateComp * 3);
 			var iend1 = iend2 / 2;
+			iend1 -= (iend1 % 3);
 
 			for (short i = 3; i < iend1; i += 3)
 			{
@@ -1167,9 +1171,11 @@ namespace X_Manager.Units
 				if (angloTime) textOut += " " + ampm;
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
-				textOut += additionalInfo + "\r\n";
+				textOut += magAdditionalInfo + additionalInfo + "\r\n";
 				milli += addMilli;
 			}
+			if (rateComp == 1) return textOut;
+
 
 			x = group[iend1]; y = group[iend1 + 1]; z = group[iend1 + 2];
 
@@ -1196,6 +1202,7 @@ namespace X_Manager.Units
 					magAdditionalInfo = csvSeparator + csvSeparator + csvSeparator;
 				}
 			}
+			milli += addMilli;
 
 			for (int i = iend1 + 3; i < iend2; i += 3)
 			{
@@ -1594,6 +1601,11 @@ namespace X_Manager.Units
 
 			csvHeader = csvHeader + csvSeparator + "accX" + csvSeparator + "accY" + csvSeparator + "accZ";
 
+			if (magen > 0)
+			{
+				csvHeader += csvSeparator + "magX" + csvSeparator + "magY" + csvSeparator + "magZ";
+			}
+
 			if (!inMeters)
 			{
 				csvHeader += csvSeparator + "Pressure";
@@ -1608,11 +1620,6 @@ namespace X_Manager.Units
 				{
 					csvHeader += csvSeparator + "Altitude";
 				}
-			}
-
-			if (magen > 0)
-			{
-				csvHeader += csvSeparator + "magX" + csvSeparator + "magY" + csvSeparator + "magZ";
 			}
 
 			csvHeader += csvSeparator + "Temp. (°C)";

@@ -1452,8 +1452,11 @@ namespace X_Manager.Units
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
 			//var iend1 = (short)((rateComp * 3) / 2);
+			//var iend2 = (short)(rateComp * 3);
+			//var iend1 = (((iend2 / 2) / 3) + 1) * 3;
 			var iend2 = (short)(rateComp * 3);
-			var iend1 = (((iend2 / 2) / 3) + 1) * 3;
+			var iend1 = iend2 / 2;
+			iend1 -= (iend1 % 3);
 
 			for (short i = 3; i < iend1; i += 3)
 			{
@@ -1506,6 +1509,7 @@ namespace X_Manager.Units
 					magAdditionalInfo = csvSeparator + csvSeparator + csvSeparator;
 				}
 			}
+			milli += addMilli;
 
 			for (int i = iend1 + 3; i < iend2; i += 3)
 			{
