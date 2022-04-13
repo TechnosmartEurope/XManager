@@ -40,13 +40,13 @@
             </Grid.ColumnDefinitions>
             <GroupBox Grid.Column="0" Header="MAGNETOMETER (1Hz)
                       " Foreground="#FF00AADE" Margin="0,0,0,5">
-                <CheckBox Name="magOnOff" Grid.Column="0" HorizontalAlignment="Left" Content="Disabled" TabIndex="9" Margin="15,5,0,0" Checked="magCheck" Unchecked="magCheck"/>
+                <CheckBox Name="magOnOff" Grid.Column="0" HorizontalAlignment="Left" Content="Disabled" TabIndex="33" Margin="15,5,0,0" Checked="magCheck" Unchecked="magCheck"/>
             </GroupBox>
             <GroupBox Grid.Column="1" Header="REMOTE" Foreground="#FF00AADE" Margin="0,0,0,5">
-                <CheckBox Name="remoteOnOff" Grid.Column="0" HorizontalAlignment="Left" Content="Disabled" TabIndex="9" Margin="15,5,0,0" Checked="remCheck" Unchecked="remCheck"/>
+                <CheckBox Name="remoteOnOff" Grid.Column="0" HorizontalAlignment="Left" Content="Disabled" TabIndex="34" Margin="15,5,0,0" Checked="remCheck" Unchecked="remCheck"/>
             </GroupBox>
             <GroupBox Grid.Column="2" Header="WATER SWITCH" Foreground="#FF00AADE" Margin="0,0,0,5">
-                <CheckBox Name="waterOnOff" HorizontalAlignment="Left" Content="Disabled" TabIndex="9" Margin="15,5,0,0" Checked="waterCheck" Unchecked="remCheck"/>
+                <CheckBox Name="waterOnOff" HorizontalAlignment="Left" Content="Disabled" TabIndex="35" Margin="15,5,0,0" Checked="waterCheck" Unchecked="remCheck"/>
             </GroupBox>
         </Grid>
 
@@ -57,22 +57,22 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <GroupBox Grid.Column="0" Name="temperatureGB" Header="TEMPERATURE" Foreground="#FF00AADE">
-                <CheckBox Name="temperatureOnOff" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11"  />
+                <CheckBox Name="temperatureOnOff" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="36"  />
             </GroupBox>
             <GroupBox Grid.Column="1" Name="depthGB" Header="DEPTH" Foreground="#FF00AADE">
-                <CheckBox Name="pressureOnOff" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11"  />
+                <CheckBox Name="pressureOnOff" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="37"  />
             </GroupBox>
             <GroupBox Grid.Column="2" Name="tdLogGB" Header="T/D Log period" Foreground="#FF00AADE">
                 <StackPanel Name="logPeriodStackPanel" Orientation="Horizontal" >
                     <Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
-                    <TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="12"/>
+                    <TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="38"/>
                     <Grid Width="30" Height="32" ScrollViewer.VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*" />
                             <RowDefinition Height="1*"/>
                         </Grid.RowDefinitions>
-                        <Button x:Name="LogEnup" x:FieldModifier="private" Grid.Row="0" Margin="0,1,0,0" MinHeight="0" MinWidth="0" Content="˄" ContentStringFormat="" FontSize="12" VerticalContentAlignment="Top" Click="cmdUp_Click" TabIndex="13"/>
-                        <Button x:Name="LogEndown" x:FieldModifier="private" Grid.Row="1" Margin="0" MinHeight="0" MinWidth="0" Content="˅" ContentStringFormat="" FontSize="12" Height="15" Click="cmdDown_Click" TabIndex="14"/>
+                        <Button x:Name="LogEnup" x:FieldModifier="private" Grid.Row="0" Margin="0,1,0,0" MinHeight="0" MinWidth="0" Content="˄" ContentStringFormat="" FontSize="12" VerticalContentAlignment="Top" Click="cmdUp_Click" TabIndex="39" Height="15" VerticalAlignment="Top"/>
+                        <Button x:Name="LogEndown" x:FieldModifier="private" Grid.Row="1" Margin="0" MinHeight="0" MinWidth="0" Content="˅" ContentStringFormat="" FontSize="12" Height="15" Click="cmdDown_Click" TabIndex="37"/>
                     </Grid>
                 </StackPanel>
             </GroupBox>
@@ -112,8 +112,8 @@
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <dc:NumericUpDown x:Name="movThreshUd" Grid.Column="0" Margin="20,0,0,0" valueChanged="movChangedEvent"/>
-                <dc:NumericUpDown x:Name="latencyThreshUd" Grid.Column="2" Margin="5,0,0,0" valueChanged="latChangedEvent"/>
+                <dc:NumericUpDown x:Name="movThreshUd" Grid.Column="0" Margin="20,0,0,0" valueChanged="movChangedEvent" TabIndex="41"/>
+                <dc:NumericUpDown x:Name="latencyThreshUd" Grid.Column="2" Margin="5,0,0,0" valueChanged="latChangedEvent" TabIndex="40"/>
                
                 <Label Grid.Column="1" Margin="5,0,0,0" Name="movThresholdLabel" Content="eeee" />
                 <Label Grid.Column="3" Margin="5,0,0,0" Name="latThresholdLabel" Content="eeee"/>
@@ -134,7 +134,9 @@
         </GroupBox>
         -->
         
-        <Button x:Name="sendButton" Grid.Row="7" Content="Send configuration" FontSize="20" Margin="0,10,0,10" Height="60" Click="sendConf" TabIndex="15"/>
+        <Button Grid.Row="7" x:Name="sendButton" Content="Send configuration" FontSize="20" Margin="0,10,0,10" Height="60" Click="sendConf" TabIndex="39"/>
+        
+        
  
     </Grid>
 

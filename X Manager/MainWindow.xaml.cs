@@ -1230,7 +1230,8 @@ namespace X_Manager
             }
 
             confForm.Owner = this;
-            confForm.ShowDialog();
+			System.Windows.Forms.Integration.ElementHost.EnableModelessKeyboardInterop(confForm);
+			confForm.ShowDialog();
 
             try
             {

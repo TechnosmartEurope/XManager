@@ -6,7 +6,7 @@
              xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="X_Manager.ConfigurationWindows.AccDayIntervals"
              mc:Ignorable="d" 
              d:DesignHeight="362" d:DesignWidth="520">
-    <Grid x:Name="mainGrid">
+    <Grid x:Name="mainGrid" KeyDown="uiKeyDown">
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition Height="0.6*"/>
@@ -20,8 +20,8 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal">
             <Label Content="Intervals: " VerticalAlignment="Center" FontSize="15" Margin="20,0,0,0"/>
-            <Button Height="35" Margin="20,0,0,0" Content="-" Click="minusB" />
-            <Button Height="35" Margin="20,0,0,0" Content="+" Click="plusB"/>
+            <Button Height="35" Margin="20,0,0,0" Content="-" Click="minusB" TabIndex="1"/>
+            <Button Height="35" Margin="20,0,0,0" Content="+" Click="plusB" TabIndex="2"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" >
@@ -32,10 +32,19 @@
             <Label Content="Minutes" Margin="0,0,0,0"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5,0,0,0">
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False"/>
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14">
+        <Grid Grid.Row="2" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" x:Name="d1" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="0" RenderTransformOrigin="0,0" BorderThickness="0" />
+            <TextBox Grid.Column="1" x:Name="e1" HorizontalAlignment="Left" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TextWrapping="Wrap" TabIndex="3" LostFocus="newH"/>
+            <ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="4">
                 <System:String>OFF</System:String>
                 <System:String>1 Hz</System:String>
                 <System:String>10 Hz</System:String>
@@ -43,61 +52,160 @@
                 <System:String>50 Hz</System:String>
                 <System:String>100 Hz</System:String>
             </ComboBox>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14">
+            <ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="5">
                 <System:String>± 2g</System:String>
                 <System:String>± 4g</System:String>
                 <System:String>± 8g</System:String>
                 <System:String>± 16g</System:String>
             </ComboBox>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14">
+            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="6">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
                 <System:String>12</System:String>
             </ComboBox>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-        </StackPanel>
+            <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="7"/>
+            <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="8"/>
+        </Grid>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="5,0,0,0">
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False"/>
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-        </StackPanel>
+        <Grid Grid.Row="3" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" x:Name="d2" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="1"/>
+            <TextBox Grid.Column="1" x:Name="e2" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TabIndex="9" LostFocus="newH"/>
+            <ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10">
+                <System:String>OFF</System:String>
+                <System:String>1 Hz</System:String>
+                <System:String>10 Hz</System:String>
+                <System:String>25 Hz</System:String>
+                <System:String>50 Hz</System:String>
+                <System:String>100 Hz</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11">
+                <System:String>± 2g</System:String>
+                <System:String>± 4g</System:String>
+                <System:String>± 8g</System:String>
+                <System:String>± 16g</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
+                <System:String>8</System:String>
+                <System:String>10</System:String>
+                <System:String>12</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
+            <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
+        </Grid>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="5,0,0,0">
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False"/>
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-        </StackPanel>
+        <Grid Grid.Row="4" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" x:Name="d3" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="1"/>
+            <TextBox Grid.Column="1" x:Name="e3" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TabIndex="9" LostFocus="newH"/>
+            <ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10">
+                <System:String>OFF</System:String>
+                <System:String>1 Hz</System:String>
+                <System:String>10 Hz</System:String>
+                <System:String>25 Hz</System:String>
+                <System:String>50 Hz</System:String>
+                <System:String>100 Hz</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11">
+                <System:String>± 2g</System:String>
+                <System:String>± 4g</System:String>
+                <System:String>± 8g</System:String>
+                <System:String>± 16g</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
+                <System:String>8</System:String>
+                <System:String>10</System:String>
+                <System:String>12</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
+            <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
+        </Grid>
 
-        <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="5,0,0,0">
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False"/>
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-        </StackPanel>
+        <Grid Grid.Row="5" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" x:Name="d4" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="1"/>
+            <TextBox Grid.Column="1" x:Name="e4" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TabIndex="9" LostFocus="newH"/>
+            <ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10">
+                <System:String>OFF</System:String>
+                <System:String>1 Hz</System:String>
+                <System:String>10 Hz</System:String>
+                <System:String>25 Hz</System:String>
+                <System:String>50 Hz</System:String>
+                <System:String>100 Hz</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11">
+                <System:String>± 2g</System:String>
+                <System:String>± 4g</System:String>
+                <System:String>± 8g</System:String>
+                <System:String>± 16g</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
+                <System:String>8</System:String>
+                <System:String>10</System:String>
+                <System:String>12</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
+            <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
+        </Grid>
 
-        <StackPanel Grid.Row="6" Orientation="Horizontal" Margin="5,0,0,0">
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False"/>
-            <TextBox Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-            <ComboBox Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False"/>
-        </StackPanel>
-
+        <Grid Grid.Row="6" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" x:Name="d5" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="1"/>
+            <TextBox Grid.Column="1" x:Name="e5" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TabIndex="9" LostFocus="newH"/>
+            <ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10">
+                <System:String>OFF</System:String>
+                <System:String>1 Hz</System:String>
+                <System:String>10 Hz</System:String>
+                <System:String>25 Hz</System:String>
+                <System:String>50 Hz</System:String>
+                <System:String>100 Hz</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11">
+                <System:String>± 2g</System:String>
+                <System:String>± 4g</System:String>
+                <System:String>± 8g</System:String>
+                <System:String>± 16g</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
+                <System:String>8</System:String>
+                <System:String>10</System:String>
+                <System:String>12</System:String>
+            </ComboBox>
+            <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
+            <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
+        </Grid>
 
     </Grid>
 </UserControl>

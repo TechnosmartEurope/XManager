@@ -96,9 +96,9 @@ namespace X_Manager
 
 			//Schedule
 			scheduleC.importSchedule(schedule);
-
+			
 		}
-
+		
 		private void loaded(object sender, System.Windows.RoutedEventArgs e)
 		{
 			movThreshUd.header.Content = "Acceleration magnitude: ";
@@ -119,8 +119,9 @@ namespace X_Manager
 			//logPeriodStackPanel.IsEnabled = false;
 
 			// setThresholdUds()
-		}
 
+		}
+		
 		private void setThresholdUds()
 		{
 			movValueChanged();
@@ -287,16 +288,17 @@ namespace X_Manager
 
 		private void ctrlManager(object sender, KeyEventArgs e)
 		{
+			e.Handled = true;
 			if ((e.Key == Key.Return))
 			{
+				//MessageBox.Show(sender.ToString());
 				sendConfiguration();
 			}
-
-			if ((e.Key == Key.D))
+			else if ((e.Key == Key.D))
 			{
 				if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
 				{
-
+					e.Handled = true;
 					if ((mDebug == 0))
 					{
 						mDebug = 1;
@@ -309,14 +311,12 @@ namespace X_Manager
 						// MessageBox.Show("mDebug disabled.")
 						sendButton.Content = "Send configuration";
 					}
-
-
-
 				}
-
 			}
-			e.Handled = true;
-
+			else
+			{
+				e.Handled = false;
+			}
 		}
 
 		private void sendConf(object sender, RoutedEventArgs e)

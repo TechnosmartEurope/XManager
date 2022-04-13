@@ -249,6 +249,10 @@ namespace X_Manager.Units
 			sp.Write("TTTTTTTTTTTTGGAC");
 			try
 			{
+				if (firmTotA < 1000002)
+				{
+					for (int i = 15; i < 17; i++) { conf[i] = (byte)sp.ReadByte(); }
+				}
 				for (int i = 17; i <= 25; i++) { conf[i] = (byte)sp.ReadByte(); }
 			}
 			catch
@@ -265,6 +269,10 @@ namespace X_Manager.Units
 			try
 			{
 				sp.ReadByte();
+				if (firmTotA < 001000002)
+				{
+					sp.Write(conf, 15, 2);
+				}
 				sp.Write(conf, 17, 9);
 				sp.ReadByte();
 			}
@@ -301,6 +309,10 @@ namespace X_Manager.Units
 		public override void setAccSchedule(byte[] schedule)
 		{
 			sp.Write("TTTTTTTTTTTTTGGAs");
+			if (firmTotA < 1001000)
+			{
+				return;
+			}
 			Thread.Sleep(200);
 			try
 			{
