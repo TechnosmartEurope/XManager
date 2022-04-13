@@ -1385,9 +1385,9 @@ namespace X_Manager.Units
 				//contoTab += 3;
 				if (((tsLoc.tsTypeExt1 & 8) == 8) | repeatEmptyValues)
 				{
-					magAdditionalInfo += csvSeparator + tsLoc.magX_A.ToString("#.0");
-					magAdditionalInfo += csvSeparator + tsLoc.magY_A.ToString("#.0");
-					magAdditionalInfo += csvSeparator + tsLoc.magZ_A.ToString("#.0");
+					magAdditionalInfo += csvSeparator + tsLoc.magX_A.ToString("#.0", nfi);
+					magAdditionalInfo += csvSeparator + tsLoc.magY_A.ToString("#.0", nfi);
+					magAdditionalInfo += csvSeparator + tsLoc.magZ_A.ToString("#.0", nfi);
 				}
 				else
 				{
@@ -1493,9 +1493,9 @@ namespace X_Manager.Units
 
 			if (magen == 2)
 			{
-				magAdditionalInfo = csvSeparator + tsLoc.magX_B.ToString("#.0");
-				magAdditionalInfo += csvSeparator + tsLoc.magY_B.ToString("#.0");
-				magAdditionalInfo += csvSeparator + tsLoc.magZ_B.ToString("#.0");
+				magAdditionalInfo = csvSeparator + tsLoc.magX_B.ToString("#.0", nfi);
+				magAdditionalInfo += csvSeparator + tsLoc.magY_B.ToString("#.0", nfi);
+				magAdditionalInfo += csvSeparator + tsLoc.magZ_B.ToString("#.0", nfi);
 			}
 
 			textOut += magAdditionalInfo + additionalInfo + ardPos + "\r\n";

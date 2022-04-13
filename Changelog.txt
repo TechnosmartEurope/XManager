@@ -99,3 +99,4 @@
 1.10.4	Download settato su firmware 1.7.0 - MPLAB X
 	Sistemata gestione memoria Axy5 e aggiornamento progress bar
 1.11.0	Gestione Axy4D con Firmware => 3.0.0 (Magnetometro/Board Axy5)
+1.11.1	Bugfix: separatore decimale magnetometro su axy4d
