@@ -578,7 +578,7 @@ namespace X_Manager.Units
 			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
 
 			byte mdrSpeed = 9;
-			//mdrSpeed=8;
+			mdrSpeed=8;
 			string br = "D";
 			if (mdrSpeed == 9) br = "H";
 			sp.Write("TTTTTTTTTTTTTTGGA" + br);

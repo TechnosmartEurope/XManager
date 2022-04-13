@@ -29,4 +29,7 @@
 1.4.0	Supporto per memoria 4Gb single die con lettura continua di blocco.
 	Bugfix: conversioni axyTrek e axyDepth usavano i coefficienti di conversione * 1000
 	LeapSecond parametrizzato nelle preferenze di conversione
-
+1.5.0	Implementazione gestione memoria Single e Dual Die AxyDepth2
+	AxyTrek: configurazione finestre remoto
+1.5.1	Implementata memoria SingleDie anche su AxyDepth2
+	Bugfix: Axytrek remoto: corretto carattere riconoscimento dual/single die in download remoto.

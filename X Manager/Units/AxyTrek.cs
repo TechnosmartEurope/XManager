@@ -804,7 +804,7 @@ namespace X_Manager
 			try
 			{
 				sp.ReadByte();
-				Thread.Sleep(10);
+				Thread.Sleep(100);
 				sp.Write("+++");
 				Thread.Sleep(200);
 				sp.Write(new byte[] { 0x41, 0x54, 0x42, 0x52, mdrSpeed }, 0, 5);
@@ -815,10 +815,10 @@ namespace X_Manager
 				sp.Write("ATX");
 				Thread.Sleep(900);
 				sp.Write("R");
-				Thread.Sleep(100);
+				//Thread.Sleep(100);
 				dieCount = sp.ReadByte();
-				if (dieCount == 0x53) dieCount = 2;
-				if (dieCount == 0x73) dieCount = 1;
+				if (dieCount == 0x52) dieCount = 2;
+				if (dieCount == 0x72) dieCount = 1;
 				if ((dieCount != 1) & (dieCount != 2))
 				{
 					throw new Exception(unitNotReady);
@@ -829,6 +829,7 @@ namespace X_Manager
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 				try
 				{
+					sp.ReadByte();
 					fo.Close();
 				}
 				catch { }
