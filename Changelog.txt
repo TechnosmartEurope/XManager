@@ -131,3 +131,4 @@
 	Aggiunta possibilità di minimizzare l'interfaccia
 	Bugfix: configurazione gipsy6: Togliendo enhanced mode crashava se non si erano prima "visitate" le pagine di geofencing.
 	Dimensionamento layout finestre auto-adattante alla risoluzione dello schermo.
+1.14.4	Bugfix: Configurazione AxyDepth.5 non teneva conto di periodo logging temperatura e pressione e abilitazione logging ADC presenti nel firmware 3.1.0 e successivi

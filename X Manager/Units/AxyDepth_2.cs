@@ -266,13 +266,21 @@ namespace X_Manager.Units
 			sp.Write("TTTTTTTTTTTTGGAC");
 			try
 			{
-				for (int i = 15; i <= 19; i++)
+				for (int i = 15; i < 19; i++)
 				{
 					conf[i] = (byte)sp.ReadByte();
 				}
 				if (firmTotA >= 3000000)
 				{
+					if (firmTotA >= 3001000)
+					{
+						conf[19] = (byte)sp.ReadByte();
+					}
 					conf[21] = (byte)sp.ReadByte();
+					if (firmTotA >= 3002000)
+					{
+						conf[22] = (byte)sp.ReadByte();
+					}
 				}
 			}
 			catch
@@ -289,12 +297,22 @@ namespace X_Manager.Units
 			try
 			{
 				sp.ReadByte();
-				sp.Write(conf, 15, 5);
+				sp.Write(conf, 15, 4);
 				if (firmTotA >= 3000000)
 				{
+					if (firmTotA >= 3001000)
+					{
+						sp.Write(conf, 19, 1);
+					}
 					sp.Write(conf, 21, 1);
+					if (firmTotA >= 3002000)
+					{
+						sp.Write(conf, 22, 1);
+					}
 				}
 				sp.ReadByte();
+
+
 			}
 			catch
 			{

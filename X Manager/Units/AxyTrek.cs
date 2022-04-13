@@ -1822,7 +1822,7 @@ namespace X_Manager
 					tsc.altH = b & 15;
 				}
 				tsc.gsvSum = (ard.ReadByte() * 256 + ard.ReadByte());
-				
+
 			}
 
 
