@@ -136,17 +136,21 @@
             <!-- Temp Depth TOGGLES + period -->
             <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1.2*"/>
             </Grid.ColumnDefinitions>
             <GroupBox Grid.Column="0" Name="temperatureGB" Header="TEMPERATURE" Foreground="#FF00AADE">
-                <CheckBox Name="temperatureOnOff" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="36"  />
+                <CheckBox Name="temperatureOnOff" VerticalAlignment="Center" Click="tempDepthAdcCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="36"  />
             </GroupBox>
             <GroupBox Grid.Column="1" Name="depthGB" Header="DEPTH" Foreground="#FF00AADE">
-                <CheckBox Name="pressureOnOff" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="37"  />
+                <CheckBox Name="pressureOnOff" VerticalAlignment="Center" Click="tempDepthAdcCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="37"  />
             </GroupBox>
-            <GroupBox Grid.Column="2" Name="tdLogGB" Header="T/D Log period" Foreground="#FF00AADE">
+            <GroupBox Grid.Column="2" Name="adcGB" Header="ADC" Foreground="#FF00AADE">
+                <CheckBox Name="adcOnOff" VerticalAlignment="Center" Click="tempDepthAdcCBChecked" HorizontalAlignment="Left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="37"  />
+            </GroupBox>
+            <GroupBox Grid.Column="3" Name="tdLogGB" Header="T/D Log period" Foreground="#FF00AADE">
                 <StackPanel Name="logPeriodStackPanel" Orientation="Horizontal" >
                     <Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
                     <TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="38"/>

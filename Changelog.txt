@@ -53,3 +53,5 @@
 	Remoto: possibilità di scrivere "c" nella casella indirizzo per impostare l'indirizzo vergine.
 1.7.2	Gestione schedule accelerometro axyTrek
 1.7.3	AGM: corretta conversione giroscopio 1Hz.
+1.7.4	Axy5: Correzione bug in conversione
+	Axy5: Introdotta conversione sensore ADC

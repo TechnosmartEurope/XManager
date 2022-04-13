@@ -37,6 +37,7 @@ namespace X_Manager.Units
 			public double[] magX;
 			public double[] magY;
 			public double[] magZ;
+			public double adcVal;
 			public DateTime orario;
 			public int stopEvent;
 			public int timeStampLength;
@@ -53,13 +54,15 @@ namespace X_Manager.Units
 		//int accx = 2;
 		//int accy = 3;
 		//int accz = 4;
+
+		int temp = 5;
+		int press = 6;
 		int magx = 7;
 		int magy = 8;
 		int magz = 9;
-		int temp = 5;
-		int press = 6;
-		int batt = 10;
-		int meta = 11;
+		int adcVal = 10;
+		int batt = 11;
+		int meta = 12;
 
 		const int pref_pressMetri = 0;
 		const int pref_millibars = 1;
@@ -70,6 +73,23 @@ namespace X_Manager.Units
 		const int pref_battery = 6;
 		const int pref_override_time = 15;
 		const int pref_metadata = 16;
+
+		const byte ts_ext = 0b_0000_0001;
+		const byte ts_temp = 0b_0000_0010;
+		const byte ts_press = 0b_0000_0100;
+		const byte ts_batt = 0b_0000_1000;
+		const byte ts_coord = 0b_0001_0000;
+		const byte ts_event = 0b_0010_0000;
+		const byte ts_actvity = 0b_0100_0000;
+		const byte ts_water = 0b_1000_0000;
+
+		const byte ts_adcVal = 0b_0000_0010;
+		const byte ts_adcThr = 0b_0000_0100;
+		const byte ts_mag = 0b_0000_1000;
+		const byte ts_sched = 0b_0001_0000;
+		const byte ts_time = 0b_0010_0000;
+		const byte ts_multi = 0b_0100_0000;
+		const byte ts_escape = 0b_1000_0000;
 
 		int iend1;
 		int iend2;
@@ -97,6 +117,7 @@ namespace X_Manager.Units
 		double pressOffset;
 		int dtPeriod;
 		int magEn;
+		int adcEn;
 		byte[] schedule = null;
 		byte[] remSched = null;
 		byte[] eventAr;
@@ -314,6 +335,12 @@ namespace X_Manager.Units
 					for (int i = 15; i < 17; i++) { conf[i] = (byte)sp.ReadByte(); }
 				}
 
+				//Legge l'adcVal e un byte dummy per firmware >= 1.5.0
+				if (firmTotA >= 1005000)
+				{
+					for (int i = 15; i < 17; i++) { conf[i] = (byte)sp.ReadByte(); }
+				}
+
 				//Legge la configura<ione comune a tutti i firmware
 				for (int i = 17; i <= 25; i++) { conf[i] = (byte)sp.ReadByte(); }
 
@@ -349,6 +376,10 @@ namespace X_Manager.Units
 				if (firmTotA < 001000002)
 				{
 					sp.Write(conf, 15, 2);
+				}
+				if (firmTotA >= 1005000)
+				{
+					sp.Write(conf, 15, 1);
 				}
 				sp.Write(conf, 17, 9);
 				if (firmTotA > 1001000)
@@ -1197,7 +1228,7 @@ namespace X_Manager.Units
 				convSum += convCoeffs[convc];
 			}
 
-			findTDEnable(ard.ReadByte());   //Temperatura e pressione abilitate
+			findTDAdcEnable(ard.ReadByte());   //Temperatura, pressione e adc abilitati
 
 			dtPeriod = ard.ReadByte();                 //TD periodo di logging (non serve al software)
 
@@ -1253,14 +1284,16 @@ namespace X_Manager.Units
 
 			while (!convertStop)
 			{
-
-				//sviluppo
-				
-				///sviluppo
-
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 							new Action(() => parent.statusProgressBar.Value = ard.Position));
 				if (detectEof(ref ard)) break;
+
+				//sviluppo
+				//if (ard.Position > 0x3F000)
+				//{
+				//	int a = 0;
+				//}
+				///sviluppo
 
 				decodeTimeStamp(ref ard, ref timeStampO, true);
 
@@ -1280,6 +1313,7 @@ namespace X_Manager.Units
 				{
 					MessageBox.Show(ex.Message);
 				}
+				
 
 			}
 
@@ -1433,6 +1467,7 @@ namespace X_Manager.Units
 			if (iend2 == 0) return textOut;
 
 			string[] gruppo = gruppoCON;
+			gruppo[meta] = "";
 
 			if (!repeatEmptyValues)
 			{
@@ -1519,8 +1554,8 @@ namespace X_Manager.Units
 
 			tsc.tsType = ard.ReadByte();
 
-			//Timestamp esteso
-			if ((tsc.tsType & 1) == 1)
+			//TIMESTAMP ESTESO
+			if ((tsc.tsType & ts_ext) == ts_ext)
 			{
 				try
 				{
@@ -1544,10 +1579,10 @@ namespace X_Manager.Units
 			//	tsc.tsTypeExt1 = 0;
 			//}
 
-			//Temperatura
+			//TEMPERATURA INTERNA
 			if (temperatureEn > 0)
 			{
-				if ((tsc.tsType & 2) == 2)
+				if ((tsc.tsType & ts_temp) == ts_temp)
 				{
 					if (isDepth == 0)
 					{
@@ -1566,11 +1601,12 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					gruppoCON[temp] = "";
+					if (!repeatEmptyValues) gruppoCON[temp] = "";
 				}
 			}
-			//Evento
-			if ((tsc.tsType & 32) == 32)
+
+			//EVENTO
+			if ((tsc.tsType & ts_event) == ts_event)
 			{
 				tsc.metadataPresent = 1;
 				for (int i = 0; i < 5; i++)
@@ -1590,8 +1626,6 @@ namespace X_Manager.Units
 				}
 			}
 
-			//tsc.orario = tsc.orario.AddSeconds(1);
-			//tsc.orario.AddMilliseconds(-tsc.orario.Millisecond);
 			tsc.orario = tsc.orario.AddMilliseconds(addMilli);
 
 			if (tsc.tsTypeExt1 == 0)
@@ -1599,8 +1633,8 @@ namespace X_Manager.Units
 				goto _fineDecodeTimestamp; //Non ci sono informazioni dal timestamp esteso 1
 			}
 
-			//Cambio Schedule
-			if ((tsc.tsTypeExt1 & 16) == 16)
+			//SCHEDULE
+			if ((tsc.tsTypeExt1 & ts_sched) == ts_sched)
 			{
 				tsc.metadataPresent = 1;
 				rate = ard.ReadByte();
@@ -1669,8 +1703,8 @@ namespace X_Manager.Units
 
 			}
 
-			//Timestamp esteso 1: Orario
-			if (((tsc.tsTypeExt1 & 32) == 32) && (!overrideTime))
+			//ORARIO
+			if (((tsc.tsTypeExt1 & ts_time) == ts_time) && (!overrideTime))
 			{
 				int anno = ard.ReadByte();
 				anno = ((anno >> 4) * 10) + (anno & 15) + 2000;
@@ -1696,9 +1730,9 @@ namespace X_Manager.Units
 
 			}
 
-			if ((tsc.tsTypeExt1 & 0x80) == 0x80)
+			if ((tsc.tsTypeExt1 & ts_escape) == ts_escape)
 			{
-				if ((tsc.tsTypeExt1 & 0x40) == 0x40)
+				if ((tsc.tsTypeExt1 & ts_multi) == ts_multi)
 				{
 					byte t = 0;
 					while (t != 0xab) t = (byte)ard.ReadByte();
@@ -1714,48 +1748,66 @@ namespace X_Manager.Units
 
 		_footer:
 
-			//Pressione e temperatura
+			//PRESSIONE E TEMPERATURA ESTERNA
 			if (pressureEn > 0)
 			{
-				if ((tsc.tsType & 4) == 4)
+			if ((tsc.tsType & ts_press) == ts_press)
+			{
+				try
 				{
-					try
-					{
-						dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
-						gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
-						gruppoCON[press] = tsc.pressure.ToString("0.00");
-					}
-					catch
-					{
-						return;
-					}
+					dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
+					gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
+					gruppoCON[press] = tsc.pressure.ToString("0.00");
 				}
-				else
+				catch
+				{
+					return;
+				}
+			}
+			else
+			{
+				if (!repeatEmptyValues)
 				{
 					gruppoCON[temp] = "";
 					gruppoCON[press] = "";
 				}
 			}
-			//Batteria
+			}
+
+			//BATTERIA
 			if (prefBattery == 1)
 			{
-				if ((tsc.tsType & 8) == 8)
+				if ((tsc.tsType & ts_batt) == ts_batt)
 				{
 					tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
-					gruppoCON[batt] = tsc.batteryLevel.ToString("0.00");
+					gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
 				}
 				else
 				{
-					gruppoCON[batt] = "";
+					if (!repeatEmptyValues) gruppoCON[batt] = "";
 				}
 			}
 
-			//if (tsc.tsTypeExt1 == 0)
-			//{
-			//	goto _fineDecodeTimestampFooter; //Non ci sono informazioni dal timestamp esteso 1
-			//}
+			if (tsc.tsTypeExt1 == 0)
+			{
+				goto _fineDecodeTimestampFooter; //Non ci sono informazioni dal timestamp esteso 1
+			}
 
-			//Timestamp esteso 1: Magnetometro
+			//ADC VALORE
+			if (adcEn > 0)
+			{
+				if ((tsc.tsTypeExt1 & ts_adcVal) == ts_adcVal)
+				{
+					tsc.adcVal = ard.ReadByte() * 256 + ard.ReadByte();
+					gruppoCON[adcVal] = tsc.adcVal.ToString("0000");
+				}
+				else
+				{
+					if (!repeatEmptyValues) gruppoCON[adcVal] = "";
+				}
+			}
+
+			//MAGNETOMETRO
 			if (magEn > 0)
 			{
 				if ((tsc.tsTypeExt1 & 8) == 8)
@@ -1793,12 +1845,19 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					gruppoCON[magx] = gruppoCON[magy] = gruppoCON[magz] = "";
+					if (!repeatEmptyValues) gruppoCON[magx] = gruppoCON[magy] = gruppoCON[magz] = "";
 				}
 			}
 
-			//_fineDecodeTimestampFooter:
+		_fineDecodeTimestampFooter:
 			ard.ReadByte();
+
+//#if DEBUG
+//			if (gruppoCON[meta] == "")
+//			{
+//				gruppoCON[meta] = ard.Position.ToString("X");
+//			}
+//#endif
 			return;
 
 		}
@@ -1829,6 +1888,7 @@ namespace X_Manager.Units
 			else
 			{
 				press--;
+				adcVal--;
 				batt--;
 				meta--;
 				magx--;
@@ -1843,6 +1903,7 @@ namespace X_Manager.Units
 			}
 			else
 			{
+				adcVal--;
 				batt--;
 				meta--;
 				magx--;
@@ -1859,8 +1920,20 @@ namespace X_Manager.Units
 			}
 			else
 			{
+				adcVal--;
 				batt -= 3;
 				meta -= 3;
+			}
+
+			if (adcEn > 0)
+			{
+				csvHeader = csvHeader + csvSeparator + "ADC (raw)";
+				contoPlace++;
+			}
+			else
+			{
+				batt--;
+				meta--;
 			}
 
 			if (prefBattery == 1)
@@ -1882,6 +1955,18 @@ namespace X_Manager.Units
 			gruppoCON = Enumerable.Repeat("", contoPlace).ToArray();
 			gruppoSENZA = Enumerable.Repeat("", contoPlace).ToArray();
 
+			if (repeatEmptyValues)
+			{
+				gruppoCON[temp] = 0.ToString("00.00", nfi);
+				gruppoCON[press] = 0.ToString("0000.00", nfi);
+				gruppoCON[magx] = 0.ToString("#0.0", nfi);
+				gruppoCON[magy] = 0.ToString("#0.0", nfi);
+				gruppoCON[magz] = 0.ToString("#0.0", nfi);
+				gruppoCON[adcVal] = 0.ToString("0000");
+				gruppoCON[batt] = 0.ToString("0.00", nfi);
+			}
+
+
 			csvHeader += "\r\n";
 			csv.Write(Encoding.ASCII.GetBytes(csvHeader));
 		}
@@ -1897,9 +1982,12 @@ namespace X_Manager.Units
 			en = "dis";
 			if (pressureEn == 1) en = "en";
 			File.AppendAllText(fileNameInfo, string.Format("Pressure logging is {0}abled.\r\n", en));
-			if (temperatureEn == 1 | pressureEn == 1)
+			en = "dis";
+			if (adcEn == 1) en = "en";
+			File.AppendAllText(fileNameInfo, string.Format("ADC logging is {0}abled.\r\n", en));
+			if (temperatureEn == 1 | pressureEn == 1 | adcEn == 1)
 			{
-				File.AppendAllText(fileNameInfo, string.Format("Temperature and/or Pressure logging period is {0} second(s)\r\n", dtPeriod.ToString()));
+				File.AppendAllText(fileNameInfo, string.Format("Temperature/Pressure/ADC logging period is {0} second(s)\r\n", dtPeriod.ToString()));
 			}
 			File.AppendAllText(fileNameInfo, "\r\n");
 
@@ -1911,6 +1999,8 @@ namespace X_Manager.Units
 				File.AppendAllText(fileNameInfo, string.Format(" and is sampled at {0}Hz", magEn));
 			}
 			File.AppendAllText(fileNameInfo, ".\r\n\r\n");
+
+
 
 			if (schedule == null) return;
 
@@ -1989,12 +2079,14 @@ namespace X_Manager.Units
 		//	return rangeOut;
 		//}
 
-		private void findTDEnable(int td)
+		private void findTDAdcEnable(int td)
 		{
 			temperatureEn = 0;
 			isDepth = 0;
+			adcEn = 0;
 			if ((td & 0b1) == 0b1) temperatureEn = 1;
 			if ((td & 0b10) == 0b10) isDepth = 1;
+			if ((td & 0b1000) == 0b1000) adcEn = 1;
 
 			pressureEn = td >> 4;
 		}

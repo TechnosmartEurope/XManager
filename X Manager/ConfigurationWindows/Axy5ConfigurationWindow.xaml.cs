@@ -60,6 +60,19 @@ namespace X_Manager
 				tempDepthLogginUD.IsEnabled = true;
 			}
 
+			//ADC logging
+			adcOnOff.IsChecked = false;
+			if (axyconf[15] == 1)
+			{
+				adcOnOff.IsChecked = true;
+			}
+			if (firmTotA < 1005000)
+			{
+				adcOnOff.IsChecked = false;
+				axyconf[15] = 0;
+				adcOnOff.IsEnabled = false;
+			}
+
 			//T/D period
 			tempDepthLogginUD.Text = axyconf[19].ToString();
 
@@ -265,29 +278,41 @@ namespace X_Manager
 			}
 		}
 
-		private void tempChecked(object sender, RoutedEventArgs e)
-		{
-			if ((bool)temperatureOnOff.IsChecked)
-			{
-				temperatureOnOff.Content = "Enabled";
-			}
-			else
-			{
-				temperatureOnOff.Content = "Disabled";
-			}
-		}
+		//private void tempChecked(object sender, RoutedEventArgs e)
+		//{
+		//	if ((bool)temperatureOnOff.IsChecked)
+		//	{
+		//		temperatureOnOff.Content = "Enabled";
+		//	}
+		//	else
+		//	{
+		//		temperatureOnOff.Content = "Disabled";
+		//	}
+		//}
 
-		private void depthChecked(object sender, RoutedEventArgs e)
-		{
-			if ((bool)pressureOnOff.IsChecked)
-			{
-				pressureOnOff.Content = "Enabled";
-			}
-			else
-			{
-				pressureOnOff.Content = "Disabled";
-			}
-		}
+		//private void depthChecked(object sender, RoutedEventArgs e)
+		//{
+		//	if ((bool)pressureOnOff.IsChecked)
+		//	{
+		//		pressureOnOff.Content = "Enabled";
+		//	}
+		//	else
+		//	{
+		//		pressureOnOff.Content = "Disabled";
+		//	}
+		//}
+
+		//private void adchChecked(object sender, RoutedEventArgs e)
+		//{
+		//	if ((bool)adcOnOff.IsChecked)
+		//	{
+		//		adcOnOff.Content = "Enabled";
+		//	}
+		//	else
+		//	{
+		//		adcOnOff.Content = "Disabled";
+		//	}
+		//}
 
 		private void cmdDown_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
@@ -303,9 +328,9 @@ namespace X_Manager
 			tempDepthLogginUD.Text = i.ToString();
 		}
 
-		private void tempDepthCBChecked(object sender, RoutedEventArgs e)
+		private void tempDepthAdcCBChecked(object sender, RoutedEventArgs e)
 		{
-			if (((bool)temperatureOnOff.IsChecked) | ((bool)pressureOnOff.IsChecked))
+			if (((bool)temperatureOnOff.IsChecked) | ((bool)pressureOnOff.IsChecked) | ((bool)adcOnOff.IsChecked))
 			{
 				tempDepthLogginUD.IsEnabled = true;
 			}
@@ -358,13 +383,21 @@ namespace X_Manager
 		private void sendConfiguration()
 		{
 
+			axyConfOut[15] = 0;
 			axyConfOut[17] = 0;
 			axyConfOut[18] = 0;
-			if ((temperatureOnOff.IsChecked == true))
+			if (firmTotA >= 1005000)
+			{
+				if (adcOnOff.IsChecked == true)
+				{
+					axyConfOut[15] = 1;
+				}
+			}
+			if (temperatureOnOff.IsChecked == true)
 			{
 				axyConfOut[17] = 1;
 			}
-			if ((pressureOnOff.IsChecked == true))
+			if (pressureOnOff.IsChecked == true)
 			{
 				axyConfOut[18] = 1;
 			}
@@ -623,9 +656,20 @@ namespace X_Manager
 			}
 			summary += "\r\n ";
 
-
-
-
+			//ADC
+			if (firmTotA >= 1005000)
+			{
+				summary += "ADC logging is ";
+				if ((bool)adcOnOff.IsChecked)
+				{
+					summary += String.Format("enabled and set at\r\n  1 sample every {0} seconds.\r\n", tempDepthLogginUD.Text);
+				}
+				else
+				{
+					summary += "disabled\r\n";
+				}
+				summary += "\r\n ";
+			}
 
 			summaryTB.Text = summary;
 
@@ -682,6 +726,10 @@ namespace X_Manager
 			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", remoteOnOff.IsChecked));
 			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", temperatureOnOff.IsChecked));
 			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", pressureOnOff.IsChecked));
+			if (firmTotA >= 1005000)
+			{
+				System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", adcOnOff.IsChecked));
+			}
 			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", tempDepthLogginUD.Text));
 			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", firmTotA));
 
@@ -707,7 +755,7 @@ namespace X_Manager
 
 			string[] conf = System.IO.File.ReadAllLines(l.FileName);
 
-			newFirmTotA = uint.Parse(conf[59]);
+			newFirmTotA = uint.Parse(conf[conf.Length-1]);
 			if (newFirmTotA >= 1004000)
 			{
 				scheduleC.enable12();
@@ -748,14 +796,24 @@ namespace X_Manager
 				magOnOff.SelectedIndex = int.Parse(conf[54]);
 			}
 
-
-			
 			remoteOnOff.IsChecked = bool.Parse(conf[55]);
 			temperatureOnOff.IsChecked = bool.Parse(conf[56]);
 			pressureOnOff.IsChecked = bool.Parse(conf[57]);
-
-			tempDepthLogginUD.Text = conf[58];
-
+			if (newFirmTotA >= 1005000)
+			{
+				adcOnOff.IsEnabled = true;
+				adcOnOff.IsChecked = bool.Parse(conf[58]);
+				tempDepthLogginUD.Text = conf[59];
+				if (firmTotA < 1005000)
+				{
+					adcOnOff.IsEnabled = false;
+					adcOnOff.IsChecked = false;
+				}
+			}
+			else
+			{
+				tempDepthLogginUD.Text = conf[58];
+			}
 
 		}
 	}
