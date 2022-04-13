@@ -91,3 +91,8 @@
 	Continuazione sviluppo finestre interffaccia gipsy6
 1.10.2	Messagi di warning in caso di mdp o ard corrotti nell'Axy5.
 	Sviluppo splippy map per il gipsy6
+	Vettori fisici e logici per la memoria dispositivo (retrocompatibilità con precedenti unità)
+	AGM: Implementazione memoria SingleDie
+1.10.3	Allineamento vettori fisici e logici e funzioni per tutte le unità
+	Correzione separatore decimale in temperatura e pressione Axy5
+	Bugfix: Download Axy5 non funzionava dopo migrazione a nuovo sistema vettori fisici e logici memoria

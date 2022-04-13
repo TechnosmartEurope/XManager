@@ -143,7 +143,8 @@ namespace X_Manager.Units
 				throw new Exception(unitNotReady);
 			}
 			mem_max_physical_address = m;
-			return new uint[] { mem_max_physical_address };
+			mem_min_physical_address = 0;
+			return new uint[] { mem_min_physical_address, mem_max_physical_address };
 		}
 
 		public override uint[] askMemory()
@@ -156,13 +157,15 @@ namespace X_Manager.Units
 				m += (UInt32)sp.ReadByte(); m *= 256;
 				m += (UInt32)sp.ReadByte(); m *= 256;
 				m += (UInt32)sp.ReadByte();
+				mem_address = m;
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			//memory = m;
-			return new uint[] { m };
+
+			mem_max_logical_address = 0;
+			return new uint[] { mem_max_logical_address, mem_address };
 		}
 
 		public override string askName()
@@ -238,7 +241,7 @@ namespace X_Manager.Units
 			Thread.Sleep(1100);
 
 			int dieCount = sp.ReadByte();
-			
+
 			if (dieCount == 0x53) dieCount = 2;     //S
 			if (dieCount == 0x73) dieCount = 1;     //s
 			if ((dieCount != 1) & (dieCount != 2))

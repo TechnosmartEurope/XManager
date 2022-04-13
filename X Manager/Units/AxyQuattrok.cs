@@ -237,7 +237,8 @@ namespace X_Manager
 				throw new Exception(unitNotReady);
 			}
 			mem_max_physical_address = m;
-			return new uint[] { mem_max_physical_address };
+			mem_min_physical_address = 0;
+			return new uint[] { mem_min_physical_address, mem_max_physical_address };
 
 		}
 
@@ -256,7 +257,9 @@ namespace X_Manager
 			{
 				throw new Exception(unitNotReady);
 			}
-			return new uint[] { m };
+			mem_address = m;
+			mem_max_logical_address = 0;
+			return new uint[] { mem_max_logical_address, mem_address };
 		}
 
 		public override void eraseMemory()

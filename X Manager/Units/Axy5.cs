@@ -233,44 +233,35 @@ namespace X_Manager.Units
 				throw new Exception(unitNotReady);
 			}
 			mem_max_physical_address = m;
-			return new uint[] { mem_max_physical_address };
+			mem_min_physical_address = 0;
+			return new uint[] { mem_min_physical_address, mem_max_physical_address };
 		}
 
 		public override uint[] askMemory()
 		{
-			UInt32 mStart;
-			UInt32 mStop;
+			UInt32 m;
 			sp.Write("TTTTTTTGGAM");
 			try
 			{
-				mStart = (UInt32)sp.ReadByte(); mStart *= 256;
-				mStart += (UInt32)sp.ReadByte(); mStart *= 256;
-				mStart += (UInt32)sp.ReadByte(); mStart *= 256;
-				mStart += (UInt32)sp.ReadByte();
+				m = (UInt32)sp.ReadByte(); m *= 256;
+				m += (UInt32)sp.ReadByte(); m *= 256;
+				m += (UInt32)sp.ReadByte(); m *= 256;
+				m += (UInt32)sp.ReadByte();
+				mem_address = m;
 
-				mStop = (UInt32)sp.ReadByte(); mStop *= 256;
-				mStop += (UInt32)sp.ReadByte(); mStop *= 256;
-				mStop += (UInt32)sp.ReadByte(); mStop *= 256;
-				mStop += (UInt32)sp.ReadByte();
+				m = (UInt32)sp.ReadByte(); m *= 256;
+				m += (UInt32)sp.ReadByte(); m *= 256;
+				m += (UInt32)sp.ReadByte(); m *= 256;
+				m += (UInt32)sp.ReadByte();
+				mem_max_logical_address = m;
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			//if (mStart > mStop)
-			//{
-			//	memory = mStart - mStop;
-			//}
-			//else if (mStart < mStop)
-			//{
-			//	memory = maxMemory - mStop + mStart;
-			//}
-			//else
-			//{
-			//	memory = 0;
-			//}
 
-			return new UInt32[] { mStart, mStop };
+
+			return new UInt32[] { mem_max_logical_address, mem_address };
 		}
 
 		public override void eraseMemory()
@@ -586,7 +577,7 @@ namespace X_Manager.Units
 
 		_loopSingleDie:
 
-			while (actMemory != (toMemory + 0x1000))
+			while (actMemory != toMemory)
 			{
 				//COSTRUZIONE COMANDO
 				if (firstLoop > 0)          //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)
@@ -633,12 +624,12 @@ namespace X_Manager.Units
 				}
 
 				//BUFFER ARRIVATO OK
-				actMemory += 4096;
-				if (actMemory == 0x_2000_0000)
+				actMemory += 0x1000;
+				if (actMemory == 0x_2000_0000)      //Effetto Pacman
 				{
 					actMemory = 0;
 				}
-				position += 4096;
+				position += 0x1000;
 
 				if ((actMemory % 0x_0004_0000) == 0)
 				{
@@ -655,7 +646,7 @@ namespace X_Manager.Units
 			goto _endLoop;
 
 		_loopDualDie:
-			while (actMemory != (toMemory + 0x1000))
+			while (actMemory != toMemory)
 			{
 				if (firstLoop > 0)       // A
 				{
@@ -1284,7 +1275,7 @@ namespace X_Manager.Units
 
 				while (Interlocked.Exchange(ref progLock, 2) > 0)
 				{
-					
+
 				}
 
 				progVal = ard.Position;
@@ -1826,8 +1817,8 @@ namespace X_Manager.Units
 						try
 						{
 							dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
-							gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
-							gruppoCON[press] = tsc.pressure.ToString("0.00");
+							gruppoCON[temp] = tsc.temperature.ToString("0.00", nfi);
+							gruppoCON[press] = tsc.pressure.ToString("0.00", nfi);
 						}
 						catch
 						{
@@ -1839,8 +1830,8 @@ namespace X_Manager.Units
 						try
 						{
 							dtAir(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
-							gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
-							gruppoCON[press] = tsc.pressure.ToString("0.00");
+							gruppoCON[temp] = tsc.temperature.ToString("0.00", nfi);
+							gruppoCON[press] = tsc.pressure.ToString("0.00", nfi);
 						}
 						catch
 						{

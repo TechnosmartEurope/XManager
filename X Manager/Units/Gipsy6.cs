@@ -103,6 +103,43 @@ namespace X_Manager.Units
 			configurePositionButtonEnabled = false;
 		}
 
+		private bool ask(string command)
+		{
+			int tent = 0;
+			bool res = false;
+			sp.ReadTimeout = 3;
+			sp.ReadExisting();
+			int test = 0;
+			bool goon = false;
+			for (int y = 0; y < 4; y++)
+			{
+				sp.Write("TTTTTTTGGA" + command);
+				goon = true;
+				try
+				{
+					test = sp.ReadByte();   //Byte di risposta per verifica correttezza comando
+				}
+				catch
+				{
+					continue;               //Dopo il timeout di 3 ms non è arrivata la risposta: il comando viene reinviato
+				}
+				if (test == command.ToArray()[0])   //Il comando è arrivato giusto, si manda conferma e si continua
+				{
+					sp.Write("K");
+					goon = true;
+					break;
+				}
+				else
+				{
+					//Il comando è arrivato sbagliato, si aspetta il timeout del micro e si reinvia il comando
+					Thread.Sleep(2);
+					continue;
+				}
+			}
+
+			return goon;
+		}
+
 		public override void changeBaudrate(ref SerialPort sp, int maxMin)
 		{
 			int oldBaudRate = sp.BaudRate;
@@ -110,9 +147,11 @@ namespace X_Manager.Units
 			int b;
 			try
 			{
-				sp.ReadTimeout = 1200;
-				sp.Write("TTTTTTGGAb");
-				sp.ReadByte();
+				if (!ask("b"))
+				{
+					return;
+				}
+				sp.ReadTimeout = 200;
 				sp.Write(new byte[] { (byte)maxMin }, 0, 1);
 				newBaudRate = (int)sp.ReadByte();
 				newBaudRate = newBaudRate + ((int)sp.ReadByte() << 8);
@@ -125,7 +164,7 @@ namespace X_Manager.Units
 				sp.Write(new byte[] { 0x55 }, 0, 1);
 				Thread.Sleep(5);
 				b = sp.ReadByte();
-				Thread.Sleep(20);
+				Thread.Sleep(5);
 			}
 			catch
 			{
@@ -138,8 +177,11 @@ namespace X_Manager.Units
 			byte[] f = new byte[3];
 			string firmware = "";
 
-			sp.ReadExisting();
-			sp.Write("TTTTTGGAF");
+			if (!ask("F"))
+			{
+				throw new Exception(unitNotReady);
+				return firmware;
+			}
 			sp.ReadTimeout = 400;
 			int i = 0;
 			try
@@ -170,10 +212,14 @@ namespace X_Manager.Units
 		public override string askName()
 		{
 			name = "";
+
+			if (!ask("N"))
+			{
+				throw new Exception(unitNotReady);
+				return "[No Name]";
+			}
 			try
 			{
-				sp.ReadExisting();
-				sp.Write("TTTTTTTGGAN");
 				byte nIn = 255;
 				for (int i = 0; i < 28; i++)
 				{
@@ -196,9 +242,14 @@ namespace X_Manager.Units
 		{
 			string battery = "";
 			double battLevel;
-			sp.Write("TTTTGGAB");
+			if (!ask("B"))
+			{
+				throw new Exception(unitNotReady);
+				return "";
+			}
 			try
 			{
+				sp.ReadTimeout = 500;
 				battLevel = sp.ReadByte(); battLevel *= 256;
 				battLevel += sp.ReadByte();
 				battLevel *= 6;
@@ -216,10 +267,12 @@ namespace X_Manager.Units
 
 		public override void setPcTime()
 		{
-			sp.Write("TTTTTGGAt");
+			if (!ask("t"))
+			{
+				throw new Exception(unitNotReady);
+			}
 			try
 			{
-				sp.ReadByte();
 				byte[] dateAr = new byte[6];
 				var dateToSend = DateTime.UtcNow;
 				dateAr[0] = (byte)dateToSend.Second;
@@ -240,7 +293,10 @@ namespace X_Manager.Units
 		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
-			sp.Write("TTTTTTTGGAm");
+			if (!ask("m"))
+			{
+				throw new Exception(unitNotReady);
+			}
 			try
 			{
 				m = (UInt32)sp.ReadByte(); m *= 256;
@@ -264,8 +320,10 @@ namespace X_Manager.Units
 
 		public override uint[] askMemory()
 		{
-			//UInt32 actM, maxM;
-			sp.Write("TTTTTTTGGAM");
+			if (!ask("M"))
+			{
+				throw new Exception(unitNotReady);
+			}
 			try
 			{
 				mem_address = (UInt32)sp.ReadByte(); mem_address *= 256;
@@ -281,12 +339,16 @@ namespace X_Manager.Units
 			{
 				throw new Exception(unitNotReady);
 			}
-			return new uint[] { mem_max_logical_address, mem_max_logical_address };
+			return new uint[] { mem_max_logical_address, mem_address };
 		}
 
 		public override void eraseMemory()
 		{
-			sp.Write("TTTTTTTTGGAE");
+			//sp.Write("TTTTTTTTGGAE");
+			if (!ask("E"))
+			{
+				throw new Exception(unitNotReady);
+			}
 			try
 			{
 				sp.ReadByte();
@@ -303,26 +365,40 @@ namespace X_Manager.Units
 			byte[] name = new byte[28];
 			Array.Copy(nameShort, 0, name, 0, nameShort.Length);
 
-			sp.Write("TTTTTTTGGAn");
-			try
+			for (int k = 0; k < 4; k++)
 			{
-				sp.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-			sp.Write(name, 0, 28);
-			if (sp.ReadByte() != 'I')
-			{
-				askName();
+				if (!ask("n"))
+				{
+					throw new Exception(unitNotReady);
+					return;
+				}
+				sp.ReadTimeout = 200;
+				sp.Write(name, 0, 28);
+				int res = 0;
+				try
+				{
+					res = sp.ReadByte();
+				}
+				catch
+				{
+					throw new Exception(unitNotReady);
+					return;
+				}
+				if (res == "I".ToArray()[0])
+				{
+					break;
+				}
+				Thread.Sleep(100);
 			}
 		}
 
 		public override bool isRemote()
 		{
 			remote = false;
-			sp.Write("TTTTTGGAl");
+			if (!ask("l"))
+			{
+				throw new Exception(unitNotReady);
+			}
 			try
 			{
 				if (sp.ReadByte() == 1) remote = true;
@@ -337,13 +413,17 @@ namespace X_Manager.Units
 		public override byte[] getConf()
 		{
 
-			sp.ReadTimeout = 1100;
 			byte[] conf = new byte[0x1000];
-			for (int j = 0; j < 1; j++)
+			for (int j = 0; j < 2; j++)
 			{
-				sp.Write("TTTTTTTGGAC");
+				if (!ask("C"))
+				{
+					throw new Exception(unitNotReady);
+					return new byte[] { 0 };
+				}
 				try
 				{
+					sp.ReadTimeout = 400;
 					//ACQ, Start delay e GSV			
 					for (int i = 32; i < 52; i++)
 					{
@@ -424,7 +504,8 @@ namespace X_Manager.Units
 				}
 				catch
 				{
-					throw new Exception(unitNotReady);
+					Thread.Sleep(100);
+					//throw new Exception(unitNotReady);
 				}
 			}
 			return conf;
@@ -493,10 +574,10 @@ namespace X_Manager.Units
 		public override void disconnect()
 		{
 			base.disconnect();
-			sp.Write("TTTTTTTTTGGAO");
+			ask("O");
 		}
 
-		public override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
+		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 
 			//Passa alla gestione FTDI D2XX
@@ -515,7 +596,7 @@ namespace X_Manager.Units
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[8];
 
-			uint bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
+			//int bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
 
 			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
 
@@ -543,13 +624,31 @@ namespace X_Manager.Units
 			int buffPointer = 0;
 
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
-			//uint actMemory = fromMemory;
-			
+
 			//if (fromMemory != 0) fm = System.IO.FileMode.Append;
 
 			//var fo = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
 
-			sp.Write("TTTTGGAD");
+			//sp.Write("TTTTGGAD");
+			if (!ask("D"))
+			{
+				throw new Exception(unitNotReady);
+				return;
+			}
+
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
+
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = buffPointer));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffSize));
+
+			address = BitConverter.GetBytes(mem_max_logical_address);
+			Array.Reverse(address);
+			Array.Copy(address, 0, outBuffer, 1, 3);
+			outBuffer[0] = 0x65;        //load address
+			sp.Write(outBuffer, 0, 4);
 			try
 			{
 				sp.ReadByte();
@@ -560,121 +659,81 @@ namespace X_Manager.Units
 				return;
 			}
 
-			//Thread.Sleep(200);
-			//byte b = (byte)(baudrate / 1000000);
-			//sp.Write(new byte[] { b }, 0, 1);
-			//Thread.Sleep(10);
-			//sp.BaudRate = baudrate;
-
-			//Thread.Sleep(400);
-			//sp.Write("S");
-			//Thread.Sleep(100);
-			//if (sp.ReadByte() != (byte)0x53)
-			//{
-			//	Thread.Sleep(10);
-			//	sp.ReadExisting();
-			//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-			//	try
-			//	{
-			//		fo.Close();
-			//	}
-			//	catch { }
-			//	return;
-			//}
-
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
-
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
-			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
+			while (buffPointer < buffSize)
+			{
+				if (convertStop)
+				{
+					break;
+				}
+				try
+				{
+					sp.Write(new byte[] { 66 }, 0, 1);
+					sp.Read(outBuffer, buffPointer, 0x200);
+					buffPointer += 0x200;
+				}
+				catch
+				{
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+					return;
+				}
 
 
+				//		try
+				//		{
+				//			temp = (byte)sp.ReadByte();
+				//			for (int i = 0; i < 4096; i++)
+				//			{
+				//				inBuffer[i] = (byte)(sp.ReadByte());
+				//			}
+				//		}
+				//		catch
+				//		{
+				//			firstLoop = true;
+				//		}
 
-			//bool firstLoop = true;
-			//byte temp;
+				//		actMemory += 4096;
+				//		if ((actMemory % 0x20000) == 0)
+				//		{
+				//			actMemory -= 4096;
+				//			for (int i = 0; i < 2; i++)
+				//			{
+				//				address = BitConverter.GetBytes(actMemory);
+				//				Array.Reverse(address);
+				//				Array.Copy(address, 0, outBuffer, 1, 3);
+				//				outBuffer[0] = 97;
+				//				bytesToWrite = 4;
 
-			//	while (actMemory < toMemory)
-			//	{
-			//		if (((actMemory % 0x2000000) == 0) | (firstLoop))
-			//		{
-			//			address = BitConverter.GetBytes(actMemory);
-			//			Array.Reverse(address);
-			//			Array.Copy(address, 0, outBuffer, 1, 3);
-			//			outBuffer[0] = 65;
-			//			bytesToWrite = 4;
-			//			firstLoop = false;
-			//		}
-			//		else
-			//		{
-			//			outBuffer[0] = 79;
-			//			bytesToWrite = 1;
-			//		}
+				//				sp.Write(outBuffer, 0, (int)1);
+				//				Thread.Sleep(1);
+				//				sp.Write(outBuffer, 1, (int)(3));
 
-			//		sp.Write(outBuffer, 0, (int)1);
-			//		if (bytesToWrite > 1)
-			//		{
-			//			Thread.Sleep(1);
-			//			sp.Write(outBuffer, 1, (int)(bytesToWrite - 1));
-			//		}
+				//				try
+				//				{
+				//					temp = (byte)sp.ReadByte();
+				//					for (int j = 0; j < 2048; j++)
+				//					{
+				//						inBuffer[j] = (byte)(sp.ReadByte());
+				//					}
+				//				}
+				//				catch
+				//				{
+				//					firstLoop = true;
+				//				}
 
-			//		try
-			//		{
-			//			temp = (byte)sp.ReadByte();
-			//			for (int i = 0; i < 4096; i++)
-			//			{
-			//				inBuffer[i] = (byte)(sp.ReadByte());
-			//			}
-			//		}
-			//		catch
-			//		{
-			//			firstLoop = true;
-			//		}
+				//				fo.Write(inBuffer, 0, 2048);
+				//				actMemory += 2048;
+				//			}
+				//			firstLoop = true;
+				//		}
+				//		else
+				//		{
+				//			fo.Write(inBuffer, 0, 4096);
+				//		}
 
-			//		actMemory += 4096;
-			//		if ((actMemory % 0x20000) == 0)
-			//		{
-			//			actMemory -= 4096;
-			//			for (int i = 0; i < 2; i++)
-			//			{
-			//				address = BitConverter.GetBytes(actMemory);
-			//				Array.Reverse(address);
-			//				Array.Copy(address, 0, outBuffer, 1, 3);
-			//				outBuffer[0] = 97;
-			//				bytesToWrite = 4;
+				//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
 
-			//				sp.Write(outBuffer, 0, (int)1);
-			//				Thread.Sleep(1);
-			//				sp.Write(outBuffer, 1, (int)(3));
-
-			//				try
-			//				{
-			//					temp = (byte)sp.ReadByte();
-			//					for (int j = 0; j < 2048; j++)
-			//					{
-			//						inBuffer[j] = (byte)(sp.ReadByte());
-			//					}
-			//				}
-			//				catch
-			//				{
-			//					firstLoop = true;
-			//				}
-
-			//				fo.Write(inBuffer, 0, 2048);
-			//				actMemory += 2048;
-			//			}
-			//			firstLoop = true;
-			//		}
-			//		else
-			//		{
-			//			fo.Write(inBuffer, 0, 4096);
-			//		}
-
-			//		Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
-
-			//		if (convertStop) actMemory = toMemory;
-			//	}
+				//		if (convertStop) actMemory = toMemory;
+			}
 
 			//	fo.Write(firmwareArray, 0, 3);
 			//	fo.Write(new byte[] { model_Gipsy6, (byte)254 }, 0, 2);
@@ -918,12 +977,15 @@ namespace X_Manager.Units
 
 		public override void setConf(byte[] conf)
 		{
-			sp.ReadTimeout = 400;
-			sp.ReadExisting();
+			
 			for (int j = 0; j < 3; j++)
 			{
-
-				sp.Write("TTTTTTTGGAc");
+				if (!ask("c"))
+				{
+					throw new Exception(unitNotReady);
+					return;
+				}
+				sp.ReadTimeout = 400;
 
 				try
 				{
@@ -946,7 +1008,7 @@ namespace X_Manager.Units
 					}
 					else
 					{
-						Thread.Sleep(1000);
+						Thread.Sleep(100);
 					}
 				}
 			}

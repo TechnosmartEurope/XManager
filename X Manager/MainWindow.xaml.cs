@@ -706,32 +706,19 @@ namespace X_Manager
 
 		private void setPBMemory(uint[] actM, uint[] maxM)
 		{
-			if (actM.Length == 1)
+			statusProgressBar.Maximum = maxM[1];
+			statusProgressBar.Minimum = maxM[0];
+			if (actM[0] < actM[1])
 			{
-				statusProgressBar.Maximum = maxM[0];
-				statusProgressBar.Minimum = 0;
-				statusProgressBar.Value = actM[0];
+				statusProgressBar.Value = actM[1] - actM[0];
+			}
+			else if (actM[0] == actM[1])
+			{
+				statusProgressBar.Value = 0;
 			}
 			else
 			{
-				if (maxM.Length == 1)
-				{
-					maxM = new uint[] { 0, maxM[0] };
-				}
-				statusProgressBar.Maximum = maxM[1] - maxM[0];
-				statusProgressBar.Minimum = 0;
-				if (actM[0] > actM[1])
-				{
-					statusProgressBar.Value = actM[0] - actM[1];
-				}
-				else if (actM[0] < actM[1])
-				{
-					statusProgressBar.Value = (maxM[1] - actM[1]) + (actM[0] - maxM[0]);
-				}
-				else
-				{
-					statusProgressBar.Value = 0;
-				}
+				statusProgressBar.Value = (maxM[1] - actM[0]) + (actM[1] - maxM[0]);
 			}
 		}
 
@@ -1555,10 +1542,14 @@ namespace X_Manager
 			{
 				sp.Open();
 			}
-			UInt32[] memoryocc;// = new UInt32[];
+			uint[] memoryLogical;
+			uint[] memoryPhysical;
 			try
 			{
-				memoryocc = oUnit.askMemory();
+				Thread.Sleep(3);
+				memoryLogical = oUnit.askMemory();
+				Thread.Sleep(3);
+				memoryPhysical = oUnit.askMaxMemory();
 			}
 			catch (Exception ex)
 			{
@@ -1567,41 +1558,37 @@ namespace X_Manager
 				return;
 			}
 
-			if ((memoryocc[0] == 0) & (lastSettings[9].Equals("A")))
-			{
-				warningShow(STR_memoryEMpty);
-				return;
-			}
-
+			//Salvataggio stato progress bar
 			double oldMax = statusProgressBar.Maximum;
 			double oldMin = statusProgressBar.Minimum;
 			double oldVal = statusProgressBar.Value;
 			string oldCon = (string)statusLabel.Content;
 			statusProgressBar.IsIndeterminate = true;
 			statusLabel.Content = "Downloading...";
-			lastSettings = System.IO.File.ReadAllLines(iniFile);
+			lastSettings = File.ReadAllLines(iniFile);
 
+			if (lastSettings[9].Equals("A"))    //Controllo memoria vuota
+			{
+				if (oUnit.mem_address == oUnit.mem_max_logical_address)
+				{
+					statusProgressBar.Maximum = oldMax;
+					statusProgressBar.Minimum = oldMin;
+					statusProgressBar.Value = oldVal;
+					statusLabel.Content = oldCon;
+					statusProgressBar.IsIndeterminate = false;
+					warningShow(STR_memoryEMpty);
+					return;
+				}
+			}
 			Microsoft.Win32.SaveFileDialog saveRaw = new Microsoft.Win32.SaveFileDialog();
 			saveRaw.OverwritePrompt = true;
 			saveRaw.AddExtension = true;
 			saveRaw.FileName = unitNameTextBox.Text;
 
-			//if (((== model_axyTrek) || (unitModel[0] == model_Co2Logger)))
-			//if (oUnit.modelCode==model_axy3 | oUnit.modelCode==model_axyDepth)
-			//{
-			//	saveRaw.DefaultExt = "Ard file|*.ard";
-			//	saveRaw.Filter = "Ard file|*.ard";
-			//}
-			//else
-			//{
-			//	saveRaw.DefaultExt = "Ard file|*.ard1";
-			//	saveRaw.Filter = "Ard file|*.ard1";
-			//}
-
 			saveRaw.DefaultExt = "Ard file|*." + oUnit.defaultArdExtension;
 			saveRaw.Filter = "Ard file|*." + oUnit.defaultArdExtension;
 
-			if (System.IO.File.Exists(lastSettings[3]))
+			if (File.Exists(lastSettings[3]))
 			{
 				saveRaw.InitialDirectory = lastSettings[3];
 			}
@@ -1623,12 +1610,15 @@ namespace X_Manager
 
 			if (lastSettings[9].Equals("A"))
 			{
-				if (!(oUnit is Axy5))
+				if ((oUnit is Axy5) | (oUnit is Gipsy6))
+				{
+					fromMemory = oUnit.mem_max_logical_address;
+					toMemory = (oUnit.mem_address & 0xfffff000) + 0x1000;
+				}
+				else          //Chiede di sovrascrivere o continuare il download in caso di memorie senza effetto pacman
 				{
 					if (File.Exists((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp")))))
 					{
-
-						//YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", STR_Resume, STR_Restart);
 						YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", "", STR_Resume, STR_Restart);
 						switch (yn.ShowDialog())
 						{
@@ -1648,29 +1638,26 @@ namespace X_Manager
 								break;
 						}
 					}
-					toMemory = (memoryocc[0] / 4096);
-					toMemory *= 4096;
-					toMemory += 4096;
+					toMemory = (memoryLogical[1] & 0xfffff000) + 0x1000;
 				}
-				else
-				{
-					fromMemory = memoryocc[1];
-					toMemory = (memoryocc[2] / 4096) * 4096;
-				}
-
 			}
 			else
 			{
 				var dr = new DownloadRangeInput();
 				if (oUnit is Axy5)
 				{
-					dr.startAddress = memoryocc[1];
-					dr.finalAddress = (memoryocc[2] / 04096) * 4096;
+					dr.startAddress = memoryLogical[0];
+					dr.finalAddress = memoryLogical[1] & 0xfffff000;
+				}
+				else if (oUnit is Gipsy6)
+				{
+					dr.startAddress = memoryLogical[0];
+					dr.finalAddress = (memoryLogical[1] & 0xfffff000) + 0x1000;
 				}
 				else
 				{
 					dr.startAddress = 0;
-					dr.finalAddress = ((memoryocc[0] / 4096) * 4096) + 4096;
+					dr.finalAddress = ((memoryLogical[0] / 4096) * 4096) + 4096;
 				}
 
 				if (!(bool)dr.ShowDialog())

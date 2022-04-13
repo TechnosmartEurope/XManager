@@ -239,7 +239,8 @@ namespace X_Manager
 				throw new Exception(unitNotReady);
 			}
 			mem_max_physical_address = m;
-			return new uint[] { mem_max_physical_address };
+			mem_min_physical_address = 0;
+			return new uint[] { mem_min_physical_address, mem_max_physical_address };
 		}
 
 		public override uint[] askMemory()
@@ -257,7 +258,9 @@ namespace X_Manager
 			{
 				throw new Exception(unitNotReady);
 			}
-			return new uint[] { m };
+			mem_address = m;
+			mem_max_logical_address = 0;
+			return new uint[] { mem_max_logical_address, mem_address };
 		}
 
 		public override void eraseMemory()
@@ -618,8 +621,8 @@ namespace X_Manager
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
-			System.IO.FileMode fm = System.IO.FileMode.Create;
-			if (fromMemory != 0) fm = System.IO.FileMode.Append;
+			System.IO.FileMode fm = FileMode.Create;
+			if (fromMemory != 0) fm = FileMode.Append;
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
 			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
 
