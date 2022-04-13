@@ -1148,6 +1148,10 @@ namespace X_Manager
 					{
 						sp.Write("GGAP");
 					}
+					else
+					{
+						sp.Write("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTGGAP");
+					}
 
 					if (remote) Thread.Sleep(400);
 					response = sp.ReadLine();
