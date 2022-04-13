@@ -32,6 +32,7 @@ namespace X_Manager.Units
 			public DateTime orario;
 			public byte stopEvent;
 			public byte timeStampLength;
+			public double adcVal;
 			public double magX_A, magY_A, magZ_A, magX_B, magY_B, magZ_B;
 		}
 
@@ -57,6 +58,7 @@ namespace X_Manager.Units
 		CultureInfo dateCi;
 		bool overrideTime;
 		int magen;
+		int adcEn = 0;
 		byte[] magData_A = new byte[6];
 		byte[] magData_B = new byte[6];
 		public AxyDepth_2(object p)
@@ -873,6 +875,10 @@ namespace X_Manager.Units
 			{
 				magen = ard.ReadByte();
 			}
+			if (firmTotA >= 3002000)
+			{
+				adcEn = ard.ReadByte();
+			}
 
 			Array.Resize(ref lastGroup, (rateComp * 3));
 			nOutputs = rateComp;
@@ -1025,7 +1031,7 @@ namespace X_Manager.Units
 					else if ((position == badPosition) && (!badGroup))
 					{
 						badGroup = true;
-						System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+						File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
 					}
 				}
 			} while ((dummy != (byte)0xab) && (ard.BaseStream.Position < ard.BaseStream.Length));
@@ -1104,6 +1110,14 @@ namespace X_Manager.Units
 				}
 			}
 
+			//Inserisce l'adc
+			if (adcEn > 0)
+			{
+				contoTab++;
+				additionalInfo += csvSeparator;
+				if (((tsLoc.tsTypeExt1 & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.adcVal.ToString(nfi);
+			}
+
 			//Inserisce la pressione e la temperatura
 			contoTab += 1;
 			additionalInfo += csvSeparator;
@@ -1152,9 +1166,9 @@ namespace X_Manager.Units
 			if (rate == 1)
 			{
 				if (firmTotA >= 3000000)
-                {
+				{
 					return textOut;
-                }
+				}
 				tsLoc.orario = tsLoc.orario.AddSeconds(1);
 				dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi);
 			}
@@ -1430,7 +1444,14 @@ namespace X_Manager.Units
 
 			tsc.orario = tsc.orario.AddSeconds(1);
 
-			if ((tsc.tsType & 1) == 0) return;
+			if ((tsc.tsType & ts_ext1) == 0) return;
+
+			//ADC VALORE
+			if ((tsc.tsTypeExt1 & ts_adcValue) == ts_adcValue)
+			{
+				tsc.adcVal = Math.Round((double)(ard.ReadByte() * 256 + ard.ReadByte()), 2);
+				//gruppoCON[adcVal] = tsc.adcVal.ToString("0000");
+			}
 
 			if ((tsc.tsTypeExt1 & 8) == 8)
 			{
@@ -1648,6 +1669,10 @@ namespace X_Manager.Units
 			}
 
 			csvHeader += csvSeparator + "Temp. (°C)";
+			if (adcEn > 0)
+			{
+				csvHeader += csvSeparator + "Analog";
+			}
 
 			if (prefBattery)
 			{

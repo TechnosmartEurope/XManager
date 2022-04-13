@@ -148,3 +148,4 @@
 1.15.0	Allineamento classe Gipsy6 con firmware finale 1.0.0
 	Il remote connector si chiude automaticamente quando la connessione va a buon fine.
 1.15.1	Il remote connector non si chiude automaticamente se si preme "Wake" con CTRL premuto
+1.15.2	Bugfix - AxyDepth: con i firmware da 2.7.0 in poi non leggeva il byte AdcEn nell'header di configurazione, quindi il primo timestamp risultava disallineato

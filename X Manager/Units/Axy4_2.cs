@@ -46,7 +46,6 @@ namespace X_Manager.Units
 		ushort rate;
 		ushort rateComp;
 		byte range;
-		int adcEn = 0;
 		//uint sogliaNeg;
 		//uint rendiNeg;
 		double gCoeff;
@@ -59,6 +58,7 @@ namespace X_Manager.Units
 		bool overrideTime;
 		string ardPos = "";
 		int magen;
+		int adcEn = 0;
 		double[] magData_A = new double[3];
 		double[] magData_B = new double[3];
 

@@ -137,8 +137,6 @@ namespace X_Manager.Units
 			E_ACQ_ON,
 			E_ACQ_OFF,
 			E_SCHEDULE,
-			E_SD_BEGINNING,
-			E_SD_END,
 			E_BATTERY_LOW,
 			E_MEM_FULL,
 			E_POWER_OFF,
@@ -535,7 +533,7 @@ namespace X_Manager.Units
 					{
 						conf[i] = (byte)sp.ReadByte();
 					}
-					sp.Write(new byte[] { 1 }, 0, 1);//***********************************************SYNC
+					sp.Write(new byte[] { 2 }, 0, 1);//***********************************************SYNC
 
 					//Quadrati 2-5 geofencing-1
 					for (int i = 144; i < 144 + 64; i++)
