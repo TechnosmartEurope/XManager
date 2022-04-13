@@ -39,6 +39,7 @@ namespace X_Manager.Units
 			public int stopEvent;
 			public int timeStampLength;
 			public int metadataPresent;
+			public long ardPosition;
 		}
 
 		byte dateFormat;
@@ -370,66 +371,30 @@ namespace X_Manager.Units
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
 			var fo = new System.IO.BinaryWriter(File.Open(fileNameMdp, fm));
 
-			sp.Write("TTTTTTTTTTTTGGAe");
-			try
-			{
-				sp.ReadByte();
-			}
-			catch
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
-
-			Thread.Sleep(70);
-			byte b = (byte)(baudrate / 1000000);
-			sp.Write(new byte[] { b }, 0, 1);
-			sp.BaudRate = baudrate;
-
-			Thread.Sleep(200);
-			sp.Write("S");
-			Thread.Sleep(50);
-
 			byte downInit = 0;
+			byte dummy;
+
 			try
 			{
-				downInit = (byte)sp.ReadByte();
-			}
-			catch
-			{
-				Thread.Sleep(200);
-				sp.BaudRate = 115200;
-				Thread.Sleep(200);
-				sp.Write(new byte[] { b }, 0, 1);
+				sp.Write("TTTTTTTTTTTTGGAe");           // TTTTGGAe ->
+				sp.ReadByte();                          // <- e
+				Thread.Sleep(70);
+				byte b = (byte)(baudrate / 1000000);
+				sp.Write(new byte[] { b }, 0, 1);       // 3 ->
+				dummy = (byte)sp.ReadByte();            // <- 3
 				sp.BaudRate = baudrate;
 
+				Thread.Sleep(400);
+				sp.Write("S");                          // S ->
 				Thread.Sleep(200);
-				sp.Write("S");
-				Thread.Sleep(50);
 
-				try
-				{
-					downInit = (byte)sp.ReadByte();
-				}
-				catch
-				{
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					try
-					{
-						fo.Close();
-					}
-					catch { }
-					return;
-				}
+
+				downInit = (byte)sp.ReadByte();         // <- S
+
 			}
-
-			if (downInit != 0x53)
+			catch
 			{
+
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 				try
 				{
@@ -1173,9 +1138,9 @@ namespace X_Manager.Units
 
 			x = group[0]; y = group[1]; z = group[2];
 
-			x *= gCoeff; //x = Math.Round(x, cifreDec);
-			y *= gCoeff; //y = Math.Round(y, cifreDec);
-			z *= gCoeff; //z = Math.Round(z, cifreDec);
+			//x *= gCoeff; //x = Math.Round(x, cifreDec);
+			//y *= gCoeff; //y = Math.Round(y, cifreDec);
+			//z *= gCoeff; //z = Math.Round(z, cifreDec);
 
 			textOut = unitName + csvSeparator + dateTimeS + ".000";
 			if (angloTime) textOut += " " + ampm;
@@ -1239,8 +1204,10 @@ namespace X_Manager.Units
 						}
 						else
 						{
-							additionalInfo += nOutputs.ToString() + "Hz " + Math.Pow(2, (range + 1)).ToString() + "g " + (8 + bit).ToString() + "bit  ";
+							additionalInfo += nOutputs.ToString() + "Hz " + Math.Pow(2, (range + 1)).ToString() + "g " + (8 + (bit * 2)).ToString() + "bit  ";
 						}
+						//sviluppo
+						additionalInfo += tsLoc.ardPosition.ToString("X");
 
 					}
 
@@ -1289,9 +1256,9 @@ namespace X_Manager.Units
 				y = group[i + 1];
 				z = group[i + 2];
 
-				x *= gCoeff;// x = Math.Round(x, cifreDec);
-				y *= gCoeff;// y = Math.Round(y, cifreDec);
-				z *= gCoeff;// z = Math.Round(z, cifreDec);
+				//x *= gCoeff;// x = Math.Round(x, cifreDec);
+				//y *= gCoeff;// y = Math.Round(y, cifreDec);
+				//z *= gCoeff;// z = Math.Round(z, cifreDec);
 
 				if (rate == 1)
 				{
@@ -1393,33 +1360,65 @@ namespace X_Manager.Units
 			magEn = m;
 		}
 
-		private int findBits(byte bitsIn)
+		private void findBits(int bitsIn)
 		{
-			gCoeff = (range * 2.0) / 256;
+
 			switch (bitsIn)
 			{
 				case 0:
-					gCoeff /= 4;
-					return 10;
+					switch (range)
+					{
+						case 0:
+							gCoeff = 15.63;
+							break;
+						case 1:
+							gCoeff = 31.26;
+							break;
+						case 2:
+							gCoeff = 62.52;
+							break;
+						case 3:
+							gCoeff = 187.58;
+							break;
+					}
+					break;
 				case 1:
-					gCoeff /= 16;
-					return 12;
+					switch (range)
+					{
+						case 0:
+							gCoeff = 3.9;
+							break;
+						case 1:
+							gCoeff = 7.82;
+							break;
+						case 2:
+							gCoeff = 15.63;
+							break;
+						case 3:
+							gCoeff = 46.9;
+							break;
+					}
+					break;
 				case 2:
-					return 8;
-				default:
-					return 0;
+					switch (range)
+					{
+						case 0:
+							gCoeff = 0.98;
+							break;
+						case 1:
+							gCoeff = 1.95;
+							break;
+						case 2:
+							gCoeff = 3.9;
+							break;
+						case 3:
+							gCoeff = 11.72;
+							break;
+					}
+					break;
 			}
-
-
-			//sogliaNeg = 127;
-			//rendiNeg = 256;
-			//gCoeff = range * 2.0 / 256;
-			//if (bitsIn > 7)
-			//{
-			//	gCoeff /= 4;
-			//	return true;
-			//}
-			//return false;
+			gCoeff /= 1000;
+			return;
 		}
 
 		private byte findBytesPerSample()
@@ -1432,6 +1431,9 @@ namespace X_Manager.Units
 
 		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc)
 		{
+
+			tsc.ardPosition = ard.Position;
+
 			tsc.tsTypeExt1 = 0;
 			//tsc.tsTypeExt2 = 0;
 			tsc.stopEvent = 0;
@@ -1505,7 +1507,7 @@ namespace X_Manager.Units
 
 			tsc.orario = tsc.orario.AddSeconds(1);
 
-			if (tsc.tsTypeExt1 == 0) 
+			if (tsc.tsTypeExt1 == 0)
 			{
 				goto _fineDecodeTimestamp; //Non ci sono informazioni dal timestamp esteso 1
 			}
@@ -1574,17 +1576,7 @@ namespace X_Manager.Units
 						break;
 				}
 
-				gCoeff = (Math.Pow(2, (range + 1)) * 2.0) / 256;
-
-				switch (bit)
-				{
-					case 1:
-						gCoeff /= 4;
-						break;
-					case 2:
-						gCoeff /= 16;
-						break;
-				}
+				findBits(bit);
 
 				Array.Resize(ref lastGroup, (nOutputs * (3 + bit)));
 

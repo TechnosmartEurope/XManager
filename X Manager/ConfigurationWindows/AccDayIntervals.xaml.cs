@@ -180,6 +180,12 @@ namespace X_Manager.ConfigurationWindows
 					((TextBox)(v.Children[1])).Text = 0x24.ToString();
 					((ComboBox)(v.Children[2])).SelectedIndex = schedule[1 + (i * 6)];
 					((ComboBox)(v.Children[3])).SelectedIndex = schedule[2 + (i * 6)];
+					//Rimozione forzata dei 12bit in attesa del nuovo chip
+					if (schedule[3 + (i * 6)]==2)
+					{
+						schedule[3 + (i * 6)] = 1;
+					}
+					///Fine rimozione forzata
 					((ComboBox)(v.Children[4])).SelectedIndex = schedule[3 + (i * 6)];
 					((ComboBox)(v.Children[5])).SelectedIndex = schedule[4 + (i * 6)];
 					((ComboBox)(v.Children[6])).SelectedIndex = schedule[5 + (i * 6)];
@@ -203,6 +209,12 @@ namespace X_Manager.ConfigurationWindows
 					((TextBox)(v.Children[1])).Text = startInt.ToString();
 					((ComboBox)(v.Children[2])).SelectedIndex = schedule[1 + (i * 6)];
 					((ComboBox)(v.Children[3])).SelectedIndex = schedule[2 + (i * 6)];
+					//Rimozione forzata dei 12bit in attesa del nuovo chip
+					if (schedule[3 + (i * 6)] == 2)
+					{
+						schedule[3 + (i * 6)] = 1;
+					}
+					///Fine rimozione forzata
 					((ComboBox)(v.Children[4])).SelectedIndex = schedule[3 + (i * 6)];
 					((ComboBox)(v.Children[5])).SelectedIndex = schedule[4 + (i * 6)];
 					((ComboBox)(v.Children[6])).SelectedIndex = schedule[5 + (i * 6)];

@@ -1229,13 +1229,44 @@ namespace X_Manager.Units
 			bitsIn &= 15;
 			//sogliaNeg = 127;
 			//rendiNeg = 256;
-			gCoeff = range * 2.0 / 256;
-			if (bitsIn > 7)
+			if (bitsIn < 8)
 			{
-				gCoeff /= 4;
+				switch (range)
+				{
+					case 2:
+						gCoeff = 15.63;
+						break;
+					case 4:
+						gCoeff = 31.26;
+						break;
+					case 8:
+						gCoeff = 62.52;
+						break;
+					case 16:
+						gCoeff = 187.58;
+						break;
+				}
+				return false;
+			}
+			else
+			{
+				switch (range)
+				{
+					case 2:
+						gCoeff = 3.9;
+						break;
+					case 4:
+						gCoeff = 7.82;
+						break;
+					case 8:
+						gCoeff = 15.63;
+						break;
+					case 16:
+						gCoeff = 46.9;
+						break;
+				}
 				return true;
 			}
-			return false;
 		}
 
 		private byte findBytesPerSample()

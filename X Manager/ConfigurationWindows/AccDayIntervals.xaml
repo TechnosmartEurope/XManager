@@ -61,7 +61,7 @@
             <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="6">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
-                <System:String>12</System:String>
+                <!--<System:String>12</System:String>-->
             </ComboBox>
             <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="7"/>
             <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="8"/>
@@ -96,7 +96,7 @@
             <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
-                <System:String>12</System:String>
+                <!--<System:String>12</System:String>-->
             </ComboBox>
             <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
             <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
@@ -131,7 +131,7 @@
             <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
-                <System:String>12</System:String>
+                <!--<System:String>12</System:String>-->
             </ComboBox>
             <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
             <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
@@ -166,7 +166,7 @@
             <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
-                <System:String>12</System:String>
+                <!--<System:String>12</System:String>-->
             </ComboBox>
             <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
             <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
@@ -201,7 +201,7 @@
             <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
-                <System:String>12</System:String>
+                <!--<System:String>12</System:String>-->
             </ComboBox>
             <ComboBox Grid.Column="5" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
             <ComboBox Grid.Column="6" Width="80" Height="36" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,11,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
