@@ -1,0 +1,7 @@
+			<Placemark>
+				<name>Path</name>
+				<styleUrl>#style_line</styleUrl>
+				<LineString>
+					<tessellate>1</tessellate>
+					<altitudeMode>clampToGround</altitudeMode>
+					<coordinates>

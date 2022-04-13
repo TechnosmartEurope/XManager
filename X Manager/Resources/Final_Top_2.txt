@@ -1,0 +1,153 @@
+</name>
+		<open>1</open>
+
+		<Style id="style_line">
+			<LineStyle>
+				<color>730000FF</color>
+				<width>2</width>
+			</LineStyle>
+		</Style>
+		
+		<Style id="START">
+			<IconStyle>
+				<Icon>
+					<href>http://maps.google.com/mapfiles/kml/shapes/arrow-reverse.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>FFFFFFFF</color>
+				<scale>1</scale>
+			</LabelStyle>
+		</Style>
+		
+		<Style id="STOP">
+			<IconStyle>
+				<Icon>
+					<href>http://maps.google.com/mapfiles/kml/shapes/arrow.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>FFFFFFFF</color>
+				<scale>1</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classeFIXONDEMAND">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/orangestar_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>FFFFFFFF</color>
+				<scale>1</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe1">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/0_9_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe2">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/10_19_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe3">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/20_29_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe4">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/30_39_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe5">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/40_49_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe6">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/50_59_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe7">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/60_69_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe8">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/70_79_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>
+
+		<Style id="classe9">
+			<IconStyle>
+				<Icon>
+					<href>http://www.technosmart.eu/KML_icons/80_Large.png</href>
+				</Icon>
+			</IconStyle>
+			<LabelStyle>
+				<color>00000000</color>
+				<scale>0</scale>
+			</LabelStyle>
+		</Style>

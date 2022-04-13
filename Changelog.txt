@@ -25,5 +25,5 @@
 1.3.1	Corretta conversione 1Hz Axy4 e AxyDepth (1 e 2)
 1.3.2	Bugifx: il download (remote e non) Axy5, non richiedeva l'ultima pagina del blocco interrompendo la lettura sequenziale.
 	Remote: aggiunta comando per andare a 115200 inviato a 2000000, per resettare la basestation in caso di crash
-
+1.3.3	Bugfix: conversione axy5 non usava i coefficienti di conversione lasciando il valore raw
 

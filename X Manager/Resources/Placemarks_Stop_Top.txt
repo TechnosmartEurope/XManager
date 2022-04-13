@@ -1,0 +1,5 @@
+		<Placemark>
+			<name>STOP</name>
+			<styleUrl>#STOP</styleUrl>
+			<Point>
+				<altitudeMode>clampToGround</altitudeMode>

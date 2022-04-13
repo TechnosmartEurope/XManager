@@ -1,0 +1,5 @@
+		<Placemark>
+			<name>START</name>
+			<styleUrl>#START</styleUrl>
+			<Point>
+				<altitudeMode>clampToGround</altitudeMode>

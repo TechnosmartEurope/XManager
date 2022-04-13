@@ -1159,9 +1159,9 @@ namespace X_Manager.Units
 
 			x = group[0]; y = group[1]; z = group[2];
 
-			//x *= gCoeff; //x = Math.Round(x, cifreDec);
-			//y *= gCoeff; //y = Math.Round(y, cifreDec);
-			//z *= gCoeff; //z = Math.Round(z, cifreDec);
+			x *= gCoeff; //x = Math.Round(x, cifreDec);
+			y *= gCoeff; //y = Math.Round(y, cifreDec);
+			z *= gCoeff; //z = Math.Round(z, cifreDec);
 
 			textOut = unitName + csvSeparator + dateTimeS + ".000";
 			if (angloTime) textOut += " " + ampm;
@@ -1280,9 +1280,9 @@ namespace X_Manager.Units
 				y = group[i + 1];
 				z = group[i + 2];
 
-				//x *= gCoeff;// x = Math.Round(x, cifreDec);
-				//y *= gCoeff;// y = Math.Round(y, cifreDec);
-				//z *= gCoeff;// z = Math.Round(z, cifreDec);
+				x *= gCoeff;// x = Math.Round(x, cifreDec);
+				y *= gCoeff;// y = Math.Round(y, cifreDec);
+				z *= gCoeff;// z = Math.Round(z, cifreDec);
 
 				if (rate == 1)
 				{

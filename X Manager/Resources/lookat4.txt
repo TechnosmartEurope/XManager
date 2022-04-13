@@ -1,0 +1,6 @@
+</altitude>
+			<heading>0</heading>
+			<range>1000</range>
+			<altitudeMode>relativeToGround</altitudeMode>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>

@@ -1,0 +1,5 @@
+</value>
+					</Data>
+				</ExtendedData>
+				<Point>
+					<altitudeMode>absolute</altitudeMode>

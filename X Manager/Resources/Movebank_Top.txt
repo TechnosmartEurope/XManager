@@ -1,0 +1,1 @@
+TagID	timestamp	location-lat	location-long	height-above-msl	ground-speed	satellite-count	hdop	maximum-signal-strengt
