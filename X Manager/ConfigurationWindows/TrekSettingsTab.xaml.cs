@@ -200,5 +200,5 @@ namespace X_Manager.ConfigurationWindows
 
         }
 
-    }
+	}
 }

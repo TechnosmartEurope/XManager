@@ -202,6 +202,7 @@ namespace X_Manager
 		public byte stDebugLevel;
 		public bool oldUnitDebug;
 		public bool remote = false;
+		public bool addGpsTime = false;
 
 
 		//Costanti e pseudo constanti
@@ -1460,6 +1461,7 @@ namespace X_Manager
 			System.IO.File.WriteAllLines(iniFile, lastSettings);
 			stDebugLevel = cp.debugLevel;
 			oldUnitDebug = cp.OldUnitDebug;
+			addGpsTime = cp.addGpsTime;
 			convFiles = new List<string>();
 			convFiles.AddRange(fOpen.FileNames);
 			mainGrid.IsEnabled = false;

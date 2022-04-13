@@ -50,7 +50,7 @@ namespace X_Manager.Units
 		string dateFormatParameter;
 		ushort addMilli;
 		CultureInfo dateCi;
-		byte cifreDec;
+		//byte cifreDec;
 		string cifreDecString;
 		bool metadata;
 		bool overrideTime;
@@ -954,10 +954,12 @@ namespace X_Manager.Units
 			Array.Resize(ref lastGroup, ((rateComp * 3)));
 			nOutputs = rateComp;
 
-			cifreDec = 3; cifreDecString = "0.000";
+			//cifreDec = 3;
+			cifreDecString = "0.000";
 			if (bits)
 			{
-				cifreDec = 4; cifreDecString = "0.0000";
+				//cifreDec = 4;
+				cifreDecString = "0.0000";
 			}
 			timeStampO.orario = findStartTime(ref prefs);
 

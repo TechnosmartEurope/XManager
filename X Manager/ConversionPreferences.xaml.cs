@@ -28,6 +28,7 @@ namespace X_Manager
         public bool goOn;
         public bool debugEvents = false;
         public byte debugLevel = 0;
+		public bool addGpsTime = false;
         bool am;
 
         const int pref_pressMetri = 0;
@@ -199,7 +200,9 @@ namespace X_Manager
                     case Key.H:
                         string testo = "H: questo messagio\r\n";
                         testo += "D: livello di debug\r\n";
-                        testo += "A: switch MdebugPicB con MemFull";
+                        testo += "A: switch MdebugPicB con MemFull\r\n";
+						testo += "G: Aggiunge orario GPS alla colonna timestamp";
+						MessageBox.Show(testo);
                         break;
                     case Key.D:
                         string testo1 = "Generate additional Text file with positions";
@@ -235,6 +238,21 @@ namespace X_Manager
                             OldUnitDebug = false;
                         }
                         break;
+					case Key.G:
+						if (same.IsChecked==true)
+						{
+							if (addGpsTime)
+							{
+								addGpsTime = false;
+								same.Content = "Date and Time on the same column";
+							}
+							else
+							{
+								addGpsTime = true;
+								same.Content = "Date and Time on the same column + GPS time";
+							}
+						}
+						break;
 
                 }
             }
@@ -416,7 +434,7 @@ namespace X_Manager
             metadata.IsChecked = false;
         }
 
-    }
+	}
 
 
 }

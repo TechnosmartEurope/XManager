@@ -37,3 +37,5 @@
 	Ripristinato invio comando di disconnessione al trek remoto
 	Trek remoto: riconoscimento evento "Remote Connection"
 1.5.3	Bugfix: Soglie adc erroneamente dimensionate a 12bit potevano attivare il trigger adc di inibizione gps anche se non voluto
+1.5.4	Bugfix: finestra di configurazione trek non inviava correttamente le finestre remoto mettendole sempre a zero
+	Aggiunta funzione per pubblicazione ora gps in accanto all'ora locale nei timestamp con coordinata (CTRL+G nella finestra preferenze di conversione)

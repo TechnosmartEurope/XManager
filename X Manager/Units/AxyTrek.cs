@@ -86,6 +86,7 @@ namespace X_Manager
 		//bool adcMagmin = false;
 		uint contoCoord;
 		byte debugLevel;
+		bool addGpsTime;
 		//uint sogliaNeg;
 		//uint rendiNeg;
 		double gCoeff;
@@ -1145,6 +1146,7 @@ namespace X_Manager
 			string[] prefs = System.IO.File.ReadAllLines(parent.prefFile);
 			debugLevel = parent.stDebugLevel;
 			oldUnitDebug = parent.oldUnitDebug;
+			addGpsTime = parent.addGpsTime;
 
 			string shortFileName;
 
@@ -1174,6 +1176,7 @@ namespace X_Manager
 			if ((MainWindow.lastSettings[5] == "air")) isDepth = 0;
 
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
+			if (addGpsTime) repeatEmptyValues = false;
 
 			dateSeparator = csvSeparator;
 			if ((prefs[pref_sameColumn] == "True"))
@@ -1181,6 +1184,7 @@ namespace X_Manager
 				sameColumn = true;
 				dateSeparator = " ";
 			}
+			if (addGpsTime) sameColumn = true;
 
 			if (prefs[pref_txt] == "True") makeTxt = true;
 			if (prefs[pref_kml] == "True") makeKml = true;
@@ -1697,7 +1701,10 @@ namespace X_Manager
 			dateS = tsLoc.orario.ToString(dateFormatParameter);
 
 			var dateCi = new CultureInfo("it-IT");
-			if (angloTime) dateCi = new CultureInfo("en-US");
+			if (angloTime)
+			{
+				dateCi = new CultureInfo("en-US");
+			}
 			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
 			if (angloTime)
 			{
@@ -1706,12 +1713,26 @@ namespace X_Manager
 			}
 			milli = 0;
 			//textOut = "";
+
+
+			textOut += unitName + csvSeparator + dateTimeS + ".000";
+			if (angloTime)
+			{
+				textOut += " " + ampm;
+			}
+
+			if (addGpsTime)
+			{
+				if ((tsLoc.tsType & 16) == 16)
+				{
+					textOut += " (GPS: " + tsLoc.ore.ToString("00") + ":" + tsLoc.minuti.ToString("00") + ":" + tsLoc.secondi.ToString("00") + ")";
+				}
+			}
+
 			x = group[0] * gCoeff;
 			y = group[1] * gCoeff;
 			z = group[2] * gCoeff;
 
-			textOut += unitName + csvSeparator + dateTimeS + ".000";
-			if (angloTime) textOut += " " + ampm;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			additionalInfo = "";

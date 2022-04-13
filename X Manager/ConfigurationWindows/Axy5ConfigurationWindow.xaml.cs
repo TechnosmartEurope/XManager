@@ -124,7 +124,7 @@ namespace X_Manager
 
 		private void cbChecked(object sender, RoutedEventArgs e)
 		{
-			int a = 0;
+			//int a = 0;
 		}
 
 		private void loaded(object sender, System.Windows.RoutedEventArgs e)
