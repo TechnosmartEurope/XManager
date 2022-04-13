@@ -24,7 +24,7 @@ namespace X_Manager
 
 	public partial class RemoteConnector : UserControl
 	{
-		private int connectionResult = 0;
+		//private int connectionResult = 0;
 		private SerialPort sp;
 		volatile int stop = 0;
 
@@ -149,7 +149,7 @@ namespace X_Manager
 			Thread.Sleep(100);
 			channelListCB.IsEnabled = false;
 			remoteCommunicationAddress++;
-			if (remoteCommunicationAddress == 8)
+			if (remoteCommunicationAddress == 9)
 			{
 				remoteCommunicationAddress = 3;
 			}
@@ -163,6 +163,15 @@ namespace X_Manager
 			commThread.SetApartmentState(System.Threading.ApartmentState.STA);
 			commThread.Start();
 			stopB.IsEnabled = true;
+		}
+
+		private void channelListCB_Click(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Enter)
+			{
+				e.Handled = true;
+				wakeClick(this, new RoutedEventArgs());
+			}
 		}
 
 		private void communicationAttempt(int address)
@@ -206,7 +215,7 @@ namespace X_Manager
 						//sw.Stop();
 						//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.sviluppoTB.Text = sw.Elapsed.Milliseconds.ToString()));
 						//sw.Reset();
-						sp.Write(new byte[] { 65, 84, 65, 87, (byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff), 1, 3 }, 0, 9);
+						sp.Write(new byte[] { 65, 84, 65, 87, (byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff), 1, remoteCommunicationAddress }, 0, 9);
 					}
 					else
 					{

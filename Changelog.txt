@@ -45,3 +45,4 @@
 	Bugfix: download remoto (tutte le unità) ignorava preferenza keepMdp in caso di pulsante stop
 1.6.1	Invio orario alla Basestation tramite Masterstation
 1.6.2	Bufgix: non veniva riaperta la porta seriale dopo aver chiuso la finestra di connessione unità remota
+1.6.3	Aggiunta possibilità di scaricare aree di memoria custom dalle unità

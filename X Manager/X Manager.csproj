@@ -305,6 +305,9 @@
     <Compile Include="ConfigurationWindows\TrekPositionConfigurationWindow.xaml.cs">
       <DependentUpon>TrekPositionConfigurationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DownloadRangeInput.xaml.cs">
+      <DependentUpon>DownloadRangeInput.xaml</DependentUpon>
+    </Compile>
     <Compile Include="NumericUpDown.xaml.cs">
       <DependentUpon>NumericUpDown.xaml</DependentUpon>
     </Compile>
@@ -403,6 +406,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConversionPreferences.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DownloadRangeInput.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

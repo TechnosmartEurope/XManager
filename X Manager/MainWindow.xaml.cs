@@ -240,76 +240,6 @@ namespace X_Manager
 
 		private void mainWindowLoaded(object sender, EventArgs e)
 		{
-
-			//Sviluppo
-			//string tempName = "C:\\Users\\marco\\Desktop\\files\\finti depth\\I_13_addon.temp";
-			//var temp = new BinaryWriter(System.IO.File.OpenWrite(tempName));
-			//byte[] tstemp = new byte[] { 0xab, 2, 0, 0 };
-			//byte[] ts = new byte[] { 0xab, 0, };
-			//byte[] sample = new byte[] { 0, 0, 0, 0 };
-			//int nSamp = 26;
-			//int tsCounter = 1;
-			//while (temp.BaseStream.Length < 150000)
-			//{
-			//    for (int mcount = 0; mcount < 26; mcount++)
-			//    {
-			//        if ((tsCounter % 5) == 0)
-			//        {
-			//            temp.Write(tstemp);
-			//        }
-			//        else
-			//        {
-			//            temp.Write(ts);
-			//        }
-			//        tsCounter++;
-			//        if (mcount < 11)
-			//        {
-			//            nSamp = 24;
-			//        }
-			//        else
-			//        {
-			//            nSamp = 25;
-			//        }
-			//        for (int c = 0; c < nSamp; c++)
-			//        {
-			//            temp.Write(sample);
-			//        }
-			//    }
-			//}
-
-			//temp.Close();
-
-			//var tempReader = new BinaryReader(System.IO.File.OpenRead(tempName));
-			//string outmdpName = "C:\\Users\\marco\\Desktop\\files\\finti depth\\I_13_addon.mpd";
-			//var mdp = new BinaryWriter(System.IO.File.OpenWrite(outmdpName));
-			//byte[] buffer;
-			//byte[] header = new byte[] { 0x55 };
-			//while (true)
-			//{
-			//    if ((tempReader.BaseStream.Length - tempReader.BaseStream.Position) >= 255)
-			//    {
-			//        buffer = tempReader.ReadBytes(255);
-			//        mdp.Write(header);
-			//        mdp.Write(buffer);
-			//    }
-			//    else
-			//    {
-			//        mdp.Write(header);
-			//        while (tempReader.BaseStream.Position < tempReader.BaseStream.Length)
-			//        {
-			//            mdp.Write(tempReader.ReadByte());
-			//        }
-			//        break;
-			//    }
-
-			//}
-			//tempReader.Close();
-			//mdp.Close();
-			//int g = 0;
-
-			///sviluppo
-
-
 			loadUserPrefs();
 			uiDisconnected();
 			initPicture();
@@ -331,8 +261,50 @@ namespace X_Manager
 			csvSeparatorChanged(lastSettings[8]);
 			normalViewTabItem.IsSelected = true;
 
+			if (lastSettings[9].Equals("A")) downloadAutomatic.IsChecked = true;
+			if (lastSettings[9].Equals("M")) downloadManual.IsChecked = true;
+
+			downloadManual.Checked += downloadModeChecked;
+			downloadAutomatic.Checked += downloadModeChecked;
+
 			progressBarStopButton.IsEnabled = false;
 			progressBarStopButtonColumn.Width = new GridLength(0);
+		}
+
+		private void downloadModeChecked(object sender, RoutedEventArgs e)
+		{
+			downloadManual.Checked -= downloadModeChecked;
+			downloadAutomatic.Checked -= downloadModeChecked;
+			if (((MenuItem)sender).Name.Equals("downloadAutomatic"))
+			{
+				if (downloadManual.IsChecked)
+				{
+					downloadManual.IsChecked = false;
+					string[] pre = System.IO.File.ReadAllLines(iniFile);
+					pre[9] = "A";
+					System.IO.File.WriteAllLines(iniFile, pre);
+				}
+				else
+				{
+					downloadAutomatic.IsChecked = false;
+				}
+			}
+			else
+			{
+				if (downloadAutomatic.IsChecked)
+				{
+					downloadAutomatic.IsChecked = false;
+					string[] pre = System.IO.File.ReadAllLines(iniFile);
+					pre[9] = "M";
+					System.IO.File.WriteAllLines(iniFile, pre);
+				}
+				else
+				{
+					downloadManual.IsChecked = false;
+				}
+			}
+			downloadManual.Checked += downloadModeChecked;
+			downloadAutomatic.Checked += downloadModeChecked;
 		}
 
 		private void loadUserPrefs()
@@ -346,7 +318,7 @@ namespace X_Manager
 				lastSettings = new string[] { "\r\n" };
 			}
 
-			if (!System.IO.File.Exists(iniFile) | lastSettings.Length != 9)
+			if (!System.IO.File.Exists(iniFile) | lastSettings.Length != 10)
 			{
 				if (!System.IO.Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder))
 				{
@@ -377,6 +349,8 @@ namespace X_Manager
 				fileBody += "3\r\n";
 				//Scrive il separatore csv
 				fileBody += ",\r\n";
+				//Scrive la modalità download
+				fileBody += "A\r\n";
 				System.IO.File.WriteAllText(iniFile, fileBody);
 			}
 
@@ -584,7 +558,7 @@ namespace X_Manager
 				sp.BaudRate = Baudrate_base;
 				sp.ReadTimeout = 5;
 				sp.NewLine = "\r\n";
-				
+
 				try
 				{
 					sp.PortName = portShortName;
@@ -999,7 +973,6 @@ namespace X_Manager
 		async void connectClick(object sender, RoutedEventArgs e)
 		{
 
-
 			if ((string)connectButton.Content == "Connect")
 			{
 				Task pbbTask = pbTask();
@@ -1341,7 +1314,7 @@ namespace X_Manager
 				return;
 			}
 
-			if ((memoryocc == 0))
+			if ((memoryocc == 0) & (lastSettings[9].Equals("A")))
 			{
 				warningShow(STR_memoryEMpty);
 				return;
@@ -1388,33 +1361,58 @@ namespace X_Manager
 			lastSettings[3] = System.IO.Path.GetDirectoryName(saveRaw.FileName);
 			System.IO.File.WriteAllLines(iniFile, lastSettings);
 			UInt32 fromMemory = 0;
-			if (System.IO.File.Exists((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp")))))
-			{
+			UInt32 toMemory = 0;
 
-				//YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", STR_Resume, STR_Restart);
-				YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", "", STR_Resume, STR_Restart);
-				switch (yn.ShowDialog())
+			if (lastSettings[9].Equals("A"))
+			{
+				if (System.IO.File.Exists((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp")))))
 				{
-					case 0:
-						statusProgressBar.Maximum = oldMax;
-						statusProgressBar.Minimum = oldMin;
-						statusProgressBar.Value = oldVal;
-						statusLabel.Content = oldCon;
-						statusProgressBar.IsIndeterminate = false;
-						return;
-					case 1:
-						System.IO.FileInfo fi = new System.IO.FileInfo((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp"))));
-						fromMemory = System.Convert.ToUInt32(fi.Length);
-						break;
-					case 2:
-						fromMemory = 0;
-						break;
+
+					//YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", STR_Resume, STR_Restart);
+					YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", "", STR_Resume, STR_Restart);
+					switch (yn.ShowDialog())
+					{
+						case 0:
+							statusProgressBar.Maximum = oldMax;
+							statusProgressBar.Minimum = oldMin;
+							statusProgressBar.Value = oldVal;
+							statusLabel.Content = oldCon;
+							statusProgressBar.IsIndeterminate = false;
+							return;
+						case 1:
+							System.IO.FileInfo fi = new System.IO.FileInfo((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp"))));
+							fromMemory = System.Convert.ToUInt32(fi.Length);
+							break;
+						case 2:
+							fromMemory = 0;
+							break;
+					}
 				}
+
+				toMemory = (memoryocc / 4096);
+				toMemory *= 4096;
+				toMemory += 4096;
+			}
+			else
+			{
+				var dr = new DownloadRangeInput();
+				dr.startAddress = 0;
+				dr.finalAddress = ((memoryocc / 4096) * 4096) + 4096;
+				if (!(bool)dr.ShowDialog())
+				{
+					statusProgressBar.Maximum = oldMax;
+					statusProgressBar.Minimum = oldMin;
+					statusProgressBar.Value = oldVal;
+					statusLabel.Content = oldCon;
+					statusProgressBar.IsIndeterminate = false;
+					return;
+				}
+				fromMemory = dr.startAddress;
+				toMemory = dr.finalAddress;
+
 			}
 
-			UInt32 toMemory = (memoryocc / 4096);
-			toMemory *= 4096;
-			toMemory += 4096;
+			
 			int baudrate = 3000000;
 			if (speedLegacy.IsChecked)
 			{

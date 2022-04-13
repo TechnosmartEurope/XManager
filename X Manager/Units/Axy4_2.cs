@@ -337,8 +337,13 @@ namespace X_Manager.Units
 			sp.BaudRate = baudrate;
 
 			Thread.Sleep(200);
+			if (firmTotA < 2006004)
+			{
+				Thread.Sleep(750);
+			}
+
 			sp.Write("S");
-			Thread.Sleep(50);
+			Thread.Sleep(200);
 
 			int dieCount = 0;
 			try

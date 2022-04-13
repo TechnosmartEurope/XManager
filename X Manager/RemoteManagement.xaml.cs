@@ -41,6 +41,7 @@ namespace X_Manager
 
 		public bool connect()
 		{
+			System.Threading.Thread.Sleep(400);
 			return parent.externConnect();
 		}
 

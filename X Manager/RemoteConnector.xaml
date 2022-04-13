@@ -17,7 +17,10 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Horizontal">
-                <ComboBox x:Name="channelListCB" Margin="20,10,0,10" Width="180" FontSize="180" SelectedIndex="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" IsEditable="True" AllowDrop="False">
+                <ComboBox x:Name="channelListCB" Margin="20,10,0,10" Width="180" 
+                          FontSize="180" SelectedIndex="0" HorizontalAlignment="Center"
+                          HorizontalContentAlignment="Center" IsEditable="True"
+                          AllowDrop="False" KeyDown="channelListCB_Click">
                     <!--<ListBoxItem Content="180" FontSize="40"/>-->
                 </ComboBox>
                 <Button x:Name="wakeB" Content="WAKE" FontSize="30" Margin="40,10" Padding="20,0" Click="wakeClick" Foreground="#FF00AADE"/>
