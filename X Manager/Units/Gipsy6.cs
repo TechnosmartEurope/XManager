@@ -200,6 +200,11 @@ namespace X_Manager.Units
 			sp.ReadExisting();
 			int test = 0;
 			bool goon = false;
+			if (MainWindow.keepAliveTimer != null)
+			{
+				MainWindow.keepAliveTimer.Stop();
+				MainWindow.keepAliveTimer.Start();
+			}
 			for (int y = 0; y < 4; y++) //(rimettere y < 4 dopo sviluppo
 			{
 				//sp.Write(new byte[] { 0 }, 0, 1);
@@ -230,6 +235,31 @@ namespace X_Manager.Units
 			}
 
 			return goon;
+		}
+
+		public override void keepAlive()
+		{
+			int oldTimeout = sp.ReadTimeout;
+			sp.ReadTimeout = 400;
+			if (!ask("P"))
+			{
+				throw new Exception(unitNotReady);
+				sp.ReadTimeout = oldTimeout;
+				return;
+			}
+			try
+			{
+				sp.ReadByte();
+				Thread.Sleep(10);
+				sp.ReadExisting();
+			}
+			catch
+			{
+				throw new Exception(unitNotReady);
+				sp.ReadTimeout = oldTimeout;
+				return;
+			}
+			sp.ReadTimeout = oldTimeout;
 		}
 
 		public override void changeBaudrate(ref SerialPort sp, int maxMin)
@@ -837,6 +867,11 @@ namespace X_Manager.Units
 						inBuffer[buffPointer + i] = (byte)sp.ReadByte();
 					}
 					buffPointer += 0x200;
+					if (MainWindow.keepAliveTimer != null)
+					{
+						MainWindow.keepAliveTimer.Stop();
+						MainWindow.keepAliveTimer.Start();
+					}
 				}
 				catch (Exception ex)
 				{
@@ -973,6 +1008,11 @@ namespace X_Manager.Units
 						inBuffer[buffPointer + i] = (byte)sp.ReadByte();
 					}
 					buffPointer += 0x200;
+					if (MainWindow.keepAliveTimer != null)
+					{
+						MainWindow.keepAliveTimer.Stop();
+						MainWindow.keepAliveTimer.Start();
+					}
 				}
 				catch (Exception ex)
 				{

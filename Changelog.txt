@@ -152,3 +152,5 @@
 1.15.3	Gips6: i timestamp non validi vengono ignorati
 1.15.4	Ripristinata funzione refresh battery in caso du connessione remota
 	Aggiunto evento remote_connection
+1.15.5	Gipsy6: la password per configurazione unità remota/locale e per soglie batteria viene chiesta solo una volta per sessione di lavoro
+	Aggiunta funzione keep alive per connessione remota con gipsy6 tramite masterstation

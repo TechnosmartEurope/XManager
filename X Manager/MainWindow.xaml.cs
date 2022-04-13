@@ -232,6 +232,11 @@ namespace X_Manager
 
 		DispatcherTimer windowMovingTimer = new DispatcherTimer();
 
+		public static bool adminUser = false;
+		public static System.Timers.Timer keepAliveTimer;
+		ConfigurationWindow confForm;
+		bool manageConfform = true;
+
 		#endregion
 
 		#region Interfaccia
@@ -574,6 +579,7 @@ namespace X_Manager
 			configurePositionButton.Visibility = Visibility.Visible;
 			configureMovementButton.Content = "Accelerometer Configuration";
 			configurePositionButton.Content = "GPS configuration";
+			manageConfform = true;
 			try
 			{
 				sp.Close();
@@ -584,6 +590,11 @@ namespace X_Manager
 			}
 			batteryRefreshB.Visibility = Visibility.Hidden;
 			batteryRefreshB.Click -= refreshBattery;
+			if (keepAliveTimer != null)
+			{
+				keepAliveTimer.Stop();
+				keepAliveTimer = null;
+			}
 		}
 
 		private void uiConnected()
@@ -1575,7 +1586,6 @@ namespace X_Manager
 				return;
 			}
 			//ConfigurationWindow confForm = new ConfigurationWindow();
-			ConfigurationWindow confForm;
 			if (oUnit.modelCode == Unit.model_AGM1)
 			{
 				confForm = new AgmConfigurationWindow(conf, oUnit.modelCode);
@@ -1605,27 +1615,42 @@ namespace X_Manager
 			System.Windows.Forms.Integration.ElementHost.EnableModelessKeyboardInterop(confForm);
 			confForm.ShowDialog();
 
-			try
+			if (confForm != null)
 			{
-				if (confForm.mustWrite)
+				try
 				{
-					oUnit.setConf(confForm.axyConfOut);
-					oUnit.setAccSchedule(confForm.axyScheduleOut);
+					if (manageConfform)
+					{
+						if (confForm.mustWrite)
+						{
+							oUnit.setConf(confForm.axyConfOut);
+							oUnit.setAccSchedule(confForm.axyScheduleOut);
 
-					Ok okf = new Ok("Movement configuration succesfully updated.");
-					okf.ShowDialog();
+							Ok okf = new Ok("Movement configuration succesfully updated.");
+							okf.ShowDialog();
+						}
+						else
+						{
+							oUnit.abortConf();
+						}
+					}
+					else
+					{
+						manageConfform = true;
+					}
+
 				}
-				else
+				catch (Exception ex)
 				{
-					oUnit.abortConf();
+					if (keepAliveTimer != null)
+					{
+						keepAliveTimer.Stop();
+					}
+					warningShow(ex.Message);
+					uiDisconnected();
 				}
 
-			}
-			catch (Exception ex)
-			{
-				warningShow(ex.Message);
-				uiDisconnected();
-				return;
+				confForm = null;
 			}
 		}
 
@@ -2039,6 +2064,11 @@ namespace X_Manager
 			connectClick(this, new RoutedEventArgs());
 			if (unitConnected && oUnit is Gipsy6)       //In caso di gipsy6 remoto disabilita il pulsante per l'upload del firmware
 			{
+				keepAliveTimer = new System.Timers.Timer();
+				keepAliveTimer.Elapsed += keepAliveTimerElapsed;
+				keepAliveTimer.Interval = 5000;
+				keepAliveTimer.AutoReset = true;
+				keepAliveTimer.Enabled = true;
 				configurePositionButton.IsEnabled = false;
 			}
 			return connectButton.Content.Equals("Disconnect");
@@ -2202,6 +2232,30 @@ namespace X_Manager
 			while (sp.BytesToRead != 0) sp.ReadByte();
 		}
 
+		private void keepAliveTimerElapsed(Object source, System.Timers.ElapsedEventArgs e)
+		{
+			try
+			{
+				oUnit.keepAlive();
+			}
+			catch
+			{
+				keepAliveTimer.Stop();
+				if (confForm != null)
+				{
+					try
+					{
+						manageConfform = false;
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => confForm.Close()));
+					}
+					catch { }
+					confForm = null;
+				}
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => uiDisconnected()));
+				//uiDisconnected();
+			}
+
+		}
 		public ref Unit getReferenceUnit()
 		{
 			return ref oUnit;

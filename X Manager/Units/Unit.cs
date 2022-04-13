@@ -218,6 +218,11 @@ namespace X_Manager.Units
 			return model;
 		}
 
+		public virtual void keepAlive()
+		{
+
+		}
+
 		public abstract string askFirmware();
 
 		public abstract string askBattery();

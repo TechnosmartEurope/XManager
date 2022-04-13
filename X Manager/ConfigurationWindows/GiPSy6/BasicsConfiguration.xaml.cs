@@ -11,7 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Microsoft.VisualBasic;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -170,12 +170,23 @@ namespace X_Manager.ConfigurationWindows
 			{
 				if (e.Key == Key.L || e.Key == Key.R || e.Key == Key.B)
 				{
-					if (!(Microsoft.VisualBasic.Interaction.InputBox("Insert password: ", "Password") == "cetriolo"))
+					bool allowed = true;
+					if (!MainWindow.adminUser)
 					{
-						MessageBox.Show("Wrong password.");
+						allowed = false;
+						string res = Interaction.InputBox("Insert password: ", "Password");
+						if ((res != "cetriolo") && (res != "saji"))
+						{
+							MessageBox.Show("Wrong password.");
+						}
+						else
+						{
+							allowed = true;
+						}
 					}
-					else
+					if (allowed)
 					{
+						MainWindow.adminUser = true;
 						if (e.Key == Key.L)
 						{
 							isRemote = false;
