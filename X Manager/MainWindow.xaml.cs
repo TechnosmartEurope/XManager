@@ -1190,9 +1190,11 @@ namespace X_Manager
         void configureMovementButtonClick(object sender, RoutedEventArgs e)
         {
             byte[] conf;
+			byte[] accSchedule;
             try
             {
                 conf = oUnit.getConf();
+				accSchedule = oUnit.getAccSchedule();
             }
             catch (Exception ex)
             {
@@ -1207,7 +1209,7 @@ namespace X_Manager
             }
             else if (oUnit.modelCode == model_axy5)
             {
-                confForm = new Axy5ConfigurationWindow(conf, oUnit.firmTotA);
+                confForm = new Axy5ConfigurationWindow(conf,accSchedule, oUnit.firmTotA);
             }
             else
             {
@@ -1222,6 +1224,7 @@ namespace X_Manager
                 if (confForm.mustWrite)
                 {
                     oUnit.setConf(confForm.axyConfOut);
+					
                     Ok okf = new Ok("Movement configuration succesfully updated.");
                     okf.ShowDialog();
                 }

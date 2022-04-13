@@ -28,7 +28,7 @@ namespace X_Manager
 		UInt32 firmTotA;
 		//bool evitaSoglieDepth = false;
 
-		public Axy5ConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
+		public Axy5ConfigurationWindow(byte[] axyconf, byte[] schedule, UInt32 unitFirm)
 			: base()
 		{
 			InitializeComponent();
@@ -37,67 +37,10 @@ namespace X_Manager
 			axyConfOut = new byte[26];
 			firmTotA = unitFirm;
 
+
 			//sendButton.Margin = new Thickness(25);
 
-			foreach (RadioButton c in rates.Children)
-			{
-				try
-				{
-					c.IsChecked = false;
-				}
-				catch { }
-			}
-
-			foreach (RadioButton c in ranges.Children)
-			{
-				try
-				{
-					c.IsChecked = false;
-				}
-				catch { }
-			}
-
-
-			switch (axyconf[15])
-			{
-				//Inserire caso =: accc in off, appena fatto schedule
-				case 1:
-					rate1RB.IsChecked = true;
-					break;
-				case 2:
-					rate10RB.IsChecked = true;
-					break;
-				case 3:
-					rate25RB.IsChecked = true;
-					break;
-				case 4:
-					rate50RB.IsChecked = true;
-					break;
-				case 5:
-					rate100RB.IsChecked = true;
-					break;
-				default:
-					rate25RB.IsChecked = true;
-					break;
-			}
-
-			switch (axyconf[16])
-			{
-				default:
-				case 0:
-					range2RB.IsChecked = true;
-					break;
-				case 1:
-					range4RB.IsChecked = true;
-					break;
-				case 2:
-					range8RB.IsChecked = true;
-					break;
-				case 3:
-					range16RB.IsChecked = true;
-					break;
-			}
-
+			//Temperature logging
 			tempDepthCB.IsChecked = false;
 			tempDepthLogginUD.IsEnabled = false;
 			if (axyconf[17] == 1)
@@ -105,36 +48,20 @@ namespace X_Manager
 				tempDepthCB.IsChecked = true;
 				tempDepthLogginUD.IsEnabled = true;
 			}
-
 			tempDepthLogginUD.Text = axyconf[19].ToString();
 
+			//Remote
 			remoteOnOff.IsChecked = false;
 			if (axyconf[20] == 1)
 			{
 				remoteOnOff.IsChecked = true;
 			}
 
+			//Magnetometro
 			magOnOff.IsChecked = false;
 			if (axyconf[21] == 1)
 			{
 				magOnOff.IsChecked = true;
-			}
-
-			bits8RB.IsChecked = false;
-			bits10RB.IsChecked = false;
-			bits12RB.IsChecked = false;
-			switch (axyconf[22])
-			{
-				case 0:
-					bits10RB.IsChecked = true;
-					break;
-				case 1:
-					bits12RB.IsChecked = true;
-					break;
-				case 2:
-				default:
-					bits8RB.IsChecked = true;
-					break;
 			}
 
 			movThreshUd.Value = axyconf[23];
@@ -146,9 +73,8 @@ namespace X_Manager
 				sendButton.Content += " (d)";
 			}
 
-
-
-
+			//Schedule
+			scheduleC.importSchedule(schedule);
 
 		}
 
@@ -174,11 +100,6 @@ namespace X_Manager
 			//Da modificare man mano che si sviluppa il firmware
 			remoteOnOff.IsChecked = false;
 			remoteOnOff.IsEnabled = false;
-			if ((bool)bits12RB.IsChecked)
-			{
-				bits10RB.IsChecked = true;
-			}
-			bits12RB.IsEnabled = false;
 			WsDisabledRB.IsChecked = false;
 			WaterSwitchGB.IsEnabled = false;
 
@@ -193,48 +114,48 @@ namespace X_Manager
 
 		private void movValueChanged()
 		{
-			byte range = 0;
-			if ((bool)range2RB.IsChecked)
-			{
-				range = 4;
-			}
-			else if ((bool)range4RB.IsChecked)
-			{
-				range = 8;
-			}
-			else if ((bool)range8RB.IsChecked)
-			{
-				range = 16;
-			}
-			else if ((bool)range16RB.IsChecked)
-			{
-				range = 32;
-			}
+			//byte range = 0;
+			//if ((bool)range2RB.IsChecked)
+			//{
+			//	range = 4;
+			//}
+			//else if ((bool)range4RB.IsChecked)
+			//{
+			//	range = 8;
+			//}
+			//else if ((bool)range8RB.IsChecked)
+			//{
+			//	range = 16;
+			//}
+			//else if ((bool)range16RB.IsChecked)
+			//{
+			//	range = 32;
+			//}
 
-			movThresholdLabel.Content = (Math.Round((range / (256 * movThreshUd.Value)), 4).ToString() + " g");
+			//movThresholdLabel.Content = (Math.Round((range / (256 * movThreshUd.Value)), 4).ToString() + " g");
 		}
 
 		private void latValueChanged()
 		{
 			byte rate = 0;
-			if ((bool)rate100RB.IsChecked)
-			{
-				rate = 100;
-			}
-			else if ((bool)rate10RB.IsChecked)
-			{
-				rate = 10;
-				// ElseIf rate1RB.IsChecked Then
-				// rate = 1
-			}
-			else if ((bool)rate25RB.IsChecked)
-			{
-				rate = 25;
-			}
-			else if ((bool)rate50RB.IsChecked)
-			{
-				rate = 50;
-			}
+			//if ((bool)rate100RB.IsChecked)
+			//{
+			//	rate = 100;
+			//}
+			//else if ((bool)rate10RB.IsChecked)
+			//{
+			//	rate = 10;
+			//	// ElseIf rate1RB.IsChecked Then
+			//	// rate = 1
+			//}
+			//else if ((bool)rate25RB.IsChecked)
+			//{
+			//	rate = 25;
+			//}
+			//else if ((bool)rate50RB.IsChecked)
+			//{
+			//	rate = 50;
+			//}
 
 			if ((firmTotA < 3002000))
 			{
@@ -356,43 +277,43 @@ namespace X_Manager
 		{
 
 
-			if ((rate1RB.IsChecked == true))
-			{
-				axyConfOut[15] = 1;
-			}
-			else if ((rate10RB.IsChecked == true))
-			{
-				axyConfOut[15] = 2;
-			}
-			else if ((rate25RB.IsChecked == true))
-			{
-				axyConfOut[15] = 3;
-			}
-			else if ((rate50RB.IsChecked == true))
-			{
-				axyConfOut[15] = 4;
-			}
-			else if ((rate100RB.IsChecked == true))
-			{
-				axyConfOut[15] = 5;
-			}
+			//if ((rate1RB.IsChecked == true))
+			//{
+			//	axyConfOut[15] = 1;
+			//}
+			//else if ((rate10RB.IsChecked == true))
+			//{
+			//	axyConfOut[15] = 2;
+			//}
+			//else if ((rate25RB.IsChecked == true))
+			//{
+			//	axyConfOut[15] = 3;
+			//}
+			//else if ((rate50RB.IsChecked == true))
+			//{
+			//	axyConfOut[15] = 4;
+			//}
+			//else if ((rate100RB.IsChecked == true))
+			//{
+			//	axyConfOut[15] = 5;
+			//}
 
-			if (range2RB.IsChecked == true)
-			{
-				axyConfOut[16] = 0;
-			}
-			else if (range4RB.IsChecked == true)
-			{
-				axyConfOut[16] = 1;
-			}
-			else if (range8RB.IsChecked == true)
-			{
-				axyConfOut[16] = 2;
-			}
-			else if (range16RB.IsChecked == true)
-			{
-				axyConfOut[16] = 3;
-			}
+			//if (range2RB.IsChecked == true)
+			//{
+			//	axyConfOut[16] = 0;
+			//}
+			//else if (range4RB.IsChecked == true)
+			//{
+			//	axyConfOut[16] = 1;
+			//}
+			//else if (range8RB.IsChecked == true)
+			//{
+			//	axyConfOut[16] = 2;
+			//}
+			//else if (range16RB.IsChecked == true)
+			//{
+			//	axyConfOut[16] = 3;
+			//}
 
 
 			axyConfOut[17] = 0;
@@ -420,18 +341,18 @@ namespace X_Manager
 				axyConfOut[21] = 1;
 			}
 
-			if (bits10RB.IsChecked == true)
-			{
-				axyConfOut[22] = 0;
-			}
-			else if (bits12RB.IsChecked == true)
-			{
-				axyConfOut[22] = 1;
-			}
-			else if (bits8RB.IsChecked == true)
-			{
-				axyConfOut[22] = 2;
-			}
+			//if (bits10RB.IsChecked == true)
+			//{
+			//	axyConfOut[22] = 0;
+			//}
+			//else if (bits12RB.IsChecked == true)
+			//{
+			//	axyConfOut[22] = 1;
+			//}
+			//else if (bits8RB.IsChecked == true)
+			//{
+			//	axyConfOut[22] = 2;
+			//}
 						
 			try
 			{

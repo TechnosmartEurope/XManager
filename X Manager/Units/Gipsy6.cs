@@ -181,7 +181,7 @@ namespace X_Manager.Units
             return remote;
         }
 
-        public override byte[] getSchedule()
+        public override byte[] getGpsSchedule()
         {
             byte[] schedule = new byte[256];
             sp.ReadExisting();
@@ -207,7 +207,7 @@ namespace X_Manager.Units
             return schedule;
         }
 
-        public override void setSchedule(byte[] schedule)
+        public override void setGpsSchedule(byte[] schedule)
         {
             sp.Write("TTTTTTTTGGAs");
             try

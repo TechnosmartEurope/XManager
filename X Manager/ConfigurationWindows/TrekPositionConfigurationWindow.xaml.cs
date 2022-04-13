@@ -133,7 +133,7 @@ namespace X_Manager.ConfigurationWindows
             byte[] conf = new byte[20];
             try
             {
-                conf = unit.getSchedule();
+                conf = unit.getGpsSchedule();
             }
             catch (Exception ex)
             {
@@ -341,7 +341,7 @@ namespace X_Manager.ConfigurationWindows
 
             try
             {
-                unit.setSchedule(conf);
+                unit.setGpsSchedule(conf);
             }
             catch (Exception ex)
             {

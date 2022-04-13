@@ -139,7 +139,7 @@ namespace X_Manager.ConfigurationWindows
             byte[] conf = new byte[256];
             try
             {
-                conf = unit.getSchedule();
+                conf = unit.getGpsSchedule();
             }
             catch (Exception ex)
             {
@@ -301,7 +301,7 @@ namespace X_Manager.ConfigurationWindows
 
             try
             {
-                conf = unit.getSchedule();
+                conf = unit.getGpsSchedule();
             }
             catch (Exception ex)
             {
@@ -421,7 +421,7 @@ namespace X_Manager.ConfigurationWindows
             }
 
 
-            unit.setSchedule(conf);
+            unit.setGpsSchedule(conf);
 
 
             var w = new Warning("Configuration succesfully updated.");

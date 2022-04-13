@@ -190,17 +190,27 @@ namespace X_Manager.Units
 
         }
 
-        public virtual byte[] getSchedule()
+        public virtual byte[] getGpsSchedule()
         {
             return new byte[] { 0 };
         }
 
-        public virtual void setSchedule(byte[] schedule)
+        public virtual void setGpsSchedule(byte[] schedule)
         {
 
         }
 
-        public virtual void download(MainWindow parent, string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
+		public virtual byte[] getAccSchedule()
+		{
+			return new byte[] { 0 };
+		}
+
+		public virtual void setAccSchedule(byte[] schedule)
+		{
+
+		}
+
+		public virtual void download(MainWindow parent, string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
         {
 
         }

@@ -274,6 +274,41 @@ namespace X_Manager.Units
 			}
 		}
 
+		public override byte[] getAccSchedule()
+		{
+			byte[] schedule = new byte[30];
+			sp.Write("TTTTTTTTTTTTTGGAS");
+			Thread.Sleep(200);
+			try
+			{
+				for (int i = 0; i < 30; i++)
+				{
+					schedule[i] = (byte)sp.ReadByte();
+				}
+			}
+			catch
+			{
+				throw new Exception(unitNotReady);
+			}
+			return schedule;
+		}
+
+		public override void setAccSchedule(byte[] schedule)
+		{
+			sp.Write("TTTTTTTTTTTTTGGAs");
+			Thread.Sleep(200);
+			try
+			{
+				sp.ReadByte();
+				sp.Write(schedule, 0, 30);
+				sp.ReadByte();
+			}
+			catch
+			{
+				throw new Exception(unitNotReady);
+			}
+		}
+
 		public override void setName(string newName)
 		{
 			if (newName.Length < 10)

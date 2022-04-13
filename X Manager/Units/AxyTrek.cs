@@ -378,7 +378,7 @@ namespace X_Manager
 
 		}
 
-		public override byte[] getSchedule()
+		public override byte[] getGpsSchedule()
 		{
 			byte[] schedule = new byte[200];
 			sp.Write("TTTTTTTTTTTTTGGAS");
@@ -401,7 +401,7 @@ namespace X_Manager
 
 		}
 
-		public override void setSchedule(byte[] schedule)
+		public override void setGpsSchedule(byte[] schedule)
 		{
 			sp.Write("TTTTTTTTTTTTTGGAs");
 			Thread.Sleep(200);
