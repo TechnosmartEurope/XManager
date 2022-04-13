@@ -71,9 +71,16 @@ namespace X_Manager.Units
         [DllImport(@"resampleLib.dll", CallingConvention = CallingConvention.Cdecl)]
 #endif
         public static extern int resample4(byte[] inputArray, int nInputSamples, double[] outArray, int nOutputSamples);
-        
 
-        public Unit(object p)
+#if X64
+        [DllImport(@"resampleLib_x64.dll", CallingConvention = CallingConvention.Cdecl)]
+#else
+		[DllImport(@"resampleLib.dll", CallingConvention = CallingConvention.Cdecl)]
+#endif
+		public static extern int resample5(byte[] inputArray, int nInputSamples, double[] outArray, int nOutputSamples);
+
+
+		public Unit(object p)
         {
             parent = (MainWindow)p;
             sp = parent.sp;

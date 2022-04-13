@@ -31,41 +31,44 @@ namespace X_Manager.Units
 			public int tsType, tsTypeExt1, tsTypeExt2;
 			public double batteryLevel;
 			public double temperature;
+			public double pressure;
 			public double magX;
 			public double magY;
 			public double magZ;
 			public DateTime orario;
 			public int stopEvent;
 			public int timeStampLength;
+			public int metadataPresent;
 		}
-
-		//sviluppo
-		UInt32 tsCount = 0;
-		//// Sviluppo
 
 		byte dateFormat;
 		byte timeFormat;
 		bool sameColumn = false;
 		int prefBattery = 0;
 		bool repeatEmptyValues = true;
-		int bits;
-		byte bitsDiv;
+		//byte bitsDiv;
 		bool angloTime = false;
-		ushort rate;
-		ushort rateComp;
-		byte range;
+		bool inMeters;
 		double gCoeff;
 		string dateFormatParameter;
 		ushort addMilli;
 		CultureInfo dateCi;
-		byte cifreDec;
-		string cifreDecString;
+		//byte cifreDec;
+		const string cifreDecString = "0.00000";
 		int metadata = 0;
 		bool overrideTime;
-		byte temperatureEn;
-		byte pressureEn;
-		byte magEn;
+		int temperatureEn;
+		int isDepth;
+		int pressureEn;
+		double pressOffset;
+		int magEn;
 		byte[] eventAr;
+		double[] convCoeffs;
+		int rate;
+		int range;
+		int bit;
+		double x, y, z;
+		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 
 		public Axy5(object p)
 			: base(p)
@@ -878,6 +881,8 @@ namespace X_Manager.Units
 
 		public override void convert(MainWindow parent, string fileName, string preferenceFile)
 		{
+			const int pref_pressMetri = 0;
+			const int pref_millibars = 1;
 			const int pref_dateFormat = 2;
 			const int pref_timeFormat = 3;
 			const int pref_fillEmpty = 4;
@@ -886,23 +891,10 @@ namespace X_Manager.Units
 			const int pref_override_time = 15;
 			const int pref_metadata = 16;
 
-			timeStamp timeStampO = new timeStamp();
 			string barStatus = "";
 			string[] prefs = System.IO.File.ReadAllLines(parent.prefFile);
 
-			string shortFileName;
-			string addOn = "";
-			string exten = Path.GetExtension(fileName);
-			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
-			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-			BinaryReader ard = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
-			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
-
-			ard.BaseStream.Position = 1;
-			firmTotA = (uint)(ard.ReadByte() * 1000000 + ard.ReadByte() * 1000 + ard.ReadByte());
-
 			//Imposta le preferenze di conversione
-
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 
 			dateSeparator = csvSeparator;
@@ -940,39 +932,71 @@ namespace X_Manager.Units
 					break;
 			}
 
+			if (prefs[pref_pressMetri] == "meters")
+			{
+				inMeters = true;
+			}
+			else
+			{
+				inMeters = false;
+			}
+			pressOffset = double.Parse(prefs[pref_millibars]);
+
 			overrideTime = false;
 			if (prefs[pref_override_time] == "True") overrideTime = true;
 
 			metadata = 0;
 			if (prefs[pref_metadata] == "True") metadata = 1;
 
-			//Legge i parametri di logging
+			//Imposta i file di lettura e di scrittura
+			string shortFileName;
+			string addOn = "";
+			string exten = Path.GetExtension(fileName);
+			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
+			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
+			BinaryReader ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+			byte[] ardBuffer = new byte[ardFile.BaseStream.Length];
+			ardFile.Read(ardBuffer, 0, (int)ardFile.BaseStream.Length);
+			ardFile.Close();
 
-			rate = findSamplingRate(ard.ReadByte());
-			rateComp = rate;
-			if (rate == 1) rateComp = 10;
-			range = findRange(ard.ReadByte());
-			findTDEnable(ard.ReadByte());
-			ard.ReadByte();
-			magEn = ard.ReadByte();
-			bits = findBits(ard.ReadByte());
-			if (bits == 0) throw new Exception("Invalid ard format!");
-			bitsDiv = findBytesPerSample();
+			MemoryStream ard = new MemoryStream(ardBuffer);
+
+			//BinaryReader ard = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+
+			ard.Position = 1;
+			firmTotA = (uint)(ard.ReadByte() * 1000000 + ard.ReadByte() * 1000 + ard.ReadByte());
+
+			//Legge i parametri di logging
+			convCoeffs = new double[6];
+			double convSum = 0;
+			for (int convc = 0; convc < 6; convc++)
+			{
+				convCoeffs[convc] = ard.ReadByte() * 256 + ard.ReadByte();
+				convSum += convCoeffs[convc];
+			}
+
+			findTDEnable(ard.ReadByte());   //Temperatura e pressione abilitate
+			ard.ReadByte();                 //TD periodo di logging (non serve al software)
+			findMagEnable(ard.ReadByte());  //Magnetometro abilitato
+			ard.ReadByte();                 //Byte per futura estensione dell'header
 
 			eventAr = new byte[5];
 
-			Array.Resize(ref lastGroup, ((rate * 3)));
-			nOutputs = rateComp;
+			//cifreDec = 3; cifreDecString = "0.000";
+			//if (bit == 4)
+			//{
+			//	cifreDec = 4; cifreDecString = "0.0000";
+			//}
+			//else if (bit == 5)
+			//{
+			//	cifreDec = 5; cifreDecString = "0.00000";
+			//}
 
-			cifreDec = 3; cifreDecString = "0.000";
-			if (bits == 4)
-			{
-				cifreDec = 4; cifreDecString = "0.0000";
-			}
-			else if (bits == 5)
-			{
-				cifreDec = 5; cifreDecString = "0.00000";
-			}
+			timeStamp timeStampO = new timeStamp();
+			timeStampO.tsType = timeStampO.tsTypeExt1 = timeStampO.tsTypeExt2 = 0;
+			timeStampO.metadataPresent = 0;
+
 			timeStampO.orario = findStartTime(ref prefs);
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => barStatus = (string)parent.statusLabel.Content));
@@ -989,23 +1013,19 @@ namespace X_Manager.Units
 			csvPlaceHeader(ref csv);
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusProgressBar.Maximum = ard.BaseStream.Length - 1));
-
-			//sviluppo
-			tsCount = 0;
-			////sviluppo
-
+				new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
 
 			while (!convertStop)
 			{
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-							new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
+							new Action(() => parent.statusProgressBar.Value = ard.Position));
 				if (detectEof(ref ard)) break;
 
 				decodeTimeStamp(ref ard, ref timeStampO);
 
 				if (timeStampO.stopEvent > 0)
 				{
+					timeStampO.metadataPresent = 1;
 					csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName)));
 					break;
 				}
@@ -1022,7 +1042,7 @@ namespace X_Manager.Units
 
 			}
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.Position));
 
 			csv.Close();
 			ard.Close();
@@ -1030,23 +1050,29 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 		}
 
-		private double[] extractGroup(ref BinaryReader ard, ref timeStamp tsc)
+		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
 		{
 			byte[] group = new byte[2000];
 			bool badGroup = false;
-			long position = 0;
-			byte dummy, dummyExt;
+			int position = 0;
+			int dummy, dummyExt;
 			ushort badPosition = 600;
 
-			if (ard.BaseStream.Position == ard.BaseStream.Length) return lastGroup;
+			if (ard.Position == ard.Length) return lastGroup;
 
 			do
 			{
 				dummy = ard.ReadByte();
 				if (dummy == 0xab)
 				{
-					if (ard.BaseStream.Position < ard.BaseStream.Length) dummyExt = ard.ReadByte();
-					else return lastGroup;
+					if (ard.Position < ard.Length)
+					{
+						dummyExt = ard.ReadByte();
+					}
+					else
+					{
+						return lastGroup;
+					}
 
 					if (dummyExt == 0xab)
 					{
@@ -1056,10 +1082,10 @@ namespace X_Manager.Units
 					}
 					else
 					{
-						ard.BaseStream.Position -= 1;
+						ard.Position -= 1;
 						if (badGroup)
 						{
-							System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+							//System.IO.File.AppendAllText(((FileStream)ard).Name + "errorList.txt", "-> " + ard.Position.ToString("X8") + "\r\n");
 						}
 					}
 				}
@@ -1067,20 +1093,24 @@ namespace X_Manager.Units
 				{
 					if (position < badPosition)
 					{
-						group[position] = dummy;
+						group[position] = (byte)dummy;
 						position++;
 					}
 					else if ((position == badPosition) && (!badGroup))
 					{
 						badGroup = true;
-						System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+						//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
 					}
 				}
-			} while ((dummy != (byte)0xab) && (ard.BaseStream.Position < ard.BaseStream.Length));
+			} while ((dummy != (byte)0xab) & (ard.Position < ard.Length));
 
 			//Array.Resize(ref group, (int)position);
 
-			tsc.timeStampLength = (byte)(position / bitsDiv);
+			tsc.timeStampLength = (int)(position / (3 + bit));
+			if (position == 0)
+			{
+				return new double[0];
+			}
 			//sviluppo
 			//contoFreq++;
 			//mediaFreq += tsc.timeStampLength;
@@ -1089,17 +1119,17 @@ namespace X_Manager.Units
 			//IntPtr doubleResultArray = Marshal.AllocCoTaskMem(sizeof(double) * nOutputs * 3);
 			int resultCode = 0;
 			double[] doubleResultArray = new double[nOutputs * 3];
-			if (bits == 10)
+			if (bit == 0)   //ricampionamento a 8 bit
 			{
-				resultCode = resample4(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
+				resultCode = resample3(group, tsc.timeStampLength, doubleResultArray, nOutputs);
 			}
-			else if (bits == 12)
+			else if (bit == 1)  //ricampionamento a 10 bit
 			{
-				//resultCode = resample5(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
+				resultCode = resample4(group, tsc.timeStampLength, doubleResultArray, nOutputs);
 			}
-			else
+			else if (bit == 2) //ricampionamento a 12 bit
 			{
-				resultCode = resample3(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
+				resultCode = resample5(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
 			}
 			//doubleResult = new double[(nOutputs * 3)];
 			//Marshal.Copy(doubleResultArray, doubleResult, 0, nOutputs * 3);
@@ -1109,15 +1139,24 @@ namespace X_Manager.Units
 
 		private string groupConverter(ref timeStamp tsLoc, double[] group, string unitName)
 		{
-			if (group.Length == 0) return ("");
+			if (group.Length == 0)
+			{
+				if (nOutputs == 0)
+				{
+					group = new double[3] { 0, 0, 0 };
+				}
+				else
+				{
+					group = new double[3] { x, y, z };
+				}
+			}
 
-			double x, y, z;
 			string ampm = "";
 			string textOut, dateTimeS, additionalInfo;
 			string dateS = "";
-			ushort milli;
-			NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
-			ushort contoTab = 0;
+			int milli;
+
+			int contoTab = 0;
 
 			dateS = tsLoc.orario.ToString(dateFormatParameter);
 
@@ -1143,16 +1182,15 @@ namespace X_Manager.Units
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			additionalInfo = "";
-			contoTab = 0;
 
 			//Inserisce la temperatura
-			if (temperatureEn == 1)
+			if (temperatureEn > 0)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
 				if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues)
 				{
-					additionalInfo += tsLoc.temperature.ToString(nfi);
+					additionalInfo += tsLoc.temperature.ToString("#0.00", nfi);
 				}
 			}
 
@@ -1179,7 +1217,7 @@ namespace X_Manager.Units
 				additionalInfo += csvSeparator;
 				if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues)
 				{
-					additionalInfo += tsLoc.batteryLevel.ToString(nfi);
+					additionalInfo += tsLoc.batteryLevel.ToString("#0.00#", nfi);
 				}
 			}
 
@@ -1188,28 +1226,48 @@ namespace X_Manager.Units
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
-				if (tsLoc.stopEvent > 0)
+				if (tsLoc.metadataPresent > 0)
 				{
-					switch (tsLoc.stopEvent)
+					tsLoc.metadataPresent = 0;
+
+					if ((tsLoc.tsTypeExt1 & 0b1_0000) == 0b1_0000)
 					{
-						case 1:
-							additionalInfo += "Low battery.";
-							break;
-						case 2:
-							additionalInfo += "Power off command received.";
-							break;
-						case 3:
-							additionalInfo += "Memory full.";
-							break;
+						additionalInfo += "Switching to ";
+						if (nOutputs == 0)
+						{
+							additionalInfo += "OFF  ";
+						}
+						else
+						{
+							additionalInfo += nOutputs.ToString() + "Hz " + Math.Pow(2, (range + 1)).ToString() + "g " + (8 + bit).ToString() + "bit  ";
+						}
+
 					}
-					textOut += additionalInfo + "\r\n";
-					return textOut;
+
+					if (tsLoc.stopEvent > 0)
+					{
+						switch (tsLoc.stopEvent)
+						{
+							case 1:
+								additionalInfo += "Low battery.";
+								break;
+							case 2:
+								additionalInfo += "Power off command received.";
+								break;
+							case 3:
+								additionalInfo += "Memory full.";
+								break;
+						}
+						textOut += additionalInfo + "\r\n";
+						return textOut;
+					}
 				}
+
 			}
 
 			textOut += additionalInfo + "\r\n";
 
-			if (tsLoc.stopEvent > 0) return textOut;
+			//if (tsLoc.stopEvent > 0) return textOut;
 
 			if (!repeatEmptyValues)
 			{
@@ -1219,19 +1277,21 @@ namespace X_Manager.Units
 
 			milli += addMilli;
 			dateTimeS += ".";
-			if (tsLoc.stopEvent > 0) bitsDiv = 1;
+			//if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
-			var iend = (short)((rate * 3));
+			//var iend = (short)((rate * 3));
 
-			for (short i = 3; i < iend; i += 3)
+			int iend = group.Length;// * 3;
+
+			for (int i = 3; i < iend; i += 3)
 			{
 				x = group[i];
 				y = group[i + 1];
 				z = group[i + 2];
 
-				x *= gCoeff; x = Math.Round(x, cifreDec);
-				y *= gCoeff; y = Math.Round(y, cifreDec);
-				z *= gCoeff; z = Math.Round(z, cifreDec);
+				x *= gCoeff;// x = Math.Round(x, cifreDec);
+				y *= gCoeff;// y = Math.Round(y, cifreDec);
+				z *= gCoeff;// z = Math.Round(z, cifreDec);
 
 				if (rate == 1)
 				{
@@ -1267,39 +1327,39 @@ namespace X_Manager.Units
 			return dt;
 		}
 
-		private ushort findSamplingRate(byte rateIn)
-		{
-			byte rateOut;
+		//private ushort findSamplingRate(int rateIn)
+		//{
+		//	byte rateOut;
 
-			switch (rateIn)
-			{
-				case 0:
-					rateOut = 0;
-					break;
-				case 1:
-					rateOut = 1;
-					break;
-				case 2:
-					rateOut = 10;
-					break;
-				case 3:
-					rateOut = 25;
-					break;
-				case 4:
-					rateOut = 50;
-					break;
-				default:
-					rateOut = 100;
-					break;
-			}
+		//	switch (rateIn)
+		//	{
+		//		case 0:
+		//			rateOut = 0;
+		//			break;
+		//		case 1:
+		//			rateOut = 1;
+		//			break;
+		//		case 2:
+		//			rateOut = 10;
+		//			break;
+		//		case 3:
+		//			rateOut = 25;
+		//			break;
+		//		case 4:
+		//			rateOut = 50;
+		//			break;
+		//		default:
+		//			rateOut = 100;
+		//			break;
+		//	}
 
-			if (rateOut == 1) addMilli = 0;
+		//	if (rateOut == 1) addMilli = 0;
 
-			else addMilli = (ushort)((1 / (double)rateOut) * 1000);
+		//	else addMilli = (ushort)((1 / (double)rateOut) * 1000);
 
-			return rateOut;
+		//	return rateOut;
 
-		}
+		//}
 
 		private byte findRange(byte rangeIn)
 		{
@@ -1308,19 +1368,29 @@ namespace X_Manager.Units
 			return rangeOut;
 		}
 
-		private void findTDEnable(byte td)
+		private void findTDEnable(int td)
 		{
 			temperatureEn = 0;
-			if ((td & 15) == 1)
-			{
-				temperatureEn = 1;
-			}
-			pressureEn = 0;
-			if ((td >> 4) == 1)
-			{
-				pressureEn = 1;
-			}
+			isDepth = 0;
+			if ((td & 0b1) == 0b1) temperatureEn = 1;
+			if ((td & 0b10) == 0b10) isDepth = 1;
 
+			pressureEn = td >> 4;
+			//temperatureEn = 0;
+			//if ((td & 15) == 1)
+			//{
+			//	temperatureEn = 1;
+			//}
+			//pressureEn = 0;
+			//if ((td >> 4) == 1)
+			//{
+			//	pressureEn = 1;
+			//}
+		}
+
+		private void findMagEnable(int m)
+		{
+			magEn = m;
 		}
 
 		private int findBits(byte bitsIn)
@@ -1355,14 +1425,15 @@ namespace X_Manager.Units
 		private byte findBytesPerSample()
 		{
 			byte bitsDiv = 3;
-			if (bits == 10) bitsDiv = 4;
-			else if (bits == 12) bitsDiv = 5;
+			if (bit == 10) bitsDiv = 4;
+			else if (bit == 12) bitsDiv = 5;
 			return bitsDiv;
 		}
 
-		private void decodeTimeStamp(ref BinaryReader ard, ref timeStamp tsc)
+		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc)
 		{
-
+			tsc.tsTypeExt1 = 0;
+			//tsc.tsTypeExt2 = 0;
 			tsc.stopEvent = 0;
 
 			tsc.tsType = ard.ReadByte();
@@ -1373,51 +1444,51 @@ namespace X_Manager.Units
 				try
 				{
 					tsc.tsTypeExt1 = ard.ReadByte();
-					if ((tsc.tsTypeExt1 & 1) == 1)
-					{
-						tsc.tsTypeExt2 = ard.ReadByte();
-					}
-					else
-					{
-						tsc.tsTypeExt2 = 0;
-					}
+					//if ((tsc.tsTypeExt1 & 1) == 1)
+					//{
+					//	tsc.tsTypeExt2 = ard.ReadByte();
+					//}
+					//else
+					//{
+					//	tsc.tsTypeExt2 = 0;
+					//}
 				}
 				catch
 				{
 					return;
 				}
 			}
-			else
-			{
-				tsc.tsTypeExt1 = 0;
-			}
+			//else
+			//{
+			//	tsc.tsTypeExt1 = 0;
+			//}
 
 			//Temperatura
 			if ((tsc.tsType & 2) == 2)
 			{
-				try
+				if (isDepth == 0)
 				{
-					tsc.temperature = (ard.ReadByte() * 256 + ard.ReadByte());
+					try
+					{
+						tsc.temperature = ((ard.ReadByte() * 256 + ard.ReadByte()) >> 6);
+					}
+					catch
+					{
+						return;
+					}
+					if (tsc.temperature > 511) tsc.temperature -= 1024;
+					tsc.temperature = ((tsc.temperature * 0.1221) + 22.5);
 				}
-				catch
+				else
 				{
-					return;
+					dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
 				}
-				if (tsc.temperature > 511) tsc.temperature -= 1024;
-				tsc.temperature = Math.Round(((tsc.temperature * 0.1221) + 22.5), 2, MidpointRounding.AwayFromZero);
-			}
-
-			//Pressione, non valido per axy5
-			if ((tsc.tsType & 4) == 4)
-			{
-				ard.ReadByte(); ard.ReadByte(); ard.ReadByte();
 			}
 
 			//Batteria
 			if ((tsc.tsType & 8) == 8)
 			{
-				tsc.batteryLevel = Math.Round((((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096), 2, MidpointRounding.AwayFromZero);
-
+				tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
 			}
 
 			//Evento
@@ -1425,7 +1496,7 @@ namespace X_Manager.Units
 			{
 				for (int i = 0; i < 5; i++)
 				{
-					eventAr[i] = ard.ReadByte();
+					eventAr[i] = (byte)ard.ReadByte();
 				}
 				if (eventAr[0] == 11) tsc.stopEvent = 1;
 				else if (eventAr[0] == 12) tsc.stopEvent = 2;
@@ -1434,10 +1505,9 @@ namespace X_Manager.Units
 
 			tsc.orario = tsc.orario.AddSeconds(1);
 
-			//Non ci sono informazioni dal timestamp esteso 1
-			if ((tsc.tsType & 1) == 0)
+			if (tsc.tsTypeExt1 == 0) 
 			{
-				goto _fineDecodeTimestamp;
+				goto _fineDecodeTimestamp; //Non ci sono informazioni dal timestamp esteso 1
 			}
 
 			//Timestamp esteso 1: Magnetometro
@@ -1468,6 +1538,58 @@ namespace X_Manager.Units
 				tsc.magZ *= 1.5;
 			}
 
+			//Cambio Schedule
+			if ((tsc.tsTypeExt1 & 16) == 16)
+			{
+				tsc.metadataPresent = 1;
+				rate = ard.ReadByte();
+				range = ard.ReadByte();
+				bit = ard.ReadByte();
+				ard.ReadByte(); ard.ReadByte(); //Salta i due byte del microschedule perché ancora non implementato
+				switch (rate)
+				{
+					case 0:
+						nOutputs = 0;
+						addMilli = 0;
+						break;
+					case 1:
+						nOutputs = 1;
+						addMilli = 0;
+						break;
+					case 2:
+						nOutputs = 10;
+						addMilli = 100;
+						break;
+					case 3:
+						nOutputs = 25;
+						addMilli = 40;
+						break;
+					case 4:
+						nOutputs = 50;
+						addMilli = 20;
+						break;
+					case 5:
+						nOutputs = 100;
+						addMilli = 10;
+						break;
+				}
+
+				gCoeff = (Math.Pow(2, (range + 1)) * 2.0) / 256;
+
+				switch (bit)
+				{
+					case 1:
+						gCoeff /= 4;
+						break;
+					case 2:
+						gCoeff /= 16;
+						break;
+				}
+
+				Array.Resize(ref lastGroup, (nOutputs * (3 + bit)));
+
+			}
+
 			//Timestamp esteso 1: Orario
 			if (((tsc.tsTypeExt1 & 32) == 32) && (!overrideTime))
 			{
@@ -1495,15 +1617,72 @@ namespace X_Manager.Units
 
 			}
 
-
 		_fineDecodeTimestamp:
-
-			//sviluppo
-			tsCount++;
-			////sviluppo
 
 			return;
 
+		}
+
+		private void dt5837(ref MemoryStream ard, ref timeStamp tsc)
+		{
+			double dT;
+			double off;
+			double sens;
+			double d1, d2;
+
+			try
+			{
+				d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+			}
+			catch
+			{
+				return;
+			}
+
+			dT = d2 - convCoeffs[4] * 256;
+			tsc.temperature = 2000 + (dT * convCoeffs[5]) / 8388608;
+			off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
+			sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
+			if (tsc.temperature > 2000)
+			{
+				tsc.temperature -= (2 * Math.Pow(dT, 2)) / 137438953472;
+				off -= ((Math.Pow((tsc.temperature - 2000), 2)) / 16);
+			}
+			else
+			{
+				off -= 3 * ((Math.Pow((tsc.temperature - 2000), 2)) / 2);
+				sens -= 5 * ((Math.Pow((tsc.temperature - 2000), 2)) / 8);
+				if (tsc.temperature < -1500)
+				{
+					off -= 7 * Math.Pow((tsc.temperature + 1500), 2);
+					sens -= 4 * Math.Pow((tsc.temperature + 1500), 2);
+				}
+				tsc.temperature -= 3 * (Math.Pow(dT, 2)) / 8589934592;
+			}
+			tsc.temperature /= 100;
+			//tsc.temp = Math.Round((tsc.temp / 100), 1);
+			if ((tsc.tsType & 4) == 4)
+			{
+				try
+				{
+					d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+				}
+				catch
+				{
+					return;
+				}
+				tsc.pressure = (((d1 * sens / 2097152) - off) / 81920);
+				if (inMeters)
+				{
+					tsc.pressure -= pressOffset;
+					if (tsc.pressure <= 0) tsc.pressure = 0;
+					else
+					{
+						tsc.pressure = tsc.pressure / 98.1;
+						//tsc.press = Math.Round(tsc.press, 2);
+					}
+				}
+			}
 		}
 
 		private void csvPlaceHeader(ref BinaryWriter csv)
@@ -1550,9 +1729,9 @@ namespace X_Manager.Units
 			csv.Write(System.Text.Encoding.ASCII.GetBytes(csvHeader));
 		}
 
-		private bool detectEof(ref BinaryReader ard)
+		private bool detectEof(ref MemoryStream ard)
 		{
-			if (ard.BaseStream.Position >= ard.BaseStream.Length)
+			if (ard.Position >= ard.Length)
 			{
 				return true;
 			}
