@@ -1044,7 +1044,7 @@ namespace X_Manager
 						Thread.Sleep(5);
 					}
 					sp.Write("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTGGAP");
-					if (remote) Thread.Sleep(200);
+					if (remote) Thread.Sleep(400);
 					response = sp.ReadLine();
 				}
 				catch

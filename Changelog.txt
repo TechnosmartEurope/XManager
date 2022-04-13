@@ -36,3 +36,4 @@
 1.5.2	Axy5: allineamento con axyTrek per richiesta download 1.5 / 2 MBaud in fase di inizio download
 	Ripristinato invio comando di disconnessione al trek remoto
 	Trek remoto: riconoscimento evento "Remote Connection"
+1.5.3	Bugfix: Soglie adc erroneamente dimensionate a 12bit potevano attivare il trigger adc di inibizione gps anche se non voluto

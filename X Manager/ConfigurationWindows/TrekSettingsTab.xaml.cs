@@ -38,7 +38,7 @@ namespace X_Manager.ConfigurationWindows
 
             ((Grid)((GroupBox)((Grid)((Grid)this.Content).Children[2]).Children[0]).Content).RowDefinitions[1].Height = new GridLength(0);
 
-            ADCValueUD.Value = 2048;
+            ADCValueUD.Value = 512;
             magMinB.Content = ">";
 
             SdDateTimePicker.Value = DateTime.Now;

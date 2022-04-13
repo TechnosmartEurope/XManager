@@ -111,6 +111,13 @@ namespace X_Manager.ConfigurationWindows
 
 			ScheduleTab.SelectedIndex = 0;
 			((TabItem)ScheduleTab.Items.GetItemAt(0)).Header = "Every day";
+			if (unitConnected)
+			{
+				if (firmTotB < 3004000)
+				{
+					((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
+				}
+			}
 		}
 
 		private void weeklyCheckChecked(object sender, RoutedEventArgs e)
@@ -131,6 +138,13 @@ namespace X_Manager.ConfigurationWindows
 				catch { }
 			}
 			((TabItem)ScheduleTab.Items.GetItemAt(0)).Header = "Day 1";
+			if (unitConnected)
+			{
+				if (firmTotB < 3004000)
+				{
+					((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
+				}
+			}
 		}
 
 		private void readButtonClick(object sender, RoutedEventArgs e)  //Controllare format string
@@ -231,6 +245,8 @@ namespace X_Manager.ConfigurationWindows
 			manageSensorAppearance(ref st);
 			manageStartDelayAppearance(ref st);
 
+			TrekRemoteIntervals rtClone = (TrekRemoteIntervals)((TrekRemoteIntervals)(((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content)).Clone();
+			
 			ScheduleTab.Items.RemoveAt(7);
 			try
 			{
@@ -251,28 +267,38 @@ namespace X_Manager.ConfigurationWindows
 			t.Content = st;
 			ScheduleTab.Items.Add(t);
 
+
+			TrekRemoteIntervals rt = null;
 			if (firmTotB > 3003999)
 			{
-				var rt = new TrekRemoteIntervals(this);
+				rt = new TrekRemoteIntervals(this);
 				double[] rem = new double[23];
 				Array.Copy(conf, 172, rem, 16, 7);
 				rt.import(rem);
 
 				//rt.impo
-				var r = new TabItem();
-				r.FontSize = 12;
-				r.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0xde));
-				r.Name = "Remote";
-				r.Header = "Remote";
-				r.Width = 65;
-				r.Height = 30;
-				r.Background = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
-				r.Margin = new Thickness(2);
-
-				r.Content = rt;
-				ScheduleTab.Items.Add(r);
+				
 			}
+			else
+			{
+				rt = rtClone;
+			}
+			var r = new TabItem();
+			r.FontSize = 12;
+			r.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0xde));
+			r.Name = "Remote";
+			r.Header = "Remote";
+			r.Width = 65;
+			r.Height = 30;
+			r.Background = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
+			r.Margin = new Thickness(2);
 
+			r.Content = rt;
+			ScheduleTab.Items.Add(r);
+			if (firmTotB < 3004000)
+			{
+				((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
+			}
 
 			//MessageBox.Show("Configuration read.");
 			var w = new Warning("Configuration succesfully read");
@@ -375,15 +401,17 @@ namespace X_Manager.ConfigurationWindows
 			conf[171] = (byte)st.acq2Nud.Value;
 
 			//Finestre remoto
-			double[] rem = ((TrekRemoteIntervals)((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content).export();
-			conf[172] = (byte)rem[0];
-			conf[173] = (byte)rem[1];
-			conf[174] = (byte)rem[2];
-			conf[175] = (byte)rem[3];
-			conf[176] = (byte)rem[4];
-			conf[177] = (byte)rem[5];
-			conf[178] = (byte)rem[6];
-
+			if (firmTotB > 3003999)
+			{
+				double[] rem = ((TrekRemoteIntervals)((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content).export();
+				conf[172] = (byte)rem[0];
+				conf[173] = (byte)rem[1];
+				conf[174] = (byte)rem[2];
+				conf[175] = (byte)rem[3];
+				conf[176] = (byte)rem[4];
+				conf[177] = (byte)rem[5];
+				conf[178] = (byte)rem[6];
+			}
 
 			try
 			{

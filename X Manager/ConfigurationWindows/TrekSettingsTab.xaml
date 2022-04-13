@@ -85,7 +85,7 @@
                         <Button x:Name="magMinB"  Margin="12,5,0,5" BorderThickness="0" Content=">" 
                                 FontSize="12" Padding="0,0,0,2" HorizontalAlignment="Center" 
                                 MinWidth="10" MinHeight="10" Width="25" Height="20" VerticalAlignment="Center" Click="magMinClick"/>
-                        <dc:NumericUpDown x:Name="ADCValueUD" FontSize="10" Margin="12,0,0,0" minValue="0" maxValue="4095" Width="112"/>
+                        <dc:NumericUpDown x:Name="ADCValueUD" FontSize="10" Margin="12,0,0,0" minValue="0" maxValue="1023" Width="112"/>
                         <!--<dc:numericUpDown x:Name="ADCthreshold" Margin="0,0,0,0" TabIndex="5" MaxValue="120" Value="20" FooterWidth="0" HeaderHeight="0" Height="12"/>-->
                     </StackPanel>
                 </Grid>
