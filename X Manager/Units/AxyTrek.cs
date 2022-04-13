@@ -797,7 +797,7 @@ namespace X_Manager
 			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
 
 			byte mdrSpeed = 9;
-			//mdrSpeed=8;
+			mdrSpeed=8;
 			string br = "D";
 			if (mdrSpeed == 9) br = "H";
 			sp.Write("TTTTTTTTTTTTTTGGA" + br);
@@ -1488,7 +1488,7 @@ namespace X_Manager
 						}
 						else
 						{
-							if (pressureDepth(ref ard, ref tsc)) return;
+							if (pressureDepth5803(ref ard, ref tsc)) return;
 						}
 					}
 					else
@@ -2352,7 +2352,7 @@ namespace X_Manager
 			}
 		}
 
-		private bool pressureDepth(ref MemoryStream ard, ref timeStamp tsc)
+		private bool pressureDepth5803(ref MemoryStream ard, ref timeStamp tsc)
 		{
 			double dT;
 			double off;
@@ -2369,19 +2369,17 @@ namespace X_Manager
 			}
 
 			dT = d2 - convCoeffs[4] * 256;
-			tsc.temperature = (2000 + (dT * convCoeffs[5]) / 8388608);
-
-
-
-			off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
-			sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
+			tsc.temperature = (2000 + (dT * convCoeffs[5]) / 8_388_608);
+			off = convCoeffs[1] * 65_536 + (convCoeffs[3] * dT) / 128;
+			sens = convCoeffs[0] * 32_768 + (convCoeffs[2] * dT) / 256;
 			if (tsc.temperature > 2000)
 			{
-				tsc.temperature -= (7 * Math.Pow(dT, 2)) / 137438953472;
+				tsc.temperature -= (7 * Math.Pow(dT, 2)) / 137_438_953_472;
 				off -= ((Math.Pow((tsc.temperature - 2000), 2)) / 16);
 			}
 			else
 			{
+				tsc.temperature -= 3 * (Math.Pow(dT, 2)) / 8_589_934_592;
 				off -= 3 * ((Math.Pow((tsc.temperature - 2000), 2)) / 2);
 				sens -= 5 * ((Math.Pow((tsc.temperature - 2000), 2)) / 8);
 				if (tsc.temperature < -1500)
@@ -2389,7 +2387,6 @@ namespace X_Manager
 					off -= 7 * Math.Pow((tsc.temperature + 1500), 2);
 					sens -= 4 * Math.Pow((tsc.temperature + 1500), 2);
 				}
-				tsc.temperature -= 3 * (Math.Pow(dT, 2)) / 8589934592;
 			}
 			tsc.temperature = tsc.temperature / 100;
 			if ((tsc.tsType & 4) == 4)
@@ -2402,7 +2399,7 @@ namespace X_Manager
 				{
 					return true;
 				}
-				tsc.press = ((d1 * sens) / 2097152) - off;
+				tsc.press = (((d1 * sens / 2_097_152) - off) / 81_920);
 				if (inMeters)
 				{
 					tsc.press -= tsc.pressOffset;
@@ -2492,16 +2489,17 @@ namespace X_Manager
 			}
 
 			dT = d2 - convCoeffs[4] * 256;
-			tsc.temperature = 2000 + (dT * convCoeffs[5]) / 8388608;
-			off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
-			sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
+			tsc.temperature = 2000 + (dT * convCoeffs[5]) / 8_388_608;
+			off = convCoeffs[1] * 65_536 + (convCoeffs[3] * dT) / 128;
+			sens = convCoeffs[0] * 32_768 + (convCoeffs[2] * dT) / 256;
 			if (tsc.temperature > 2000)
 			{
-				tsc.temperature -= (2 * Math.Pow(dT, 2)) / 137438953472;
+				tsc.temperature -= (2 * Math.Pow(dT, 2)) / 137_438_953_472;
 				off -= ((Math.Pow((tsc.temperature - 2000), 2)) / 16);
 			}
 			else
 			{
+				tsc.temperature -= 3 * (Math.Pow(dT, 2)) / 8_589_934_592;
 				off -= 3 * ((Math.Pow((tsc.temperature - 2000), 2)) / 2);
 				sens -= 5 * ((Math.Pow((tsc.temperature - 2000), 2)) / 8);
 				if (tsc.temperature < -1500)
@@ -2509,7 +2507,6 @@ namespace X_Manager
 					off -= 7 * Math.Pow((tsc.temperature + 1500), 2);
 					sens -= 4 * Math.Pow((tsc.temperature + 1500), 2);
 				}
-				tsc.temperature -= 3 * (Math.Pow(dT, 2)) / 8589934592;
 			}
 			tsc.temperature /= 100;
 			//tsc.temp = Math.Round((tsc.temp / 100), 1);
@@ -2523,7 +2520,7 @@ namespace X_Manager
 				{
 					return true;
 				}
-				tsc.press = (((d1 * sens / 2097152) - off) / 81920);
+				tsc.press = (((d1 * sens / 2_097_152) - off) / 81_920);
 				if (inMeters)
 				{
 					tsc.press -= tsc.pressOffset;
@@ -2576,11 +2573,11 @@ namespace X_Manager
 				csvHeader += csvSeparator + "Temp. (°C)";
 			}
 
-			csvHeader += csvSeparator + "location-lat" + csvSeparator + "location-lon" + csvSeparator + "height-above-msl"
-				+ csvSeparator + "ground-speed" + csvSeparator + "satellite-count" + csvSeparator + "hdop" + csvSeparator + "maximum-signal-strength";
+			csvHeader += csvSeparator + "location-lat" + csvSeparator + "location-lon" + csvSeparator + "height-msl"
+				+ csvSeparator + "ground-speed" + csvSeparator + "satellites" + csvSeparator + "hdop" + csvSeparator + "signal-strength";
 			if (adcLog) csvHeader += csvSeparator + "Sensor Raw";
 			if (adcStop) csvHeader += csvSeparator + "Sensor State";
-			if (prefBattery) csvHeader += csvSeparator + "Battery Voltage (V)";
+			if (prefBattery) csvHeader += csvSeparator + "Battery (V)";
 			if (metadata) csvHeader += csvSeparator + "Metadata";
 
 			csvHeader += "\r\n";

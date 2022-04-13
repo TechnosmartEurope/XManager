@@ -26,8 +26,8 @@ namespace X_Manager.Units
         {
             public byte tsType;
             public float batteryLevel;
-            public float temp;
-            public float press;
+            public double temp;
+            public double press;
             public float pressOffset;
             public DateTime orario;
             public byte stopEvent;
@@ -1151,69 +1151,131 @@ namespace X_Manager.Units
             return false;
         }
 
-        private bool pressureDepth(ref BinaryReader ard, ref timeStamp tsc)
-        {
-            double dT;
-            double off;
-            double sens;
-            double d1, d2;
+		//private bool pressureDepthOld(ref BinaryReader ard, ref timeStamp tsc)
+		//{
+		//	double dT;
+		//	double off;
+		//	double sens;
+		//	double d1, d2;
 
-            try
-            {
-                d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
-            }
-            catch
-            {
-                return true;
-            }
+		//	try
+		//	{
+		//		d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+		//	}
+		//	catch
+		//	{
+		//		return true;
+		//	}
 
-            dT = d2 - convCoeffs[4] * 256;
-            tsc.temp = (float)(2000 + (dT * convCoeffs[5]) / 8388608);
-            off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
-            sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
-            if (tsc.temp > 2000)
-            {
-                off -= ((Math.Pow((tsc.temp - 2000), 2)) / 16);
-                tsc.temp -= (float)((7 * Math.Pow(dT, 2)) / 137438953472);
-            }
-            else
-            {
-                off -= 3 * ((Math.Pow((tsc.temp - 2000), 2)) / 2);
-                sens -= 5 * ((Math.Pow((tsc.temp - 2000), 2)) / 8);
-                if (tsc.temp < -1500)
-                {
-                    off -= 7 * Math.Pow((tsc.temp + 1500), 2);
-                    sens -= 4 * Math.Pow((tsc.temp + 1500), 2);
-                }
-                tsc.temp -= (float)(3 * (Math.Pow(dT, 2))) / 8589934592;
-            }
-            tsc.temp = (float)Math.Round((tsc.temp / 100), 1);
-            if (((tsc.tsType % 10) == 3) | ((tsc.tsType % 10) == 6))
-            {
-                try
-                {
-                    d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
-                }
-                catch
-                {
-                    return true;
-                }
-                tsc.press = (float)Math.Round((d1 * sens / 2097152 - off), 1);
-                if (inMeters)
-                {
-                    tsc.press -= tsc.pressOffset;
-                    if (tsc.press <= 0) tsc.press = 0;
-                    else
-                    {
-                        tsc.press = (float)(tsc.press / 98.1);
-                        tsc.press = (float)Math.Round(tsc.press, 2);
-                    }
-                }
-            }
-            return false;
-        }
+		//	dT = d2 - convCoeffs[4] * 256;
+		//	tsc.temp = (float)(2000 + (dT * convCoeffs[5]) / 8388608);
+		//	off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
+		//	sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
+		//	if (tsc.temp > 2000)
+		//	{
+		//		off -= ((Math.Pow((tsc.temp - 2000), 2)) / 16);
+		//		tsc.temp -= (float)((7 * Math.Pow(dT, 2)) / 137438953472);
+		//	}
+		//	else
+		//	{
+		//		off -= 3 * ((Math.Pow((tsc.temp - 2000), 2)) / 2);
+		//		sens -= 5 * ((Math.Pow((tsc.temp - 2000), 2)) / 8);
+		//		if (tsc.temp < -1500)
+		//		{
+		//			off -= 7 * Math.Pow((tsc.temp + 1500), 2);
+		//			sens -= 4 * Math.Pow((tsc.temp + 1500), 2);
+		//		}
+		//		tsc.temp -= (float)(3 * (Math.Pow(dT, 2))) / 8589934592;
+		//	}
+		//	tsc.temp = (float)Math.Round((tsc.temp / 100), 1);
+		//	if (((tsc.tsType % 10) == 3) | ((tsc.tsType % 10) == 6))
+		//	{
+		//		try
+		//		{
+		//			d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+		//		}
+		//		catch
+		//		{
+		//			return true;
+		//		}
+		//		tsc.press = (float)Math.Round((d1 * sens / 2097152 - off), 1);
+		//		if (inMeters)
+		//		{
+		//			tsc.press -= tsc.pressOffset;
+		//			if (tsc.press <= 0) tsc.press = 0;
+		//			else
+		//			{
+		//				tsc.press = (float)(tsc.press / 98.1);
+		//				tsc.press = (float)Math.Round(tsc.press, 2);
+		//			}
+		//		}
+		//	}
+		//	return false;
+		//}
 
-        private void csvPlaceHeader(ref BinaryWriter csv)
+		private bool pressureDepth(ref BinaryReader ard, ref timeStamp tsc)
+		{
+			double dT;
+			double off;
+			double sens;
+			double d1, d2;
+
+			try
+			{
+				d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+			}
+			catch
+			{
+				return true;
+			}
+
+			dT = d2 - convCoeffs[4] * 256;
+			tsc.temp = (2000 + (dT * convCoeffs[5]) / 8_388_608);
+			off = convCoeffs[1] * 65_536 + (convCoeffs[3] * dT) / 128;
+			sens = convCoeffs[0] * 32_768 + (convCoeffs[2] * dT) / 256;
+			if (tsc.temp > 2000)
+			{
+				tsc.temp -= (7 * Math.Pow(dT, 2)) / 137_438_953_472;
+				off -= ((Math.Pow((tsc.temp - 2000), 2)) / 16);
+			}
+			else
+			{
+				tsc.temp -= 3 * (Math.Pow(dT, 2)) / 8_589_934_592;
+				off -= 3 * ((Math.Pow((tsc.temp - 2000), 2)) / 2);
+				sens -= 5 * ((Math.Pow((tsc.temp - 2000), 2)) / 8);
+				if (tsc.temp < -1500)
+				{
+					off -= 7 * Math.Pow((tsc.temp + 1500), 2);
+					sens -= 4 * Math.Pow((tsc.temp + 1500), 2);
+				}
+			}
+			tsc.temp = tsc.temp / 100;
+			if ((tsc.tsType & 4) == 4)
+			{
+				try
+				{
+					d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+				}
+				catch
+				{
+					return true;
+				}
+				tsc.press = (((d1 * sens / 2_097_152) - off) / 81_920);
+				if (inMeters)
+				{
+					tsc.press -= tsc.pressOffset;
+					if (tsc.press < 0) tsc.press = 0;
+					else
+					{
+						tsc.press = tsc.press / 98.1;
+						//tsc.press = Math.Round(tsc.press, 2);
+					}
+				}
+			}
+			return false;
+		}
+
+		private void csvPlaceHeader(ref BinaryWriter csv)
         {
             string csvHeader = "TagID";
             if (sameColumn)

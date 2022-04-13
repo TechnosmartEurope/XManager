@@ -1,0 +1,17 @@
+﻿<Window x:Class="X_Manager.RemoteManagement"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        xmlns:dc="clr-namespace:X_Manager"
+        ResizeMode="NoResize"
+        Title="REMOTE MANAGEMENT" Height="305" Width="630">
+    <Grid>
+        <TabControl>
+            <TabItem Header="Connection" x:Name="connTab">
+            </TabItem>
+            <TabItem Header="Configuration"  x:Name="confTab"/>
+        </TabControl>
+    </Grid>
+</Window>

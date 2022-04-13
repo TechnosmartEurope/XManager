@@ -36,7 +36,7 @@ namespace X_Manager
 
 		public string ftdiSerialNumber;
 #if X64
-        public const string ftdiLibraryName = "FTD2XX.dll";
+		public const string ftdiLibraryName = "FTD2XX.dll";
 #else
 		public const string ftdiLibraryName = "FTD2XX.dll";
 #endif
@@ -403,6 +403,8 @@ namespace X_Manager
 			statusProgressBar.Value = 0;
 			positionCanSend = false;
 			dumpViewTabItem.IsEnabled = true;
+			remoteButton.Content = "Remote";
+			remoteButton.IsEnabled = true;
 			this.Title = "X MANAGER";
 			configureMovementButton.Content = "Accelerometer configuration";
 			realTimeSP.Visibility = Visibility.Hidden;
@@ -1510,10 +1512,55 @@ namespace X_Manager
 				}
 				sp.Close();
 
-				var remote = new RemoteConnector(ref sp);
-				if (remote.ShowDialog() == 1)
+				var remoteManagement = new RemoteManagement(ref sp, this);
+				remoteManagement.ShowDialog();
+				return;
+
+				//var remote = new RemoteConnector(ref sp);
+				//if (remote.ShowDialog() == 1)
+				//{
+				//	remoteButton.IsEnabled = false;
+				//	connectClick(connectButton, new System.Windows.RoutedEventArgs());
+				//}
+				//else if (remote.ShowDialog() == 2)
+				//{
+				//	remoteButton.Content = "Configure Remote Unit";
+				//	connectClick(connectButton, new System.Windows.RoutedEventArgs());
+				//}
+			}
+			else
+			{
+				if (remoteButton.Content.ToString().Contains("figure"))
 				{
-					connectClick(connectButton, new System.Windows.RoutedEventArgs());
+					//isola la porta COM selezionata
+					string portShortName;
+					portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
+					try
+					{
+						portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
+					}
+					catch
+					{
+						MessageBox.Show(STR_noComPortAvailable);
+						return;
+					}
+
+					if (sp.IsOpen) sp.Close();
+					sp.PortName = portShortName;
+
+					//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
+					setLatency(portShortName, 1);
+					try
+					{
+						sp.Open();
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(ex.Message);
+						return;
+					}
+					sp.Close();
+					//Far partire finestra di configurazione unità remota con indirizzo 0xffffff
 				}
 			}
 		}
@@ -1530,6 +1577,17 @@ namespace X_Manager
 					charts = new ChartWindowAGM(sp.PortName);
 					break;
 			}
+		}
+
+		public bool externConnect()
+		{
+			bool res = false;
+			connectClick(this, new RoutedEventArgs());
+			if (connectButton.Content.Equals("Disconnect"))
+			{
+				res = true;
+			}
+			return res;
 		}
 
 		#endregion
