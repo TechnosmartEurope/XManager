@@ -161,8 +161,9 @@ namespace X_Manager.Units
 			switch (unitModelString)
 			{
 				case "Axy-4":
-					break;
+				case "Axy-4.5":
 				case "Axy-Depth":
+				case "Axy-Depth.5":
 					break;
 				case "Axy-Trek":
 					break;

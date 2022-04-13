@@ -43,7 +43,20 @@
                    HorizontalAlignment="Center" Foreground="#FFC0C0C0" FontSize="25" />
                 <CheckBox Grid.Row="2" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" IsChecked="True" IsEnabled="False" />
                 <TextBlock Grid.Row="2" Text="Schedule A:" Margin="50,0,0,0" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="2" x:Name="aValTB" Margin="190,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center"/>
+                <!--<TextBox Grid.Row="2" x:Name="aValTB" Margin="190,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center"/>-->
+                <ComboBox Grid.Row="2" x:Name="aValCB" Margin="190,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
+                    <ComboBoxItem Content="1"/>
+                    <ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="3"/>
+                    <ComboBoxItem Content="4"/>
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="6"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="30"/>
+                </ComboBox>
                 <ComboBox Grid.Row="2" Name="aTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
@@ -51,7 +64,20 @@
                 </ComboBox>
                 <CheckBox Grid.Row="3" x:Name="scheduleBCB" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Checked="scheduleBCB_Checked" Unchecked="scheduleBCB_Checked" Height="40" VerticalAlignment="Top" />
                 <TextBlock Grid.Row="3" Text="Schedule B:" Margin="50,0,0,0" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="3" x:Name="bValTB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center"/>
+                <!--<TextBox Grid.Row="3" x:Name="bValTB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center"/>-->
+                <ComboBox Grid.Row="3" x:Name="bValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
+                    <ComboBoxItem Content="1"/>
+                    <ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="3"/>
+                    <ComboBoxItem Content="4"/>
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="6"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="30"/>
+                </ComboBox>
                 <ComboBox Grid.Row="3" Name="bTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
@@ -96,7 +122,19 @@
 
                 <CheckBox Grid.Row="2" Margin="10,0,0,0" x:Name="scheduleCCB" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" IsChecked="True" IsEnabled="False" />
                 <TextBlock Grid.Row="2" Text="Schedule C:" Margin="50,0,0,0" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="2" x:Name="cValTB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="2" x:Name="cValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
+                    <ComboBoxItem Content="1"/>
+                    <ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="3"/>
+                    <ComboBoxItem Content="4"/>
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="6"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="30"/>
+                </ComboBox>
                 <ComboBox Grid.Row="2" Name="cTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
@@ -104,7 +142,19 @@
                 </ComboBox>
                 <CheckBox Grid.Row="3" x:Name="scheduleDCB" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Unchecked="scheduleDCB_Checked" Checked="scheduleDCB_Checked" />
                 <TextBlock Grid.Row="3" Text="Schedule D:" Margin="50,0,0,0" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="3" x:Name="dValTB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="3" x:Name="dValCB" Margin="190,0,0,0" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center">
+                    <ComboBoxItem Content="1"/>
+                    <ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="3"/>
+                    <ComboBoxItem Content="4"/>
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="6"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="30"/>
+                </ComboBox>
                 <ComboBox Grid.Row="3" Name="dTimeUnitCB" Margin="290,0,0,0" Width="130" FontSize="18" VerticalAlignment="Center">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>

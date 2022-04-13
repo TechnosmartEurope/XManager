@@ -231,7 +231,6 @@ namespace X_Manager
 
 		#region Interfaccia
 
-
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -1295,12 +1294,14 @@ namespace X_Manager
 								oUnit = new AxyTrek(this);
 								break;
 							case "Axy-4":
+							case "Axy-4.5":
 								oUnit = new Axy4_2(this);
 								break;
 							case "Axy-5":
 								oUnit = new Axy5(this);
 								break;
 							case "Axy-Depth":
+							case "Axy-Depth.5":
 								oUnit = new AxyDepth_2(this);
 								break;
 							case "AGM-1":

@@ -20,35 +20,44 @@ namespace X_Manager.ConfigurationWindows
 	/// </summary>
 	partial class BasicsConfiguration : PageCopy
 	{
-		int on, off, sdt, nSat, gsv;
+		int acqOn, acqOff, altOn, nSat, gsv, sdTime;
 		List<TextBox> ctrAr;
-		int[] maxs = new int[5] { 65000, 65000, 2147483647, 6, 90 };
-		int[] mins = new int[5] { 10, 2, 0, 0, 0 };
+		int[] maxs = new int[6] { 65000, 65000, 65000, 8, 200, 0x7ffffff0 };
+		int[] mins = new int[6] { 10, 2, 2, 0, 5, 10 };
 		byte[] conf;
-		DateTime date;
+		DateTime sdDate;
 
 		public BasicsConfiguration(byte[] conf)
 			: base()
 		{
 			InitializeComponent();
 
-			ctrAr = new List<TextBox> { onTB, offTB, startDelayTimeTB, satTB, gsvTB };
+			ctrAr = new List<TextBox> { acqOnTB, acqOffTB, altOnTB, nsatTB, gsvTB, startDelayTimeTB };
 			this.conf = conf;
 
-			on = BitConverter.ToInt16(conf, 32);		//32-33
-			off = BitConverter.ToInt16(conf, 34);		//34-35
-			sdt = BitConverter.ToInt32(conf, 36);		//36-39
-			int anno = BitConverter.ToInt16(conf, 40);	//40-41
-			int mese = conf[42];
-			int giorno = conf[43];
-			nSat = conf[44];
-			gsv = conf[45];
-			date = new DateTime(anno, mese, giorno);
+			acqOn = BitConverter.ToInt16(conf, 32);     //32-33
+			acqOff = BitConverter.ToInt16(conf, 34);    //34-35
+			altOn = BitConverter.ToInt16(conf, 36);     //36-37
+			nSat = conf[38] & 0x7f;                     //38
+			gsv = conf[39];                             //39
+			sdTime = BitConverter.ToInt32(conf, 40);    //40-43
+			int anno = BitConverter.ToInt16(conf, 44);  //44-46
+			int mese = conf[46];
+			int giorno = conf[47];
+			sdDate = new DateTime(anno, mese, giorno);
 
-			onTB.Text = on.ToString();
-			offTB.Text = off.ToString();
-			startDelayTimeTB.Text = sdt.ToString();
-			if (sdt > 0)
+			gsvCB.IsChecked = (conf[38] & 0x80) == 0x80;
+			nsatTB.IsEnabled = (conf[38] & 0x80) == 0x80;
+			gsvTB.IsEnabled = (conf[38] & 0x80) == 0x80;
+
+			acqOnTB.Text = acqOn.ToString();
+			acqOffTB.Text = acqOff.ToString();
+			altOnTB.Text = altOn.ToString();
+			nsatTB.Text = nSat.ToString();
+			gsvTB.Text = gsv.ToString();
+
+			startDelayTimeTB.Text = sdTime.ToString();
+			if (sdTime > 0)
 			{
 				sdtCB.IsChecked = true;
 			}
@@ -57,7 +66,7 @@ namespace X_Manager.ConfigurationWindows
 				startDelayTimeTB.Visibility = Visibility.Hidden;
 				minLabel.Visibility = Visibility.Hidden;
 			}
-			startDelayDateDP.SelectedDate = date;
+			startDelayDateDP.SelectedDate = sdDate;
 			if (anno > 2019)
 			{
 				sddCB.IsChecked = true;
@@ -66,16 +75,13 @@ namespace X_Manager.ConfigurationWindows
 			{
 				startDelayDateDP.Visibility = Visibility.Hidden;
 			}
-			satTB.Text = nSat.ToString();
-			gsvTB.Text = gsv.ToString();
-
 		}
 
 		private void sdtCB_Checked(object sender, RoutedEventArgs e)
 		{
 			if (sdtCB.IsChecked == false)
 			{
-				sdt = 0;
+				sdTime = 0;
 				startDelayTimeTB.Visibility = Visibility.Hidden;
 				minLabel.Visibility = Visibility.Hidden;
 			}
@@ -83,12 +89,13 @@ namespace X_Manager.ConfigurationWindows
 			{
 				startDelayTimeTB.Visibility = Visibility.Visible;
 				minLabel.Visibility = Visibility.Visible;
-				sdt = (conf[39] << 24) + (conf[38] << 16) + (conf[37] << 8) + conf[36];
-				if (sdt == 0)
+				sdTime = BitConverter.ToInt32(conf, 40);
+				//sdTime = (conf[40] << 24) + (conf[38] << 16) + (conf[37] << 8) + conf[36];
+				if (sdTime == 0)
 				{
-					sdt = 360;
+					sdTime = 360;
 				}
-				startDelayTimeTB.Text = sdt.ToString();
+				startDelayTimeTB.Text = sdTime.ToString();
 			}
 		}
 
@@ -96,17 +103,17 @@ namespace X_Manager.ConfigurationWindows
 		{
 			if (sddCB.IsChecked == false)
 			{
-				date = new DateTime(2019, 1, 1);
+				sdDate = new DateTime(2019, 1, 1);
 				startDelayDateDP.Visibility = Visibility.Hidden;
 			}
 			else
 			{
 				startDelayDateDP.Visibility = Visibility.Visible;
-				int anno = (conf[41] * 256 + conf[40]);
-				int mese = conf[42];
-				int giorno = conf[43];
-				date = new DateTime(anno, mese, giorno);
-				startDelayDateDP.SelectedDate = date;
+				int anno = (conf[44] * 256 + conf[45]);
+				int mese = conf[46];
+				int giorno = conf[47];
+				sdDate = new DateTime(anno, mese, giorno);
+				startDelayDateDP.SelectedDate = sdDate;
 			}
 		}
 
@@ -126,8 +133,14 @@ namespace X_Manager.ConfigurationWindows
 		{
 			if (startDelayDateDP.SelectedDate != null)
 			{
-				date = (DateTime)startDelayDateDP.SelectedDate;
+				sdDate = (DateTime)startDelayDateDP.SelectedDate;
 			}
+		}
+
+		private void gsvCB_UnChecked(object sender, RoutedEventArgs e)
+		{
+			nsatTB.IsEnabled = (bool)gsvCB.IsChecked;
+			gsvTB.IsEnabled = (bool)gsvCB.IsChecked;
 		}
 
 		private void onTB_GotFocus(object sender, RoutedEventArgs e)
@@ -144,7 +157,7 @@ namespace X_Manager.ConfigurationWindows
 
 		private void validate(object sender, KeyEventArgs e)
 		{
-		if (e.Key == Key.Enter)
+			if (e.Key == Key.Enter)
 			{
 				if (sender is TextBox)
 				{
@@ -154,7 +167,7 @@ namespace X_Manager.ConfigurationWindows
 				{
 					validate((DatePicker)sender);
 				}
-				
+
 			}
 		}
 
@@ -167,7 +180,7 @@ namespace X_Manager.ConfigurationWindows
 		{
 			//TextBox s = (TextBox)sender;
 			int index = 100;
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < 6; i++)
 			{
 				if (s == ctrAr[i])
 				{
@@ -176,7 +189,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 			if (index == 100) return;
-			int[] oldVal = new int[5] { on, off, sdt, nSat, gsv };
+			int[] oldVal = new int[6] { acqOn, acqOff, altOn, nSat, gsv, sdTime };
 			int newVal;
 			if (!int.TryParse(s.Text, out newVal))
 			{
@@ -191,13 +204,13 @@ namespace X_Manager.ConfigurationWindows
 			switch (index)
 			{
 				case 0:
-					on = newVal;
+					acqOn = newVal;
 					break;
 				case 1:
-					off = newVal;
+					acqOff = newVal;
 					break;
 				case 2:
-					sdt = newVal;
+					altOn = newVal;
 					break;
 				case 3:
 					nSat = newVal;
@@ -205,28 +218,36 @@ namespace X_Manager.ConfigurationWindows
 				case 4:
 					gsv = newVal;
 					break;
+				case 5:
+					sdTime = newVal;
+					break;
 			}
 
 		}
-		
+
 		public override void copyValues()
 		{
-			conf[32] = (byte)(on & 0xff);
-			conf[33] = (byte)(on >> 8);
-			conf[34] = (byte)(off & 0xff);
-			conf[35] = (byte)(off >> 8);
+			conf[32] = (byte)(acqOn & 0xff);
+			conf[33] = (byte)(acqOn >> 8);
+			conf[34] = (byte)(acqOff & 0xff);
+			conf[35] = (byte)(acqOff >> 8);
 
-			conf[36] = (byte)(sdt & 0xff);
-			conf[37] = (byte)((sdt >> 8) & 0xff);
-			conf[38] = (byte)((sdt >> 16) & 0xff);
-			conf[39] = (byte)(sdt >> 24);
+			conf[36] = (byte)(altOn & 0xff);
+			conf[37] = (byte)(altOn >> 8);
 
-			conf[40] = (byte)(date.Year & 0xff);
-			conf[41] = (byte)(date.Year >> 8);
-			conf[42] = (byte)(date.Month);
-			conf[43] = (byte)(date.Day);
-			conf[44] = (byte)nSat;
-			conf[45] = (byte)gsv;
+			conf[38] = (byte)nSat;
+			conf[39] = (byte)gsv;
+			if (gsvCB.IsChecked == true) nSat += 0x80;
+
+			conf[40] = (byte)(sdTime & 0xff);
+			conf[41] = (byte)((sdTime >> 8) & 0xff);
+			conf[42] = (byte)((sdTime >> 16) & 0xff);
+			conf[43] = (byte)(sdTime >> 24);
+
+			conf[44] = (byte)(sdDate.Year & 0xff);
+			conf[45] = (byte)(sdDate.Year >> 8);
+			conf[46] = (byte)(sdDate.Month);
+			conf[47] = (byte)(sdDate.Day);
 		}
 
 	}

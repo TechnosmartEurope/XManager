@@ -558,13 +558,13 @@ namespace X_Manager.ConfigurationWindows
 		List<TimePanel> timePanelAr;
 		StackPanel[] spAr;
 		CheckBox[] cbAr;
-		ComboBox[] cbxAr;
 		CheckBox[] ocCbAr;
 		TextBox[] oxaAr;
 		TextBox[] oyaAr;
 		TextBox[] oxbAr;
 		TextBox[] oybAr;
-		TextBox[] tbArr;
+		ComboBox[] valAr;
+		ComboBox[] unitAr;
 		MapGrid[] mgAr = new MapGrid[10];
 		MapGrid actMapGrid;
 		public Ellipse[] ellAr;
@@ -576,7 +576,6 @@ namespace X_Manager.ConfigurationWindows
 		byte[] conf;
 		bool loaded = false;
 		uint[] sch;
-		int[] oldCbVal = new int[2];
 		//string appDataPath;
 		public struct Square
 		{
@@ -604,8 +603,8 @@ namespace X_Manager.ConfigurationWindows
 			oyaAr = new TextBox[10] { ocya0, ocya1, ocya2, ocya3, ocya4, ocya5, ocya6, ocya7, ocya8, ocya9 };
 			oxbAr = new TextBox[10] { ocxb0, ocxb1, ocxb2, ocxb3, ocxb4, ocxb5, ocxb6, ocxb7, ocxb8, ocxb9 };
 			oybAr = new TextBox[10] { ocyb0, ocyb1, ocyb2, ocyb3, ocyb4, ocyb5, ocyb6, ocyb7, ocyb8, ocyb9 };
-			cbxAr = new ComboBox[2] { eTimeUnitCB, fTimeUnitCB };
-			tbArr = new TextBox[] { eValTB, fValTB };
+			valAr = new ComboBox[2] { eValCB, fValCB };
+			unitAr = new ComboBox[2] { eUnitCB, fUnitCB};
 			actMapGrid = null;
 			timePanelAr = new List<TimePanel>();
 			ellAr = new Ellipse[8] { e1, e2, e3, e4, e5, e6, e7, e8 };
@@ -636,8 +635,8 @@ namespace X_Manager.ConfigurationWindows
 				squareOffset += 192;
 				scheduleOffset += 192;
 			}
-			sch[0] = ((uint)conf[scheduleOffset] << 24) + ((uint)conf[scheduleOffset + 1] << 16) + ((uint)conf[scheduleOffset + 2] << 8) + conf[scheduleOffset + 3];
-			sch[1] = ((uint)conf[scheduleOffset + 4] << 24) + ((uint)conf[scheduleOffset + 5] << 16) + ((uint)conf[scheduleOffset + 6] << 8) + conf[scheduleOffset + 7];
+			sch[0] = (((uint)conf[scheduleOffset + 1]) << 8) + conf[scheduleOffset];
+			sch[1] = (((uint)conf[scheduleOffset + 3]) << 8) + conf[scheduleOffset + 2];
 
 			bool schedBselected = false;
 			scheduleOffset += 8;
@@ -832,111 +831,28 @@ namespace X_Manager.ConfigurationWindows
 				if ((sch[i] % 3600) == 0)
 				{
 					sch[i] /= 3600;
-					cbxAr[i].SelectedIndex = 2;
+					unitAr[i].SelectedIndex = 2;
+					valAr[i].Items.Clear();
+					valAr[i].Items.Add("1");
 				}
 				else if ((sch[i] % 60) == 0)
 				{
 					sch[i] /= 60;
-					cbxAr[i].SelectedIndex = 1;
+					unitAr[i].SelectedIndex = 1;
 				}
 				else
 				{
-					cbxAr[i].SelectedIndex = 0;
+					unitAr[i].SelectedIndex = 0;
 				}
-				oldCbVal[i] = cbxAr[i].SelectedIndex;
-				tbArr[i].Text = sch[i].ToString();
-				tbArr[i].LostFocus += validate;
-				tbArr[i].KeyDown += validate;
-				cbxAr[i].SelectionChanged += cbSelChanged;
+				
+				valAr[i].Text = sch[i].ToString();
+				unitAr[i].SelectionChanged += cbSelChanged;
 			}
 
-			eValTB.Text = sch[0].ToString();
-			fValTB.Text = sch[1].ToString();
 			int c = 512;
 			if (index == 2) c = 513;
 			if (conf[c] == 1) mainEnableCB.IsChecked = true;
 			mainEnableCB.Checked += enableChecked;
-		}
-
-		private void validate(object sender, RoutedEventArgs e)
-		{
-			TextBox tb = (TextBox)sender;
-			validate(ref tb);
-		}
-
-		private void validate(object sender, KeyEventArgs e)
-		{
-			if (e.Key == Key.Return)
-			{
-				TextBox tb = (TextBox)sender;
-				validate(ref tb);
-
-				return;
-			}
-			int ascii = KeyInterop.VirtualKeyFromKey(e.Key);
-			if (((ascii < 48) | (ascii > 57)) && ((ascii < 96) | (ascii > 105)))
-			{
-				if (ascii != 9)
-				{
-					e.Handled = true;
-				}
-			}
-		}
-
-		private void validate(ref TextBox tb)
-		{
-			int ind = Array.IndexOf(tbArr, tb);
-			//for (ind = 0; ind < 2; ind++)
-			//{
-			//	if (tb == tbArr[ind]) break;
-			//}
-
-			cbxAr[ind].SelectionChanged -= cbSelChanged;
-
-			uint newVal = 0;
-			uint.TryParse(tbArr[ind].Text, out newVal);
-			try
-			{
-				if (cbxAr[ind].SelectedIndex == 2)
-				{
-					newVal *= 3600;
-				}
-				else if (cbxAr[ind].SelectedIndex == 1)
-				{
-					newVal *= 60;
-				}
-			}
-			catch
-			{
-				newVal = 0;
-			}
-			if (newVal == 0)
-			{
-				tbArr[ind].Text = sch[ind].ToString();
-				return;
-			}
-			else
-			{
-				if ((newVal % 3600) == 0)
-				{
-					cbxAr[ind].SelectedIndex = 2;
-					newVal /= 3600;
-				}
-				else if ((newVal % 60) == 0)
-				{
-					cbxAr[ind].SelectedIndex = 1;
-					newVal /= 60;
-				}
-				else
-				{
-					cbxAr[ind].SelectedIndex = 0;
-				}
-			}
-
-			sch[ind] = newVal;
-			tbArr[ind].Text = sch[ind].ToString();
-			oldCbVal[ind] = cbxAr[ind].SelectedIndex;
-			cbxAr[ind].SelectionChanged += cbSelChanged;
 		}
 
 		private void tpUnchecked(object sender, EventArgs e)
@@ -966,33 +882,28 @@ namespace X_Manager.ConfigurationWindows
 			int ind;
 			for (ind = 0; ind < 4; ind++)
 			{
-				if (cb == cbxAr[ind]) break;
+				if (cb == unitAr[ind]) break;
 			}
-
-			if (cbxAr[ind].SelectedIndex == oldCbVal[ind]) return;
-
-			if (cbxAr[ind].SelectedIndex == (oldCbVal[ind] - 2))
+			string oldVal = valAr[ind].Text;
+			if (cb.SelectedIndex == 2)
 			{
-				sch[ind] *= 3600;
-
+				valAr[ind].Items.Clear();
+				valAr[ind].Items.Add("1");
+				valAr[ind].SelectedIndex = 0;
 			}
-			else if (cbxAr[ind].SelectedIndex == (oldCbVal[ind] - 1))
+			else
 			{
-				sch[ind] *= 60;
+				if (valAr[ind].Items.Count == 1)
+				{
+					valAr[ind].Items.Clear();
+					string[] sIt = new string[] { "1", "2", "3", "4", "5", "6", "10", "12", "15", "20", "30" };
+					foreach (string s in sIt)
+					{
+						valAr[ind].Items.Add(s);
+					}
+				}
+				valAr[ind].Text = oldVal;
 			}
-			else if (cbxAr[ind].SelectedIndex == (oldCbVal[ind] + 1))
-			{
-				sch[ind] /= 60;
-			}
-			else if (cbxAr[ind].SelectedIndex == (oldCbVal[ind] + 2))
-			{
-				sch[ind] /= 3600;
-			}
-
-			if (sch[ind] == 0) sch[ind] = 1;
-
-			oldCbVal[ind] = cbxAr[ind].SelectedIndex;
-			tbArr[ind].Text = sch[ind].ToString();
 		}
 
 		private void cbunCh(object sender, EventArgs e)
@@ -1996,15 +1907,16 @@ namespace X_Manager.ConfigurationWindows
 				}
 				c += 16;
 			}
-			conf[c + 3] = (byte)(sch[0] >> 24);
-			conf[c + 2] = (byte)(sch[0] >> 16);
-			conf[c + 1] = (byte)(sch[0] >> 8);
-			conf[c] = (byte)sch[0];
 
-			conf[c + 7] = (byte)(sch[1] >> 24);
-			conf[c + 6] = (byte)(sch[1] >> 16);
-			conf[c + 5] = (byte)(sch[1] >> 8);
-			conf[c + 4] = (byte)sch[1];
+			sch[0] = uint.Parse(valAr[0].Text);
+			sch[0] *= (uint)Math.Pow(60, unitAr[0].SelectedIndex);
+			sch[1] = uint.Parse(valAr[1].Text);
+			sch[1] *= (uint)Math.Pow(60, unitAr[1].SelectedIndex);
+
+			conf[c] = (byte)sch[0];
+			conf[c + 1] = (byte)(sch[0] >> 8);
+			conf[c + 2] = (byte)sch[1];
+			conf[c + 3] = (byte)(sch[1] >> 8);
 
 			c += 8;
 			for (int i = 0; i < 24; i++)

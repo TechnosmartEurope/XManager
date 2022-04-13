@@ -22,18 +22,18 @@ namespace X_Manager.ConfigurationWindows
 		TimePanel[] timePanelArAB = new TimePanel[24];
 		TimePanel[] timePanelArCD = new TimePanel[24];
 		uint[] sch = new uint[4];
-		TextBox[] tbArr;
-		ComboBox[] cbArr;
+		ComboBox[] quantityArr;
+		ComboBox[] unitArr;
 		CheckBox[] ckArr;
-		int[] oldCbVal = new int[4];
+		//int[] oldCbVal = new int[4];
 		public ScheduleConfiguration(byte[] conf)
 		{
 			InitializeComponent();
 			this.conf = conf;
 			int riga = 0;
 			int colonna = 0;
-			tbArr = new TextBox[] { aValTB, bValTB, cValTB, dValTB };
-			cbArr = new ComboBox[4] { aTimeUnitCB, bTimeUnitCB, cTimeUnitCB, dTimeUnitCB };
+			quantityArr = new ComboBox[] { aValCB, bValCB, cValCB, dValCB };
+			unitArr = new ComboBox[4] { aTimeUnitCB, bTimeUnitCB, cTimeUnitCB, dTimeUnitCB };
 			ckArr = new CheckBox[12] { m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12 };
 
 			for (int i = 0; i < 24; i++)
@@ -63,10 +63,10 @@ namespace X_Manager.ConfigurationWindows
 
 			}
 
-			sch[0] = BitConverter.ToUInt32(conf, 52);	//52-55
-			sch[1] = BitConverter.ToUInt32(conf, 56);	//56-59
-			sch[2] = BitConverter.ToUInt32(conf, 84);	//84-87
-			sch[3] = BitConverter.ToUInt32(conf, 88);	//88-91
+			sch[0] = BitConverter.ToUInt16(conf, 52);   //52-53
+			sch[1] = BitConverter.ToUInt16(conf, 54);   //54-55
+			sch[2] = BitConverter.ToUInt16(conf, 84);   //84-85
+			sch[3] = BitConverter.ToUInt16(conf, 86);   //86-87
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -121,22 +121,23 @@ namespace X_Manager.ConfigurationWindows
 				if ((sch[i] % 3600) == 0)
 				{
 					sch[i] /= 3600;
-					cbArr[i].SelectedIndex = 2;
+					unitArr[i].SelectedIndex = 2;
+					quantityArr[i].Items.Clear();
+					quantityArr[i].Items.Add("1");
+					//quantityArr[i].SelectedIndex = 0;
 				}
 				else if ((sch[i] % 60) == 0)
 				{
 					sch[i] /= 60;
-					cbArr[i].SelectedIndex = 1;
+					unitArr[i].SelectedIndex = 1;
 				}
 				else
 				{
-					cbArr[i].SelectedIndex = 0;
+					unitArr[i].SelectedIndex = 0;
 				}
-				oldCbVal[i] = cbArr[i].SelectedIndex;
-				tbArr[i].Text = sch[i].ToString();
-				tbArr[i].LostFocus += validate;
-				tbArr[i].KeyDown += validate;
-				cbArr[i].SelectionChanged += cbSelChanged;
+				quantityArr[i].Text = sch[i].ToString();
+				//quantityArr[i].SelectedItem = sch[i].ToString();
+				unitArr[i].SelectionChanged += cbSelChanged;
 			}
 
 			//Mesi C/D
@@ -151,29 +152,24 @@ namespace X_Manager.ConfigurationWindows
 
 		public override void copyValues()
 		{
+			
 			for (int i = 0; i < 4; i++)
 			{
-				sch[i] *= (uint)Math.Pow(60, cbArr[i].SelectedIndex);
+				sch[i] = uint.Parse(quantityArr[i].Text);
+				sch[i] *= (uint)Math.Pow(60, unitArr[i].SelectedIndex);
 			}
-			conf[55] = (byte)(sch[0] >> 24);
-			conf[54] = (byte)(sch[0] >> 16);
-			conf[53] = (byte)(sch[0] >> 8);
+
 			conf[52] = (byte)(sch[0] & 0xff);
+			conf[53] = (byte)(sch[0] >> 8);
 
-			conf[59] = (byte)(sch[1] >> 24);
-			conf[58] = (byte)(sch[1] >> 16);
-			conf[57] = (byte)(sch[1] >> 8);
-			conf[56] = (byte)(sch[1] & 0xff);
+			conf[54] = (byte)(sch[1] & 0xff);
+			conf[55] = (byte)(sch[1] >> 8);
 
-			conf[87] = (byte)(sch[2] >> 24);
-			conf[86] = (byte)(sch[2] >> 16);
-			conf[85] = (byte)(sch[2] >> 8);
 			conf[84] = (byte)(sch[2] & 0xff);
+			conf[85] = (byte)(sch[2] >> 8);
 
-			conf[91] = (byte)(sch[3] >> 24);
-			conf[90] = (byte)(sch[3] >> 16);
-			conf[89] = (byte)(sch[3] >> 8);
-			conf[88] = (byte)(sch[3] & 0xff);
+			conf[86] = (byte)(sch[3] & 0xff);
+			conf[87] = (byte)(sch[3] >> 8);
 
 			for (int i = 0; i < 24; i++)
 			{
@@ -238,87 +234,6 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		private void validate(object sender, RoutedEventArgs e)
-		{
-			TextBox tb = (TextBox)sender;
-			validate(ref tb);
-		}
-
-		private void validate(object sender, KeyEventArgs e)
-		{
-			if (e.Key == Key.Return)
-			{
-				TextBox tb = (TextBox)sender;
-				validate(ref tb);
-
-				return;
-			}
-			int ascii = KeyInterop.VirtualKeyFromKey(e.Key);
-			if (((ascii < 48) | (ascii > 57)) && ((ascii < 96) | (ascii > 105)))
-			{
-				if (ascii != 9)
-				{
-					e.Handled = true;
-				}
-			}
-		}
-
-		private void validate(ref TextBox tb)
-		{
-			int ind;
-			for (ind = 0; ind < 4; ind++)
-			{
-				if (tb == tbArr[ind]) break;
-			}
-
-			cbArr[ind].SelectionChanged -= cbSelChanged;
-
-			uint newVal = 0;
-			uint.TryParse(tbArr[ind].Text, out newVal);
-			try
-			{
-				if (cbArr[ind].SelectedIndex == 2)
-				{
-					newVal *= 3600;
-				}
-				else if (cbArr[ind].SelectedIndex == 1)
-				{
-					newVal *= 60;
-				}
-			}
-			catch
-			{
-				newVal = 0;
-			}
-			if (newVal == 0)
-			{
-				tbArr[ind].Text = sch[ind].ToString();
-				return;
-			}
-			else
-			{
-				if ((newVal % 3600) == 0)
-				{
-					cbArr[ind].SelectedIndex = 2;
-					newVal /= 3600;
-				}
-				else if ((newVal % 60) == 0)
-				{
-					cbArr[ind].SelectedIndex = 1;
-					newVal /= 60;
-				}
-				else
-				{
-					cbArr[ind].SelectedIndex = 0;
-				}
-			}
-
-			sch[ind] = newVal;
-			tbArr[ind].Text = sch[ind].ToString();
-			oldCbVal[ind] = cbArr[ind].SelectedIndex;
-			cbArr[ind].SelectionChanged += cbSelChanged;
-		}
-
 		private void cbSelChanged(object sender, SelectionChangedEventArgs e)
 		{
 			ComboBox cb = (ComboBox)sender;
@@ -326,33 +241,28 @@ namespace X_Manager.ConfigurationWindows
 			int ind;
 			for (ind = 0; ind < 4; ind++)
 			{
-				if (cb == cbArr[ind]) break;
+				if (cb == unitArr[ind]) break;
 			}
-
-			if (cbArr[ind].SelectedIndex == oldCbVal[ind]) return;
-
-			if (cbArr[ind].SelectedIndex == (oldCbVal[ind] - 2))
+			string oldVal = quantityArr[ind].Text;
+			if (cb.SelectedIndex == 2)
 			{
-				sch[ind] *= 3600;
-
+				quantityArr[ind].Items.Clear();
+				quantityArr[ind].Items.Add("1");
+				quantityArr[ind].SelectedIndex = 0;
 			}
-			else if (cbArr[ind].SelectedIndex == (oldCbVal[ind] - 1))
+			else
 			{
-				sch[ind] *= 60;
+				if (quantityArr[ind].Items.Count == 1)
+				{
+					quantityArr[ind].Items.Clear();
+					string[] sIt = new string[] { "1", "2", "3", "4", "5", "6", "10", "12", "15", "20", "30" };
+					foreach (string s in sIt)
+					{
+						quantityArr[ind].Items.Add(s);
+					}
+				}
+				quantityArr[ind].Text = oldVal;
 			}
-			else if (cbArr[ind].SelectedIndex == (oldCbVal[ind] + 1))
-			{
-				sch[ind] /= 60;
-			}
-			else if (cbArr[ind].SelectedIndex == (oldCbVal[ind] + 2))
-			{
-				sch[ind] /= 3600;
-			}
-
-			if (sch[ind] == 0) sch[ind] = 1;
-
-			oldCbVal[ind] = cbArr[ind].SelectedIndex;
-			tbArr[ind].Text = sch[ind].ToString();
 		}
 
 	}

@@ -1828,7 +1828,14 @@ namespace X_Manager.Units
 				if ((tsc.tsTypeExt1 & ts_multi) == ts_multi)
 				{
 					byte t = 0;
-					while (t != 0xab) t = (byte)ard.ReadByte();
+					while (t != 0xab)
+					{
+						if (ard.Position >= ard.Length)
+						{
+							return;
+						}
+						t = (byte)ard.ReadByte();
+					}
 					ard.Read(new byte[0x3e], 0, 0x3e);
 					header = true;
 					tsCheck--;

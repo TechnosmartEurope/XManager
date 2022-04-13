@@ -13,17 +13,19 @@
             <RowDefinition Height="60"/>
             <RowDefinition Height="660"/>
         </Grid.RowDefinitions>
-
+        
         <TextBlock Grid.Row="0" x:Name="titleL" Text=" 3 - Geofencing 1" Background="#FF303030" Foreground="White" FontSize="40" />
         <CheckBox Grid.Row="0" Name="mainEnableCB" HorizontalAlignment="Right" VerticalContentAlignment="Center" Content="Enable" FontSize="26" Margin="0,0,20,0" VerticalAlignment="Center" Padding="4,0" Checked="enableChecked"/>
-
+        
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="768"/>
                 <ColumnDefinition Width="200"/>
             </Grid.ColumnDefinitions>
 
+            
             <Grid Grid.Column="0">
+                
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="377*"/>
                     <ColumnDefinition Width="392*"/>
@@ -33,12 +35,13 @@
                     <RowDefinition Height="40"/>
                     <RowDefinition Height="580"/>
                 </Grid.RowDefinitions>
-
+                
                 <Canvas Grid.Row="2" x:Name="canvas" MouseLeftButtonDown="CanvasMouseLeftButtonDown"
                         MouseLeftButtonUp="CanvasMouseLeftButtonUp"
                         MouseMove="CanvasMouseMove" MouseWheel="CanvasMouseWheel"
                         Background="Aquamarine"
                         Height="580" Width="768" ClipToBounds="True" Grid.ColumnSpan="2">
+                    
                     <Grid x:Name="offlineGrid" Width="768" Height="580" Panel.ZIndex="6" Canvas.Left="0" Background="Black">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1.5*"/>
@@ -62,6 +65,7 @@
                             <ColumnDefinition Width="7*"/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
+                        
                         <TextBox Text="TopLeft Longitude" Grid.Column="1" Grid.Row="0" FontSize="22" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Foreground="#FF00AADE" Background="Black" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0"/>
                         <TextBox Text="TopLeft  Latitude" Grid.Column="2" Grid.Row="0" FontSize="22" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Foreground="#FF00AADE" Background="Black" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0"/>
                         <TextBox Text="BottomRight Longitude" Grid.Column="3" Grid.Row="0" FontSize="22" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Foreground="#FF00AADE" Background="Black" TextWrapping="Wrap" AcceptsReturn="True" BorderThickness="0"/>
@@ -76,7 +80,7 @@
                         <CheckBox x:Name="ocCB7" Grid.Row="8" Grid.Column="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="True" TabIndex="335"/>
                         <CheckBox x:Name="ocCB8" Grid.Row="9" Grid.Column="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="True" TabIndex="340"/>
                         <CheckBox x:Name="ocCB9" Grid.Row="10" Grid.Column="0" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="True" TabIndex="345"/>
-
+                        
                         <TextBox x:Name="ocxa0" Grid.Row="1" Grid.Column="1" Text="12.34567" Margin="5" FontSize="22" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TabIndex="301"/>
                         <TextBox x:Name="ocxa1" Grid.Row="2" Grid.Column="1" Text="12.34567" Margin="5" FontSize="22" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TabIndex="306"/>
                         <TextBox x:Name="ocxa2" Grid.Row="3" Grid.Column="1" Text="12.34567" Margin="5" FontSize="22" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TabIndex="311"/>
@@ -118,30 +122,54 @@
                         <TextBox x:Name="ocyb7" Grid.Row="8" Grid.Column="4" Text="12.34567" Margin="5" FontSize="22" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TabIndex="339"/>
                         <TextBox x:Name="ocyb8" Grid.Row="9" Grid.Column="4" Text="12.34567" Margin="5" FontSize="22" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TabIndex="344"/>
                         <TextBox x:Name="ocyb9" Grid.Row="10" Grid.Column="4" Text="12.34567" Margin="5" FontSize="22" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" TabIndex="349"/>
-
                     </Grid>
-                </Canvas>
-
-
+                </Canvas>                 
                 <CheckBox Grid.Row="0" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" IsChecked="True" IsEnabled="False" />
                 <TextBlock Grid.Row="0" x:Name="schAL" Text="Schedule E:" Margin="45,7,0,6" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
-                <TextBox Grid.Row="0" x:Name="eValTB" Margin="160,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center" TabIndex="1"/>
-                <ComboBox Grid.Row="0" Name="eTimeUnitCB" Margin="270,5,0,5" Width="130" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" TabIndex="2" Grid.ColumnSpan="2">
+                
+                <ComboBox Grid.Row="0" x:Name="eValCB" Margin="160,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center" TabIndex="1">
+                    <ComboBoxItem Content="1"/>
+                    <ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="3"/>
+                    <ComboBoxItem Content="4"/>
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="6"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="30"/>
+                </ComboBox>
+                
+                <ComboBox Grid.Row="0" Name="eUnitCB" Margin="270,5,0,5" Width="130" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" TabIndex="2" Grid.ColumnSpan="2">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
                     <ComboBoxItem Content="Hours"/>
                 </ComboBox>
-                <Button Click="lockBClick" Grid.Row="0" FontSize="13" x:Name="lockB" HorizontalAlignment="Right" Width="120" Height="40" VerticalAlignment="Top" Grid.Column="1"/>
 
+                <Button Click="lockBClick" Grid.Row="0" FontSize="13" x:Name="lockB" HorizontalAlignment="Right" Width="120" Height="40" VerticalAlignment="Top" Grid.Column="1"/>
                 <CheckBox Grid.Row="1" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Checked="cbSchedChecked" Unchecked="cbSchedUnchecked"/>
                 <TextBlock Grid.Row="1" x:Name="schBL" Text="Schedule F:" Margin="45,7,0,6" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
-                <TextBox Grid.Row="1" x:Name="fValTB" Margin="160,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center" TabIndex="3"/>
-                <ComboBox Grid.Row="1" Name="fTimeUnitCB" Margin="270,5,0,5" Width="130" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" TabIndex="4" Grid.ColumnSpan="2">
+                <ComboBox Grid.Row="1" x:Name="fValCB" Margin="160,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center" TabIndex="3">
+                    <ComboBoxItem Content="1"/>
+                    <ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="3"/>
+                    <ComboBoxItem Content="4"/>
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="6"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="12"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <ComboBoxItem Content="30"/>
+                </ComboBox>
+                <ComboBox Grid.Row="1" Name="fUnitCB" Margin="270,5,0,5" Width="130" FontSize="18" VerticalAlignment="Center" HorizontalAlignment="Left" TabIndex="4" Grid.ColumnSpan="2">
                     <ComboBoxItem Content="Seconds"/>
                     <ComboBoxItem Content="Minutes"/>
                     <ComboBoxItem Content="Hours"/>
                 </ComboBox>
-                <Grid Grid.Row="1" Margin="33.5,0,0,0" Grid.Column="1">
+                
+                <Grid Grid.Row="1" Margin="33.5,0,0,0" Grid.Column="1">                    
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
@@ -153,13 +181,13 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
+                    </Grid.ColumnDefinitions>                    
                     <StackPanel Grid.Column="0" x:Name="sp0" Background="#FF606060" Margin="3" MouseLeftButtonDown="spClick">
                         <CheckBox x:Name="cb0" TabIndex="100" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" x:Name="sp1" Background="#FF606060" Margin="3" MouseLeftButtonDown="spClick">
                         <CheckBox x:Name="cb1" TabIndex="101"  />
-                    </StackPanel>
+                    </StackPanel>                    
                     <StackPanel Grid.Column="2" x:Name="sp2" Background="#FF606060" Margin="3" MouseLeftButtonDown="spClick">
                         <CheckBox x:Name="cb2" TabIndex="102"  />
                     </StackPanel>
@@ -184,21 +212,12 @@
                     <StackPanel Grid.Column="9" x:Name="sp9" Background="#FF606060" Margin="3" MouseLeftButtonDown="spClick">
                         <CheckBox x:Name="cb9" TabIndex="110"  />
                     </StackPanel>
-
-
                 </Grid>
-
+                
                 <Border Grid.Row="2" BorderBrush="Aqua" BorderThickness="1" Grid.ColumnSpan="2"/>
-                <!--<WebBrowser Grid.Row="2" Panel.ZIndex="1" Margin="0" Name="browser"
-                            Width="768" Height="512" Visibility="Hidden"/>
-                <Line Grid.Row="2" Panel.ZIndex="0" Stroke="Red"
-                      X1="0" X2="768" Y1="0" Y2="580" StrokeThickness="1"/>
-                <Line Grid.Row="2" Panel.ZIndex="0" Stroke="Green"
-                      X1="768" X2="0" Y1="0" Y2="580" StrokeThickness="1"/>
-                -->
-
+                
             </Grid>
-
+            
             <Grid Grid.Column="1" Name="timeGrid">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="28*"/>
@@ -227,7 +246,6 @@
                     <RowDefinition Height="27"/>
                 </Grid.RowDefinitions>
             </Grid>
-
 
         </Grid>
 
