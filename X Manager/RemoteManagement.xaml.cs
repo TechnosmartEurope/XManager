@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.IO.Ports;
+using System.Runtime.InteropServices;
 
 namespace X_Manager
 {
@@ -25,13 +26,13 @@ namespace X_Manager
 		MainWindow parent;
 		SerialPort sp;
 
-		public RemoteManagement(ref SerialPort sp, object p)
+		public RemoteManagement(ref SerialPort sp, object p, string portShortName)
 		{
 			InitializeComponent();
 			parent = (MainWindow)p;
 			this.sp = sp;
 			//this.sp = sp;
-			var rconn = new RemoteConnector(ref sp, this);
+			var rconn = new RemoteConnector(ref sp, this, portShortName);
 			connTab.Content = rconn;
 			var rtime = new RemoteSupervisor(ref sp, this);
 			timeTab.Content = rtime;
@@ -39,10 +40,10 @@ namespace X_Manager
 			confTab.Content = rconf;
 		}
 
-		public bool connect()
+		public bool connect(int baudRate)
 		{
 			System.Threading.Thread.Sleep(400);
-			return parent.externConnect();
+			return parent.externConnect(baudRate);
 		}
 
 		public ref Units.Unit getUnit()

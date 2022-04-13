@@ -299,6 +299,9 @@
     <Compile Include="ConfigurationWindows\GiPSy6\BasicsConfiguration.xaml.cs">
       <DependentUpon>BasicsConfiguration.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\BatteryConfiguration.xaml.cs">
+      <DependentUpon>BatteryConfiguration.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConfigurationWindows\GiPSy6\GeofencigConfiguration.xaml.cs">
       <DependentUpon>GeofencigConfiguration.xaml</DependentUpon>
     </Compile>
@@ -418,6 +421,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConfigurationWindows\GiPSy6\BasicsConfiguration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\GiPSy6\BatteryConfiguration.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.IO;
 
 namespace X_Manager.Bootloader
 {
@@ -29,6 +30,7 @@ namespace X_Manager.Bootloader
 		readonly byte[] baudrateSYnc = { 0x55, 0x55 };
 		readonly byte[] COMMAND_PING = { 0x03, 0x20, 0x20 };
 		readonly byte[] COMMAND_GET_CHIP_ID = { 0x03, 0x28, 0x28 };
+		readonly int bootloaderBaudRate = 1000000;
 
 		BackgroundWorker bgw;
 
@@ -36,11 +38,12 @@ namespace X_Manager.Bootloader
 		{
 			InitializeComponent();
 			Loaded += loaded;
+			Closing += closing;
 			this.sp = sp;
 			this.unitConnected = unitConnected;
 			flashB.IsEnabled = false;
 
-			sp.ReadTimeout = 30;
+			sp.ReadTimeout = 300;
 			if (!sp.IsOpen)
 			{
 				sp.Open();
@@ -61,6 +64,8 @@ namespace X_Manager.Bootloader
 				{
 					MessageBox.Show("Firmware updating not ready. Please try again...");
 					//Close();
+					sp.BaudRate = 115200;
+					if (sp.IsOpen) sp.Close();
 					return;
 				}
 
@@ -100,7 +105,7 @@ namespace X_Manager.Bootloader
 			{
 				sp.Open();
 			}
-			sp.BaudRate = 115200;
+			sp.BaudRate = bootloaderBaudRate;
 			Thread.Sleep(400);
 			sp.ReadExisting();
 			sp.ReadTimeout = 200;
@@ -125,17 +130,61 @@ namespace X_Manager.Bootloader
 					Thread.Sleep(500);
 					if (i == 1)
 					{
-						MessageBox.Show("Bootloader. Please try again...");
+						MessageBox.Show("Bootloader not ready. Please try again...");
 						//Close();
+						sp.BaudRate = 115200;
+						if (sp.IsOpen) sp.Close();
 						return;
 					}
 				}
 			}
 			firmwareFile = X_Manager.Parent.getParameter("gipsy6FirmwareFile", "");
 			fileTB.Text = firmwareFile;
+			if (!File.Exists(firmwareFile))
+			{
+				filePropertiesTB.Text = "File not found.";
+			}
+			else
+			{
+				filePropertiesTB.Text = "Firmware date: " + File.GetLastWriteTime(firmwareFile);
+
+			}
+			wipeDataCB.IsChecked = false;
+			if (X_Manager.Parent.getParameter("gipsy6BootloaderWipeData", "true") == "true")
+			{
+				wipeDataCB.IsChecked = true;
+			}
+			wipeSettingsCB.IsChecked = false;
+			if (X_Manager.Parent.getParameter("gipsy6BootloaderWipeSettings", "true") == "true")
+			{
+				wipeSettingsCB.IsChecked = true;
+			}
+
 			connectB.IsEnabled = false;
 			getChipId();
 			flashB.IsEnabled = true;
+		}
+
+		private void closing(object sender, CancelEventArgs e)
+		{
+			string b = "false";
+			if ((bool)wipeSettingsCB.IsChecked)
+			{
+				b = "true";
+			}
+			X_Manager.Parent.updateParameter("gipsy6BootloaderWipeSettings", b);
+			b = "false";
+			if ((bool)wipeDataCB.IsChecked)
+			{
+				b = "true";
+			}
+			X_Manager.Parent.updateParameter("gipsy6BootloaderWipeData", b);
+
+			sp.BaudRate = 115200;
+			if (sp.IsOpen)
+			{
+				sp.Close();
+			}
 		}
 
 		void getChipId()
@@ -152,6 +201,8 @@ namespace X_Manager.Bootloader
 				if (test == 0x33)
 				{
 					MessageBox.Show("Bootloader not ready. Please try again...");
+					sp.BaudRate = 115200;
+					if (sp.IsOpen) sp.Close();
 					Close();
 					return;
 				}
@@ -164,6 +215,8 @@ namespace X_Manager.Bootloader
 			catch
 			{
 				MessageBox.Show("Bootloader not ready. Please try again...");
+				sp.BaudRate = 115200;
+				if (sp.IsOpen) sp.Close();
 				Close();
 				return;
 			}
@@ -229,6 +282,7 @@ namespace X_Manager.Bootloader
 				firmwareFile = open.FileName;
 				X_Manager.Parent.updateParameter("gipsy6FirmwareFile", firmwareFile);
 				fileTB.Text = firmwareFile;
+				filePropertiesTB.Text = "Firmware date: " + File.GetLastWriteTime(firmwareFile);
 			}
 			else
 			{
@@ -238,13 +292,13 @@ namespace X_Manager.Bootloader
 
 		private void flashB_Click(object sender, RoutedEventArgs e)
 		{
-			if (!System.IO.File.Exists(firmwareFile))
+			if (!File.Exists(firmwareFile))
 			{
 				MessageBox.Show("File not valid.");
 				return;
 			}
 
-			byte[] file = System.IO.File.ReadAllBytes(firmwareFile);
+			byte[] file = File.ReadAllBytes(firmwareFile);
 			pages = new List<fPage>();
 
 			for (int i = 0; i < (file.Length / 0x02000); i++)
@@ -267,8 +321,8 @@ namespace X_Manager.Bootloader
 			}
 
 			bool[] settings = new bool[2];
-			settings[0] = wipeDataCB.IsEnabled;
-			settings[1] = wipeSettingsCB.IsEnabled;
+			settings[0] = (bool)wipeDataCB.IsChecked;
+			settings[1] = (bool)wipeSettingsCB.IsChecked;
 			bgw = new BackgroundWorker();
 			bgw.WorkerReportsProgress = true;
 			bgw.WorkerSupportsCancellation = true;
@@ -281,28 +335,30 @@ namespace X_Manager.Bootloader
 		{
 			bool wipeData = ((bool[])e.Argument)[0];
 			bool wipeSettings = ((bool[])e.Argument)[1];
+			//bool wipeData = (bool)wipeDataCB.IsChecked;
+			//bool wipeSettings = (bool)wipeSettingsCB.IsChecked;
 			int oldReadTimeout = sp.ReadTimeout;
-			sp.ReadTimeout = 1;
+			sp.ReadTimeout = 300;
 			bgw.ReportProgress(-1);
 			uint address = 0;
 			for (int i = 0; i < 0x2b; i++)
 			{
 				address = (uint)(i * 0x2000);
-				if (address >= 0x10000 & address < 0x20000)
+				if (address >= 0x20000 & address < 0x52000)
 				{
 					if (wipeData)
 					{
 						sectorErase(address);
 					}
 				}
-				else if (address == 0x20000)
+				else if (address == 0x52000)
 				{
 					if (wipeSettings)
 					{
 						sectorErase(address);
 					}
 				}
-				else if (address == 0x22000)
+				else if (address == 0x54000)
 				{
 					if (wipeData)
 					{
@@ -318,11 +374,11 @@ namespace X_Manager.Bootloader
 			sp.ReadExisting();
 			bgw.ReportProgress(-2);
 			bgw.ReportProgress(0);
-			sp.ReadTimeout = 1;
+			sp.ReadTimeout = 300;
 			foreach (fPage fp in pages)
 			{
 				{
-					if ((fp.address >= 0x10000) & (fp.address < 0x20000))
+					if ((fp.address >= 0x20000) & (fp.address < 0x52000))
 					{
 						if (wipeData)
 						{
@@ -332,7 +388,7 @@ namespace X_Manager.Bootloader
 							}
 						}
 					}
-					else if (fp.address == 0x20000)
+					else if (fp.address == 0x52000)
 					{
 						if (wipeSettings)
 						{
@@ -342,7 +398,7 @@ namespace X_Manager.Bootloader
 							}
 						}
 					}
-					else if (fp.address == 0x22000)
+					else if (fp.address == 0x54000)
 					{
 						if (wipeData)
 						{
@@ -570,10 +626,10 @@ namespace X_Manager.Bootloader
 			{
 				sp.Open();
 			}
-			sp.BaudRate = 115200;
+			sp.BaudRate = bootloaderBaudRate;
 			//Thread.Sleep(400);
 			sp.ReadExisting();
-			sp.ReadTimeout = 10;
+			sp.ReadTimeout = 300;
 			sp.Write(COMMAND_PING, 0, COMMAND_PING[0]);
 			try
 			{

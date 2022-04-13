@@ -143,3 +143,7 @@
 	Bugfix: Nella finestra di configurazione Gipsy6_Basic non venivano correttamente inviati i parametri Early Stop e Enhanced Accuracy
 	Bugfix: AGM. Venivano usati i coefficienti del giroscopio nella conversione del magnetometro in modalità acc-linked.
 	Axy5-Conversione: Passaggio da BinaryWriter a StreamWriter
+1.14.7(NR)	Bugfix: il pulsante "FLASH" della finestra firmware upload del gipsy6 aveva aree non premibili
+	Bugfix: la finestra firmware upload del gipsy6 lasciava la porta seriale impegnata dopo la chiusura
+1.15.0	Allineamento classe Gipsy6 con firmware finale 1.0.0
+	Il remote connector si chiude automaticamente quando la connessione va a buon fine.

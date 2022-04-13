@@ -289,7 +289,7 @@ namespace X_Manager.Units
 			}
 		}
 
-		public override bool isRemote()
+		public override bool getRemote()
 		{
 			sp.Write("TTTTTTTTTTGGAl");
 			try
@@ -452,13 +452,13 @@ namespace X_Manager.Units
 
 		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
-			convertStop = false;	//Inizializzazione variabile di interruzione utente del download
-			uint actMemory = mem_max_logical_address;	//Inizializzazione numero di pagina da scaricare
-			FileMode fm = FileMode.Create;				//File ard da creare nuovo (se esistente viene sovrascritto)
+			convertStop = false;    //Inizializzazione variabile di interruzione utente del download
+			uint actMemory = mem_max_logical_address;   //Inizializzazione numero di pagina da scaricare
+			FileMode fm = FileMode.Create;              //File ard da creare nuovo (se esistente viene sovrascritto)
 
-			string fileNameMdp_base = Path.GetFileNameWithoutExtension(fileName);	//recupera il nome dell'unità dal nome del file
-			int numAct = -1;	
-			foreach (string file in Directory.GetFiles(Path.GetDirectoryName(fileName)))	//Calcola il suffisso da aggiungere al file, in caso di file già presenti
+			string fileNameMdp_base = Path.GetFileNameWithoutExtension(fileName);   //recupera il nome dell'unità dal nome del file
+			int numAct = -1;
+			foreach (string file in Directory.GetFiles(Path.GetDirectoryName(fileName)))    //Calcola il suffisso da aggiungere al file, in caso di file già presenti
 			{
 				string fileNoExt = Path.GetFileNameWithoutExtension(file);
 				if (fileNoExt.Contains(fileNameMdp_base))
@@ -529,12 +529,12 @@ namespace X_Manager.Units
 
 			int position = 0;
 			int toBeDownloaded;
-			uint stopMemory = mem_address & 0xfffff000;	//Allinea i dati da scaricare arrotondandoli per eccesso ad una pagina completo
+			uint stopMemory = mem_address & 0xfffff000; //Allinea i dati da scaricare arrotondandoli per eccesso ad una pagina completo
 			if ((mem_address & 0xfff) != 0)
 			{
 				stopMemory += 0x1000;
 			}
-			
+
 			//Calcola il numero di pagine da scaricare
 			if (mem_address > mem_max_logical_address)
 			{
@@ -597,7 +597,7 @@ namespace X_Manager.Units
 			while (pageCounter < toBeDownloaded)
 			{
 				//COSTRUZIONE COMANDO
-				if (firstLoop > 0)		  //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)
+				if (firstLoop > 0)        //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)
 				{
 					address = BitConverter.GetBytes(actMemory);
 					Array.Reverse(address);
@@ -615,7 +615,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					outBuffer[0] = (byte)'O';					   //Pagina successiva: si invia soltanto 'O'
+					outBuffer[0] = (byte)'O';                      //Pagina successiva: si invia soltanto 'O'
 					bytesToWrite = 1;
 				}
 
@@ -634,7 +634,7 @@ namespace X_Manager.Units
 				}
 
 				//RITORNATO BUFFER VUOTO O INCOMPLETO
-				else if (bytesReturned != 4096)					 //La pagina è arrivata incompleta, la si richiede nuovamente iducendo il loop a invare 'A' al prossimo comando
+				else if (bytesReturned != 4096)                  //La pagina è arrivata incompleta, la si richiede nuovamente iducendo il loop a invare 'A' al prossimo comando
 				{
 					firstLoop = 1;
 					continue;
@@ -643,7 +643,7 @@ namespace X_Manager.Units
 				//BUFFER ARRIVATO OK
 				pageCounter += 0x1000;
 				actMemory += 0x1000;
-				if (actMemory == 0x_2000_0000)	  //Effetto Pacman
+				if (actMemory == 0x_2000_0000)    //Effetto Pacman
 				{
 					actMemory = 0;
 				}
@@ -655,7 +655,7 @@ namespace X_Manager.Units
 				}
 
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = pageCounter)); //Aggiornamento progress bar
-				if (convertStop) break;	  //Premuto il tasto stop
+				if (convertStop) break;   //Premuto il tasto stop
 			}
 
 			goto _endLoop;
@@ -663,7 +663,7 @@ namespace X_Manager.Units
 		_loopDualDie:
 			while (pageCounter < toBeDownloaded)
 			{
-				if (firstLoop > 0)	   // A
+				if (firstLoop > 0)     // A
 				{
 					address = BitConverter.GetBytes(actMemory);
 					Array.Reverse(address);
@@ -704,7 +704,7 @@ namespace X_Manager.Units
 					actMemory += 4096;
 					position += 4096;
 					pageCounter += 4096;
-					if (((actMemory + 4096) % 0x20000) == 0)		 //a
+					if (((actMemory + 4096) % 0x20000) == 0)         //a
 					{
 						for (int i = 1; i < 3; i++)
 						{
@@ -1229,20 +1229,20 @@ namespace X_Manager.Units
 
 			findTDAdcEnable(ard.ReadByte());   //Temperatura, pressione e adc abilitati
 
-			dtPeriod = ard.ReadByte();				 //TD periodo di logging (non serve al software)
+			dtPeriod = ard.ReadByte();               //TD periodo di logging (non serve al software)
 
 			findMagEnable(ard.ReadByte());  //Frequenza magnetometro
 
-			if (ard.ReadByte() == 1)		//Controlla se è presente la prima estensione dell'header con schedule e schedule remoto
+			if (ard.ReadByte() == 1)        //Controlla se è presente la prima estensione dell'header con schedule e schedule remoto
 			{
 				padding = 8;
-				int movThreshold = ard.ReadByte();			  //Legge le soglie di movimento
+				int movThreshold = ard.ReadByte();            //Legge le soglie di movimento
 				int movLatency = ard.ReadByte();
 				schedule = new byte[30];
 				ard.Read(schedule, 0, 30);
 				remSched = new byte[3];
 				ard.Read(remSched, 0, 3);
-				ard.ReadByte();			 //Byte per futura estensione dello schedule
+				ard.ReadByte();          //Byte per futura estensione dello schedule
 			}
 
 			for (int i = 0; i < padding; i++)
@@ -1432,6 +1432,9 @@ namespace X_Manager.Units
 			{
 				if (ard.ReadByte() == 2)
 				{
+					gruppoCON[2] = "0";
+					gruppoCON[3] = "0";
+					gruppoCON[4] = "0";
 					tsc.tsType = tsc.tsTypeExt1 = tsc.tsTypeExt2 = 0;
 				}
 			}
@@ -1445,7 +1448,8 @@ namespace X_Manager.Units
 			tsc.timeStampLength = (int)(position / (3 + bit));
 			if (position == 0)
 			{
-				return new double[] { group[0], group[1], group[2] };
+				//return new double[] { group[0], group[1], group[2] };
+				return new double[] { };
 			}
 
 			//Se non ha informazioni circa la frequenza, la stima dalla lunghezza del gruppo

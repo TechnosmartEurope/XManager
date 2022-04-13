@@ -1660,9 +1660,9 @@ namespace X_Manager.Units
 			base.setPcTime();
 		}
 
-		public override bool isRemote()
+		public override bool getRemote()
 		{
-			return base.isRemote();
+			return base.getRemote();
 		}
 
 		public override byte[] getAccSchedule()

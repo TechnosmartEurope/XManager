@@ -87,7 +87,7 @@ namespace X_Manager
 			}
 			catch
 			{
-				rm.connect();   //Disconnette l'unità
+				rm.connect(115200);   //Disconnette l'unità	//Questo baudrate andrà messo a 2000000 nel caso di gipsy6 remoti
 				read();
 			}
 		}
@@ -109,7 +109,7 @@ namespace X_Manager
 			}
 			catch
 			{
-				rm.connect();   //Disconnette l'unità
+				rm.connect(115200);   //Disconnette l'unità
 				read();
 			}
 		}

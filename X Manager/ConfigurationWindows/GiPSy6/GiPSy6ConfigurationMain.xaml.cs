@@ -39,9 +39,9 @@ namespace X_Manager.ConfigurationWindows
 		public bool expertMode;
 		int lastIndex;
 		int firstIndex;
-		//byte[] conf;
 
 		DispatcherTimer windowMovingTimer = new DispatcherTimer();
+
 		public GiPSy6ConfigurationMain(byte[] conf, byte unitType)
 		{
 			InitializeComponent();
@@ -193,6 +193,16 @@ namespace X_Manager.ConfigurationWindows
 			{
 				pages[lastIndex].copyValues();
 				mustWrite = true;
+				if (axyConfOut[540] == 0)
+				{
+					for (int i = 488; i < 488 + 24; i++)
+					{
+						axyConfOut[i] = 0;
+					}
+					axyConfOut[541] = 0xff;
+					axyConfOut[542] = 0xff;
+					axyConfOut[543] = 0xff;
+				}
 				Close();
 				return;
 			}

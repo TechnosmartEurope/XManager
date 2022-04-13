@@ -15,6 +15,13 @@ using System.IO.Ports;
 using System.Threading;
 using System.Windows.Threading;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+#if X64
+using FT_HANDLE = System.UInt64;
+#else
+using FT_HANDLE = System.UInt32;
+#endif
 
 namespace X_Manager
 {
@@ -24,12 +31,17 @@ namespace X_Manager
 
 	public partial class RemoteConnector : UserControl
 	{
+
+		string portShortName;
+
 		//private int connectionResult = 0;
 		private SerialPort sp;
 		volatile int stop = 0;
 
 		private byte remoteCommunicationAddress = 2;
 		private byte remoteWakeUpAddress = 0xff;
+
+		int masterStationType = 0;
 
 		RemoteManagement parent;
 
@@ -45,11 +57,12 @@ namespace X_Manager
 		string lastListPath = "";
 
 
-		public RemoteConnector(ref System.IO.Ports.SerialPort serialPort, object p)
+		public RemoteConnector(ref SerialPort serialPort, object p, string portShortName)
 		{
 			InitializeComponent();
 
 			parent = (RemoteManagement)p;
+			this.portShortName = portShortName;
 			//parent.connectionResult = 0;
 
 			grigio.Color = Color.FromArgb(0xff, 0x42, 0x42, 0x42);
@@ -66,20 +79,11 @@ namespace X_Manager
 				loadChannelList();
 			}
 			sp = serialPort;
+
 			sp.Open();
 
-			this.DragEnter += loadNewChannelList_Click;
+			DragEnter += loadNewChannelList_Click;
 		}
-
-		//public new int ShowDialog()
-		//{
-		//	try
-		//	{
-		//		base.ShowDialog();
-		//	}
-		//	catch { }
-		//	return connectionResult;
-		//}
 
 		public void UI_disconnected()
 		{
@@ -89,12 +93,15 @@ namespace X_Manager
 
 		private void wakeClick(object sender, RoutedEventArgs e)
 		{
+
+			MainWindow.setLatency(portShortName, 1);
+
 			if (wakeB.Content.Equals("BREAK"))
 			{
 				sp.Write("TTTTTTTTTTTTTGGAO");
 				//sp.Close();
 				UI_disconnected();
-				parent.connect();
+				parent.connect(115200);
 				return;
 			}
 
@@ -106,16 +113,42 @@ namespace X_Manager
 			sp.Write(new byte[] { 52 }, 0, 1);
 
 			sp.BaudRate = 2000000;
+			sp.ReadTimeout = 200;
 			Thread.Sleep(50);
 			sp.Write("+++");
-			Thread.Sleep(200);
+			try
+			{
+				Thread.Sleep(10);
+				sp.ReadExisting();
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
+				masterStationType = sp.ReadByte();
+				masterStationType = sp.ReadByte();
+				Thread.Sleep(190);
+			}
+			catch
+			{
+				masterStationType = 0;
+			}
+
+			if (masterStationType == 0)
+			{
+				master0();
+			}
+			else
+			{
+				master1();
+			}
+
+		}
+
+		private void master0()
+		{
 			sp.Write("+++");
 			Thread.Sleep(200);
 			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'B', (byte)'R', 3 }, 0, 5);
 			sp.BaudRate = 115200;
 			Thread.Sleep(100);
 			sp.Write("ATX");
-
 			Thread.Sleep(250);
 			sp.Write(new byte[] { (byte)'+', (byte)'+', (byte)'+' }, 0, 3);
 
@@ -172,7 +205,56 @@ namespace X_Manager
 			Thread antennaThread = new Thread(() => animateAntenna());
 			antennaThread.Start();
 			wakeB.IsEnabled = false;
-			Thread commThread = new Thread(() => communicationAttempt(address));
+			Thread commThread = new Thread(() => communicationAttempt(address, 0));
+			commThread.SetApartmentState(ApartmentState.STA);
+			commThread.Start();
+			stopB.IsEnabled = true;
+		}
+
+		private void master1()
+		{
+			Thread.Sleep(250);
+			int address;// = byte.Parse(channelListCB.Text);
+			System.Globalization.NumberStyles ns = System.Globalization.NumberStyles.Integer;
+			if (channelListCB.Text == "c" | channelListCB.Text == "C")
+			{
+				channelListCB.Text = "16777215";
+			}
+			try
+			{
+				if (channelListCB.Text.Substring(0, 2).Equals("0x") | channelListCB.Text.Substring(0, 2).Equals("0X"))
+				{
+					ns = System.Globalization.NumberStyles.HexNumber;
+					channelListCB.Text = channelListCB.Text.Remove(0, 2);
+					channelListCB.Text = channelListCB.Text.ToLower();
+					if (!int.TryParse(channelListCB.Text, ns, System.Globalization.CultureInfo.InvariantCulture, out address))
+					{
+						var w = new Warning("Invalid address.");
+						w.picUri = "pack://application:,,,/Resources/alert2.png";
+						w.ShowDialog();
+						return;
+					}
+					ns = System.Globalization.NumberStyles.Integer;
+					channelListCB.Text = address.ToString();
+				}
+			}
+			catch { }
+			if (!int.TryParse(channelListCB.Text, ns, System.Globalization.CultureInfo.InvariantCulture, out address))
+			{
+				var w = new Warning("Invalid address.");
+				w.picUri = "pack://application:,,,/Resources/alert2.png";
+				w.ShowDialog();
+				return;
+			}
+
+			channelListCB.IsEnabled = false;
+
+			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',0,0,1,
+				(byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff)}, 0, 10);
+			Thread antennaThread = new Thread(() => animateAntenna());
+			antennaThread.Start();
+			wakeB.IsEnabled = false;
+			Thread commThread = new Thread(() => communicationAttempt(address, 1));
 			commThread.SetApartmentState(ApartmentState.STA);
 			commThread.Start();
 			stopB.IsEnabled = true;
@@ -187,12 +269,14 @@ namespace X_Manager
 			}
 		}
 
-		private void communicationAttempt(int address)
+		private void communicationAttempt(int address, byte masteSTationType)
 		{
 			//Stopwatch sw = new Stopwatch();
 			sp.ReadTimeout = 3000;
 			byte status = 0;
 			byte connCount = 0;
+			byte connCountMax = 15;
+			if (masterStationType == 1) connCountMax = 6;
 			while (stop == 0)
 			{
 				try
@@ -203,7 +287,7 @@ namespace X_Manager
 					{
 						connCount++;
 					}
-					if (connCount == 15)
+					if (connCount == connCountMax)
 					{
 						status = 2;
 					}
@@ -211,12 +295,12 @@ namespace X_Manager
 				catch
 				{
 					stop = 102;
-					var w = new Warning("Base Station not ready.");
+					var w = new Warning("Master Station not ready.");
 					w.picUri = "pack://application:,,,/Resources/alert2.png";
 					w.ShowDialog();
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.finalize(0)));
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.finalize(0, masteSTationType)));
 					status = 255;
 					return;
 				}
@@ -224,11 +308,15 @@ namespace X_Manager
 				{
 					if (stop == 0)
 					{
-						//Thread.Sleep(800);
-						//sw.Stop();
-						//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.sviluppoTB.Text = sw.Elapsed.Milliseconds.ToString()));
-						//sw.Reset();
-						sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W', (byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff), 1, remoteCommunicationAddress }, 0, 9);
+						if (masterStationType == 0)
+						{
+							sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W', (byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff), 1, remoteCommunicationAddress }, 0, 9);
+						}
+						else
+						{
+							sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',0,0,1,
+				(byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff) }, 0, 10);
+						}
 					}
 					else
 					{
@@ -239,15 +327,15 @@ namespace X_Manager
 				{
 					if (status == 1)    //L'unità ha risposto
 					{
-						int unitType = 1;   //Unità normale
-						if (address == 1677216) unitType = 2;
+						//int unitType = 1;   //Unità normale
+						//if (address == 1677216) unitType = 2;   //Chiarire!
 						stop = 1;
 						Thread.Sleep(100);
 						sp.Write("ATX");
 						Thread.Sleep(500);
-						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
-						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));
-						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.finalize(unitType)));
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => channelListCB.IsEnabled = true));
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => wakeB.IsEnabled = true));
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => finalize(1, masteSTationType)));
 					}
 					else if (status == 2)   //Raggiunto massimo numero di tentativi
 					{
@@ -269,18 +357,21 @@ namespace X_Manager
 			stopB.IsEnabled = false;
 		}
 
-		private void finalize(int result)
+		//private void finalize(int result)
+		private void finalize(int result, int masteStationType)
 		{
 			//parent.connectionResult = result;
-			if (result == 1 | result==2)
+			if (result == 1)
 			{
-				if (parent.connect())
+				int baudRate = 115200;
+				if (masterStationType == 1)
+				{
+					baudRate = 2000000;
+				}
+				if (parent.connect(baudRate))
 				{
 					wakeB.Content = "BREAK";
-					if (result == 2)
-					{
-						parent.close();
-					}
+					parent.close();
 				}
 			}
 		}

@@ -22,15 +22,15 @@ namespace X_Manager.Units
 	{
 		//Tipi unità
 		bool disposed = false;
-		public const int model_axyDepth_legacy = 255;		//0xff
-		public const int model_axy3_connecting = 253;		//0xfd
-		public const int model_axy4_legacy = 252;			//0xfc
-		public const int model_axyDepth = 127;				//0x7f
-		public const int model_axy2 = 126;					//0x7e
-		public const int model_axy3 = 125;					//0x7d
-		public const int model_axy4 = 124;					//0x7c
-		public const int model_Co2Logger = 123;				//0x7b
-		public const int model_axy5 = 122;					//0x7a
+		public const int model_axyDepth_legacy = 255;       //0xff
+		public const int model_axy3_connecting = 253;       //0xfd
+		public const int model_axy4_legacy = 252;           //0xfc
+		public const int model_axyDepth = 127;              //0x7f
+		public const int model_axy2 = 126;                  //0x7e
+		public const int model_axy3 = 125;                  //0x7d
+		public const int model_axy4 = 124;                  //0x7c
+		public const int model_Co2Logger = 123;             //0x7b
+		public const int model_axy5 = 122;                  //0x7a
 		public const int model_drop_off = 11;
 		public const int model_AGM1_calib = 10;
 		public const int model_Gipsy6 = 10;
@@ -153,6 +153,7 @@ namespace X_Manager.Units
 
 		public virtual void changeBaudrate(ref SerialPort sp, int newBaudrate)
 		{ }
+
 		public static string askModel(ref SerialPort sp)
 		{
 			sp.Write("TTTTTTTGGAf");
@@ -254,6 +255,11 @@ namespace X_Manager.Units
 
 		public abstract void abortConf();
 
+		public virtual bool getRemote()
+		{
+			return false;
+		}
+
 		public virtual void setPcTime()
 		{
 
@@ -328,11 +334,6 @@ namespace X_Manager.Units
 		void setStateDisconnected()
 		{
 			connected = false;
-		}
-
-		public virtual bool isRemote()
-		{
-			return false;
 		}
 
 		public virtual bool isSolar()

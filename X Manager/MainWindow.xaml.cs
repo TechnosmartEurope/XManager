@@ -170,7 +170,7 @@ namespace X_Manager
 		Unit oUnit;
 		Unit cUnit;
 		//ConfigurationWindow confForm;
-		public const int Baudrate_base = 115200;
+		public int Baudrate_base = 115200;
 		public const int Baudrate_1M = 1000000;
 		public const int Baudrate_2M = 2000000;
 		public const int Baudrate_3M = 3000000;
@@ -540,6 +540,12 @@ namespace X_Manager
 
 		private void uiDisconnected()
 		{
+			try
+			{
+				oUnit.Dispose();
+			}
+			catch { }
+			Baudrate_base = 115200;
 			unitConnected = false;
 			modelLabel.Content = "";
 			firmwareLabel.Content = "";
@@ -556,12 +562,13 @@ namespace X_Manager
 			configurePositionButton.IsEnabled = true;
 			statusLabel.Content = "Not connected.";
 			statusProgressBar.IsIndeterminate = false;
+			statusProgressBar.Maximum = 1;
 			statusProgressBar.Value = 0;
 			positionCanSend = false;
 			dumpViewTabItem.IsEnabled = true;
 			remoteButton.Content = "Remote";
 			remoteButton.IsEnabled = true;
-			this.Title = "X MANAGER";
+			Title = "X MANAGER";
 			configureMovementButton.Content = "Accelerometer configuration";
 			realTimeSP.Visibility = Visibility.Hidden;
 			configurePositionButton.Visibility = Visibility.Visible;
@@ -1293,7 +1300,7 @@ namespace X_Manager
 					//deviceName = mo["Caption"].ToString();
 					if (deviceName.Contains("COM"))// && !deviceName.Contains("XDS110") && !deviceName.Contains("COM1"))
 					{
-						if (!deviceName.Contains("XDS"))
+						if (!deviceName.Contains("XDS") && !deviceName.Contains("RFC"))
 						{
 							if (!deviceName.Contains("COM1)"))
 							{
@@ -1346,7 +1353,7 @@ namespace X_Manager
 				if (sp.IsOpen) sp.Close();
 
 				//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
-				setLatency(portShortName, 1);
+				ftdiSerialNumber = setLatency(portShortName, 1);
 				try
 				{
 					sp.PortName = portShortName;
@@ -1361,9 +1368,6 @@ namespace X_Manager
 
 				string response;
 				spurgo();
-
-				//completeCommand = true;
-
 
 				sp.Write("T");
 				try
@@ -1450,8 +1454,8 @@ namespace X_Manager
 								break;
 						}
 						modelLabel.Content = model;
-						getConf();
 						getRemote();
+						getConf();
 						getSolar();
 						if (oUnit.solar)
 						{
@@ -1482,8 +1486,8 @@ namespace X_Manager
 								break;
 						}
 						modelLabel.Content = model;
-						getConf();
 						getRemote();
+						getConf();
 					}
 					catch
 					{
@@ -1939,10 +1943,10 @@ namespace X_Manager
 				sp.PortName = portShortName;
 
 				//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
-				setLatency(portShortName, 1);
 				try
 				{
 					sp.Open();
+					ftdiSerialNumber = setLatency(portShortName, 1);
 				}
 				catch (Exception ex)
 				{
@@ -1951,7 +1955,7 @@ namespace X_Manager
 				}
 				sp.Close();
 
-				var remoteManagement = new RemoteManagement(ref sp, this);
+				var remoteManagement = new RemoteManagement(ref sp, this, portShortName);
 				remoteManagement.ShowDialog();
 				return;
 
@@ -1988,7 +1992,7 @@ namespace X_Manager
 					sp.PortName = portShortName;
 
 					//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
-					setLatency(portShortName, 1);
+					ftdiSerialNumber = setLatency(portShortName, 1);
 					try
 					{
 						sp.Open();
@@ -2022,15 +2026,15 @@ namespace X_Manager
 
 		}
 
-		public bool externConnect()
+		public bool externConnect(int baudRate)
 		{
-			bool res = false;
+			Baudrate_base = baudRate;
 			connectClick(this, new RoutedEventArgs());
-			if (connectButton.Content.Equals("Disconnect"))
+			if (unitConnected && oUnit is Gipsy6)       //In caso di gipsy6 remoto disabilita il pulsante per l'upload del firmware
 			{
-				res = true;
+				configurePositionButton.IsEnabled = false;
 			}
-			return res;
+			return connectButton.Content.Equals("Disconnect");
 		}
 
 		void refreshBattery(object sender, RoutedEventArgs e)
@@ -2157,12 +2161,12 @@ namespace X_Manager
 			Thread.Sleep(10);
 			remote = false;
 			string title = "X MANAGER";
-			if (oUnit.isRemote())
+			if (oUnit.getRemote())
 			{
 				remote = true;
 				title += " REMOTE";
 			}
-			this.Title = title;
+			Title = title;
 		}
 
 		private void getSolar()
@@ -2174,7 +2178,7 @@ namespace X_Manager
 			Thread.Sleep(10);
 			remote = false;
 			string title = "X MANAGER";
-			if (oUnit.isRemote())
+			if (oUnit.getRemote())
 			{
 				remote = true;
 				title += " REMOTE";
@@ -2353,10 +2357,10 @@ namespace X_Manager
 
 		#region Servizi FTDI
 
-		private unsafe void setLatency(string targetSerialPortName, byte latency)
+		public static unsafe string setLatency(string targetSerialPortName, byte latency)
 		{
 			int deviceCount = 0;
-			string stringCode;
+			string stringCode = "NULL";
 			byte[] stringCodeBuffer = new byte[64];
 			FT_HANDLE FT_Handle = 0;
 			FT_HANDLE comNumber = 0;
@@ -2364,7 +2368,7 @@ namespace X_Manager
 			//string FT_Serial_Number;
 
 			// Recupera il numero di dispositivi connessi
-			if (FT_ListDevices(ref deviceCount, null, FT_LIST_NUMBER_ONLY) != FT_STATUS.FT_OK) return;
+			if (FT_ListDevices(ref deviceCount, null, FT_LIST_NUMBER_ONLY) != FT_STATUS.FT_OK) return stringCode;
 
 			for (int i = 0; i <= deviceCount; i++)
 			{
@@ -2390,12 +2394,13 @@ namespace X_Manager
 				//Se la porta è quella desiderata, imposta il tempo di latenza del buffer a 1ms
 				if (comNumberS == targetSerialPortName)
 				{
-					if (FT_SetLatencyTimer(FT_Handle, latency) != FT_STATUS.FT_OK) return;
-					ftdiSerialNumber = stringCode;
+					if (FT_SetLatencyTimer(FT_Handle, latency) != FT_STATUS.FT_OK) return stringCode;
+					//ftdiSerialNumber = stringCode;
 				}
 				FT_Close(FT_Handle);
 			}
 
+			return stringCode;
 		}
 
 		#endregion

@@ -395,7 +395,7 @@ namespace X_Manager
 			}
 		}
 
-		public override bool isRemote()
+		public override bool getRemote()
 		{
 			if (firmTotA > 3001000)
 			{

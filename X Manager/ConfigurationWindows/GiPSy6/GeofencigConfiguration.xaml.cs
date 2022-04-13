@@ -1814,7 +1814,7 @@ namespace X_Manager.ConfigurationWindows
 					{
 						File.Delete(files[i]);
 					}
-					catch (Exception ex)
+					catch
 					{
 						break;
 					}

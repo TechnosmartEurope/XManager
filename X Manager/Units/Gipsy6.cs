@@ -141,7 +141,8 @@ namespace X_Manager.Units
 			E_SD_END,
 			E_BATTERY_LOW,
 			E_MEM_FULL,
-			E_POWER_OFF
+			E_POWER_OFF,
+			E_RESET
 		}
 
 		static readonly int[] accuracySteps = { 1, 2, 5, 10, 15, 50, 100 };
@@ -156,6 +157,7 @@ namespace X_Manager.Units
 			"Low Battery.",
 			"Memory Full.",
 			"Power OFF",
+			"Reset"
 		};
 
 		static readonly string[] scheduleEventTimings = {
@@ -211,7 +213,6 @@ namespace X_Manager.Units
 				if (test == command.ToArray()[0])   //Il comando è arrivato giusto, si manda conferma e si continua
 				{
 					sp.Write("K");
-					//Thread.Sleep(10);
 					goon = true;
 					break;
 				}
@@ -228,6 +229,7 @@ namespace X_Manager.Units
 
 		public override void changeBaudrate(ref SerialPort sp, int maxMin)
 		{
+
 			int oldBaudRate = sp.BaudRate;
 			int newBaudRate = 0;
 			int b;
@@ -484,7 +486,7 @@ namespace X_Manager.Units
 			}
 		}
 
-		public override bool isRemote()
+		public override bool getRemote()
 		{
 			remote = false;
 			if (!ask("l"))
@@ -570,7 +572,7 @@ namespace X_Manager.Units
 					}
 					sp.Write(new byte[] { 7 }, 0, 1);//***********************************************SYNC
 
-					//Ultimo quadrato geofencing 2 + Schedule G/H + orari Geofencing 2 + Enable Geofencing 1 e 2 + schedule remoto
+					//Ultimo quadrato geofencing 2 + Schedule G/H + orari Geofencing 2 + Enable Geofencing 1 e 2 + schedule remoto + unità locale/remota + indirizzo remoto
 					for (int i = 464; i < 464 + 50; i++)
 					{
 						conf[i] = (byte)sp.ReadByte();
@@ -581,13 +583,18 @@ namespace X_Manager.Units
 						{
 							conf[i] = (byte)sp.ReadByte();
 						}
-						sp.Write(new byte[] { 8 }, 0, 1); //Byte di sincronizzazione per remoto
-						for (int i = 528; i < 528 + 12; i++)
+						sp.Write(new byte[] { 8 }, 0, 1);//***********************************************SYNC
+						int end = 12;
+						if (firmTotA >= 1000000)
+						{
+							end = 26;
+						}
+						for (int i = 528; i < 528 + end; i++)
 						{
 							conf[i] = (byte)sp.ReadByte();
 						}
 					}
-					sp.Write(new byte[] { 8 }, 0, 1); //Byte di sincronizzazione per remoto
+					sp.Write(new byte[] { 8 }, 0, 1);//***********************************************SYNC
 
 					break;
 				}
@@ -598,6 +605,58 @@ namespace X_Manager.Units
 				}
 			}
 			return conf;
+		}
+
+		public override void setConf(byte[] conf)
+		{
+
+			for (int j = 0; j < 3; j++)
+			{
+				if (!ask("c"))
+				{
+					throw new Exception(unitNotReady);
+					return;
+				}
+				sp.ReadTimeout = 400;
+
+				try
+				{
+					sp.ReadByte();
+
+					for (int i = 0; i < 7; i++)
+					{
+						sp.Write(conf, (i * 64) + 32, 64);
+						sp.ReadByte();
+					}
+
+					sp.Write(conf, 480, 36);
+					sp.ReadByte();
+
+					if (firmTotA > 1)
+					{
+						sp.Write(conf, 516, 24);
+					}
+					if (firmTotA >= 1000000)
+					{
+						Thread.Sleep(5);
+						sp.Write(conf, 540, 14);
+					}
+					sp.ReadByte();
+
+					break;
+				}
+				catch
+				{
+					if (j == 2)
+					{
+						throw new Exception(unitNotReady);
+					}
+					else
+					{
+						Thread.Sleep(100);
+					}
+				}
+			}
 		}
 
 		//public override byte[] getGpsSchedule()
@@ -803,54 +862,141 @@ namespace X_Manager.Units
 			}
 		}
 
-		public override void abortConf() { }
-
-		public override void setConf(byte[] conf)
+		public unsafe override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 
-			for (int j = 0; j < 3; j++)
+			//Passa alla gestione FTDI D2XX
+			try
 			{
-				if (!ask("c"))
+				sp.Close();
+			}
+			catch { }
+
+
+			MainWindow.FT_STATUS FT_Status;
+			FT_HANDLE FT_Handle = 0;
+			byte[] outBuffer = new byte[50];
+			byte[] inBuffer;// = new byte[0x200];
+			byte[] tempBuffer = new byte[2048];
+			byte[] address = new byte[8];
+
+			//int bytesToWrite = 0, bytesWritten = 0, bytesReturned = 0;
+
+			FT_Status = MainWindow.FT_OpenEx(parent.ftdiSerialNumber, (UInt32)1, ref FT_Handle);
+
+			MainWindow.FT_SetLatencyTimer(FT_Handle, (byte)1);
+			MainWindow.FT_SetTimeouts(FT_Handle, (uint)1000, (uint)1000);
+
+			MainWindow.FT_Close(FT_Handle);
+
+			//Fine gestione FTDI
+
+			sp.Open();
+
+			uint buffSize;
+			if (mem_address > mem_max_logical_address)
+			{
+				buffSize = mem_address - mem_max_logical_address;
+			}
+			else
+			{
+				buffSize = (mem_max_physical_address - mem_max_logical_address) + (mem_address - mem_min_physical_address);
+			}
+
+			//buffSize -= (buffSize / 0x200) * 2;
+			//buffSize += 2;
+
+			convertStop = false;
+			inBuffer = new byte[buffSize + 2];
+			int buffPointer = 0;
+
+			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".gp6";
+
+			//if (fromMemory != 0) fm = System.IO.FileMode.Append;
+
+			if (!ask("D"))
+			{
+				throw new Exception(unitNotReady);
+				return;
+			}
+
+			sp.ReadTimeout = 3200;
+
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
+
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = buffSize));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
+
+			address = BitConverter.GetBytes(mem_max_logical_address);
+			Array.Reverse(address);
+			Array.Copy(address, 0, outBuffer, 1, 3);
+			outBuffer[0] = 0x65;        //load address
+			sp.Write(outBuffer, 0, 4);
+
+			try
+			{
+				sp.ReadByte();
+			}
+			catch
+			{
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+				return;
+			}
+
+			bool ok = true;
+
+			while (buffPointer < buffSize)
+			{
+
+				if (convertStop)
 				{
-					throw new Exception(unitNotReady);
-					return;
-				}
-				sp.ReadTimeout = 400;
-
-				try
-				{
-					sp.ReadByte();
-
-					for (int i = 0; i < 7; i++)
-					{
-						sp.Write(conf, (i * 64) + 32, 64);
-						sp.ReadByte();
-					}
-
-					sp.Write(conf, 480, 36);
-					sp.ReadByte();
-
-					if (firmTotA > 1)
-					{
-						sp.Write(conf, 516, 24);
-					}
-					sp.ReadByte();
-
 					break;
 				}
-				catch
+				try
 				{
-					if (j == 2)
+					Thread.Sleep(1);
+					sp.Write(new byte[] { 66 }, 0, 1);
+					for (int i = 0; i < 0x200; i++)
 					{
-						throw new Exception(unitNotReady);
+						inBuffer[buffPointer + i] = (byte)sp.ReadByte();
 					}
-					else
-					{
-						Thread.Sleep(100);
-					}
+					buffPointer += 0x200;
 				}
+				catch (Exception ex)
+				{
+					ok = false;
+					if (buffPointer != 0)
+					{
+						var foC = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
+						foC.Write(inBuffer, 0, inBuffer.Length);
+						foC.Close();
+					}
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+					break;
+				}
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
+			}
+			sp.Write("x");
+			sp.ReadByte();
+			Thread.Sleep(100);
+			inBuffer[inBuffer.Length - 2] = 0x0a;
+			inBuffer[inBuffer.Length - 1] = 0x00;
+
+			var fo = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
+
+			fo.Write(inBuffer, 0, inBuffer.Length);
+			fo.Close();
+
+			if (ok)
+			{
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
 			}
 		}
+
+		public override void abortConf() { }
 
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
 		{
@@ -1398,7 +1544,7 @@ namespace X_Manager.Units
 
 			Interlocked.Increment(ref conversionDone);
 		}
-		
+
 		private double[] extractGroup(ref MemoryStream ard, ref TimeStamp tsc)
 		{
 			byte[] group = new byte[2000];
@@ -1464,7 +1610,7 @@ namespace X_Manager.Units
 			//return doubleResultArray;
 			return new double[] { };
 		}
-		
+
 		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t, ref int pos)
 		{
 

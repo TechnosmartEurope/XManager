@@ -20,7 +20,7 @@ namespace X_Manager.ConfigurationWindows
 	/// </summary>
 	partial class BasicsConfiguration : PageCopy
 	{
-		int acqOn, acqOff, altOn, nSat, gsv;
+		int acqOn, acqOff, altOn, nSat, gsv, remoteAddress;
 		uint sdTime, sddDate;
 		List<TextBox> ctrAr;
 		int[] maxs = new int[6] { 65000, 65000, 65000, 8, 200, 0x7ffffff };
@@ -28,7 +28,8 @@ namespace X_Manager.ConfigurationWindows
 		CheckBox[] remSchAr = new CheckBox[24];
 		byte[] conf;
 		DateTime sdDate;
-
+		string oldAdd;
+		bool isRemote = false;
 		public BasicsConfiguration(byte[] conf)
 			: base()
 		{
@@ -44,15 +45,7 @@ namespace X_Manager.ConfigurationWindows
 			gsv = conf[39];                             //39
 			sdTime = BitConverter.ToUInt32(conf, 40);    //40-43
 			sddDate = BitConverter.ToUInt32(conf, 44);    //44-47
-
-			//bool enableSdDate = true;
-			//if (mese > 0x80)
-			//{
-			//	enableSdDate = false;
-			//	mese -= 0x80;
-			//}
-			//sdDate = new DateTime(anno, mese, giorno);
-
+			remoteAddress = (conf[541] << 16) + (conf[542] << 8) + (conf[543]);
 
 			earlyStopCB.IsChecked = (conf[38] & 0x80) == 0x80;
 			enhancedAccuracyCB.IsChecked = (conf[38] & 0x40) == 0x40;
@@ -62,6 +55,11 @@ namespace X_Manager.ConfigurationWindows
 			altOnTB.Text = altOn.ToString();
 			nsatTB.Text = nSat.ToString();
 			gsvTB.Text = gsv.ToString();
+			remoteAddressTB.Text = remoteAddress.ToString("X6");
+			remoteAddressTB.PreviewKeyDown += remoteAddressTB_PreviewKeyDown;
+			remoteAddressTB.TextChanged += remoteAddressTB_TextChanged;
+
+			KeyDown += ctrlManager;
 
 			if (sdTime > 0x7ffffff)
 			{
@@ -102,7 +100,8 @@ namespace X_Manager.ConfigurationWindows
 				v.VerticalContentAlignment = VerticalAlignment.Center;
 				v.Content = (i + 1).ToString("00");
 				Grid.SetRow(v, 15);
-				v.Margin = new Thickness(20 + (i * 70), 0, 0, 0);
+				v.Margin = new Thickness(20 + (i * 65), 0, 0, 0);
+				v.Unchecked += remoteHourUnchecked;
 				maingGrid.Children.Add(v);
 				remSchAr[i] = v;
 			}
@@ -113,17 +112,123 @@ namespace X_Manager.ConfigurationWindows
 				v.VerticalContentAlignment = VerticalAlignment.Center;
 				v.Content = (i + 13).ToString("00");
 				Grid.SetRow(v, 16);
-				v.Margin = new Thickness(20 + (i * 70), 0, 0, 0);
+				v.Margin = new Thickness(20 + (i * 65), 0, 0, 0);
+				v.Unchecked += remoteHourUnchecked;
 				maingGrid.Children.Add(v);
 				remSchAr[i + 12] = v;
 			}
+			if (conf[540] == 1)
+			{
+				isRemote = true;
+			}
+			else
+			{
+				isRemote = false;
+				remoteAddressTitleTB.Visibility = Visibility.Hidden;
+				remoteAddressTB.Visibility = Visibility.Hidden;
+				oxTB.Visibility = Visibility.Hidden;
+				remoteScheduleTitleTB.Visibility = Visibility.Hidden;
+			}
 			for (int i = 0; i < 24; i++)
 			{
+				if (!isRemote)
+				{
+					conf[i + 516] = 0;
+					remSchAr[i].Visibility = Visibility.Hidden;
+				}
 				if (conf[i + 516] == 1)
 				{
 					var cb = remSchAr[i];
 					cb.IsChecked = true;
-					;
+				}
+			}
+
+		}
+
+		private void remoteHourUnchecked(object sender, RoutedEventArgs e)
+		{
+			CheckBox v = (CheckBox)sender;
+			int check = 0;
+			for (int i = 0; i < 24; i++)
+			{
+				if (remSchAr[i].IsChecked == true)
+				{
+					check++;
+				}
+			}
+			if (check == 0)
+			{
+				MessageBox.Show("WARNING: at least one hour must be selected.");
+				v.IsChecked = true;
+			}
+
+		}
+
+		private void ctrlManager(object sender, KeyEventArgs e)
+		{
+			if (Keyboard.Modifiers == ModifierKeys.Control)
+			{
+				if (e.Key == Key.L || e.Key == Key.R || e.Key == Key.B)
+				{
+					if (!(Microsoft.VisualBasic.Interaction.InputBox("Insert password: ", "Password") == "cetriolo"))
+					{
+						MessageBox.Show("Wrong password.");
+					}
+					else
+					{
+						if (e.Key == Key.L)
+						{
+							isRemote = false;
+							remoteAddressTitleTB.Visibility = Visibility.Hidden;
+							remoteAddressTB.Visibility = Visibility.Hidden;
+							oxTB.Visibility = Visibility.Hidden;
+							remoteScheduleTitleTB.Visibility = Visibility.Hidden;
+							for (int i = 0; i < 24; i++)
+							{
+								remSchAr[i].Visibility = Visibility.Hidden;
+							}
+							conf[544] = 0x11; conf[545] = 0x09;
+							conf[546] = 0xcd; conf[547] = 0x08;
+							conf[548] = 0x44; conf[549] = 0x0a;
+							conf[550] = 0x11; conf[551] = 0x09;
+							conf[552] = 0x77; conf[553] = 0x09;
+							MessageBox.Show("The unit will be set as local.");
+						}
+						else if (e.Key == Key.R)
+						{
+							isRemote = true;
+							remoteAddressTitleTB.Visibility = Visibility.Visible;
+							remoteAddressTB.Visibility = Visibility.Visible;
+							oxTB.Visibility = Visibility.Visible;
+							remoteScheduleTitleTB.Visibility = Visibility.Visible;
+							int check = 0;
+							for (int i = 0; i < 24; i++)
+							{
+								remSchAr[i].Visibility = Visibility.Visible;
+								if (remSchAr[i].IsChecked == true)
+								{
+									check++;
+								}
+							}
+							if (check == 0)
+							{
+								remSchAr[0].IsChecked = true;
+							}
+							conf[544] = 0xbc; conf[545] = 0x09;
+							conf[546] = 0xbc; conf[547] = 0x09;
+							conf[548] = 0x44; conf[549] = 0x0a;
+							conf[550] = 0x11; conf[551] = 0x09;
+							conf[552] = 0x77; conf[553] = 0x09;
+							MessageBox.Show("The unit will be set as remote.");
+						}
+						else if (e.Key == Key.B)
+						{
+							var bc = new GiPSy6.BatteryConfiguration(conf);
+							bc.ShowDialog();
+						}
+						e.Handled = true;
+					}
+					e.Handled = true;
 				}
 			}
 		}
@@ -186,6 +291,34 @@ namespace X_Manager.ConfigurationWindows
 			if (startDelayDateDP.SelectedDate != null)
 			{
 				sdDate = (DateTime)startDelayDateDP.SelectedDate;
+			}
+		}
+
+		private void remoteAddressTB_PreviewKeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Enter)
+			{
+				if (remoteAddressTB.Text == "")
+				{
+					remoteAddressTB.Text = "000000";
+
+				}
+			}
+			oldAdd = remoteAddressTB.Text;
+		}
+
+		private void remoteAddressTB_TextChanged(object sender, TextChangedEventArgs e)
+		{
+			if (remoteAddressTB.Text == "") return;
+			if (!Int32.TryParse(remoteAddressTB.Text, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out remoteAddress))
+			{
+				remoteAddressTB.TextChanged -= remoteAddressTB_TextChanged;
+				remoteAddressTB.Text = oldAdd;
+				remoteAddressTB.TextChanged += remoteAddressTB_TextChanged;
+			}
+			else
+			{
+				oldAdd = remoteAddressTB.Text;
 			}
 		}
 
@@ -311,6 +444,11 @@ namespace X_Manager.ConfigurationWindows
 			{
 				conf[i + 516] = (bool)remSchAr[i].IsChecked ? (byte)1 : (byte)0;
 			}
+			conf[540] = isRemote ? (byte)1 : (byte)0;
+			remoteAddress = Int32.Parse(remoteAddressTB.Text, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+			conf[541] = (byte)(remoteAddress >> 16);
+			conf[542] = (byte)(remoteAddress >> 8);
+			conf[543] = (byte)(remoteAddress & 0xff);
 		}
 
 	}

@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
       mc:Ignorable="d" Background="#FF202020" d:DesignHeight="720" 
-      d:DesignWidth="968" Height="720" Width="968"
+      d:DesignWidth="968" Height="720" Width="968" KeyDown="ctrlManager"
       Title="BasicsConfiguration">
 
     <Grid x:Name="maingGrid">
@@ -66,7 +66,10 @@
         <TextBox Grid.Row="12" x:Name="startDelayTimeTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" TabIndex="105" GotFocus="onTB_GotFocus" />
         <TextBlock Grid.Row="12" x:Name="minLabel" Text="(min)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
 
-        <TextBlock Grid.Row="14" Text="REMOTE SCHEDULE" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
-        
-    </Grid>
+        <TextBlock Grid.Row="14" x:Name="remoteScheduleTitleTB" Text="REMOTE SCHEDULE" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+		<TextBlock Grid.Row="14" x:Name="remoteAddressTitleTB" Text="ADDRESS:" Foreground="#FF00AADE" FontSize="25" HorizontalAlignment="Right" Margin="0,0,20,0" />
+		<TextBox Grid.Row="15" Width="82" x:Name="remoteAddressTB" HorizontalAlignment="Right" Margin="0,0,20,0" FontSize="20" Text="000000"/>
+		<TextBlock Grid.Row="15" x:Name="oxTB" Text="0x" HorizontalAlignment="Right" Margin="0,4,106,0" FontSize="20" Foreground="#FFABABAB" />
+
+	</Grid>
 </local:PageCopy>

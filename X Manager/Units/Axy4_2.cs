@@ -232,7 +232,7 @@ namespace X_Manager.Units
 			}
 		}
 
-		public override bool isRemote()
+		public override bool getRemote()
 		{
 			if (firmTotA < 2007000)
 			{
