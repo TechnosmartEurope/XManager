@@ -58,7 +58,7 @@
                 <System:String>± 8g</System:String>
                 <System:String>± 16g</System:String>
             </ComboBox>
-            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="6">
+            <ComboBox Grid.Column="4" x:Name="bit1CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="6">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
                 <!--<System:String>12</System:String>-->
@@ -93,7 +93,7 @@
                 <System:String>± 8g</System:String>
                 <System:String>± 16g</System:String>
             </ComboBox>
-            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
+            <ComboBox Grid.Column="4" x:Name="bit2CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
                 <!--<System:String>12</System:String>-->
@@ -128,7 +128,7 @@
                 <System:String>± 8g</System:String>
                 <System:String>± 16g</System:String>
             </ComboBox>
-            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
+            <ComboBox Grid.Column="4" x:Name="bit3CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
                 <!--<System:String>12</System:String>-->
@@ -163,7 +163,7 @@
                 <System:String>± 8g</System:String>
                 <System:String>± 16g</System:String>
             </ComboBox>
-            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
+            <ComboBox Grid.Column="4" x:Name="bit4CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
                 <!--<System:String>12</System:String>-->
@@ -198,7 +198,7 @@
                 <System:String>± 8g</System:String>
                 <System:String>± 16g</System:String>
             </ComboBox>
-            <ComboBox Grid.Column="4" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
+            <ComboBox Grid.Column="4" x:Name="bit5CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12">
                 <System:String>8</System:String>
                 <System:String>10</System:String>
                 <!--<System:String>12</System:String>-->

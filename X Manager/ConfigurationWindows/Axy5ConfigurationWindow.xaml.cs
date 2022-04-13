@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -23,10 +23,12 @@ namespace X_Manager
 		//public bool mustWrite = false;
 		public UInt32[] soglie = new UInt32[18];
 		byte mDebug = 0;
-		UInt16[] c = new UInt16[7];
-		//byte[] unitFirmware;
-		UInt32 firmTotA;
+		ushort[] c = new ushort[7];
+		uint firmTotA;
 		//bool evitaSoglieDepth = false;
+		//bool remoteHourEditing = false;
+		ConfigurationWindows.AccDayIntervals scheduleC;
+		volatile bool stopRender = false;
 
 		public Axy5ConfigurationWindow(byte[] axyconf, byte[] schedule, UInt32 unitFirm)
 			: base()
@@ -54,7 +56,7 @@ namespace X_Manager
 			pressureOnOff.IsChecked = false;
 			if (axyconf[18] == 1)
 			{
-				temperatureOnOff.IsChecked = true;
+				pressureOnOff.IsChecked = true;
 				tempDepthLogginUD.IsEnabled = true;
 			}
 
@@ -80,11 +82,7 @@ namespace X_Manager
 			}
 
 			//Magnetometro
-			magOnOff.IsChecked = false;
-			if (axyconf[21] == 1)
-			{
-				magOnOff.IsChecked = true;
-			}
+			magOnOff.SelectedIndex = axyconf[21];
 
 			movThreshUd.Value = axyconf[23];
 			latencyThreshUd.Value = axyconf[24];
@@ -98,7 +96,13 @@ namespace X_Manager
 			}
 
 			//Schedule
+			scheduleC = new ConfigurationWindows.AccDayIntervals();
+			if (firmTotA >= 1004000)
+			{
+				scheduleC.enable12();
+			}
 			scheduleC.importSchedule(schedule);
+			scheduleGB.Content = scheduleC;
 
 			//Remote Schedule
 			uint bitMask = 0;
@@ -143,10 +147,11 @@ namespace X_Manager
 			latencyThreshUd.IsEnabled = false;
 			latencyThreshUd.Value = 0;
 
-			//TDgroupBox.Header = "TEMPERATURE LOGGING";
-			//logPeriodStackPanel.IsEnabled = false;
+			//Riempie il textbox
+			renderSummary();
 
-			// setThresholdUds()
+			var rend = new Thread(renderSummaryThread);
+			rend.Start();
 
 		}
 
@@ -225,18 +230,6 @@ namespace X_Manager
 		private void latChangedEvent(object sender, RoutedEventArgs e)
 		{
 			latValueChanged();
-		}
-
-		private void magCheck(object sender, RoutedEventArgs e)
-		{
-			if ((bool)magOnOff.IsChecked)
-			{
-				magOnOff.Content = "Enabled";
-			}
-			else
-			{
-				magOnOff.Content = "Disabled";
-			}
 		}
 
 		private void remCheck(object sender, RoutedEventArgs e)
@@ -358,6 +351,7 @@ namespace X_Manager
 
 		private void sendConf(object sender, RoutedEventArgs e)
 		{
+			stopRender = true;
 			sendConfiguration();
 		}
 
@@ -391,11 +385,12 @@ namespace X_Manager
 				axyConfOut[20] = 0;
 			}
 
-			if (magOnOff.IsChecked == true)
+			axyConfOut[21] = (byte)magOnOff.SelectedIndex;
+			if (firmTotA < 1004000)
 			{
-				axyConfOut[21] = 1;
+				if (axyConfOut[21] == 2) axyConfOut[21] = 1;
 			}
-			
+
 			try
 			{
 				axyConfOut[23] = (byte)movThreshUd.Value;
@@ -433,6 +428,36 @@ namespace X_Manager
 
 		private void remoteHourClicked(object sender, RoutedEventArgs e)
 		{
+
+		}
+
+		private void Rectangle_MouseEnter(object sender, MouseEventArgs e)
+		{
+
+		}
+
+		private void Rectangle_MouseLeave(object sender, MouseEventArgs e)
+		{
+			if (System.Windows.Input.Mouse.LeftButton == MouseButtonState.Pressed)
+			{
+				remoteHourEdit(sender);
+			}
+
+		}
+
+		private void remoteHourClickedDown(object sender, MouseButtonEventArgs e)
+		{
+
+		}
+
+		private void remoteHourClickedUp(object sender, MouseButtonEventArgs e)
+		{
+			//remoteHourEditing = true;
+			remoteHourEdit(sender);
+		}
+
+		private void remoteHourEdit(object sender)
+		{
 			var r = (Rectangle)sender;
 			if (((SolidColorBrush)r.Fill).Color.R == 0)
 			{
@@ -442,48 +467,297 @@ namespace X_Manager
 			{
 				r.Fill = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
 			}
+			//remoteHourEditing = false;
 		}
 
-		//private void rem1Ch(object sender, RoutedEventArgs e)
-		//{
-		//	if (remInt1.SelectedIndex > remInt2.SelectedIndex)
-		//	{
-		//		remInt1.SelectedIndex = remInt2.SelectedIndex;
-		//	}
-		//}
+		private void renderSummaryThread()
+		{
+			while (true)
+			{
+				if (stopRender) return;
+				Application.Current.Dispatcher.Invoke(() => renderSummary());
+				//renderSummary();
+				Thread.Sleep(500);
+			}
+		}
 
-		//private void rem2Ch(object sender, RoutedEventArgs e)
-		//{
-		//	if (remInt2.SelectedIndex < remInt1.SelectedIndex)
-		//	{
-		//		remInt2.SelectedIndex = remInt1.SelectedIndex;
-		//	}
-		//	if (remInt2.SelectedIndex > remInt3.SelectedIndex)
-		//	{
-		//		remInt2.SelectedIndex = remInt3.SelectedIndex;
-		//	}
-		//}
+		private void renderSummary()
+		{
+			byte[] schedule;
+			try
+			{
+				schedule = scheduleC.exportSchedule();
+			}
+			catch
+			{
+				return;
+			}
 
-		//private void rem3Ch(object sender, RoutedEventArgs e)
-		//{
-		//	if (remInt3.SelectedIndex < remInt2.SelectedIndex)
-		//	{
-		//		remInt3.SelectedIndex = remInt2.SelectedIndex;
-		//	}
-		//	if (remInt3.SelectedIndex > remInt4.SelectedIndex)
-		//	{
-		//		remInt3.SelectedIndex = remInt4.SelectedIndex;
-		//	}
-		//}
 
-		//private void rem4Ch(object sender, RoutedEventArgs e)
-		//{
-		//	if (remInt4.SelectedIndex < remInt3.SelectedIndex)
-		//	{
-		//		remInt4.SelectedIndex = remInt3.SelectedIndex;
-		//	}
-		//}
+			int nint = 1;
+			string[] card = new string[] { "the first one", "the second one", "the third one", "the fourth one", "the fifth one" };
+			string[] accB = new String[5];
+			int[] frequenze = new int[6] { 0, 1, 10, 25, 50, 100 };
+			int[] fondo = new int[4] { 2, 4, 8, 16 };
+			int[] bit = new int[3] { 8, 10, 12 };
+			int[] orari = new int[7];
+			orari[0] = 0;
+			orari[6] = 0x24;
 
+
+			//Intervalli
+			for (int i = 0; i < 5; i++)
+			{
+				if (schedule[i * 6] < 36) nint++;
+				orari[i + 1] = schedule[i * 6];
+
+				if (schedule[(i * 6) + 1] > 0)
+				{
+					accB[i] = String.Format("runs at {0} Hz, {1}g fullscale, {2}-bit resolution.", frequenze[schedule[(i * 6) + 1]], fondo[schedule[(i * 6) + 2]], bit[schedule[(i * 6) + 3]]);
+				}
+				else
+				{
+					accB[i] = "is idle.";
+				}
+
+			}
+
+			string summary = "";
+
+			//Accelerometro
+			if (nint > 1)
+			{
+				string pl = "";
+				if (nint > 1)
+				{
+					pl = "s";
+				}
+				summary = String.Format("Day is divided into {0} interval{1}:\r\n", nint, pl);
+				for (int i = 0; i < nint; i++)
+				{
+					summary += String.Format("   - {0} starts at {1:x} and stops at {2:x}\r\n", card[i], orari[i], orari[i + 1]);
+					summary += String.Format("     The accelerometer {0}\r\n", accB[i]);
+				}
+			}
+			else
+			{
+				summary = "Day is not divided into any interval.\r\n\r\n";
+				summary += String.Format("The accelerometer {0}\r\n", accB[0]);
+			}
+
+			//Remoto
+			var oraP = new List<int>();
+			var oraQ = new List<int>();
+			if ((bool)remoteOnOff.IsChecked)
+			{
+				int status, oldstatus = 0;
+				for (int i = 0; i < 24; i++)
+				{
+					var r = (Rectangle)remoteScheduleSP.Children[i];
+					status = 1;
+					if (((SolidColorBrush)r.Fill).Color.R == 0x18)
+					{
+						status = 0;
+					}
+
+					if (status != oldstatus)
+					{
+						oldstatus = status;
+						if (status == 1)
+						{
+							oraP.Add(i);
+						}
+						else
+						{
+							oraQ.Add(i);
+						}
+					}
+				}
+				if (oraP.Count > 0)
+				{
+					summary += "\r\nRemote download is scheduled:\r\n";
+					if (oraQ.Count < oraP.Count)
+					{
+						oraQ.Add(24);
+					}
+
+					for (int i = 0; i < oraP.Count; i++)
+					{
+						summary += String.Format("   from {0}:00 to {1}:59\r\n", oraP[i], (oraQ[i] - 1));
+					}
+					//summary += String.Format("   at {0} for {1} hour(s).\r\n", oraP[oraP.Count - 1], (oraQ[oraQ.Count - 1] - oraP[oraP.Count - 1]));
+				}
+				else
+				{
+					summary += "\r\nRemote download is enabled but not scheduled.\r\n";
+					summary += "Please set a schedule to activate it.\r\n";
+				}
+			}
+			else
+			{
+				summary += "\r\nRemote is disabled.\r\n";
+			}
+
+			//Magnetometro
+			string pl0 = "dis";
+			string pl1 = "";
+			if (magOnOff.SelectedIndex > 0)
+			{
+				pl0 = "en";
+				pl1 = String.Format(" ({0} Hz)", magOnOff.SelectedIndex);
+			}
+			summary += String.Format("\r\n Magnetometer is {0}abled{1}.\r\n", pl0, pl1);
+
+			//TD
+			summary += "\r\n Temperature/Depth logging is ";
+			if ((bool)temperatureOnOff.IsChecked | (bool)pressureOnOff.IsChecked)
+			{
+				summary += "enabled ";
+				if (!(bool)pressureOnOff.IsChecked) summary += "\r\n  for temperature only";
+				if (!(bool)temperatureOnOff.IsChecked) summary += "\r\n  for pressure only";
+				summary += String.Format(" and set at\r\n  1 sample every {0} seconds.\r\n", tempDepthLogginUD.Text);
+			}
+			else
+			{
+				summary += "disabled\r\n";
+			}
+			summary += "\r\n ";
+
+
+
+
+
+			summaryTB.Text = summary;
+
+		}
+
+		private void ConfigurationWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			stopRender = true;
+		}
+
+		private void SaveB_Click(object sender, RoutedEventArgs e)
+		{
+			var s = new System.Windows.Forms.SaveFileDialog();
+			try
+			{
+				s.InitialDirectory = (System.IO.File.ReadAllLines(MainWindow.iniFile))[10];
+			}
+			catch { }
+			s.DefaultExt = ".sch";
+
+			s.ShowDialog();
+
+			if (String.IsNullOrEmpty(s.FileName)) return;
+
+			try
+			{
+				System.IO.File.WriteAllText(s.FileName, "");
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message);
+				return;
+			}
+
+			byte[] schedule = scheduleC.exportSchedule();
+			foreach (byte b in schedule)
+			{
+				System.IO.File.AppendAllText(s.FileName, (b.ToString() + "\r\n"));
+			}
+			for (int i = 0; i < 24; i++)
+			{
+				var r = (Rectangle)remoteScheduleSP.Children[i];
+				if (((SolidColorBrush)r.Fill).Color.R == 0x18)
+				{
+					System.IO.File.AppendAllText(s.FileName, ("0\r\n"));
+				}
+				else
+				{
+					System.IO.File.AppendAllText(s.FileName, ("1\r\n"));
+				}
+			}
+
+			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", magOnOff.SelectedIndex));
+			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", remoteOnOff.IsChecked));
+			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", temperatureOnOff.IsChecked));
+			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", pressureOnOff.IsChecked));
+			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", tempDepthLogginUD.Text));
+			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", firmTotA));
+
+			string[] prefs = System.IO.File.ReadAllLines(MainWindow.iniFile);
+			prefs[10] = System.IO.Path.GetDirectoryName(s.FileName);
+			System.IO.File.WriteAllLines(MainWindow.iniFile, prefs);
+
+		}
+
+		private void LoadB_Click(object sender, RoutedEventArgs e)
+		{
+			uint newFirmTotA;
+			var l = new System.Windows.Forms.OpenFileDialog();
+			try
+			{
+				l.InitialDirectory = (System.IO.File.ReadAllLines(MainWindow.iniFile))[10];
+			}
+			catch { }
+
+			l.ShowDialog();
+
+			if (string.IsNullOrEmpty(l.FileName)) return;
+
+			string[] conf = System.IO.File.ReadAllLines(l.FileName);
+
+			newFirmTotA = uint.Parse(conf[59]);
+			if (newFirmTotA >= 1004000)
+			{
+				scheduleC.enable12();
+			}
+			byte[] schedule = new byte[30];
+			for (int i = 0; i < 30; i++)
+			{
+				schedule[i] = byte.Parse(conf[i]);
+			}
+			scheduleC.importSchedule(schedule);
+
+			for (int i = 30; i < 54; i++)
+			{
+				var r = (Rectangle)remoteScheduleSP.Children[i - 30];
+				if (conf[i] == "1")
+				{
+					r.Fill = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
+				}
+				else
+				{
+					r.Fill = new SolidColorBrush(Color.FromArgb(0xff, 0x18, 0x18, 0x18));
+				}
+			}
+			bool magOld;
+			if (bool.TryParse(conf[54], out magOld))
+			{
+				if (bool.Parse(conf[54]))
+				{
+					magOnOff.SelectedIndex = 1;
+				}
+				else
+				{
+					magOnOff.SelectedIndex = 0;
+				}
+			}
+			else
+			{
+				magOnOff.SelectedIndex = int.Parse(conf[54]);
+			}
+
+
+			
+			remoteOnOff.IsChecked = bool.Parse(conf[55]);
+			temperatureOnOff.IsChecked = bool.Parse(conf[56]);
+			pressureOnOff.IsChecked = bool.Parse(conf[57]);
+
+			tempDepthLogginUD.Text = conf[58];
+
+
+		}
 	}
 
 }

@@ -159,7 +159,7 @@ namespace X_Manager.Units
             return maxMemory;
         }
 
-        public override uint askMemory()
+        public override uint[] askMemory()
         {
             UInt32 m;
             sp.Write("TTTTTTTGGAM");
@@ -174,9 +174,8 @@ namespace X_Manager.Units
             {
                 throw new Exception(unitNotReady);
             }
-            memory = m;
-            return memory;
-        }
+			return new uint[] { m };
+		}
 
         public override void setName(string newName)
         {
@@ -572,7 +571,7 @@ namespace X_Manager.Units
 
             timeStamp timeStampO = new timeStamp();
             string barStatus = "";
-            string[] prefs = System.IO.File.ReadAllLines(parent.prefFile);
+            string[] prefs = System.IO.File.ReadAllLines(MainWindow.prefFile);
 
             string shortFileName;
             string addOn = "";

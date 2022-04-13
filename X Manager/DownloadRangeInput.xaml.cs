@@ -78,11 +78,11 @@ namespace X_Manager
 			{
 				finalAddressProperty += 0x1000;
 			}
-			if (startAddressProperty >= finalAddressProperty)
-			{
-				MessageBox.Show("Error: final address less or equal to start address.");
-				return;
-			}
+			//if (startAddressProperty >= finalAddressProperty)
+			//{
+			//	MessageBox.Show("Error: final address less or equal to start address.");
+			//	return;
+			//}
 			this.DialogResult = true;
 			this.Close();
 		}

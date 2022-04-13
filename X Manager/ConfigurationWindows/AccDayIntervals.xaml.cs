@@ -25,6 +25,15 @@ namespace X_Manager.ConfigurationWindows
 			InitializeComponent();
 		}
 
+		public void enable12()
+		{
+			bit1CB.Items.Add("12");
+			bit2CB.Items.Add("12");
+			bit3CB.Items.Add("12");
+			bit4CB.Items.Add("12");
+			bit5CB.Items.Add("12");
+		}
+
 		private void uiKeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.Key == Key.Return)
@@ -181,10 +190,10 @@ namespace X_Manager.ConfigurationWindows
 					((ComboBox)(v.Children[2])).SelectedIndex = schedule[1 + (i * 6)];
 					((ComboBox)(v.Children[3])).SelectedIndex = schedule[2 + (i * 6)];
 					//Rimozione forzata dei 12bit in attesa del nuovo chip
-					if (schedule[3 + (i * 6)]==2)
-					{
-						schedule[3 + (i * 6)] = 1;
-					}
+					//if (schedule[3 + (i * 6)] == 2)
+					//{
+					//	schedule[3 + (i * 6)] = 1;
+					//}
 					///Fine rimozione forzata
 					((ComboBox)(v.Children[4])).SelectedIndex = schedule[3 + (i * 6)];
 					((ComboBox)(v.Children[5])).SelectedIndex = schedule[4 + (i * 6)];
@@ -210,10 +219,10 @@ namespace X_Manager.ConfigurationWindows
 					((ComboBox)(v.Children[2])).SelectedIndex = schedule[1 + (i * 6)];
 					((ComboBox)(v.Children[3])).SelectedIndex = schedule[2 + (i * 6)];
 					//Rimozione forzata dei 12bit in attesa del nuovo chip
-					if (schedule[3 + (i * 6)] == 2)
-					{
-						schedule[3 + (i * 6)] = 1;
-					}
+					//if (schedule[3 + (i * 6)] == 2)
+					//{
+					//	schedule[3 + (i * 6)] = 1;
+					//}
 					///Fine rimozione forzata
 					((ComboBox)(v.Children[4])).SelectedIndex = schedule[3 + (i * 6)];
 					((ComboBox)(v.Children[5])).SelectedIndex = schedule[4 + (i * 6)];

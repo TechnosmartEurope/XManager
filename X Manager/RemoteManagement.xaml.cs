@@ -108,5 +108,10 @@ namespace X_Manager
 			}
 			catch { }
 		}
+
+		public void close()
+		{
+			Close();
+		}
 	}
 }

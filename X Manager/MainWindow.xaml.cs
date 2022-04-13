@@ -206,7 +206,7 @@ namespace X_Manager
 
 
 		//Costanti e pseudo constanti
-		const string STR_noComPortAvailable = "No COM port available. Please connect a data cable and press Scan";
+		const string STR_noComPortAvailable = "No COM port available. Please connect a data cable.";
 		const string STR_unitNotReady = "Unit not ready: please reconnect again.";
 		const string STR_resumeDownloadQuestion = "A partial download has been found for this unit. Do you want to resume it or restart from the beginning?";
 		const string STR_Yes = "Yes";
@@ -219,8 +219,8 @@ namespace X_Manager
 		public static string appFolder = "\\" + System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).ProductName;
 
 		string iniPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-		string iniFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder + "\\settings.ini";
-		public string prefFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder + "\\convPrefs.ini";
+		public static string iniFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder + "\\settings.ini";
+		public static string prefFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder + "\\convPrefs.ini";
 
 		List<string> convFiles = new List<string>();
 
@@ -243,7 +243,8 @@ namespace X_Manager
 			loadUserPrefs();
 			uiDisconnected();
 			initPicture();
-			scanButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+			//scanButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+			scanPorts();
 			switch (lastSettings[5])
 			{
 				case "depth":
@@ -273,6 +274,11 @@ namespace X_Manager
 			progressBarStopButtonColumn.Width = new GridLength(0);
 		}
 
+		private void ComPortComboBox_DropDownOpened(object sender, EventArgs e)
+		{
+			scanPorts();
+		}
+
 		private void loadUserPrefs()
 		{
 			try
@@ -284,7 +290,7 @@ namespace X_Manager
 				lastSettings = new string[] { "\r\n" };
 			}
 
-			if (!System.IO.File.Exists(iniFile) | lastSettings.Length != 10)
+			if (!System.IO.File.Exists(iniFile) | lastSettings.Length != 11)
 			{
 				if (!System.IO.Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder))
 				{
@@ -317,6 +323,11 @@ namespace X_Manager
 				fileBody += ",\r\n";
 				//Scrive la modalità download
 				fileBody += "A\r\n";
+				fileBody += Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule\r\n";
+				if (!System.IO.Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule"))
+				{
+					System.IO.Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule");
+				}
 				System.IO.File.WriteAllText(iniFile, fileBody);
 			}
 
@@ -477,7 +488,7 @@ namespace X_Manager
 				statusProgressBar.Maximum = oUnit.askMaxMemory();
 				statusProgressBar.Minimum = 0;
 				Thread.Sleep(100);
-				statusProgressBar.Value = oUnit.askMemory();
+				statusProgressBar.Value = oUnit.askMemory()[0];
 				Thread.Sleep(100);
 			}
 			catch
@@ -910,7 +921,7 @@ namespace X_Manager
 
 		#region Pulsanti
 
-		void scanClick(object sender, RoutedEventArgs e)
+		void scanPorts()
 		{
 			if (sp.IsOpen)
 			{
@@ -945,7 +956,7 @@ namespace X_Manager
 			}
 			if (comPortComboBox.Items.Count == 0)
 			{
-				comPortComboBox.IsEnabled = false;
+				//comPortComboBox.IsEnabled = false;
 				connectButton.IsEnabled = false;
 				warningShow(STR_noComPortAvailable);
 			}
@@ -956,6 +967,11 @@ namespace X_Manager
 				connectButton.IsEnabled = true;
 			}
 		}
+
+		//void scanClick(object sender, RoutedEventArgs e)
+		//{
+		//	scanPorts();
+		//}
 
 		private async Task pbTask()
 		{
@@ -999,6 +1015,7 @@ namespace X_Manager
 				spurgo();
 
 				//completeCommand = true;
+
 
 				sp.Write("T");
 				try
@@ -1149,7 +1166,7 @@ namespace X_Manager
 					Thread.Sleep(50);
 					statusProgressBar.Maximum = oUnit.askMaxMemory();
 					Thread.Sleep(50);
-					statusProgressBar.Value = oUnit.askMemory();
+					statusProgressBar.Value = oUnit.askMemory()[0];
 				}
 				catch (Exception ex)
 				{
@@ -1164,7 +1181,7 @@ namespace X_Manager
 
 		void configureMovementButtonClick(object sender, RoutedEventArgs e)
 		{
-			if (!(bool)sp.IsOpen)
+			if (!sp.IsOpen)
 			{
 				sp.Open();
 			}
@@ -1295,7 +1312,7 @@ namespace X_Manager
 			{
 				sp.Open();
 			}
-			UInt32 memoryocc = 0;
+			UInt32[] memoryocc;// = new UInt32[];
 			try
 			{
 				memoryocc = oUnit.askMemory();
@@ -1307,7 +1324,7 @@ namespace X_Manager
 				return;
 			}
 
-			if ((memoryocc == 0) & (lastSettings[9].Equals("A")))
+			if ((memoryocc[0] == 0) & (lastSettings[9].Equals("A")))
 			{
 				warningShow(STR_memoryEMpty);
 				return;
@@ -1358,39 +1375,56 @@ namespace X_Manager
 
 			if (lastSettings[9].Equals("A"))
 			{
-				if (System.IO.File.Exists((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp")))))
+				if (!(oUnit is Axy5))
 				{
-
-					//YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", STR_Resume, STR_Restart);
-					YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", "", STR_Resume, STR_Restart);
-					switch (yn.ShowDialog())
+					if (System.IO.File.Exists((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp")))))
 					{
-						case 0:
-							statusProgressBar.Maximum = oldMax;
-							statusProgressBar.Minimum = oldMin;
-							statusProgressBar.Value = oldVal;
-							statusLabel.Content = oldCon;
-							statusProgressBar.IsIndeterminate = false;
-							return;
-						case 1:
-							System.IO.FileInfo fi = new System.IO.FileInfo((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp"))));
-							fromMemory = System.Convert.ToUInt32(fi.Length);
-							break;
-						case 2:
-							fromMemory = 0;
-							break;
+
+						//YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", STR_Resume, STR_Restart);
+						YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", "", STR_Resume, STR_Restart);
+						switch (yn.ShowDialog())
+						{
+							case 0:
+								statusProgressBar.Maximum = oldMax;
+								statusProgressBar.Minimum = oldMin;
+								statusProgressBar.Value = oldVal;
+								statusLabel.Content = oldCon;
+								statusProgressBar.IsIndeterminate = false;
+								return;
+							case 1:
+								System.IO.FileInfo fi = new System.IO.FileInfo((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp"))));
+								fromMemory = System.Convert.ToUInt32(fi.Length);
+								break;
+							case 2:
+								fromMemory = 0;
+								break;
+						}
 					}
+					toMemory = (memoryocc[0] / 4096);
+					toMemory *= 4096;
+					toMemory += 4096;
+				}
+				else
+				{
+					fromMemory = memoryocc[1];
+					toMemory = (memoryocc[2] / 4096) * 4096;
 				}
 
-				toMemory = (memoryocc / 4096);
-				toMemory *= 4096;
-				toMemory += 4096;
 			}
 			else
 			{
 				var dr = new DownloadRangeInput();
-				dr.startAddress = 0;
-				dr.finalAddress = ((memoryocc / 4096) * 4096) + 4096;
+				if (oUnit is Axy5)
+				{
+					dr.startAddress = memoryocc[1];
+					dr.finalAddress = (memoryocc[2] / 04096) * 4096;
+				}
+				else
+				{
+					dr.startAddress = 0;
+					dr.finalAddress = ((memoryocc[0] / 4096) * 4096) + 4096;
+				}
+
 				if (!(bool)dr.ShowDialog())
 				{
 					statusProgressBar.Maximum = oldMax;
@@ -1402,7 +1436,6 @@ namespace X_Manager
 				}
 				fromMemory = dr.startAddress;
 				toMemory = dr.finalAddress;
-
 			}
 
 
@@ -1663,7 +1696,7 @@ namespace X_Manager
 				statusProgressBar.Maximum = oUnit.askMaxMemory();
 				statusProgressBar.Minimum = 0;
 				Thread.Sleep(10);
-				statusProgressBar.Value = oUnit.askMemory();
+				statusProgressBar.Value = oUnit.askMemory()[0];
 				Thread.Sleep(10);
 				oUnit.getCoeffs();
 				Thread.Sleep(10);
@@ -2014,7 +2047,7 @@ namespace X_Manager
 						statusProgressBar.Maximum = oUnit.askMaxMemory();
 						statusProgressBar.Minimum = 0;
 						Thread.Sleep(10);
-						statusProgressBar.Value = oUnit.askMemory();
+						statusProgressBar.Value = oUnit.askMemory()[0];
 						statusLabel.Content = "Connected.";
 					}
 				}
@@ -2022,7 +2055,7 @@ namespace X_Manager
 			}
 
 			statusProgressBar.IsIndeterminate = true;
-			
+
 			statusLabel.Content = fileHeader + "File " + convFile.ToString() + "/" + convFileTot.ToString() + ": " + System.IO.Path.GetFileName(fileName) + " ";
 			convFiles.RemoveAt(0);
 			FileStream fs = File.OpenRead(fileName);
@@ -2088,7 +2121,7 @@ namespace X_Manager
 			mainGrid.IsEnabled = false;
 			cUnit.convertStop = false;
 			Thread conversionThread;
-			if ((fileType == type_ard) | (fileType==type_rem))
+			if ((fileType == type_ard) | (fileType == type_rem))
 			{
 				statusProgressBar.Maximum = FileLength;
 				progressBarStopButton.IsEnabled = true;
@@ -2165,6 +2198,8 @@ namespace X_Manager
 			iFile.Position = pos;
 			return outt;
 		}
+
+
 
 		#endregion
 

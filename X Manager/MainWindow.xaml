@@ -67,7 +67,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <ComboBox  Margin="10,0,0,0"  x:Name="comPortComboBox" Width="204" HorizontalAlignment="Left" TabIndex="0" IsTabStop="False" FontSize="13" Height="Auto" Padding="5,0,1,0"/>
+            <ComboBox  Margin="10,0,0,0"  x:Name="comPortComboBox" Width="204" HorizontalAlignment="Left" TabIndex="0" IsTabStop="False" FontSize="13" Height="Auto" Padding="5,0,1,0" DropDownOpened="ComPortComboBox_DropDownOpened"/>
             <Label Grid.Column="1" Margin="10,6,0,6" Width="46" Content="MODEL:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
             <Label Grid.Column="2" Margin="5,6,0,6" x:Name="modelLabel" Width="110" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="Axy-Trek ND" Padding="0" Height="18" />
             <Label Grid.Column="3" Margin="10,6,0,6" Width="66" Content="FIRMWARE:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
@@ -87,7 +87,7 @@
         </Grid>
 
         <!-- Riga 2 Scan button-->
-        <Button x:Name="scanButton" Grid.Row="2" Margin="10,2,0,2" Width="100" Click="scanClick" Content="Scan ports" MinHeight="0" TabIndex="2" HorizontalAlignment="Left" FontSize="12" />
+        <Button x:Name="scanButton" Grid.Row="2" Margin="10,2,0,2" Width="100" Content="Scan ports" MinHeight="0" TabIndex="2" HorizontalAlignment="Left" FontSize="12" Visibility="Hidden"/>
 
         <!-- Riga 3 Pulsanti e Picture-->
         <Grid Grid.Row="3">

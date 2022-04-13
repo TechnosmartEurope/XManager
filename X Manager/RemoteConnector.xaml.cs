@@ -122,6 +122,10 @@ namespace X_Manager
 			Thread.Sleep(250);
 			int address;// = byte.Parse(channelListCB.Text);
 			System.Globalization.NumberStyles ns = System.Globalization.NumberStyles.Integer;
+			if (channelListCB.Text == "c" | channelListCB.Text == "C")
+			{
+				channelListCB.Text = "16777215";
+			}
 			try
 			{
 				if (channelListCB.Text.Substring(0, 2).Equals("0x") | channelListCB.Text.Substring(0, 2).Equals("0X"))
@@ -129,6 +133,15 @@ namespace X_Manager
 					ns = System.Globalization.NumberStyles.HexNumber;
 					channelListCB.Text = channelListCB.Text.Remove(0, 2);
 					channelListCB.Text = channelListCB.Text.ToLower();
+					if (!int.TryParse(channelListCB.Text, ns, System.Globalization.CultureInfo.InvariantCulture, out address))
+					{
+						var w = new Warning("Invalid address.");
+						w.picUri = "pack://application:,,,/Resources/alert2.png";
+						w.ShowDialog();
+						return;
+					}
+					ns = System.Globalization.NumberStyles.Integer;
+					channelListCB.Text = address.ToString();
 				}
 			}
 			catch { }
@@ -145,7 +158,7 @@ namespace X_Manager
 			{
 				remoteWakeUpAddress = 0xff;
 			}
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', remoteWakeUpAddress}, 0, 5);
+			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', remoteWakeUpAddress }, 0, 5);
 			Thread.Sleep(100);
 			channelListCB.IsEnabled = false;
 			remoteCommunicationAddress++;
@@ -160,7 +173,7 @@ namespace X_Manager
 			antennaThread.Start();
 			wakeB.IsEnabled = false;
 			Thread commThread = new Thread(() => communicationAttempt(address));
-			commThread.SetApartmentState(System.Threading.ApartmentState.STA);
+			commThread.SetApartmentState(ApartmentState.STA);
 			commThread.Start();
 			stopB.IsEnabled = true;
 		}
@@ -215,7 +228,7 @@ namespace X_Manager
 						//sw.Stop();
 						//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.sviluppoTB.Text = sw.Elapsed.Milliseconds.ToString()));
 						//sw.Reset();
-						sp.Write(new byte[] { 65, 84, 65, 87, (byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff), 1, remoteCommunicationAddress }, 0, 9);
+						sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W', (byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff), 1, remoteCommunicationAddress }, 0, 9);
 					}
 					else
 					{
@@ -259,11 +272,15 @@ namespace X_Manager
 		private void finalize(int result)
 		{
 			//parent.connectionResult = result;
-			if (result == 1)
+			if (result == 1 | result==2)
 			{
 				if (parent.connect())
 				{
 					wakeB.Content = "BREAK";
+					if (result == 2)
+					{
+						parent.close();
+					}
 				}
 			}
 		}
@@ -456,6 +473,11 @@ namespace X_Manager
 		{
 			string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
 			loadNewChannelList(files[0]);
+		}
+
+		private void close()
+		{
+			parent.close();
 		}
 	}
 }

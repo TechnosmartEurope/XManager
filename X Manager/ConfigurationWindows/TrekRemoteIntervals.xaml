@@ -1,0 +1,212 @@
+﻿<UserControl
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="X_Manager.ConfigurationWindows.TrekRemoteIntervals"
+             mc:Ignorable="d" 
+             d:DesignHeight="362" d:DesignWidth="900">
+    <Grid x:Name="mainGrid" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="0.5*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="Number of intervals:" Margin="20,0,0,0" FontSize="26" VerticalAlignment="Center"/>
+            <ComboBox Grid.Column="1" x:Name="numberOfIntervalsCB" Margin="20" Width="200" Height="60" HorizontalAlignment="Left">
+                <System:String>0</System:String>
+                <System:String>1</System:String>
+                <System:String>2</System:String>
+                <System:String>3</System:String>
+            </ComboBox>
+        </Grid>
+        <Grid Grid.Row="1" x:Name="I1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox x:Name="I1A" Grid.Column="0" Margin="60,5,5,5" Width="160" SelectionChanged="I1Ach">
+                <System:String>0</System:String>
+                <System:String>1</System:String>
+                <System:String>2</System:String>
+                <System:String>3</System:String>
+                <System:String>4</System:String>
+                <System:String>5</System:String>
+                <System:String>6</System:String>
+                <System:String>7</System:String>
+                <System:String>8</System:String>
+                <System:String>9</System:String>
+                <System:String>10</System:String>
+                <System:String>11</System:String>
+                <System:String>12</System:String>
+                <System:String>13</System:String>
+                <System:String>14</System:String>
+                <System:String>15</System:String>
+                <System:String>16</System:String>
+                <System:String>17</System:String>
+                <System:String>18</System:String>
+                <System:String>19</System:String>
+                <System:String>20</System:String>
+                <System:String>21</System:String>
+                <System:String>22</System:String>
+                <System:String>23</System:String>
+                <System:String>24</System:String>
+            </ComboBox>
+            <ComboBox x:Name="I1B" Grid.Column="1" Margin="60,5,5,5" Width="160" SelectionChanged="I1Bch">
+                <System:String>0</System:String>
+                <System:String>1</System:String>
+                <System:String>2</System:String>
+                <System:String>3</System:String>
+                <System:String>4</System:String>
+                <System:String>5</System:String>
+                <System:String>6</System:String>
+                <System:String>7</System:String>
+                <System:String>8</System:String>
+                <System:String>9</System:String>
+                <System:String>10</System:String>
+                <System:String>11</System:String>
+                <System:String>12</System:String>
+                <System:String>13</System:String>
+                <System:String>14</System:String>
+                <System:String>15</System:String>
+                <System:String>16</System:String>
+                <System:String>17</System:String>
+                <System:String>18</System:String>
+                <System:String>19</System:String>
+                <System:String>20</System:String>
+                <System:String>21</System:String>
+                <System:String>22</System:String>
+                <System:String>23</System:String>
+                <System:String>24</System:String>
+            </ComboBox>
+        </Grid>
+        <Grid Grid.Row="2" x:Name="I2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox x:Name="I2A" Grid.Column="0" Margin="60,5,5,5" Width="160" SelectionChanged="I2Ach">
+                <System:String>0</System:String>
+                <System:String>1</System:String>
+                <System:String>2</System:String>
+                <System:String>3</System:String>
+                <System:String>4</System:String>
+                <System:String>5</System:String>
+                <System:String>6</System:String>
+                <System:String>7</System:String>
+                <System:String>8</System:String>
+                <System:String>9</System:String>
+                <System:String>10</System:String>
+                <System:String>11</System:String>
+                <System:String>12</System:String>
+                <System:String>13</System:String>
+                <System:String>14</System:String>
+                <System:String>15</System:String>
+                <System:String>16</System:String>
+                <System:String>17</System:String>
+                <System:String>18</System:String>
+                <System:String>19</System:String>
+                <System:String>20</System:String>
+                <System:String>21</System:String>
+                <System:String>22</System:String>
+                <System:String>23</System:String>
+                <System:String>24</System:String>
+            </ComboBox>
+            <ComboBox x:Name="I2B" Grid.Column="1" Margin="60,5,5,5" Width="160" SelectionChanged="I2Bch">
+                <System:String>0</System:String>
+                <System:String>1</System:String>
+                <System:String>2</System:String>
+                <System:String>3</System:String>
+                <System:String>4</System:String>
+                <System:String>5</System:String>
+                <System:String>6</System:String>
+                <System:String>7</System:String>
+                <System:String>8</System:String>
+                <System:String>9</System:String>
+                <System:String>10</System:String>
+                <System:String>11</System:String>
+                <System:String>12</System:String>
+                <System:String>13</System:String>
+                <System:String>14</System:String>
+                <System:String>15</System:String>
+                <System:String>16</System:String>
+                <System:String>17</System:String>
+                <System:String>18</System:String>
+                <System:String>19</System:String>
+                <System:String>20</System:String>
+                <System:String>21</System:String>
+                <System:String>22</System:String>
+                <System:String>23</System:String>
+                <System:String>24</System:String>
+            </ComboBox>
+        </Grid>
+        <Grid Grid.Row="3" x:Name="I3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox x:Name="I3A" Grid.Column="0" Margin="60,5,5,5" Width="160" SelectionChanged="I3Ach">
+                <System:String>0</System:String>
+                <System:String>1</System:String>
+                <System:String>2</System:String>
+                <System:String>3</System:String>
+                <System:String>4</System:String>
+                <System:String>5</System:String>
+                <System:String>6</System:String>
+                <System:String>7</System:String>
+                <System:String>8</System:String>
+                <System:String>9</System:String>
+                <System:String>10</System:String>
+                <System:String>11</System:String>
+                <System:String>12</System:String>
+                <System:String>13</System:String>
+                <System:String>14</System:String>
+                <System:String>15</System:String>
+                <System:String>16</System:String>
+                <System:String>17</System:String>
+                <System:String>18</System:String>
+                <System:String>19</System:String>
+                <System:String>20</System:String>
+                <System:String>21</System:String>
+                <System:String>22</System:String>
+                <System:String>23</System:String>
+                <System:String>24</System:String>
+            </ComboBox>
+            <ComboBox x:Name="I3B" Grid.Column="1" Margin="60,5,5,5" Width="160" SelectionChanged="I3Bch">
+                <System:String>0</System:String>
+                <System:String>1</System:String>
+                <System:String>2</System:String>
+                <System:String>3</System:String>
+                <System:String>4</System:String>
+                <System:String>5</System:String>
+                <System:String>6</System:String>
+                <System:String>7</System:String>
+                <System:String>8</System:String>
+                <System:String>9</System:String>
+                <System:String>10</System:String>
+                <System:String>11</System:String>
+                <System:String>12</System:String>
+                <System:String>13</System:String>
+                <System:String>14</System:String>
+                <System:String>15</System:String>
+                <System:String>16</System:String>
+                <System:String>17</System:String>
+                <System:String>18</System:String>
+                <System:String>19</System:String>
+                <System:String>20</System:String>
+                <System:String>21</System:String>
+                <System:String>22</System:String>
+                <System:String>23</System:String>
+                <System:String>24</System:String>
+            </ComboBox>
+        </Grid>
+
+    </Grid>
+</UserControl>

@@ -236,7 +236,7 @@ namespace X_Manager
 
 		}
 
-		public override uint askMemory()
+		public override uint[] askMemory()
 		{
 			UInt32 m;
 			sp.Write("TTTTTTTGGAM");
@@ -251,8 +251,7 @@ namespace X_Manager
 			{
 				throw new Exception(unitNotReady);
 			}
-			memory = m;
-			return memory;
+			return new uint[] { m };
 		}
 
 		public override void eraseMemory()
@@ -613,8 +612,8 @@ namespace X_Manager
 			sp.Write("S");
 			Thread.Sleep(1000);
 			int dieCount = sp.ReadByte();
-			if (dieCount == 0x53) dieCount = 2;
-			if (dieCount == 0x73) dieCount = 1;
+			if (dieCount == 0x53) dieCount = 2;		//S
+			if (dieCount == 0x73) dieCount = 1;		//s
 			if ((dieCount != 1) & (dieCount != 2))
 			{
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
@@ -1073,6 +1072,7 @@ namespace X_Manager
 					}
 					ard.Write(firmwareArray, 0, 6);
 					ard.Write(mdp.ReadBytes(254));
+
 				}
 
 				else if (testByte == 0x55)
@@ -1153,7 +1153,7 @@ namespace X_Manager
 			timeStamp timeStampO = new timeStamp();
 			byte[] ev = new byte[5];
 			string barStatus = "";
-			string[] prefs = System.IO.File.ReadAllLines(parent.prefFile);
+			string[] prefs = System.IO.File.ReadAllLines(MainWindow.prefFile);
 			debugLevel = parent.stDebugLevel;
 			oldUnitDebug = parent.oldUnitDebug;
 			addGpsTime = parent.addGpsTime;
@@ -1399,8 +1399,8 @@ namespace X_Manager
 				if (exten.Contains("rem"))
 				{
 					System.IO.File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ": "
-						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: " 
-						+ csv.BaseStream.Position.ToString("X4")+"\tREM Position: "+infRemPosition.ToString("X4") + "\r\n");
+						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: "
+						+ csv.BaseStream.Position.ToString("X4") + "\tREM Position: " + infRemPosition.ToString("X4") + "\r\n");
 				}
 
 				sesCounter++;

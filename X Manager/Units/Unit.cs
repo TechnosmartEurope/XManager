@@ -194,7 +194,7 @@ namespace X_Manager.Units
 
         public abstract UInt32 askMaxMemory();
 
-        public abstract UInt32 askMemory();
+        public abstract UInt32[] askMemory();
 
         public virtual int askRealTime()
         {
