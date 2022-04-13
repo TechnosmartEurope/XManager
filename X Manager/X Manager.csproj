@@ -296,6 +296,9 @@
     <Compile Include="ConfigurationWindows\TrekMovementConfigurationWindow.xaml.cs">
       <DependentUpon>TrekMovementConfigurationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ConfigurationWindows\TrekRemoteIntervals.xaml.cs">
+      <DependentUpon>TrekRemoteIntervals.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConfigurationWindows\TrekSettingsTab.xaml.cs">
       <DependentUpon>TrekSettingsTab.xaml</DependentUpon>
     </Compile>
@@ -379,6 +382,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConfigurationWindows\TrekMovementConfigurationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\TrekRemoteIntervals.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -42,7 +42,7 @@ namespace X_Manager.ConfigurationWindows
 				res = true;
 			}
 
-			for (UInt16 i = 1; (i <= 8); i++)
+			for (UInt16 i = 1; (i <= 9); i++)
 			{
 				TabItem t = new TabItem();
 				// With...
@@ -60,6 +60,8 @@ namespace X_Manager.ConfigurationWindows
 
 			((TabItem)ScheduleTab.Items.GetItemAt(7)).Header = "Settings";
 			((TabItem)ScheduleTab.Items.GetItemAt(7)).Name = "Settings";
+			((TabItem)ScheduleTab.Items.GetItemAt(8)).Header = "Remote";
+			((TabItem)ScheduleTab.Items.GetItemAt(8)).Name = "Remote";
 
 			defaultSettings();
 		}
@@ -79,6 +81,10 @@ namespace X_Manager.ConfigurationWindows
 					result = importSchedule(trekSchedFile);
 					if (!result) System.IO.File.Delete(trekSchedFile);
 				}
+			}
+			if ((unitConnected) && (firmTotB < 3004000))
+			{
+				((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
 			}
 		}
 
@@ -130,7 +136,7 @@ namespace X_Manager.ConfigurationWindows
 		private void readButtonClick(object sender, RoutedEventArgs e)  //Controllare format string
 		{
 			defaultSettings();
-			byte[] conf = new byte[20];
+			byte[] conf;// = new byte[200];
 			try
 			{
 				conf = unit.getGpsSchedule();
@@ -226,6 +232,12 @@ namespace X_Manager.ConfigurationWindows
 			manageStartDelayAppearance(ref st);
 
 			ScheduleTab.Items.RemoveAt(7);
+			try
+			{
+				ScheduleTab.Items.RemoveAt(7);
+			}
+			catch { }
+
 			var t = new TabItem();
 			t.FontSize = 12;
 			t.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0xde));
@@ -238,6 +250,29 @@ namespace X_Manager.ConfigurationWindows
 
 			t.Content = st;
 			ScheduleTab.Items.Add(t);
+
+			if (firmTotB > 3003999)
+			{
+				var rt = new TrekRemoteIntervals(this);
+				double[] rem = new double[23];
+				Array.Copy(conf, 172, rem, 16, 7);
+				rt.import(rem);
+
+				//rt.impo
+				var r = new TabItem();
+				r.FontSize = 12;
+				r.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0xde));
+				r.Name = "Remote";
+				r.Header = "Remote";
+				r.Width = 65;
+				r.Height = 30;
+				r.Background = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
+				r.Margin = new Thickness(2);
+
+				r.Content = rt;
+				ScheduleTab.Items.Add(r);
+			}
+
 
 			//MessageBox.Show("Configuration read.");
 			var w = new Warning("Configuration succesfully read");
@@ -339,6 +374,17 @@ namespace X_Manager.ConfigurationWindows
 			conf[170] = (byte)st.acq1Nud.Value;
 			conf[171] = (byte)st.acq2Nud.Value;
 
+			//Finestre remoto
+			double[] rem = ((TrekRemoteIntervals)((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content).export();
+			conf[172] = (byte)rem[0];
+			conf[173] = (byte)rem[1];
+			conf[174] = (byte)rem[2];
+			conf[175] = (byte)rem[3];
+			conf[176] = (byte)rem[4];
+			conf[177] = (byte)rem[5];
+			conf[178] = (byte)rem[6];
+
+
 			try
 			{
 				unit.setGpsSchedule(conf);
@@ -387,8 +433,12 @@ namespace X_Manager.ConfigurationWindows
 			TrekSettingsTab tt = new TrekSettingsTab(this);
 			manageSensorAppearance(ref tt);
 			manageStartDelayAppearance(ref tt);
-
 			((TabItem)(ScheduleTab.Items.GetItemAt(7))).Content = tt;
+
+			TrekRemoteIntervals tr = new TrekRemoteIntervals(this);
+			tr.import(new double[23]);
+			((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content = tr;
+
 			WeeklyCheck.IsChecked = true;
 		}
 
@@ -506,7 +556,7 @@ namespace X_Manager.ConfigurationWindows
 				((DayTab)((TabItem)ScheduleTab.Items.GetItemAt(dayCount)).Content).import(schS);
 			}
 
-			double[] setD = new double[16];
+			double[] setD = new double[23];
 			for (int valcount = 0; (valcount <= 7); valcount++)
 			{
 				setD[valcount] = fi.ReadDouble();
@@ -535,8 +585,33 @@ namespace X_Manager.ConfigurationWindows
 			}
 			catch
 			{
-				Array.Resize(ref setD, 11); //Testare
+				setD[12] = 0;
+				setD[13] = 0;
+				setD[14] = 0;
+				setD[15] = 0;
 			}
+
+			try
+			{
+				setD[16] = fi.ReadDouble();
+				setD[17] = fi.ReadDouble();
+				setD[18] = fi.ReadDouble();
+				setD[19] = fi.ReadDouble();
+				setD[20] = fi.ReadDouble();
+				setD[21] = fi.ReadDouble();
+				setD[22] = fi.ReadDouble();
+			}
+			catch
+			{
+				setD[16] = 0;
+				setD[17] = 0;
+				setD[18] = 0;
+				setD[19] = 0;
+				setD[20] = 0;
+				setD[21] = 0;
+				setD[22] = 0;
+			}
+
 
 			if ((dw == 1)) DailyCheck.IsChecked = true;
 			else WeeklyCheck.IsChecked = true;
@@ -546,6 +621,8 @@ namespace X_Manager.ConfigurationWindows
 			manageSensorAppearance(ref settingTab);
 			manageStartDelayAppearance(ref settingTab);
 
+			var remoteTab = ((TrekRemoteIntervals)((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content);
+			remoteTab.import(setD);
 			fi.Close();
 
 			return true;
@@ -582,6 +659,14 @@ namespace X_Manager.ConfigurationWindows
 			{
 				fo.Write(value);
 			}
+
+			var dt3 = ((TrekRemoteIntervals)((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content);
+			double[] setR = dt3.export();
+			foreach (double value in setR)
+			{
+				fo.Write(value);
+			}
+
 			fo.Close();
 		}
 

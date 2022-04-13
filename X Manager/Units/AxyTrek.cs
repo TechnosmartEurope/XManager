@@ -394,6 +394,10 @@ namespace X_Manager
 				if (remote) sp.Write(new byte[] { 2 }, 0, 1);
 
 				for (int i = 128; i <= 171; i++) { schedule[i] = (byte)sp.ReadByte(); }
+				if (firmTotB > 3003999)
+				{
+					for (int i = 172; i <= 178; i++) { schedule[i] = (byte)sp.ReadByte(); }
+				}
 			}
 			catch
 			{
@@ -414,7 +418,15 @@ namespace X_Manager
 				if (remote) sp.ReadByte();
 				sp.Write(schedule, 64, 64);
 				if (remote) sp.ReadByte();
-				sp.Write(schedule, 128, 44);
+				if (firmTotB < 3004000)
+				{
+					sp.Write(schedule, 128, 44);
+				}
+				else
+				{
+					sp.Write(schedule, 128, 51);
+				}
+				
 				Thread.Sleep(200);
 				sp.ReadByte();
 			}
