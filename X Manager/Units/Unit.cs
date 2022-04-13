@@ -408,15 +408,15 @@ namespace X_Manager.Units
 				//Ore
 				int printVal = (int)Math.Floor(tot / 3600000);
 				if (printVal > 0) eta += " " + printVal.ToString() + "h";
-				tot -= printVal;
+				tot -= (printVal * 3600000);
 				//Minuti
 				printVal = (int)Math.Floor(tot / 60000);
 				if (printVal > 0) eta += " " + printVal.ToString() + "m";
-				tot -= printVal;
+				tot -= (printVal * 60000);
 				//Secondi
 				printVal = (int)Math.Floor(tot / 1000);
 				if (printVal > 0) eta += " " + printVal.ToString() + "s";
-				tot -= printVal;
+				tot -= printVal * 1000;
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(
 					() => parent.etaLabel.Content = eta));
 

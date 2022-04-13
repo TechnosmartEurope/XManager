@@ -27,7 +27,7 @@ namespace X_Manager.Units
 			public byte tsType, tsTypeExt1, tsTypeExt2;
 			//public byte ore, secondi, minuti, anno, mese, giorno;
 			public float batteryLevel;
-			public float temp, press, pressOffset;
+			public double temp, press, pressOffset;
 			public DateTime orario;
 			public byte logEvent;
 			public bool agmSyncEventFlag;
@@ -487,7 +487,7 @@ namespace X_Manager.Units
 					{
 						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
 						if (System.IO.File.Exists(newFileNameMdp)) fDel(newFileNameMdp); //System.IO.File.Delete(newFileNameMdp);
-																					 //string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
+																						 //string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
 						System.IO.File.Move(fileNameMdp, newFileNameMdp);
 					}
 				}
@@ -944,6 +944,17 @@ namespace X_Manager.Units
 				// gyroSep = csvSeparator;
 				more += 6;
 			}
+			else if (gyroMode == 1)
+			{
+				//Inserisce il giroscopio a 1 Hz
+				if (((tsLoc.tsType & 128) == 128) | repeatEmptyValues)
+				{
+					gyrox = (Math.Round(tsLoc.gyro[0], cifreDec)).ToString(cifreDecString, nfi);
+					gyroy = (Math.Round(tsLoc.gyro[1], cifreDec)).ToString(cifreDecString, nfi);
+					gyroz = (Math.Round(tsLoc.gyro[2], cifreDec)).ToString(cifreDecString, nfi);
+					// gyroSep = csvSeparator;
+				}
+			}
 
 			if (compassMode == 2)
 			{
@@ -968,24 +979,18 @@ namespace X_Manager.Units
 				compz = z.ToString(cifreDecString, nfi);
 				//compSep = csvSeparator;
 			}
-
-			//Inserisce il giroscopio a 1 Hz
-			if (((tsLoc.tsType & 128) == 128) | repeatEmptyValues)
+			else if (compassMode == 1)
 			{
-				gyrox = (Math.Round(tsLoc.gyro[0], cifreDec)).ToString(cifreDecString, nfi);
-				gyroy = (Math.Round(tsLoc.gyro[1], cifreDec)).ToString(cifreDecString, nfi);
-				gyroz = (Math.Round(tsLoc.gyro[2], cifreDec)).ToString(cifreDecString, nfi);
-				// gyroSep = csvSeparator;
+				//Inserisce il magnetometro a 1 Hz
+				if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues)
+				{
+					compx = (Math.Round(tsLoc.comp[0], cifreDec)).ToString(cifreDecString, nfi);
+					compy = (Math.Round(tsLoc.comp[1], cifreDec)).ToString(cifreDecString, nfi);
+					compz = (Math.Round(tsLoc.comp[2], cifreDec)).ToString(cifreDecString, nfi);
+					//compSep = csvSeparator;
+				}
 			}
 
-			//Inserisce il magnetometro a 1 Hz
-			if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues)
-			{
-				compx = (Math.Round(tsLoc.comp[0], cifreDec)).ToString(cifreDecString, nfi);
-				compy = (Math.Round(tsLoc.comp[1], cifreDec)).ToString(cifreDecString, nfi);
-				compz = (Math.Round(tsLoc.comp[2], cifreDec)).ToString(cifreDecString, nfi);
-				//compSep = csvSeparator;
-			}
 
 			//Inserisce l'attività
 			if ((tsLoc.tsType & 0x40) == 0x40)
@@ -1479,6 +1484,68 @@ namespace X_Manager.Units
 			return false;
 		}
 
+		//private bool pressureDepth5837(ref BinaryReader ard, ref timeStamp tsc)
+		//{
+		//	double dT;
+		//	double off;
+		//	double sens;
+		//	double d1, d2;
+
+		//	try
+		//	{
+		//		d2 = (ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte());
+		//	}
+		//	catch
+		//	{
+		//		return true;
+		//	}
+
+		//	dT = d2 - convCoeffs[4] * 256;
+		//	tsc.temp = (float)(2000 + (dT * convCoeffs[5]) / 8388608);
+		//	off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
+		//	sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
+		//	if (tsc.temp > 2000)
+		//	{
+		//		tsc.temp -= (float)((2 * Math.Pow(dT, 2)) / 137438953472);
+		//		off -= ((Math.Pow((tsc.temp - 2000), 2)) / 16);
+		//	}
+		//	else
+		//	{
+		//		off -= 3 * ((Math.Pow((tsc.temp - 2000), 2)) / 2);
+		//		sens -= 5 * ((Math.Pow((tsc.temp - 2000), 2)) / 8);
+		//		if (tsc.temp < -1500)
+		//		{
+		//			off -= 7 * Math.Pow((tsc.temp + 1500), 2);
+		//			sens -= 4 * Math.Pow((tsc.temp + 1500), 2);
+		//		}
+		//		tsc.temp -= (float)(3 * (Math.Pow(dT, 2))) / 8589934592;
+		//	}
+		//	tsc.temp = (float)Math.Round((tsc.temp / 100), 1);
+		//	if ((tsc.tsType & 4) == 4)
+		//	{
+		//		try
+		//		{
+		//			d1 = (uint)(ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte());
+		//		}
+		//		catch
+		//		{
+		//			return true;
+		//		}
+		//		tsc.press = (float)Math.Round((((d1 * sens / 2097152) - off) / 81920), 1);
+		//		if (inMeters)
+		//		{
+		//			tsc.press -= tsc.pressOffset;
+		//			if (tsc.press <= 0) tsc.press = 0;
+		//			else
+		//			{
+		//				tsc.press = (float)(tsc.press / 98.1);
+		//				tsc.press = (float)Math.Round(tsc.press, 2);
+		//			}
+		//		}
+		//	}
+		//	return false;
+		//}
+
 		private bool pressureDepth5837(ref BinaryReader ard, ref timeStamp tsc)
 		{
 			double dT;
@@ -1488,7 +1555,7 @@ namespace X_Manager.Units
 
 			try
 			{
-				d2 = (ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte());
+				d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
 			}
 			catch
 			{
@@ -1496,16 +1563,17 @@ namespace X_Manager.Units
 			}
 
 			dT = d2 - convCoeffs[4] * 256;
-			tsc.temp = (float)(2000 + (dT * convCoeffs[5]) / 8388608);
-			off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
-			sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
+			tsc.temp = 2000 + (dT * convCoeffs[5]) / 8_388_608;
+			off = convCoeffs[1] * 65_536 + (convCoeffs[3] * dT) / 128;
+			sens = convCoeffs[0] * 32_768 + (convCoeffs[2] * dT) / 256;
 			if (tsc.temp > 2000)
 			{
-				tsc.temp -= (float)((2 * Math.Pow(dT, 2)) / 137438953472);
+				tsc.temp -= (2 * Math.Pow(dT, 2)) / 137_438_953_472;
 				off -= ((Math.Pow((tsc.temp - 2000), 2)) / 16);
 			}
 			else
 			{
+				tsc.temp -= 3 * (Math.Pow(dT, 2)) / 8_589_934_592;
 				off -= 3 * ((Math.Pow((tsc.temp - 2000), 2)) / 2);
 				sens -= 5 * ((Math.Pow((tsc.temp - 2000), 2)) / 8);
 				if (tsc.temp < -1500)
@@ -1513,28 +1581,28 @@ namespace X_Manager.Units
 					off -= 7 * Math.Pow((tsc.temp + 1500), 2);
 					sens -= 4 * Math.Pow((tsc.temp + 1500), 2);
 				}
-				tsc.temp -= (float)(3 * (Math.Pow(dT, 2))) / 8589934592;
 			}
-			tsc.temp = (float)Math.Round((tsc.temp / 100), 1);
+			tsc.temp /= 100;
+			//tsc.temp = Math.Round((tsc.temp / 100), 1);
 			if ((tsc.tsType & 4) == 4)
 			{
 				try
 				{
-					d1 = (uint)(ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte());
+					d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
 				}
 				catch
 				{
 					return true;
 				}
-				tsc.press = (float)Math.Round((((d1 * sens / 2097152) - off) / 81920), 1);
+				tsc.press = (((d1 * sens / 2_097_152) - off) / 81_920);
 				if (inMeters)
 				{
 					tsc.press -= tsc.pressOffset;
 					if (tsc.press <= 0) tsc.press = 0;
 					else
 					{
-						tsc.press = (float)(tsc.press / 98.1);
-						tsc.press = (float)Math.Round(tsc.press, 2);
+						tsc.press = tsc.press / 98.1;
+						//tsc.press = Math.Round(tsc.press, 2);
 					}
 				}
 			}

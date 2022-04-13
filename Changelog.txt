@@ -69,3 +69,5 @@
 	Aggiunta indicazione ETA in conversione
 	Axy5: aggiunta posizione ard nel csv - colonna metadati, in caso di debug=3
 	Bugfix: Axy5, se selezionato "fill empty fields" crashava
+1.9.1	Bugfix: AGM, in caso di "fill empty values", giroscopio e magnetometro seganavano zero (al cent.di.secondo 0 e se impostati come "linked")
+	Bugfix: correzione ETA (riportava male i minuti)
