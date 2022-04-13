@@ -11,4 +11,5 @@
 	Migliorata retrocompatibilità per evento di debug Axy-Trek
 1.2.2	Bugfix: piccole correzioni su Axy5
 	Inizio gestione github
+1.2.3	Bugfix: Corretta conversione dati magnetometro
 

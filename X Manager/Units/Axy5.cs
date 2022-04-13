@@ -1391,19 +1391,24 @@ namespace X_Manager.Units
 			//Timestamp esteso 1: Magnetometro
 			if ((tsc.tsTypeExt1 & 8) == 8)
 			{
-				tsc.magX = ard.ReadByte() * 256 + ard.ReadByte();
+				tsc.magX = ard.ReadByte();
+				tsc.magX += (ard.ReadByte() * 256);
 				if (tsc.magX > 32767)
 				{
 					tsc.magX -= 65536;
 				}
 				tsc.magX *= 1.5;
-				tsc.magY = ard.ReadByte() * 256 + ard.ReadByte();
+
+				tsc.magY = ard.ReadByte();
+				tsc.magY += (ard.ReadByte() * 256);
 				if (tsc.magY > 32767)
 				{
 					tsc.magY -= 65536;
 				}
 				tsc.magY *= 1.5;
-				tsc.magZ = ard.ReadByte() * 256 + ard.ReadByte();
+
+				tsc.magZ = ard.ReadByte();
+				tsc.magZ += (ard.ReadByte() * 256);
 				if (tsc.magZ > 32767)
 				{
 					tsc.magZ -= 65536;

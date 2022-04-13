@@ -10,7 +10,7 @@ using System.IO;
 using FTD2XX_NET;
 using System.Runtime.InteropServices;
 using System.Globalization;
-using System.Diagnostics;
+//using System.Diagnostics;
 #if X64
 using FT_HANDLE = System.UInt64;
 #else

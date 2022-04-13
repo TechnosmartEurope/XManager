@@ -55,8 +55,8 @@ namespace X_Manager.Units
 		bool metadata;
 		bool overrideTime;
 
-		double mediaFreq = 0;    //sviluppo
-		double contoFreq = 0;     //sviluppo
+		//double mediaFreq = 0;    //sviluppo
+		//double contoFreq = 0;     //sviluppo
 
 		public Axy4_2(object p)
 			: base(p)
@@ -959,8 +959,8 @@ namespace X_Manager.Units
 			}
 
 			//sviluppo
-			mediaFreq = mediaFreq / contoFreq;
-			MessageBox.Show(mediaFreq.ToString());
+			//mediaFreq = mediaFreq / contoFreq;
+			//MessageBox.Show(mediaFreq.ToString());
 			///sviluppo
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
