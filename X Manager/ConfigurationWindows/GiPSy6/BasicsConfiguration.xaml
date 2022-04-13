@@ -1,14 +1,60 @@
-﻿<Page x:Class="X_Manager.ConfigurationWindows.GiPSy6.BasicsConfiguration"
+﻿<local:PageCopy x:Class="X_Manager.ConfigurationWindows.BasicsConfiguration"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:X_Manager.ConfigurationWindows.GiPSy6"
-      mc:Ignorable="d" Background="Black"
+      xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
+      mc:Ignorable="d" Background="#FF202020"
       d:DesignHeight="720" d:DesignWidth="900"
       Title="BasicsConfiguration">
 
     <Grid>
-        <TextBlock Text="1 - Basics" Foreground="White" FontSize="40"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="50" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="1 - Basics" Foreground="White" FontSize="35" Margin="10,0,0,0" Background="#FF303030"/>
+
+        <TextBlock Grid.Row="2" Text="ACQUISITION" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+
+        <TextBlock Grid.Row="3" Text="Acquisition ON time: " Foreground="White" FontSize="25" Margin="40,0,0,0" />
+        <TextBox Grid.Row="3" x:Name="onTB" Margin="230,0,0,0" FontSize="20" Foreground="White" Width="180" KeyDown="validate" LostFocus="validate" />
+        <TextBlock Grid.Row="3" Text="(sec)" Margin="680,0,0,0" FontSize="25" Foreground="White" />
+
+        <TextBlock Grid.Row="4" Text="Acquisition OFF time: " Foreground="White" FontSize="25" Margin="40,0,0,0" />
+        <TextBox Grid.Row="4" x:Name="offTB" Margin="230,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" />
+        <TextBlock Grid.Row="4" Text="(sec)" Margin="680,0,0,0" FontSize="25" Foreground="White" />
+
+        <TextBlock Grid.Row="6" Text="START DELAY" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+
+        <CheckBox Grid.Row="7" x:Name="sddCB" Margin="40,0,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="30" Width="30" Padding="0" Checked="sddCB_Checked" Unchecked="sddCB_Checked" />
+        <TextBlock Grid.Row="7" Text="Start Delay (date based): " Foreground="White" FontSize="25" Margin="80,0,0,0" Width="300" HorizontalAlignment="Left" />
+        <DatePicker Grid.Row="7" x:Name="startDelayDateDP" Margin="230,0,0,0" Width="180" SelectedDateChanged="startDelayDateDP_SelectedDateChanged" SelectedDateFormat="Long"/>
+
+        <CheckBox Grid.Row="8" x:Name="sdtCB" Margin="40,0,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="30" Width="30" Padding="0" Checked="sdtCB_Checked" Unchecked="sdtCB_Checked" />
+        <TextBlock Grid.Row="8" Text="Start Delay (time based): " Foreground="White" FontSize="25" Margin="80,0,0,0" Width="300" HorizontalAlignment="Left"/>
+        <TextBox Grid.Row="8" x:Name="startDelayTimeTB" Margin="230,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" />
+        <TextBlock Grid.Row="8" x:Name="minLabel" Text="(min)" Margin="680,0,0,0" FontSize="25" Foreground="White" />
+
+        <TextBlock Grid.Row="10" Text="Acquisition-ON Overriding Parameters" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+
+        <TextBlock Grid.Row="11" Text="Minimum number of satellites:" Foreground="White" FontSize="25" Margin="40,0,0,0" />
+        <TextBox Grid.Row="11" x:Name="satTB" Margin="230,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" />
+
+        <TextBlock Grid.Row="12" Text="Minimum signal strenght:" Foreground="White" FontSize="25" Margin="40,0,0,0" />
+        <TextBox Grid.Row="12" x:Name="gsvTB" Margin="230,0,0,0" FontSize="20" Foreground="White" Width="180" KeyDown="validate" LostFocus="validate" />
+        <TextBlock Grid.Row="12" Text="(dB/Hz)" Margin="680,0,0,0" FontSize="25" Foreground="White" />
     </Grid>
-</Page>
+</local:PageCopy>

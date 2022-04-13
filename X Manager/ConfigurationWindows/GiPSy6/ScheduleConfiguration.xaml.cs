@@ -13,16 +13,28 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace X_Manager.ConfigurationWindows.GiPSy6
+namespace X_Manager.ConfigurationWindows
 {
 	/// <summary>
 	/// Logica di interazione per ScheduleConfiguration.xaml
 	/// </summary>
-	public partial class ScheduleConfiguration : Page
+	public partial class ScheduleConfiguration : PageCopy
 	{
-		public ScheduleConfiguration()
+		byte[] conf;
+		public ScheduleConfiguration(ref byte[] conf)
 		{
 			InitializeComponent();
+			this.conf = conf;
+		}
+
+		private void CheckBox_Checked(object sender, RoutedEventArgs e)
+		{
+			conf[0] = 0xbb;
+		}
+
+		public override void copyValues()
+		{
+
 		}
 	}
 }

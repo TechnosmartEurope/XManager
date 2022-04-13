@@ -85,3 +85,7 @@
 1.9.6	Bugfix: ripristinata connessione con AxyTrek
 1.10.0	Supporto per Axy-Quattrok
 	Inizio scrittura classi di configurazione GiPSy6
+	Bugfix: la conversione Axy5 ignorava sensore depth/aria convertendo sempre acqua
+	Bugfix: errata interpretazione dell'header per le info su temperatura, pressione e adc abilitati.
+1.10.1	Ripristinata conversione presisone aria nell'axy5.
+	Continuazione sviluppo finestre interffaccia gipsy6

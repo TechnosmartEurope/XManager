@@ -8,6 +8,10 @@
                 <ResourceDictionary Source="Themes/MetroDark/MetroDark.MSControls.Core.Implicit.xaml" />
                 <ResourceDictionary Source="Themes/MetroDark/MetroDark.MSControls.Toolkit.Implicit.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="confWindows" TargetType="{x:Type Control}">
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontSize" Value="20" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

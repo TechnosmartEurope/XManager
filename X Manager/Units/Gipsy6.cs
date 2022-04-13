@@ -98,8 +98,8 @@ namespace X_Manager.Units
 			: base(p)
 		{
 			modelCode = model_Gipsy6;
-			configureMovementButtonEnabled = false;
-			configurePositionButtonEnabled = true;
+			configureMovementButtonEnabled = true;
+			configurePositionButtonEnabled = false;
 		}
 
 		public override string askFirmware()
@@ -296,12 +296,23 @@ namespace X_Manager.Units
 		public override byte[] getConf()
 		{
 			sp.Write("TTTTTTTTGGAC");
-			int[] conf = new int[0x1000];
+			byte[] conf = new byte[0x1000];
 			try
 			{
+				//ACQ, Start delay e GSV
 				for (int i = 32; i < 52; i++)
 				{
-					conf[i] = sp.ReadByte();
+					conf[i] = (byte)sp.ReadByte();
+				}
+				//Schedule A e B
+				for (int i = 52; i < 52 + 32; i++)
+				{
+					conf[i] = (byte)sp.ReadByte();
+				}
+				//Schedule C e D + mesi
+				for (int i = 84; i < 84+44; i++)
+				{
+					conf[i] = (byte)sp.ReadByte();
 				}
 			}
 			catch
@@ -310,7 +321,7 @@ namespace X_Manager.Units
 			}
 
 
-			return new byte[] { 0 };
+			return conf;
 		}
 
 		//public override byte[] getGpsSchedule()

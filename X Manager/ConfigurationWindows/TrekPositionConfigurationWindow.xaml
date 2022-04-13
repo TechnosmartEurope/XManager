@@ -1,7 +1,7 @@
 ﻿<local:ConfigurationWindow x:Class="X_Manager.ConfigurationWindows.TrekPositionConfigurationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:X_Manager"
+        xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
         xmlns:dc="clr-namespace:X_Manager"
         Title="POSITION CONFIGURATION - TREK FAMILY" Height="556" Width="906"
         Background="#FF181818"

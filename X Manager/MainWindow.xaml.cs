@@ -20,6 +20,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.ComponentModel;
 using X_Manager.Units;
+using X_Manager.ConfigurationWindows;
 
 #if X64
 using FT_HANDLE = System.UInt64;
@@ -327,11 +328,70 @@ namespace X_Manager
 				convertDataLaunch();
 			}
 
-			//sviluppo
-			//byte[] conf = new byte[0x1000];
-			//var d = new ConfigurationWindows.GiPSy6.GiPSy6ConfigurationMain(conf);
-			//d.ShowDialog();
-			//sviluppo
+			//#if DEBUG
+			//			byte[] conf = new byte[354] { 0xCF, 0x55, 0x01, 0x00,
+			//		// 4	Nome unità: 27 caratteri + terminatore 0
+			//		0, 0, 0, 0, 0, 0, 0,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		// 32	ACQ ON (240s) - ACQ OFF (1800s)
+			//		0xf0, 0x00, 0x08, 0x07,
+			//		// 36	Start delay (secondi, 32 bit)
+			//		0x00, 0x00, 0x00, 0x00,
+			//		// 40	Start delay (date)
+			//		0xe3, 0x07, 0x01, 0x01,
+			//		// 44	Soglie GSV
+			//		0x01,		//n satelliti dopo 20 sec
+			//		0x3c,		//gsv minima dopo 40 satelliti
+			//		0x00, 0x00,	//usi futuri
+			//		// 48	ADC soglia + magmin, flag trigger, flag log
+			//		0x02, 0x00, 0x00, 0x00,
+			//		// 52	P1: Schedule A (10 secondi)
+			//		0x00, 0x00, 0x00, 0x0A,
+			//		// 56	P1: Schedule B (mezz'ora)
+			//		0x00, 0x00, 0x07, 0x08,
+			//		// 52 - P1: Orari (0 = off, 1 = sch.A, 2 = sch.B)
+			//		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			//		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			//		// 84	P2: Schedule C (1 minuto)
+			//		0x00, 0x00, 0x00, 0x3C,
+			//		// 88	P2: Schedule D (due ore)
+			//		0x00, 0x00, 0x1C, 0x20,
+			//		// 92 - P2: Orari (0 = off, 1 = sch.C, 2 = sch.D)
+			//		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			//		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			//		// 116 - P2: Mesi validità
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		// 128 - G1: Vertici
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		//208 - G1: Schedule E (1 minuto)
+			//		0x00, 0x00, 0x00, 0x3C,
+			//		// 212	G1: Schedule F (due ore)
+			//		0x00, 0x00, 0x1C, 0x20,
+			//		// 216	G1: Orari
+			//		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			//		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			//		// 240 - G1: Vertici
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			//		//320 - G2: Schedule E (1 minuto)
+			//		0x00, 0x00, 0x00, 0x3C,
+			//		// 324	G2: Schedule F (due ore)
+			//		0x00, 0x00, 0x1C, 0x20,
+			//		// 328	G2: Orari
+			//		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			//		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+			//		// 352	G1/G2 Enable
+			//		0x00, 0x00
+			//		//354
+			//		};
+			//#endif
 		}
 
 		private void ComPortComboBox_DropDownOpened(object sender, EventArgs e)
@@ -384,14 +444,14 @@ namespace X_Manager
 				//Scrive la modalità download
 				fileBody += "A\r\n";
 				fileBody += Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule\r\n";
-				if (!System.IO.Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule"))
+				if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule"))
 				{
-					System.IO.Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule");
+					Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule");
 				}
-				System.IO.File.WriteAllText(iniFile, fileBody);
+				File.WriteAllText(iniFile, fileBody);
 			}
 
-			lastSettings = System.IO.File.ReadAllLines(iniFile);
+			lastSettings = File.ReadAllLines(iniFile);
 		}
 
 		private void uiDisconnected()
@@ -419,6 +479,8 @@ namespace X_Manager
 			this.Title = "X MANAGER";
 			configureMovementButton.Content = "Accelerometer configuration";
 			realTimeSP.Visibility = Visibility.Hidden;
+			configurePositionButton.Visibility = Visibility.Visible;
+			configureMovementButton.Content = "Accelerometer Configuration";
 			try
 			{
 				sp.Close();
@@ -461,6 +523,9 @@ namespace X_Manager
 					break;
 				case Unit.model_Gipsy6:
 					unitNameTextBox.MaxLength = 27;
+					configureMovementButton.IsEnabled = true;
+					configureMovementButton.Content = "CONFIGURATION";
+					configurePositionButton.Visibility = Visibility.Hidden;
 					break;
 				default:
 					configureMovementButton.Content = "Accelerometer configuration";
@@ -1152,7 +1217,7 @@ namespace X_Manager
 						Thread.Sleep(5);
 						sp.Write("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTGGAP");
 					}
-					else if (rs == '6')		//In caso di Gipsy6 bisogna mandare una stringa corta
+					else if (rs == '6')     //In caso di Gipsy6 bisogna mandare una stringa corta
 					{
 						sp.Write("GGAP");
 					}
@@ -1337,24 +1402,21 @@ namespace X_Manager
 				uiDisconnected();
 				return;
 			}
+			//ConfigurationWindow confForm = new ConfigurationWindow();
 			ConfigurationWindow confForm;
 			if (oUnit.modelCode == model_AGM1)
 			{
 				confForm = new AgmConfigurationWindow(conf, oUnit.modelCode);
 			}
+			else if (oUnit.modelCode == model_Gipsy6)
+			{
+				confForm = new GiPSy6ConfigurationMain(conf, oUnit.modelCode);
+			}
 			else if (oUnit.modelCode == model_axy5)
 			{
-				if (oUnit.firmTotA < 1001000)
-				{
-					confForm = new ConfigurationWindows.Axy5ConfigurationWindow_Legacy(conf, oUnit.firmTotA);
-				}
-				else
-				{
-					confForm = new Axy5ConfigurationWindow(conf, accSchedule, oUnit.firmTotA);
-				}
-
+				confForm = new Axy5ConfigurationWindow(conf, accSchedule, oUnit.firmTotA);
 			}
-			else if (oUnit.modelCode == model_axyTrek | oUnit.modelCode==model_axyQuattrok)
+			else if (oUnit.modelCode == model_axyTrek | oUnit.modelCode == model_axyQuattrok)
 			{
 				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA, ref sp);
 			}
@@ -1424,11 +1486,7 @@ namespace X_Manager
 			}
 			else if (type == 1)
 			{
-				conf = new ConfigurationWindows.TrekPositionConfigurationWindow(ref oUnit);
-			}
-			else if (type == 2)
-			{
-				conf = new ConfigurationWindows.GipsyPositionConfigurationWindow(ref oUnit);
+				conf = new TrekPositionConfigurationWindow(ref oUnit);
 			}
 
 			//conf = new TrekPositionConfigurationWindow(ref oUnit);

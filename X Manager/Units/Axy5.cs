@@ -76,7 +76,7 @@ namespace X_Manager.Units
 		//byte bitsDiv;
 		//bool angloTime = false;
 		bool inMeters;
-		double gCoeff;
+		double gCoeff = 0.01563;
 		//string dateFormat;
 		int addMilli;
 		//int addMilli2Hz;
@@ -86,7 +86,7 @@ namespace X_Manager.Units
 		int metadata = 0;
 		bool overrideTime;
 		int temperatureEn;
-		int isDepth;
+		int isDepth = 1;
 		int pressureEn;
 		double pressOffset;
 		int dtPeriod;
@@ -102,6 +102,7 @@ namespace X_Manager.Units
 		//double x, y, z;
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 		string dateTimeFormat;
+		bool schedTs = false;
 
 		public Axy5(object p)
 			: base(p)
@@ -1115,6 +1116,8 @@ namespace X_Manager.Units
 			string barStatus = "";
 
 			//Imposta le preferenze di conversione
+			if ((MainWindow.lastSettings[5] == "air")) isDepth = 0;
+
 			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 
 			if (prefs[pref_battery] == "True") prefBattery = 1;
@@ -1394,6 +1397,45 @@ namespace X_Manager.Units
 				return new double[0];
 			}
 
+			//Se non ha informazioni circa la frequenza, la stima dalla lunghezza del gruppo
+			if (!schedTs)
+			{
+				schedTs = true;
+				int div = 3 + bit;
+
+				double checkVal = position / div;
+				if (checkVal < 5)
+				{
+					nOutputs = 1;
+					iend1 = 3;
+					iend2 = 0;
+				}
+				else if (checkVal < 18)
+				{
+					nOutputs = 10;
+					iend1 = 15;
+					iend2 = 30;
+				}
+				else if (checkVal < 35)
+				{
+					nOutputs = 25;
+					iend1 = 36;
+					iend2 = 75;
+				}
+				else if (checkVal < 75)
+				{
+					nOutputs = 50;
+					iend1 = 75;
+					iend2 = 150;
+				}
+				else
+				{
+					nOutputs = 100;
+					iend1 = 150;
+					iend2 = 300;
+				}
+			}
+
 			int resultCode = 0;
 			double[] doubleResultArray = new double[nOutputs * 3];
 			if (bit == 0)   //ricampionamento a 8 bit
@@ -1563,24 +1605,21 @@ namespace X_Manager.Units
 			//}
 
 			//TEMPERATURA INTERNA
-			if (temperatureEn > 0)
+			if (temperatureEn == 1)
 			{
 				if ((tsc.tsType & ts_temperature) == ts_temperature)
 				{
-					if (isDepth == 0)
+					try
 					{
-						try
-						{
-							tsc.temperature = ard.ReadByte() * 256 + ard.ReadByte();
-						}
-						catch
-						{
-							return;
-						}
-						if (tsc.temperature > 127) tsc.temperature -= 256;
-						tsc.temperature += 25;
-						gruppoCON[temp] = tsc.temperature.ToString();
+						tsc.temperature = ard.ReadByte() * 256 + ard.ReadByte();
 					}
+					catch
+					{
+						return;
+					}
+					if (tsc.temperature > 127) tsc.temperature -= 256;
+					tsc.temperature += 25;
+					gruppoCON[temp] = tsc.temperature.ToString();
 				}
 				else
 				{
@@ -1627,38 +1666,40 @@ namespace X_Manager.Units
 				range = ard.ReadByte();
 				bit = ard.ReadByte();
 				ard.ReadByte(); ard.ReadByte(); //Salta i due byte del microschedule perché ancora non implementato
+
+				schedTs = true;
 				switch (rate)
 				{
-					case 0:
+					case 0: //OFF
 						nOutputs = 0;
 						addMilli = 0;
 						iend2 = 0;
 						break;
-					case 1:
+					case 1: //1Hz
 						nOutputs = 1;
 						addMilli = 1000;
 						iend1 = 3;
 						iend2 = 0;
 						break;
-					case 2:
+					case 2: //10Hz
 						nOutputs = 10;
 						addMilli = 100;
 						iend1 = 15;
 						iend2 = 30;
 						break;
-					case 3:
+					case 3: //25Hz
 						nOutputs = 25;
 						addMilli = 40;
 						iend1 = 36;
 						iend2 = 75;
 						break;
-					case 4:
+					case 4: //50Hz
 						nOutputs = 50;
 						addMilli = 20;
 						iend1 = 75;
 						iend2 = 150;
 						break;
-					case 5:
+					case 5: //100Hz
 						nOutputs = 100;
 						addMilli = 10;
 						iend1 = 150;
@@ -1712,19 +1753,15 @@ namespace X_Manager.Units
 				int minuti = ard.ReadByte();
 				minuti = ((minuti >> 4) * 10) + (minuti & 15);
 
-#if DEBUG
 				try
 				{
-					tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi, 0);
+					DateTime d = new DateTime(anno, mese, giorno, ore, minuti, secondi, 0);
+					tsc.orario = d;
 				}
 				catch
 				{
 					MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
 				}
-#else
-				tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi, 0);
-#endif
-
 			}
 
 			if ((tsc.tsTypeExt1 & ts_escape) == ts_escape)
@@ -1750,16 +1787,33 @@ namespace X_Manager.Units
 			{
 				if ((tsc.tsType & ts_pressure) == ts_pressure)
 				{
-					try
+					if (isDepth == 1)
 					{
-						dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
-						gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
-						gruppoCON[press] = tsc.pressure.ToString("0.00");
+						try
+						{
+							dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
+							gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
+							gruppoCON[press] = tsc.pressure.ToString("0.00");
+						}
+						catch
+						{
+							return;
+						}
 					}
-					catch
+					else
 					{
-						return;
+						try
+						{
+							dtAir(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
+							gruppoCON[temp] = tsc.temperature.ToString("0.00");   //Sviluppo: trovare la giusta formattazione per temperatura e pressione da sensore esterno
+							gruppoCON[press] = tsc.pressure.ToString("0.00");
+						}
+						catch
+						{
+							return;
+						}
 					}
+
 				}
 				else
 				{
@@ -1773,15 +1827,15 @@ namespace X_Manager.Units
 
 			//BATTERIA
 
-				if ((tsc.tsType & ts_battery) == ts_battery)
-				{
-					tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
-					if (prefBattery == 1) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
-				}
-				else
-				{
-					if (!repeatEmptyValues & prefBattery==1) gruppoCON[batt] = "";
-				}
+			if ((tsc.tsType & ts_battery) == ts_battery)
+			{
+				tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
+				if (prefBattery == 1) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+			}
+			else
+			{
+				if (!repeatEmptyValues & prefBattery == 1) gruppoCON[batt] = "";
+			}
 
 
 			if (tsc.tsTypeExt1 == 0)
@@ -1991,7 +2045,7 @@ namespace X_Manager.Units
 			File.WriteAllText(fileNameInfo, Path.GetFileNameWithoutExtension(fileNameInfo) + "\r\n\r\n");
 
 			string en = "dis";
-			if (temperatureEn == 1) en = "en";
+			if (temperatureEn > 0) en = "en";
 			File.AppendAllText(fileNameInfo, string.Format("Temperature logging is {0}abled.\r\n", en));
 			en = "dis";
 			if (pressureEn == 1) en = "en";
@@ -1999,7 +2053,7 @@ namespace X_Manager.Units
 			en = "dis";
 			if (adcEn == 1) en = "en";
 			File.AppendAllText(fileNameInfo, string.Format("ADC logging is {0}abled.\r\n", en));
-			if (temperatureEn == 1 | pressureEn == 1 | adcEn == 1)
+			if (temperatureEn > 0 | pressureEn == 1 | adcEn == 1)
 			{
 				File.AppendAllText(fileNameInfo, string.Format("Temperature/Pressure/ADC logging period is {0} second(s)\r\n", dtPeriod.ToString()));
 			}
@@ -2096,13 +2150,10 @@ namespace X_Manager.Units
 		private void findTDAdcEnable(int td)
 		{
 			temperatureEn = 0;
-			isDepth = 0;
 			adcEn = 0;
-			if ((td & 0b1) == 0b1) temperatureEn = 1;
-			if ((td & 0b10) == 0b10) isDepth = 1;
-			if ((td & 0b1000) == 0b1000) adcEn = 1;
-
-			pressureEn = td >> 4;
+			temperatureEn = (td & 0b11);
+			pressureEn = (td & 0b10000) >> 4;
+			adcEn = (td & 0b1000) >> 3;
 		}
 
 		private void findMagEnable(int m)
@@ -2241,6 +2292,64 @@ namespace X_Manager.Units
 					}
 				}
 			}
+		}
+
+		private bool dtAir(ref MemoryStream ard, ref timeStamp tsc)
+		{
+			double dT, off, sens, t2, off2, sens2;
+			double d1, d2;
+
+			try
+			{
+				d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+			}
+			catch
+			{
+				return true;
+			}
+
+			dT = d2 - convCoeffs[4] * 256;
+			tsc.temperature = 2000 + (dT * convCoeffs[5]) / 8388608;
+			off = convCoeffs[1] * 131072 + (convCoeffs[3] * dT) / 64;
+			sens = convCoeffs[0] * 65536 + (convCoeffs[2] * dT) / 128;
+			if (tsc.temperature > 2000)
+			{
+				t2 = 0;
+				off2 = 0;
+				sens2 = 0;
+			}
+			else
+			{
+				t2 = Math.Pow(dT, 2) / 2147483648;
+				off2 = 61 * Math.Pow((tsc.temperature - 2000), 2) / 16;
+				sens2 = 2 * Math.Pow((tsc.temperature - 2000), 2);
+				if (tsc.temperature < -1500)
+				{
+					off2 += 20 * Math.Pow((tsc.temperature + 1500), 2);
+					sens2 += 12 * Math.Pow((tsc.temperature + 1500), 2);
+				}
+			}
+			tsc.temperature -= t2;
+			off -= off2;
+			sens -= sens2;
+			tsc.temperature /= 100;
+			//tsc.temp = Math.Round(tsc.temp, 1);
+
+			if ((tsc.tsType & 4) == 4)
+			{
+				try
+				{
+					d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+				}
+				catch
+				{
+					return true;
+				}
+				tsc.pressure = ((d1 * sens / 2097152) - off) / 32768;
+				tsc.pressure /= 100;
+				//tsc.press = Math.Round(tsc.press, 2);
+			}
+			return false;
 		}
 
 		private bool detectEof(ref MemoryStream ard)

@@ -13,16 +13,21 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace X_Manager.ConfigurationWindows.GiPSy6
+namespace X_Manager.ConfigurationWindows
 {
 	/// <summary>
 	/// Logica di interazione per GeofencigConfiguration.xaml
 	/// </summary>
-	public partial class GeofencigConfiguration : Page
+	partial class GeofencigConfiguration : PageCopy
 	{
-		public GeofencigConfiguration()
+		public GeofencigConfiguration(ref byte[] conf)
 		{
 			InitializeComponent();
 		}
+		public override void copyValues()
+		{
+
+		}
+
 	}
 }

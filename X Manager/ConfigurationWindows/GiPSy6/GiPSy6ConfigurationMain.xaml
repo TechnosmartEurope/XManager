@@ -1,9 +1,9 @@
-﻿<Window x:Class="X_Manager.ConfigurationWindows.GiPSy6.GiPSy6ConfigurationMain"
+﻿<local:ConfigurationWindow x:Class="X_Manager.ConfigurationWindows.GiPSy6ConfigurationMain"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:X_Manager.ConfigurationWindows.GiPSy6"
+        xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
         mc:Ignorable="d"
         Title="GiPSy6ConfigurationMain" Height="760" Width="900" Loaded="loaded">
     <Grid Background="#FF202020">
@@ -17,4 +17,4 @@
             
         </Frame>
     </Grid>
-</Window>
+</local:ConfigurationWindow>

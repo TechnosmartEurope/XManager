@@ -14,7 +14,7 @@ using System.IO.Ports;
 using X_Manager.ConfigurationWindows;
 using System.Windows.Shapes;
 
-namespace X_Manager
+namespace X_Manager.ConfigurationWindows
 {
 	static class ExtensionsForWPF
 	{

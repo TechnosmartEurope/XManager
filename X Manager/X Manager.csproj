@@ -278,9 +278,6 @@
     <Compile Include="ConfigurationWindows\Axy5ConfigurationWindow.xaml.cs">
       <DependentUpon>Axy5ConfigurationWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ConfigurationWindows\Axy5ConfigurationWindow_Legacy.xaml.cs">
-      <DependentUpon>Axy5ConfigurationWindow_Legacy.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ConfigurationWindows\AxyConfigurationWindow.xaml.cs">
       <DependentUpon>AxyConfigurationWindow.xaml</DependentUpon>
     </Compile>
@@ -297,14 +294,9 @@
     <Compile Include="ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.xaml.cs">
       <DependentUpon>GiPSy6ConfigurationMain.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\PageCopy.cs" />
     <Compile Include="ConfigurationWindows\GiPSy6\ScheduleConfiguration.xaml.cs">
       <DependentUpon>ScheduleConfiguration.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ConfigurationWindows\GipsyPositionConfigurationWindow.xaml.cs">
-      <DependentUpon>GipsyPositionConfigurationWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ConfigurationWindows\GipsySettingsTab.xaml.cs">
-      <DependentUpon>GipsySettingsTab.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConfigurationWindows\QuattrokPressureCalibration.xaml.cs">
       <DependentUpon>QuattrokPressureCalibration.xaml</DependentUpon>
@@ -391,10 +383,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ConfigurationWindows\Axy5ConfigurationWindow_Legacy.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="ConfigurationWindows\AxyConfigurationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -416,14 +404,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConfigurationWindows\GiPSy6\ScheduleConfiguration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GipsyPositionConfigurationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GipsySettingsTab.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

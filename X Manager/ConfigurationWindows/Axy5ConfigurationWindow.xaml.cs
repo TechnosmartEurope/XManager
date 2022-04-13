@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace X_Manager
+namespace X_Manager.ConfigurationWindows
 {
 	/// <summary>
 	/// Interaction logic for ConfigurationWindow.xaml

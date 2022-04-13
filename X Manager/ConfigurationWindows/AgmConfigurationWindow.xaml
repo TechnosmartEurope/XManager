@@ -1,8 +1,8 @@
-﻿<local:ConfigurationWindow x:Class="X_Manager.AgmConfigurationWindow"
+﻿<dc:ConfigurationWindow x:Class="X_Manager.AgmConfigurationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:X_Manager"
-        xmlns:dc="clr-namespace:X_Manager"
+        xmlns:dc="clr-namespace:X_Manager.ConfigurationWindows"
         Title="CONFIGURATION" Height="660" Width="600"
         Background="#FF181818"
         ResizeMode="NoResize" ScrollViewer.VerticalScrollBarVisibility="Disabled"
@@ -171,4 +171,4 @@
         <Button x:Name="sendButton" Grid.Row="6" Content="Send configuration" FontSize="20" VerticalAlignment="Center" Margin="5,5,5,5"
                 HorizontalAlignment="Center" Padding="10,10,10,10" Click="sendConf" TabIndex="15"/>
     </Grid>
-</local:ConfigurationWindow>
+</dc:ConfigurationWindow>

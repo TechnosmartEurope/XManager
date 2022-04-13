@@ -1,4 +1,4 @@
-﻿<local:ConfigurationWindow x:Class="X_Manager.Axy5ConfigurationWindow"
+﻿<dc2:ConfigurationWindow x:Class="X_Manager.ConfigurationWindows.Axy5ConfigurationWindow"
                            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -240,5 +240,5 @@
     </Grid>
     </ScrollViewer>
 
-</local:ConfigurationWindow>
+</dc2:ConfigurationWindow>
 
