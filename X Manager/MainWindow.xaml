@@ -76,7 +76,7 @@
                                  MouseDoubleClick="selectAddressMouse" GotKeyboardFocus="selectAddressKeyboard" PreviewMouseLeftButtonDown="selectivelyIgnoreMouseButton"
                                  KeyDown="unitNameTextBoxKeyDown"
                                  MaxLength="10" TabIndex="8" FontSize="13" Padding="5,0" VerticalContentAlignment="Center"/>
-                <Button Margin="0,0,10,0" x:Name="unitNameButton" VerticalAlignment="Center" 
+                <Button Margin="0,0,10,0" x:Name="unitNameButton" 
                         HorizontalAlignment="Right" Content="Set" TabIndex="9" FontSize="13" Padding="0" Click="unitNameButtonClick"/>
             </StackPanel>
         </Grid>

@@ -1169,6 +1169,10 @@ namespace X_Manager
 
 		void eraseButtonClick(object sender, RoutedEventArgs e)
 		{
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			YesNo yn = new YesNo("Do you really want to erase the memory?", "MEMORY ERASING");
 			yn.Owner = this;
 			if (yn.ShowDialog() == 1)
@@ -1194,6 +1198,10 @@ namespace X_Manager
 
 		void configureMovementButtonClick(object sender, RoutedEventArgs e)
 		{
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			byte[] conf;
 			byte[] accSchedule;
 			try
@@ -1275,6 +1283,10 @@ namespace X_Manager
 			}
 			else
 			{
+				if (!(bool)sp.IsOpen)
+				{
+					sp.Open();
+				}
 				if (oUnit is AxyTrek)
 				{
 					type = 1;
@@ -1313,6 +1325,10 @@ namespace X_Manager
 
 		private void downloadButtonClick(object sender, RoutedEventArgs e)
 		{
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			UInt32 memoryocc = 0;
 			try
 			{
@@ -1614,6 +1630,10 @@ namespace X_Manager
 		private void setName()
 		{
 			if (string.IsNullOrEmpty(unitNameTextBox.Text)) return;
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			try
 			{
 				oUnit.setName(unitNameTextBox.Text);
@@ -1633,7 +1653,10 @@ namespace X_Manager
 		private void getConf()
 		{
 			positionCanSend = oUnit.positionCanSend;
-
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			try
 			{
 				Thread.Sleep(10);
@@ -1666,6 +1689,10 @@ namespace X_Manager
 
 		private void getRemote()
 		{
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			Thread.Sleep(10);
 			remote = false;
 			string title = "X MANAGER";
@@ -1679,6 +1706,10 @@ namespace X_Manager
 
 		private void spurgo()
 		{
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			while (sp.BytesToRead != 0) sp.ReadByte();
 		}
 

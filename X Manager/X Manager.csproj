@@ -311,11 +311,17 @@
     <Compile Include="Ok.xaml.cs">
       <DependentUpon>Ok.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RemoteConfigurator.xaml.cs">
+      <DependentUpon>RemoteConfigurator.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RemoteConnector.xaml.cs">
       <DependentUpon>RemoteConnector.xaml</DependentUpon>
     </Compile>
     <Compile Include="RemoteManagement.xaml.cs">
       <DependentUpon>RemoteManagement.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="RemoteSupervisor.xaml.cs">
+      <DependentUpon>RemoteSupervisor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Units\AGM.cs" />
     <Compile Include="Units\Axy3.cs" />
@@ -420,11 +426,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="RemoteConfigurator.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="RemoteConnector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="RemoteManagement.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="RemoteSupervisor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

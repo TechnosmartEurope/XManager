@@ -458,6 +458,10 @@ namespace X_Manager
 		public override void disconnect()
 		{
 			base.disconnect();
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			sp.Write("TTTTTTTGGAO");
 		}
 

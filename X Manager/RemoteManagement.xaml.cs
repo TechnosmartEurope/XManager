@@ -51,7 +51,7 @@ namespace X_Manager
 
 		private void tabSelectionChanged(object sender, RoutedEventArgs e)
 		{
-			if (mainTab.SelectedIndex == 1)
+			if (mainTab.SelectedIndex == (mainTab.Items.Count - 1)) 
 			{
 				((RemoteConfigurator)(confTab.Content)).read();
 			}
@@ -90,7 +90,8 @@ namespace X_Manager
 					}
 				}
 			}
-			e.Handled = true;
+			
+			//e.Handled = true;
 		}
 
 		private void remoteManagement_Loaded(object sender, RoutedEventArgs e)

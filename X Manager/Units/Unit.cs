@@ -229,23 +229,36 @@ namespace X_Manager.Units
 
 		public virtual byte[] getAccSchedule()
 		{
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 			return new byte[] { 0 };
 		}
 
 		public virtual void setAccSchedule(byte[] schedule)
 		{
-
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
 		}
 
 		public virtual void download(MainWindow parent, string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
         {
-
-        }
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
+		}
 
         public virtual void downloadRemote(MainWindow parent, string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
         {
-
-        }
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
+		}
 
         public abstract void extractArds(string fileNameMdp, string fileName, bool fromDownload);
 
@@ -263,6 +276,10 @@ namespace X_Manager.Units
 
         public virtual void disconnect()
         {
+			if (!(bool)sp.IsOpen)
+			{
+				sp.Open();
+			}
             connected = false;
         }
 
