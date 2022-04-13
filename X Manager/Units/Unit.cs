@@ -78,6 +78,8 @@ namespace X_Manager.Units
 
         protected const string unitNotReady = "Unit not ready";
 
+        public string defaultArdExtension = "ard";
+
 #if X64
         [DllImport(@"resampleLib_x64.dll", CallingConvention = CallingConvention.Cdecl)]
 #else
@@ -124,29 +126,25 @@ namespace X_Manager.Units
             switch (unitModelString)
             {
                 case "Axy-4":
-                    //model = model_axy4;
                     break;
                 case "Axy-Depth":
-                    //model = model_axyDepth;
                     break;
                 case "Axy-Trek":
-                    //mode = mode_axyTrek;
                     break;
                 case "Axy-Track":
-                    //mode model_axyTrek;
+                    unitModelString = "Axy-Trek";
                     break;
                 case "Axy-Trek_D":
-                    //mode model_axyTrek;
+                    unitModelString = "Axy-Trek";
                     break;
                 case "Axy-Trek_A":
-                    //mode model_axyTrek;
+                    unitModelString = "Axy-Trek";
                     break;
                 case "AGM-1":
                 case "AMG-1":
-                    //mode model_AGM1;
+                    unitModelString = "AGM-1";
                     break;
                 case "Co2Logger":
-                    //mode model_Co2Logger;
                     unitModelString = "CO2 Logger";
                     break;
                 default:

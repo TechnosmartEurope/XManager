@@ -100,12 +100,12 @@ namespace X_Manager
 			movThreshUd.Value = axyconf[23];
 			latencyThreshUd.Value = axyconf[24];
 
-			sendButton.Content = "Send configuration";
+			sendTB.Text = "Send configuration";
 			mDebug = 0;
 			if (axyconf[25] == 1)
 			{
 				mDebug = 1;
-				sendButton.Content += " (d)";
+				sendTB.Text += " (d)";
 			}
 
 			//Schedule
@@ -358,13 +358,13 @@ namespace X_Manager
 					{
 						mDebug = 1;
 						// MessageBox.Show("mDebug enabled.")
-						sendButton.Content = "Send configuration (d)";
+						sendTB.Text = "Send configuration (d)";
 					}
 					else
 					{
 						mDebug = 0;
 						// MessageBox.Show("mDebug disabled.")
-						sendButton.Content = "Send configuration";
+						sendTB.Text = "Send configuration";
 					}
 				}
 			}
@@ -741,6 +741,7 @@ namespace X_Manager
 
 		private void LoadB_Click(object sender, RoutedEventArgs e)
 		{
+
 			uint newFirmTotA;
 			var l = new System.Windows.Forms.OpenFileDialog();
 			try
@@ -755,7 +756,7 @@ namespace X_Manager
 
 			string[] conf = System.IO.File.ReadAllLines(l.FileName);
 
-			newFirmTotA = uint.Parse(conf[conf.Length-1]);
+			newFirmTotA = uint.Parse(conf[conf.Length - 1]);
 			if (newFirmTotA >= 1004000)
 			{
 				scheduleC.enable12();
@@ -816,6 +817,7 @@ namespace X_Manager
 			}
 
 		}
+
 	}
 
 }

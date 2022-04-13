@@ -57,3 +57,6 @@
 	Axy5: Introdotta conversione sensore ADC
 1.8.0	AxyTrek: Aggiunto supporto per unità con burst accelerometo.
 	Bugfix: Conversione axy5, crashava se si toglievano i metadati nelle opzioni di conversione
+1.8.1	Bugfix: conversione .rem, durante la ricerca gps la barra di avanzamento non procedeva correttamente
+	Interfaccia configurazione Axy5 ora "responsive", con scrollbar e padding per risoluzioni più basse
+	Bigfix: La finestra di salvataggio download puntava agli "ard1" per tutte le unità escludendo gli "ard"

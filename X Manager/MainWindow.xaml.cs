@@ -187,17 +187,10 @@ namespace X_Manager
 		public System.IO.Ports.SerialPort sp;
 		byte[] unitFirmware = new byte[15];
 
-		//byte firmwareDigitCount;
-		//UInt32 firmTotA = 0;
-		//UInt32 firmTotB = 0;
-		//string unitModelString;
-		byte[] unitModel = new byte[1];
-		//bool completeCommand = false;
+		//byte[] unitModel = new byte[1];
 		public byte[] axyconf = new byte[30];
 		bool positionCanSend = false;
-		//UInt32 maxMemory = 0;
 		public string csvSeparator;
-		//string[] stConversionFileNames;
 		BackgroundWorker startUpMonitorBW;
 		public byte stDebugLevel;
 		public bool oldUnitDebug;
@@ -1342,16 +1335,21 @@ namespace X_Manager
 			saveRaw.OverwritePrompt = true;
 			saveRaw.AddExtension = true;
 			saveRaw.FileName = unitNameTextBox.Text;
-			if (((unitModel[0] == model_axyTrek) || (unitModel[0] == model_Co2Logger)))
-			{
-				saveRaw.DefaultExt = "Ard file|*.ard";
-				saveRaw.Filter = "Ard file|*.ard";
-			}
-			else
-			{
-				saveRaw.DefaultExt = "Ard file|*.ard1";
-				saveRaw.Filter = "Ard file|*.ard1";
-			}
+
+			//if (((== model_axyTrek) || (unitModel[0] == model_Co2Logger)))
+			//if (oUnit.modelCode==model_axy3 | oUnit.modelCode==model_axyDepth)
+			//{
+			//	saveRaw.DefaultExt = "Ard file|*.ard";
+			//	saveRaw.Filter = "Ard file|*.ard";
+			//}
+			//else
+			//{
+			//	saveRaw.DefaultExt = "Ard file|*.ard1";
+			//	saveRaw.Filter = "Ard file|*.ard1";
+			//}
+
+			saveRaw.DefaultExt = "Ard file|*." + oUnit.defaultArdExtension;
+			saveRaw.Filter = "Ard file|*." + oUnit.defaultArdExtension;
 
 			if (System.IO.File.Exists(lastSettings[3]))
 			{

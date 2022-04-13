@@ -51,6 +51,7 @@ namespace X_Manager.Units
         byte cifreDec;
         string cifreDecString;
 
+
         public Axy3(object p)
             : base(p)
         {
@@ -58,6 +59,7 @@ namespace X_Manager.Units
             configurePositionButtonEnabled = false;
             modelCode = model_axy3;
             modelName = "Axy-3";
+            defaultArdExtension = "ard1";
         }
 
         public override void abortConf()

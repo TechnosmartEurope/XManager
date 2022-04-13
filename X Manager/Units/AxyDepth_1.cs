@@ -63,6 +63,7 @@ namespace X_Manager.Units
             configurePositionButtonEnabled = false;
             modelCode = model_axyDepth;
             modelName = "Axy-Depth";
+            defaultArdExtension = "ard1";
         }
 
         public override string askFirmware()

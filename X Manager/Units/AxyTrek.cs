@@ -699,7 +699,7 @@ namespace X_Manager
 					address = BitConverter.GetBytes(actMemory);
 					Array.Reverse(address);
 					Array.Copy(address, 0, outBuffer, 1, 3);
-					outBuffer[0] = 65;
+					outBuffer[0] = 65;	//A
 					bytesToWrite = 4;
 					firstLoop = false;
 				}
@@ -928,7 +928,7 @@ namespace X_Manager
 				fixed (byte* outP = outBuffer, inP = inBuffer)
 				{
 					FT_Status = MainWindow.FT_Write(FT_Handle, outP, bytesToWrite, ref bytesWritten);
-					FT_Status = MainWindow.FT_Read(FT_Handle, inP, (uint)4096, ref bytesReturned);
+					FT_Status = MainWindow.FT_Read(FT_Handle, inP, 4096, ref bytesReturned);
 				}
 
 				if (FT_Status != MainWindow.FT_STATUS.FT_OK)
@@ -978,7 +978,6 @@ namespace X_Manager
 								firstLoop = true;
 							}
 						}
-
 					}
 					else
 					{
@@ -2067,9 +2066,13 @@ namespace X_Manager
 
 			br.Position = pos;
 			ushort secondAmount = 1;
+			double brMax = br.Length;
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = brMax));
 
 			while (br.Position < br.Length)
 			{
+
 				if (br.ReadByte() == 0xab)
 				{
 					timeStamp0 = (byte)br.ReadByte();
@@ -2166,9 +2169,13 @@ namespace X_Manager
 			//br.Close();
 			secondiAdd += 1;    //Questo secondo sottratto in più viene reinserito al decoding del primo timestamp
 
-			dt = new DateTime(2000 + tsc.anno, tsc.mese, tsc.giorno, tsc.ore, tsc.minuti, tsc.secondi);
-			dt = dt.AddSeconds(-secondiAdd);
-			dt = dt.AddSeconds(leapSeconds * -1);
+			try
+			{
+				dt = new DateTime(2000 + tsc.anno, tsc.mese, tsc.giorno, tsc.ore, tsc.minuti, tsc.secondi);
+				dt = dt.AddSeconds(-secondiAdd);
+				dt = dt.AddSeconds(leapSeconds * -1);
+			}
+			catch { }			
 
 			return dt;
 		}
