@@ -129,15 +129,29 @@ namespace X_Manager.Units
 			}
 		}
 
+		enum eventType : byte
+		{
+			E_POWER_ON = 0,
+			E_SD_START,
+			E_SD_STOP,
+			E_ACQ_ON,
+			E_ACQ_OFF,
+			E_SCHEDULE,
+			E_SD_BEGINNING,
+			E_SD_END,
+			E_BATTERY_LOW,
+			E_MEM_FULL,
+			E_POWER_OFF
+		}
+
 		static readonly int[] accuracySteps = { 1, 2, 5, 10, 15, 50, 100 };
 
 		static readonly string[] events = {
 			"Power ON.",
-			"","",
+			"STARTDELAY - Beginning","STARTDELAY - End",
 			"Start searching for satellites...",
 			"No visible satellite. Going to sleep...",
 			"GPS Schedule {0} {1}",
-			"","",
 			"Low Battery.",
 			"Memory Full.",
 			"Power OFF",
@@ -1550,10 +1564,13 @@ namespace X_Manager.Units
 		private string decodeEvent(ref TimeStamp ts)
 		{
 			string outs;
-			switch (ts.eventAr[1])
+			switch ((eventType)ts.eventAr[1])
 			{
-				case 5:
+				case eventType.E_SCHEDULE:
 					outs = String.Format(events[ts.eventAr[1]], ts.eventAr[2], ts.eventAr[3]);
+					break;
+				case eventType.E_SD_START:
+					outs = events[ts.eventAr[1]];
 					break;
 				default:
 					outs = events[ts.eventAr[1]];

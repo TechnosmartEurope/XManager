@@ -352,7 +352,7 @@ namespace X_Manager
 			{
 				sp.Open();
 			}
-			catch (Exception ex)
+			catch
 			{
 			}
 

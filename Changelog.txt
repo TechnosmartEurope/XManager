@@ -119,8 +119,10 @@
 1.13.1	Bugfix: il manual range download veniva ignorato con gipsy6 e axy5
 	Bugfix: Axy5 falliva download in caso di memory full
 1.14.0	Gipsy6: conversione nuova codifica coordinate
-	Gipsy6: nuove impostazioni start delay / filtri earyl-stop e enhanced-accuracy
+	Gipsy6: nuove impostazioni start delay / filtri earyl-stop e enhanced-accuracygit 
 	Gipsy6: Supporto per configurazioni orari remoto.
 	Gipsy6: Modalità Basic / Expert per la configurazione.
 	Rimosso incorpramento driver FTDI (l'utente lo dovrà scaricare dal sito).
 1.14.1	Bugfix: lo schedule Gipsy6 veniva caricato male e invertiva i mesi di validità dello schedule B
+1.14.2	Gipsy6: uso enumeratore per identificare gli eventi
+	Bigfix: Axy5, la data nel timestamp veniva interpretata prima di riconoscere un timestamp escape con memoria piena

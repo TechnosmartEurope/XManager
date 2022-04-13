@@ -182,6 +182,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
+			//Mesi validità schedule C/D
 			for (int i = 0; i < 12; i++)
 			{
 				conf[i + 116] = 0;

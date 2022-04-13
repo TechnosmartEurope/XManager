@@ -1680,6 +1680,39 @@ namespace X_Manager.Units
 					//{
 					//	tsc.tsTypeExt2 = ard.ReadByte();
 					//}
+					if ((tsc.tsTypeExt1 & ts_escape) == ts_escape)
+					{
+						if ((tsc.tsTypeExt1 & ts_blockEnd) == ts_blockEnd)
+						{
+							if ((tsc.tsTypeExt1 & ts_be_memFull) == ts_be_memFull)
+							{
+								tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0; return;
+							}
+							else if ((tsc.tsTypeExt1 & ts_be_battery) == ts_be_battery)
+							{
+								tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0; return;
+							}
+							else if ((tsc.tsTypeExt1 & ts_be_powerOff) == ts_be_powerOff)
+							{
+								tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; return;
+							}
+							else
+							{
+								byte t = 0;
+								while (t != 0xab)
+								{
+									if (ard.Position >= ard.Length)
+									{
+										return;
+									}
+									t = (byte)ard.ReadByte();
+								}
+								ard.Read(new byte[0x3e], 0, 0x3e);
+								header = true;
+								goto _inizio;
+							}
+						}
+					}
 					//else
 					//{
 					//	tsc.tsTypeExt2 = 0;
@@ -1867,41 +1900,6 @@ namespace X_Manager.Units
 					gruppoCON[meta] = "DATA ERROR at Location 0x." + ard.Position.ToString("X"); addMilli = 0;
 					tsc.temperature = ard.Position;
 					tsc.tsTypeExt1 &= 0xfe;
-				}
-			}
-
-			if ((tsc.tsTypeExt1 & ts_escape) == ts_escape)
-			{
-				if ((tsc.tsTypeExt1 & ts_blockEnd) == ts_blockEnd)
-				{
-					if ((tsc.tsTypeExt1 & ts_be_memFull) == ts_be_memFull)
-					{
-						tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0;
-					}
-					else if ((tsc.tsTypeExt1 & ts_be_battery) == ts_be_battery)
-					{
-						tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0;
-					}
-					else if ((tsc.tsTypeExt1 & ts_be_powerOff) == ts_be_powerOff)
-					{
-						tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0;
-					}
-					else
-					{
-						byte t = 0;
-						while (t != 0xab)
-						{
-							if (ard.Position >= ard.Length)
-							{
-								return;
-							}
-							t = (byte)ard.ReadByte();
-						}
-						ard.Read(new byte[0x3e], 0, 0x3e);
-						header = true;
-						tsCheck--;
-						goto _inizio;
-					}
 				}
 			}
 
