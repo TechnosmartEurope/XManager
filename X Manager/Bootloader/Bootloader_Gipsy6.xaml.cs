@@ -27,11 +27,12 @@ namespace X_Manager.Bootloader
 		bool unitConnected;
 		public bool success = false;
 		string firmwareFile;
-		readonly byte[] baudrateSYnc = { 0x55, 0x55 };
+		//readonly byte[] baudrateSYnc = { 0x55, 0x55 };
 		readonly byte[] COMMAND_PING = { 0x03, 0x20, 0x20 };
 		readonly byte[] COMMAND_GET_CHIP_ID = { 0x03, 0x28, 0x28 };
-		readonly int bootloaderBaudRate = 1000000;
+		readonly uint bootloaderBaudRate = 1000000;
 		Parent parent;
+		FTDI_Device ft;
 
 		BackgroundWorker bgw;
 
@@ -44,38 +45,31 @@ namespace X_Manager.Bootloader
 			this.sp = parent.sp;
 			this.unitConnected = unitConnected;
 			flashB.IsEnabled = false;
-
-
 			if (sp.IsOpen) sp.Close();
-
-			sp.ReadTimeout = 300;
-
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
-			sp.ReadExisting();
+			ft = new FTDI_Device(sp.PortName);
+			ft.ReadTimeout = 300;
 
 			if (unitConnected == true)
 			{
+				ft.Open((uint)sp.BaudRate);
+				ft.BaudRate = 3000000;
 				int test = 0;
-				sp.Write("TTTTTTGGAL");
+				ft.Write("TTTTTTGGAL");
 				try
 				{
-					test = sp.ReadByte();   //Byte di risposta per verifica correttezza comando
+					test = ft.ReadByte();   //Byte di risposta per verifica correttezza comando
 				}
 				catch { }
 
 				if ((char)test != 'L')
 				{
 					MessageBox.Show("Firmware updating not ready. Please try again...");
-					//Close();
-					sp.BaudRate = 115200;
-					if (sp.IsOpen) sp.Close();
+					ft.BaudRate = 115200;
+					ft.Close();
 					return;
 				}
 
-				sp.Write("K");
+				ft.Write("K");
 				Thread.Sleep(10);
 			}
 		}
@@ -108,28 +102,26 @@ namespace X_Manager.Bootloader
 		private void loaded(object sender, RoutedEventArgs e)
 		{
 
-			if (sp.IsOpen) sp.Close();
-
-			sp.Open();
-
-			sp.BaudRate = bootloaderBaudRate;
+			ft.Open((uint)sp.BaudRate);
+			ft.BaudRate = 115200;
 			Thread.Sleep(400);
-			sp.ReadExisting();
-			sp.ReadTimeout = 200;
-			sp.Write(COMMAND_PING, 0, COMMAND_PING[0]);
+			ft.ReadExisting();
+			ft.ReadTimeout = 200;
+			ft.Write(COMMAND_PING, 0, COMMAND_PING[0]);
 			try
 			{
-				sp.ReadByte();
-				sp.ReadByte();
+				ft.ReadByte();
+				ft.ReadByte();
 			}
 			catch
 			{
 				for (int i = 0; i < 2; i++)
 				{
-					sp.Write(baudrateSYnc, 0, 2);
+					ft.Write(new byte[] { 0x55, 0x55 }, 0, 2);
 					Thread.Sleep(100);
-					var resp = new byte[sp.BytesToRead];
-					sp.Read(resp, 0, resp.Length);
+					var size = ft.ReadExisting();
+					byte[] resp = new byte[size];
+					ft.Read(resp, 0, (uint)resp.Length);
 					if (resp.Length != 0 && resp[resp.Length - 1] == 0xcc)
 					{
 						break;
@@ -138,9 +130,8 @@ namespace X_Manager.Bootloader
 					if (i == 1)
 					{
 						MessageBox.Show("Bootloader not ready. Please try again...");
-						//Close();
-						sp.BaudRate = 115200;
-						if (sp.IsOpen) sp.Close();
+						ft.BaudRate = 115200;
+						ft.Close();
 						return;
 					}
 				}
@@ -187,43 +178,40 @@ namespace X_Manager.Bootloader
 			}
 			X_Manager.Parent.updateParameter("gipsy6BootloaderWipeData", b);
 
-			sp.BaudRate = 115200;
-			if (sp.IsOpen)
-			{
-				sp.Close();
-			}
+			ft.BaudRate = 115200;
+			ft.Close();
 		}
 
 		void getChipId()
 		{
 			byte[] resp = new byte[8];
-			sp.Write(COMMAND_GET_CHIP_ID, 0, COMMAND_GET_CHIP_ID[0]);
+			ft.Write(COMMAND_GET_CHIP_ID, 0, COMMAND_GET_CHIP_ID[0]);
 			try
 			{
 				byte test = 0;
 				while (test == 0)
 				{
-					test = (byte)sp.ReadByte();
+					test = ft.ReadByte();
 				}
 				if (test == 0x33)
 				{
 					MessageBox.Show("Bootloader not ready. Please try again...");
-					sp.BaudRate = 115200;
-					if (sp.IsOpen) sp.Close();
+					ft.BaudRate = 115200;
+					ft.Close();
 					Close();
 					return;
 				}
 				for (int i = 0; i < 6; i++)
 				{
-					resp[i] = (byte)sp.ReadByte();
+					resp[i] = ft.ReadByte();
 				}
-				sp.Write(new byte[] { 0xcc }, 0, 1);
+				ft.Write(new byte[] { 0xcc }, 0, 1);
 			}
 			catch
 			{
 				MessageBox.Show("Bootloader not ready. Please try again...");
-				sp.BaudRate = 115200;
-				if (sp.IsOpen) sp.Close();
+				ft.BaudRate = 115200;
+				ft.Close();
 				Close();
 				return;
 			}
@@ -344,11 +332,10 @@ namespace X_Manager.Bootloader
 			bool wipeSettings = ((bool[])e.Argument)[1];
 			//bool wipeData = (bool)wipeDataCB.IsChecked;
 			//bool wipeSettings = (bool)wipeSettingsCB.IsChecked;
-			int oldReadTimeout = sp.ReadTimeout;
-			if (sp.IsOpen) sp.Close();
-			sp.Open();
-			string ftdiSerialNumber = parent.setLatency(sp.PortName, 1);
-			sp.ReadTimeout = 300;
+			uint oldReadTimeout = ft.ReadTimeout;
+			ft.Open();
+			//string ftdiSerialNumber = parent.setLatency(sp.PortName, 1);
+			ft.ReadTimeout = 300;
 			bgw.ReportProgress(-1);
 			uint address = 0;
 			for (int i = 0; i < 0x2b; i++)
@@ -381,10 +368,10 @@ namespace X_Manager.Bootloader
 				}
 				bgw.ReportProgress(i);
 			}
-			sp.ReadExisting();
+			ft.ReadExisting();
 			bgw.ReportProgress(-2);
 			bgw.ReportProgress(0);
-			sp.ReadTimeout = 300;
+			ft.ReadTimeout = 300;
 			foreach (fPage fp in pages)
 			{
 				{
@@ -440,11 +427,11 @@ namespace X_Manager.Bootloader
 			pageProgram(pages[pages.Count - 1]);
 			//Thread.Sleep(200);
 			bgw.ReportProgress(-4);
-			sp.Write(new byte[] { 0x03, 0x25, 0x25 }, 0, 3);
+			ft.Write(new byte[] { 0x03, 0x25, 0x25 }, 0, 3);
 			ackRes();
 			Thread.Sleep(500);
 			bgw.ReportProgress(-5);
-			sp.ReadTimeout = oldReadTimeout;
+			ft.ReadTimeout = oldReadTimeout;
 		}
 
 		void flashProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -489,7 +476,7 @@ namespace X_Manager.Bootloader
 			Array.Reverse(adArr);
 			Array.Copy(adArr, 0, erComm, 3, 4);
 			crc(erComm);
-			sp.Write(erComm, 0, 7);
+			ft.Write(erComm, 0, 7);
 			Thread.Sleep(1);
 			ackRes();
 		}
@@ -509,7 +496,7 @@ namespace X_Manager.Bootloader
 				comm[10] = 0x00;
 				comm[9] = 0x20;
 				crc(comm);
-				sp.Write(comm, 0, comm[0]);
+				ft.Write(comm, 0, comm[0]);
 				ackRes();
 				status = getStatus();
 			}
@@ -521,7 +508,7 @@ namespace X_Manager.Bootloader
 			{
 				Array.Copy(page.data, i * 128, data, 3, 128);
 				crc(data);
-				sp.Write(data, 0, 131);
+				ft.Write(data, 0, 131);
 				ackRes();
 
 				if (getStatus() != 0x40)
@@ -544,34 +531,34 @@ namespace X_Manager.Bootloader
 
 		bool ackRes()
 		{
-			while (sp.BytesToRead < 2) ;
-			sp.ReadByte();
-			int g = sp.ReadByte();
+			while (ft.BytesToRead() < 2) ;
+			ft.ReadByte();
+			int g = ft.ReadByte();
 			if (g == 0xcc) return true;
 			else return false;
 		}
 
 		int getStatus()
 		{
-			sp.Write(new byte[] { 0x03, 0x023, 0x23 }, 0, 3);
+			ft.Write(new byte[] { 0x03, 0x023, 0x23 }, 0, 3);
 			ackRes();
-			while (sp.BytesToRead < 3) ;
-			sp.ReadByte();
-			sp.ReadByte();
-			int status = sp.ReadByte();
-			sp.Write(new byte[] { 0xcc }, 0, 1);
+			while (ft.BytesToRead() < 3) ;
+			ft.ReadByte();
+			ft.ReadByte();
+			int status = ft.ReadByte();
+			ft.Write(new byte[] { 0xcc }, 0, 1);
 			return status;
 		}
 
 		private void old_flashB_Click(object sender, RoutedEventArgs e)
 		{
-			if (!System.IO.File.Exists(firmwareFile))
+			if (!File.Exists(firmwareFile))
 			{
 				MessageBox.Show("File not valid.");
 				return;
 			}
 
-			byte[] file = System.IO.File.ReadAllBytes(firmwareFile);
+			byte[] file = File.ReadAllBytes(firmwareFile);
 
 			if (file.Length < 4 || !(new byte[] { 0x7f, 0x45, 0x4c, 0x46 }).SequenceEqual(file.Take(4)))
 			{
@@ -606,7 +593,7 @@ namespace X_Manager.Bootloader
 					Array.Copy(file, fileLocation, p.data, 0, p.size);
 					programs.Add(p);
 					string filename = "C:\\Users\\marco\\Desktop\\files\\P-" + p.address.ToString("X6") + "-" + (p.address + p.size).ToString("X6");
-					System.IO.File.WriteAllBytes(filename, p.data);
+					File.WriteAllBytes(filename, p.data);
 				}
 			}
 
@@ -632,28 +619,25 @@ namespace X_Manager.Bootloader
 
 		private void connectB_Click(object sender, RoutedEventArgs e)
 		{
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
-			sp.BaudRate = bootloaderBaudRate;
+			ft.Open();
+			ft.BaudRate = bootloaderBaudRate;
 			//Thread.Sleep(400);
-			sp.ReadExisting();
-			sp.ReadTimeout = 300;
-			sp.Write(COMMAND_PING, 0, COMMAND_PING[0]);
+			ft.ReadExisting();
+			ft.ReadTimeout = 300;
+			ft.Write(COMMAND_PING, 0, COMMAND_PING[0]);
 			try
 			{
-				sp.ReadByte();
-				sp.ReadByte();
+				ft.ReadByte();
+				ft.ReadByte();
 			}
 			catch
 			{
 				for (int i = 0; i < 2; i++)
 				{
-					sp.Write(baudrateSYnc, 0, 2);
+					ft.Write(new byte[] { 0x55, 0x55 }, 0, 2);
 					Thread.Sleep(1);
-					var resp = new byte[sp.BytesToRead];
-					sp.Read(resp, 0, resp.Length);
+					var resp = new byte[ft.BytesToRead()];
+					ft.Read(resp, 0, (uint)resp.Length);
 					if (resp.Length != 0 && resp[resp.Length - 1] == 0xcc)
 					{
 						break;

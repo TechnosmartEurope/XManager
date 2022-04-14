@@ -155,3 +155,5 @@
 1.15.5	Gipsy6: la password per configurazione unità remota/locale e per soglie batteria viene chiesta solo una volta per sessione di lavoro
 	Aggiunta funzione keep alive per connessione remota con gipsy6 tramite masterstation
 1.16.0	Gipsy6: spostate funzioni porta seriale su driver ftdi
+1.16.1	Spostato Bootloader gipsy6 su driver ftdi (ancora non funziona da tasto Upload New Firmware)
+	Aggiunti livelli di debug su conversione Gipsy6

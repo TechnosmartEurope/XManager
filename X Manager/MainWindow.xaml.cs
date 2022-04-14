@@ -1541,10 +1541,12 @@ namespace X_Manager
 			}
 			else
 			{
+				var tg = new YesNo("WARNING: you are entering the GiPSy6 bootloader!\r\nPlease, proceed only if you have a new firmware to upload, else please leave or your unit could potentially get bricked.", "GiPSy6 Bootloader", "", "Yes", "No");
+				if (tg.ShowDialog() == 2) return;
 				uiDisconnected();
 				string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
 				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-				ftdiSerialNumber = setLatency(portShortName, 1);
+				//ftdiSerialNumber = setLatency(portShortName, 1);
 				var boot = new Bootloader.Bootloader_Gipsy6(true, this);
 				boot.ShowDialog();
 				return;

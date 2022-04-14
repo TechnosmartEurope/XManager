@@ -82,7 +82,7 @@ namespace X_Manager.Units
 					_pos = value + ((value / 0x1fe) + 1) * 2;
 				}
 			}
-
+			public int txtAllowed;
 			public void resetPos(int initVal)
 			{
 				_pos = initVal;
@@ -1191,11 +1191,12 @@ namespace X_Manager.Units
 					progressBarCounter = 0;
 				}
 
-
-				txtSemBack.WaitOne();
-				txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
-				txtSem.Release();
-
+				if (timeStamp.txtAllowed > 0)
+				{
+					txtSemBack.WaitOne();
+					txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+					txtSem.Release();
+				}
 
 				kmlSemBack.WaitOne();
 				kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
@@ -1588,6 +1589,8 @@ namespace X_Manager.Units
 			List<byte> bufferNoStamp = new List<byte>();
 			byte test = gp6[pos];
 			int max = gp6.Length - 1;
+			t.txtAllowed = 0;
+			if (debugLevel > 0) t.txtAllowed++;
 			while (true)
 			{
 
@@ -1693,6 +1696,7 @@ namespace X_Manager.Units
 				t.GPS_second = gp6[pos + 10] & 0x3f;
 				pos += 11;
 				t.sat = 8;  //forzata per il kml
+				t.txtAllowed++;
 			}
 
 			//Evento
