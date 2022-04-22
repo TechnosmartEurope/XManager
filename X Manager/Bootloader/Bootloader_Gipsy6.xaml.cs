@@ -72,6 +72,7 @@ namespace X_Manager.Bootloader
 				ft.Write("K");
 				Thread.Sleep(10);
 			}
+			ft.Close();
 		}
 
 		struct program
@@ -101,12 +102,49 @@ namespace X_Manager.Bootloader
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
-
-			ft.Open((uint)sp.BaudRate);
-			ft.BaudRate = 115200;
-			Thread.Sleep(400);
+			ft.Open(bootloaderBaudRate);
+			Thread.Sleep(100);
 			ft.ReadExisting();
-			ft.ReadTimeout = 200;
+			ft.ReadTimeout = 600;
+			ft.Write(new byte[] { 0x55, 0x55 }, 0, 2);
+
+			try
+			{
+				ft.ReadByte();
+				ft.ReadByte();
+			}
+			catch
+			{
+				ft.ReadTimeout = 10;
+				for (int i = 0; i < 500; i++)
+				{
+					ft.Write(new byte[] { 0x02 }, 0, 1);
+					try
+					{
+						ft.ReadByte();
+						break;
+					}
+					catch
+					{
+						if (i == 499)
+						{
+							MessageBox.Show("Bootloader not ready. Please try again...");
+							ft.BaudRate = 115200;
+							ft.Close();
+							return;
+
+						}
+						continue;
+					}
+				}
+				ft.ReadByte();
+
+			}
+
+			//Thread.Sleep(600);
+			//ft.ReadExisting();
+			ft.ReadTimeout = 800;
+
 			ft.Write(COMMAND_PING, 0, COMMAND_PING[0]);
 			try
 			{
@@ -115,27 +153,12 @@ namespace X_Manager.Bootloader
 			}
 			catch
 			{
-				for (int i = 0; i < 2; i++)
-				{
-					ft.Write(new byte[] { 0x55, 0x55 }, 0, 2);
-					Thread.Sleep(100);
-					var size = ft.ReadExisting();
-					byte[] resp = new byte[size];
-					ft.Read(resp, 0, (uint)resp.Length);
-					if (resp.Length != 0 && resp[resp.Length - 1] == 0xcc)
-					{
-						break;
-					}
-					Thread.Sleep(500);
-					if (i == 1)
-					{
-						MessageBox.Show("Bootloader not ready. Please try again...");
-						ft.BaudRate = 115200;
-						ft.Close();
-						return;
-					}
-				}
+				MessageBox.Show("Bootloader not ready. Please try again...");
+				ft.BaudRate = 115200;
+				ft.Close();
+				return;
 			}
+
 			firmwareFile = X_Manager.Parent.getParameter("gipsy6FirmwareFile", "");
 			fileTB.Text = firmwareFile;
 			if (!File.Exists(firmwareFile))
@@ -645,7 +668,7 @@ namespace X_Manager.Bootloader
 					Thread.Sleep(5);
 					if (i == 1)
 					{
-						MessageBox.Show("Bootloader. Please try again...");
+						MessageBox.Show("Bootloader not ready. Please try again...");
 						//Close();
 						return;
 					}

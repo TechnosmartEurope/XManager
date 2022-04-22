@@ -115,6 +115,7 @@ namespace X_Manager
 			parent.setLatency(portName, latency);
 			return "NULL";
 		}
+
 		public void close()
 		{
 			Close();

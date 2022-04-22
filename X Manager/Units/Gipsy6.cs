@@ -216,8 +216,8 @@ namespace X_Manager.Units
 			}
 			for (int y = 0; y < 4; y++) //(rimettere y < 4 dopo sviluppo
 			{
+				goon = false;
 				ft.Write("TTTTTTGGA" + command);
-				goon = true;
 
 				try
 				{
@@ -252,26 +252,24 @@ namespace X_Manager.Units
 		{
 			uint oldTimeout = ft.ReadTimeout;
 			ft.ReadTimeout = 400;
-			if (!ask("P"))
+			ft.Write("TTTTTGGAP");
+			try
+			{
+				ft.ReadByte();
+				Thread.Sleep(10);
+				ft.ReadExisting();
+			}
+			catch
 			{
 				throw new Exception(unitNotReady);
-			}
-			else
-			{
-				try
-				{
-					ft.ReadByte();
-					Thread.Sleep(10);
-					ft.ReadExisting();
-				}
-				catch
-				{
-					throw new Exception(unitNotReady);
-				}
 			}
 			ft.ReadTimeout = oldTimeout;
 		}
 
+		public override void msBaudrate()
+		{
+			ft.BaudRate = 2000000;
+		}
 		public override void changeBaudrate(ref SerialPort sp, int maxMin)
 		{
 
@@ -384,7 +382,6 @@ namespace X_Manager.Units
 			if (!ask("B"))
 			{
 				throw new Exception(unitNotReady);
-				return "";
 			}
 			try
 			{
@@ -663,21 +660,21 @@ namespace X_Manager.Units
 				if (!ask("c"))
 				{
 					throw new Exception(unitNotReady);
-					return;
 				}
 				ft.ReadTimeout = 400;
-
 				try
 				{
 					ft.ReadByte();
-
-					for (uint i = 0; i < 7; i++)
+					for (uint i = 0; i < 17; i++)
 					{
-						ft.Write(conf, (i * 64) + 32, 64);
+						ft.Write(conf, (i * 28) + 32, 28);
 						ft.ReadByte();
 					}
 
-					ft.Write(conf, 480, 36);
+					ft.Write(conf, 480, 20);
+					ft.ReadByte();
+
+					ft.Write(conf, 500, 16);
 					ft.ReadByte();
 
 					if (firmTotA > 1)

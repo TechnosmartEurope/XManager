@@ -157,3 +157,7 @@
 1.16.0	Gipsy6: spostate funzioni porta seriale su driver ftdi
 1.16.1	Spostato Bootloader gipsy6 su driver ftdi (ancora non funziona da tasto Upload New Firmware)
 	Aggiunti livelli di debug su conversione Gipsy6
+1.16.2	Completata migrazione bootloader gipsy6, ora funziona sia per unità vergini che programmate
+	Migliorato funzionamento keepAlive per gipsy6
+	Migliorata gestione aknoledgment comando per comunicazione gipsy6
+	Gipsy6: modificata dimensione pacchetti da 64 a 28 byte per invio configurazione all'unità.

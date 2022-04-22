@@ -1318,6 +1318,10 @@ namespace X_Manager
 								break;
 							case "GiPSy-6":
 								oUnit = new Gipsy6(this);   //Nel costruttore viene chiusa la porta seriale e riaperta mediante driver ftdi
+								if (sender is MainWindow)
+								{
+									oUnit.msBaudrate();
+								}
 								break;
 							case "Drop-Off":
 								oUnit = new Drop_Off(this);
@@ -1838,7 +1842,11 @@ namespace X_Manager
 				{
 					if (sp.IsOpen == false)
 					{
-						sp.Open();
+						try
+						{
+							sp.Open();
+						}
+						catch { }
 					}
 				}
 				return;
@@ -2093,7 +2101,8 @@ namespace X_Manager
 			}
 
 		}
-		public ref Unit getReferenceUnit()
+		
+	public ref Unit getReferenceUnit()
 		{
 			return ref oUnit;
 		}

@@ -234,8 +234,13 @@ namespace X_Manager.Units
 				}
 			}
 		}
-		
-public abstract string askFirmware();
+
+		public virtual void msBaudrate()
+		{
+
+		}
+
+		public abstract string askFirmware();
 
 		public abstract string askBattery();
 
