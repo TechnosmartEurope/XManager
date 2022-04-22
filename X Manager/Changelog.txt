@@ -161,3 +161,10 @@
 	Migliorato funzionamento keepAlive per gipsy6
 	Migliorata gestione aknoledgment comando per comunicazione gipsy6
 	Gipsy6: modificata dimensione pacchetti da 64 a 28 byte per invio configurazione all'unità.
+1.16.3
+	Gipsy6: Aggiunti tasti AllOn/AllOff per geofencing e orari remoto
+	Gipsy6: Possibilità di inserire l'indirizzo unità remota sia in formato decimale che esadecimale
+	Gipsy6: Aggiunta tasto "TODAY" per inserimento data start delay
+	Gipsy6: Aggiunta retrocompatibilità invio pacchetti da 64byte per configurazione unità con firmware fino a 1.3.0
+	Ripristinata connessione con unità diverse da gipsy6
+	Bugfix: La Finestra di Dialogo Open File per conversione ard AxyTrek non puntava correttamente all'ultimo percorso aperto

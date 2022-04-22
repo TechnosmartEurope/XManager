@@ -41,14 +41,22 @@ namespace X_Manager
 		public static string getParameter(string parName)
 		{
 			string parOut = "";
-			foreach (string par in settings)
-			{
+			for (int i=0; i < settings.Length; i++){
+				string par = settings[i];
 				if (parName == par.Split('=')[0])
 				{
 					parOut = par.Split('=')[1];
 					break;
 				}
-			}
+			}				
+			//foreach (string par in settings)
+			//{
+			//	if (parName == par.Split('=')[0])
+			//	{
+			//		parOut = par.Split('=')[1];
+			//		break;
+			//	}
+			//}
 			return parOut;
 		}
 

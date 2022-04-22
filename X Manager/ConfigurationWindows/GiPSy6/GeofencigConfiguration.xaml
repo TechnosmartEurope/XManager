@@ -147,7 +147,10 @@
                     <ComboBoxItem Content="Hours"/>
                 </ComboBox>
 
-                <Button Click="lockBClick" Grid.Row="0" FontSize="13" x:Name="lockB" HorizontalAlignment="Right" Width="120" Height="40" VerticalAlignment="Top" Grid.Column="1"/>
+				<Button Grid.Row="0" Grid.Column="1" Width="70" Margin="36,0,0,0" HorizontalAlignment="Left" Height="30" Content="All ON" Click="allOn"/>
+				<Button Grid.Row="0" Grid.Column="1" Width="70" Margin="116,0,0,0" HorizontalAlignment="Left" Height="30" Content="All OFF" Click="allOff"/>
+
+				<Button Click="lockBClick" Grid.Row="0" FontSize="13" x:Name="lockB" HorizontalAlignment="Right" Width="120" Height="40" VerticalAlignment="Top" Grid.Column="1"/>
                 <CheckBox Grid.Row="1" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Checked="cbSchedChecked" Unchecked="cbSchedUnchecked"/>
                 <TextBlock Grid.Row="1" x:Name="schBL" Text="Schedule F:" Margin="45,7,0,6" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
                 <ComboBox Grid.Row="1" x:Name="fValCB" Margin="160,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center" TabIndex="3">

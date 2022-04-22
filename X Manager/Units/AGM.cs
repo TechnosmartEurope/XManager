@@ -271,7 +271,7 @@ namespace X_Manager.Units
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[5];
 
-			uint bytesToWrite = 0, bytesWritten = 0;
+			uint bytesToWrite = 0;
 			int bytesReturned = 0;
 
 			FTDI_Device ft = new FTDI_Device(sp.PortName);

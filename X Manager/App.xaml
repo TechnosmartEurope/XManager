@@ -4,11 +4,11 @@
              StartupUri="MainWindow.xaml" ShutdownMode="OnMainWindowClose" >
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Themes/MetroDark/MetroDark.MSControls.Core.Implicit.xaml" />
-                <ResourceDictionary Source="Themes/MetroDark/MetroDark.MSControls.Toolkit.Implicit.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-            <Style x:Key="confWindows" TargetType="{x:Type Page}">
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="Themes/MetroDark/MetroDark.MSControls.Core.Implicit.xaml" />
+				<ResourceDictionary Source="Themes/MetroDark/MetroDark.MSControls.Toolkit.Implicit.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+			<Style x:Key="confWindows" TargetType="{x:Type Page}">
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="FontSize" Value="20" />
             </Style>

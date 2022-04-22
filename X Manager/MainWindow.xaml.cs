@@ -1328,8 +1328,8 @@ namespace X_Manager
 								break;
 						}
 						modelLabel.Content = model;
-						getRemote();
 						getConf();
+						getRemote();
 						getSolar();
 						if (oUnit.solar)
 						{
@@ -1751,7 +1751,7 @@ namespace X_Manager
 			askOverwrite = true;
 			//lastSettings = System.IO.File.ReadAllLines(iniFile);
 			Microsoft.Win32.OpenFileDialog fOpen = new Microsoft.Win32.OpenFileDialog();
-			if (File.Exists(getParameter("convertPath")))
+			if (Directory.Exists(getParameter("convertPath")))
 			{
 				fOpen.InitialDirectory = getParameter("convertPath");
 			}

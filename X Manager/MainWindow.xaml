@@ -169,17 +169,6 @@
                         </TabItem>
                     </TabControl>
 
-                    <!--<WindowsFormsHost x:Name="chartHost" >
-                                <fc:Chart x:Name="mChart" Dock="Fill" />
-                            </WindowsFormsHost>
-                            <ch:Chart x:Name="mChart" Background="LightSteelBlue" Title="Accelerometer" LegendTitle="Axes" Height="411" VerticalAlignment="Top" Margin="0">
-                                <ch:Chart.Series>
-                                    <ch:AreaSeries Title="X" />
-                                    <ch:AreaSeries Title="Y" />
-                                    <ch:AreaSeries Title="Z" />
-                                </ch:Chart.Series>
-                            </ch:Chart>-->
-                    <!-- </Canvas> -->
                 </Grid>
             </Grid>
         </ContentControl>

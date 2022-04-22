@@ -436,6 +436,7 @@ namespace X_Manager.ConfigurationWindows
 			GC.SuppressFinalize(this);
 		}
 	}
+
 	public class OsmTileServer : TileServer
 	{
 		static int counter = 0;
@@ -460,6 +461,7 @@ namespace X_Manager.ConfigurationWindows
 			return s;
 		}
 	}
+
 	public class ThunderTileServer : TileServer
 	{
 		public override string url(int x, int y, int z)
@@ -478,6 +480,7 @@ namespace X_Manager.ConfigurationWindows
 		}
 
 	}
+
 	public abstract class TileServer
 	{
 		public abstract string url(int x, int y, int z);
@@ -1664,6 +1667,22 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
+		private void allOn(object sender, RoutedEventArgs e)
+		{
+			foreach (CheckBox checkBox in cbAr)
+			{
+				checkBox.IsChecked = true;
+			}
+		}
+
+		private void allOff(object sender, RoutedEventArgs e)
+		{
+			foreach (CheckBox checkBox in cbAr)
+			{
+				checkBox.IsChecked = false;
+			}
+		}
+
 		private void cbChecked(object sender, RoutedEventArgs e)
 		{
 
@@ -1758,7 +1777,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 		}
-		
+
 		private void cbSchedChecked(object sender, RoutedEventArgs e)
 		{
 			foreach (TimePanel t in timePanelAr)

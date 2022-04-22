@@ -226,7 +226,7 @@ namespace X_Manager.Units
 
 		public virtual void closeSerialPort(SerialPort sp)
 		{
-			if (!useFtdi)
+			if (useFtdi)
 			{
 				if (sp.IsOpen)
 				{
@@ -299,7 +299,7 @@ namespace X_Manager.Units
 
 		public virtual byte[] getAccSchedule()
 		{
-			if (!useFtdi)
+			if (useFtdi)
 			{
 				if (sp.IsOpen)
 				{
@@ -311,7 +311,7 @@ namespace X_Manager.Units
 
 		public virtual void setAccSchedule(byte[] schedule)
 		{
-			if (!useFtdi)
+			if (useFtdi)
 			{
 				if (sp.IsOpen)
 				{
@@ -322,7 +322,7 @@ namespace X_Manager.Units
 
 		public virtual void download(string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
 		{
-			if (!useFtdi)
+			if (useFtdi)
 			{
 				if (sp.IsOpen)
 				{
@@ -333,7 +333,7 @@ namespace X_Manager.Units
 
 		public virtual void downloadRemote(string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
 		{
-			if (!useFtdi)
+			if (useFtdi)
 			{
 				if (sp.IsOpen)
 				{
@@ -358,7 +358,7 @@ namespace X_Manager.Units
 
 		public virtual void disconnect()
 		{
-			if (!useFtdi)
+			if (useFtdi)
 			{
 				if (sp.IsOpen)
 				{

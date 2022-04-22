@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
+using System.Globalization;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -55,7 +55,7 @@ namespace X_Manager.ConfigurationWindows
 			altOnTB.Text = altOn.ToString();
 			nsatTB.Text = nSat.ToString();
 			gsvTB.Text = gsv.ToString();
-			remoteAddressTB.Text = remoteAddress.ToString("X6");
+			remoteAddressTB.Text = remoteAddress.ToString();
 			remoteAddressTB.PreviewKeyDown += remoteAddressTB_PreviewKeyDown;
 			remoteAddressTB.TextChanged += remoteAddressTB_TextChanged;
 
@@ -81,11 +81,13 @@ namespace X_Manager.ConfigurationWindows
 				sddCB.IsChecked = false;
 				sddDate -= 0x80000000;
 				startDelayDateDP.Visibility = Visibility.Hidden;
+				todayB.Visibility = Visibility.Hidden;;
 			}
 			else
 			{
 				sddCB.IsChecked = true;
 				startDelayDateDP.Visibility = Visibility.Visible;
+				todayB.Visibility = Visibility.Visible;
 			}
 			int anno = (int)(sddDate >> 16);
 			int mese = (int)((sddDate >> 8) & 0xff);
@@ -126,8 +128,9 @@ namespace X_Manager.ConfigurationWindows
 				isRemote = false;
 				remoteAddressTitleTB.Visibility = Visibility.Hidden;
 				remoteAddressTB.Visibility = Visibility.Hidden;
-				oxTB.Visibility = Visibility.Hidden;
 				remoteScheduleTitleTB.Visibility = Visibility.Hidden;
+				allOnB.Visibility = Visibility.Hidden;
+				allOffB.Visibility = Visibility.Hidden;
 			}
 			for (int i = 0; i < 24; i++)
 			{
@@ -164,6 +167,25 @@ namespace X_Manager.ConfigurationWindows
 
 		}
 
+		private void allOnClick(object sender, RoutedEventArgs e)
+		{
+			for (int i = 0; i < 24; i++)
+			{
+				remSchAr[i].IsChecked = true;
+			}
+		}
+
+		private void allOffClick(object sender, RoutedEventArgs e)
+		{
+			for (int i = 0; i < 24; i++)
+			{
+				remSchAr[i].Unchecked -= remoteHourUnchecked;
+				remSchAr[i].IsChecked = false;
+				remSchAr[i].Unchecked += remoteHourUnchecked;
+			}
+			remSchAr[0].IsChecked = true;
+		}
+
 		private void ctrlManager(object sender, KeyEventArgs e)
 		{
 			if (Keyboard.Modifiers == ModifierKeys.Control)
@@ -192,8 +214,9 @@ namespace X_Manager.ConfigurationWindows
 							isRemote = false;
 							remoteAddressTitleTB.Visibility = Visibility.Hidden;
 							remoteAddressTB.Visibility = Visibility.Hidden;
-							oxTB.Visibility = Visibility.Hidden;
 							remoteScheduleTitleTB.Visibility = Visibility.Hidden;
+							allOnB.Visibility = Visibility.Hidden;
+							allOffB.Visibility = Visibility.Hidden;
 							for (int i = 0; i < 24; i++)
 							{
 								remSchAr[i].Visibility = Visibility.Hidden;
@@ -210,8 +233,9 @@ namespace X_Manager.ConfigurationWindows
 							isRemote = true;
 							remoteAddressTitleTB.Visibility = Visibility.Visible;
 							remoteAddressTB.Visibility = Visibility.Visible;
-							oxTB.Visibility = Visibility.Visible;
 							remoteScheduleTitleTB.Visibility = Visibility.Visible;
+							allOnB.Visibility = Visibility.Visible;
+							allOffB.Visibility = Visibility.Visible;
 							int check = 0;
 							for (int i = 0; i < 24; i++)
 							{
@@ -256,13 +280,6 @@ namespace X_Manager.ConfigurationWindows
 			{
 				startDelayTimeTB.Visibility = Visibility.Visible;
 				minLabel.Visibility = Visibility.Visible;
-				//sdTime = BitConverter.ToUInt32(conf, 40);
-				////sdTime = (conf[40] << 24) + (conf[38] << 16) + (conf[37] << 8) + conf[36];
-				//if (sdTime == 0)
-				//{
-				//	sdTime = 360;
-				//}
-				//startDelayTimeTB.Text = sdTime.ToString();
 			}
 		}
 
@@ -270,19 +287,21 @@ namespace X_Manager.ConfigurationWindows
 		{
 			if (sddCB.IsChecked == false)
 			{
-				//sdDate = new DateTime(2019, 1, 1);
 				startDelayDateDP.Visibility = Visibility.Hidden;
+				todayB.Visibility = Visibility.Hidden;
 			}
 			else
 			{
 				startDelayDateDP.Visibility = Visibility.Visible;
-				//int anno = BitConverter.ToInt16(conf, 44);  //44-46
-				//if (conf[46] > 0x80) conf[46] -= 0x80;
-				//int mese = conf[46];
-				//int giorno = conf[47];
-				//sdDate = new DateTime(anno, mese, giorno);
+				todayB.Visibility = Visibility.Visible;
 				startDelayDateDP.SelectedDate = sdDate;
 			}
+		}
+
+		private void todayBClick(object sender, RoutedEventArgs e)
+		{
+			sdDate = DateTime.Today;
+			startDelayDateDP.SelectedDate = sdDate;
 		}
 
 		private void validate(object sender, RoutedEventArgs e)
@@ -315,13 +334,34 @@ namespace X_Manager.ConfigurationWindows
 
 				}
 			}
-			oldAdd = remoteAddressTB.Text;
+			//oldAdd = remoteAddressTB.Text;
 		}
 
 		private void remoteAddressTB_TextChanged(object sender, TextChangedEventArgs e)
 		{
 			if (remoteAddressTB.Text == "") return;
-			if (!Int32.TryParse(remoteAddressTB.Text, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out remoteAddress))
+			bool conv = false;
+			char rs = 's';
+			try
+			{
+				rs = remoteAddressTB.Text.Skip(1).Take(1).ToArray()[0];
+			}
+			catch { }
+			if (rs == 'x' || rs == 'X')
+			{
+				string hexNum = remoteAddressTB.Text.Substring(2);
+				if (hexNum == "")
+				{
+					oldAdd = remoteAddressTB.Text;
+					return;
+				}
+				conv = Int32.TryParse(hexNum, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out remoteAddress);
+			}
+			else
+			{
+				conv = Int32.TryParse(remoteAddressTB.Text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out remoteAddress);
+			}
+			if (!conv)
 			{
 				remoteAddressTB.TextChanged -= remoteAddressTB_TextChanged;
 				remoteAddressTB.Text = oldAdd;
@@ -329,6 +369,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			else
 			{
+				//remoteAddressTB.Text = remoteAddress.ToString();
 				oldAdd = remoteAddressTB.Text;
 			}
 		}
@@ -456,7 +497,27 @@ namespace X_Manager.ConfigurationWindows
 				conf[i + 516] = (bool)remSchAr[i].IsChecked ? (byte)1 : (byte)0;
 			}
 			conf[540] = isRemote ? (byte)1 : (byte)0;
-			remoteAddress = Int32.Parse(remoteAddressTB.Text, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture);
+			char rs = 't';
+			try
+			{
+				rs = remoteAddressTB.Text.Skip(1).Take(1).ToArray()[0];
+			}
+			catch { }
+			if (rs == 'x' || rs == 'X')
+			{
+				string s = remoteAddressTB.Text.Substring(2);
+				if (s.Length > 0)
+				{
+					Int32.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out remoteAddress);
+				}
+			}
+			else
+			{
+				if (remoteAddressTB.Text.Length > 0)
+				{
+					Int32.TryParse(remoteAddressTB.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out remoteAddress);
+				}
+			}
 			conf[541] = (byte)(remoteAddress >> 16);
 			conf[542] = (byte)(remoteAddress >> 8);
 			conf[543] = (byte)(remoteAddress & 0xff);

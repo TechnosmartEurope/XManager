@@ -61,15 +61,17 @@
         <CheckBox Grid.Row="11" x:Name="sddCB" Margin="40,0,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="30" Width="30" Padding="0" Checked="sddCB_Checked" Unchecked="sddCB_Checked" TabIndex="102" />
         <TextBlock Grid.Row="11" Text="Start Delay (date based): " Foreground="White" FontSize="25" Margin="80,0,0,0" Width="300" HorizontalAlignment="Left" />
         <DatePicker Grid.Row="11" x:Name="startDelayDateDP" Margin="420,0,0,0" Width="180" SelectedDateChanged="startDelayDateDP_SelectedDateChanged" SelectedDateFormat="Long" TabIndex="103" Drop="onTB_GotFocus"/>
-        <CheckBox Grid.Row="12" x:Name="sdtCB" Margin="40,0,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="30" Width="30" Padding="0" Checked="sdtCB_Checked" Unchecked="sdtCB_Checked" TabIndex="104" />
+		<Button Grid.Row="11" x:Name="todayB" Content="TODAY" Width="70" Height="30" HorizontalAlignment="Right" Margin="0,0,105,0" Click="todayBClick"/>
+		<CheckBox Grid.Row="12" x:Name="sdtCB" Margin="40,0,0,0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="30" Width="30" Padding="0" Checked="sdtCB_Checked" Unchecked="sdtCB_Checked" TabIndex="104" />
         <TextBlock Grid.Row="12" Text="Start Delay (time based): " Foreground="White" FontSize="25" Margin="80,0,0,0" Width="300" HorizontalAlignment="Left"/>
         <TextBox Grid.Row="12" x:Name="startDelayTimeTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" TabIndex="105" GotFocus="onTB_GotFocus" />
         <TextBlock Grid.Row="12" x:Name="minLabel" Text="(min)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
 
         <TextBlock Grid.Row="14" x:Name="remoteScheduleTitleTB" Text="REMOTE SCHEDULE" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
-		<TextBlock Grid.Row="14" x:Name="remoteAddressTitleTB" Text="ADDRESS:" Foreground="#FF00AADE" FontSize="25" HorizontalAlignment="Right" Margin="0,0,20,0" />
-		<TextBox Grid.Row="15" Width="82" x:Name="remoteAddressTB" HorizontalAlignment="Right" Margin="0,0,20,0" FontSize="20" Text="000000"/>
-		<TextBlock Grid.Row="15" x:Name="oxTB" Text="0x" HorizontalAlignment="Right" Margin="0,4,106,0" FontSize="20" Foreground="#FFABABAB" />
+		<Button Grid.Row="14" x:Name="allOnB" Width="70" HorizontalAlignment="Left" Margin="280,0,0,0" Height="26" Content="All ON" Click="allOnClick"/>
+		<Button Grid.Row="14" x:Name="allOffB" Width="70" HorizontalAlignment="Left" Margin="360,0,0,0" Height="26" Content="All OFF" Click="allOffClick"/>
+		<TextBlock Grid.Row="14" x:Name="remoteAddressTitleTB" Text="ADDRESS:" Foreground="#FF00AADE" FontSize="25" HorizontalAlignment="Right" Margin="0,0,30,0" />
+		<TextBox Grid.Row="15" Width="122" x:Name="remoteAddressTB" HorizontalAlignment="Right" Margin="0,0,20,0" FontSize="20" Text="0X000000"/>
 
 	</Grid>
 </local:PageCopy>

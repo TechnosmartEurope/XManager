@@ -202,8 +202,6 @@ namespace X_Manager.Units
 
 		private bool ask(string command)
 		{
-			int tent = 0;
-			bool res = false;
 			ft.Open();
 			ft.ReadTimeout = 30;
 			ft.ReadExisting();
@@ -314,7 +312,6 @@ namespace X_Manager.Units
 			if (!ask("F"))
 			{
 				throw new Exception(unitNotReady);
-				return firmware;
 			}
 			ft.ReadTimeout = 400;
 			int i = 0;
@@ -353,7 +350,6 @@ namespace X_Manager.Units
 			if (!ask("N"))
 			{
 				throw new Exception(unitNotReady);
-				return "[No Name]";
 			}
 			try
 			{
@@ -508,7 +504,6 @@ namespace X_Manager.Units
 				if (!ask("n"))
 				{
 					throw new Exception(unitNotReady);
-					return;
 				}
 				Thread.Sleep(10);
 				ft.ReadTimeout = 200;
@@ -521,7 +516,6 @@ namespace X_Manager.Units
 				catch
 				{
 					throw new Exception(unitNotReady);
-					return;
 				}
 				if (res == "I".ToArray()[0])
 				{
@@ -553,102 +547,98 @@ namespace X_Manager.Units
 		{
 
 			byte[] conf = new byte[0x1000];
-			for (int j = 0; j < 2; j++)
+
+			if (!ask("C"))
 			{
-				if (!ask("C"))
-				{
-					throw new Exception(unitNotReady);
-					return new byte[] { 0 };
-				}
-				try
-				{
-					ft.ReadTimeout = 400;
-					//ACQ, Start delay e GSV			
-					for (int i = 32; i < 32 + 20; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					//Schedule A e B
-					for (int i = 52; i < 52 + 32; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					ft.Write(new byte[] { 1 }, 1);//***********************************************SYNC
-
-					//Schedule C e D + mesi + primo quadrato geofencing 1
-					for (int i = 84; i < 84 + 60; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					ft.Write(new byte[] { 2 }, 1);//***********************************************SYNC
-
-					//Quadrati 2-5 geofencing-1
-					for (int i = 144; i < 144 + 64; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					ft.Write(new byte[] { 3 }, 1);//***********************************************SYNC
-
-					//Quadrati 6-9 geofencing-1
-					for (int i = 208; i < 208 + 64; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					ft.Write(new byte[] { 4 }, 1);//***********************************************SYNC
-
-					//Quadrato 10 geofencing-1 + Schedule E/F + Orari Geofencing 1 + Primo quadrato geofencing-2
-					for (int i = 272; i < 272 + 64; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					ft.Write(new byte[] { 5 }, 1);//***********************************************SYNC
-
-					//Quadrati 2-5 geofencing-2
-					for (int i = 336; i < 336 + 64; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					ft.Write(new byte[] { 6 }, 1);//***********************************************SYNC
-
-					//Quadrati 6-9 geofencing-2
-					for (int i = 400; i < 400 + 64; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					ft.Write(new byte[] { 7 }, 1);//***********************************************SYNC
-
-					//Ultimo quadrato geofencing 2 + Schedule G/H + orari Geofencing 2 + Enable Geofencing 1 e 2 + schedule remoto + unità locale/remota + indirizzo remoto
-					for (int i = 464; i < 464 + 50; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					if (firmTotA > 1)
-					{
-						for (int i = 514; i < 514 + 14; i++)
-						{
-							conf[i] = ft.ReadByte();
-						}
-						ft.Write(new byte[] { 8 }, 1);//***********************************************SYNC
-						int end = 12;
-						if (firmTotA >= 1000000)
-						{
-							end = 26;
-						}
-						for (int i = 528; i < 528 + end; i++)
-						{
-							conf[i] = ft.ReadByte();
-						}
-					}
-					ft.Write(new byte[] { 9 }, 1);//***********************************************SYNC
-
-					break;
-				}
-				catch
-				{
-					Thread.Sleep(100);
-					throw new Exception(unitNotReady);
-				}
+				throw new Exception(unitNotReady);
 			}
+			try
+			{
+				ft.ReadTimeout = 400;
+				//ACQ, Start delay e GSV			
+				for (int i = 32; i < 32 + 20; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				//Schedule A e B
+				for (int i = 52; i < 52 + 32; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				ft.Write(new byte[] { 1 }, 1);//***********************************************SYNC
+
+				//Schedule C e D + mesi + primo quadrato geofencing 1
+				for (int i = 84; i < 84 + 60; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				ft.Write(new byte[] { 2 }, 1);//***********************************************SYNC
+
+				//Quadrati 2-5 geofencing-1
+				for (int i = 144; i < 144 + 64; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				ft.Write(new byte[] { 3 }, 1);//***********************************************SYNC
+
+				//Quadrati 6-9 geofencing-1
+				for (int i = 208; i < 208 + 64; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				ft.Write(new byte[] { 4 }, 1);//***********************************************SYNC
+
+				//Quadrato 10 geofencing-1 + Schedule E/F + Orari Geofencing 1 + Primo quadrato geofencing-2
+				for (int i = 272; i < 272 + 64; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				ft.Write(new byte[] { 5 }, 1);//***********************************************SYNC
+
+				//Quadrati 2-5 geofencing-2
+				for (int i = 336; i < 336 + 64; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				ft.Write(new byte[] { 6 }, 1);//***********************************************SYNC
+
+				//Quadrati 6-9 geofencing-2
+				for (int i = 400; i < 400 + 64; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				ft.Write(new byte[] { 7 }, 1);//***********************************************SYNC
+
+				//Ultimo quadrato geofencing 2 + Schedule G/H + orari Geofencing 2 + Enable Geofencing 1 e 2 + schedule remoto + unità locale/remota + indirizzo remoto
+				for (int i = 464; i < 464 + 50; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+				if (firmTotA > 1)
+				{
+					for (int i = 514; i < 514 + 14; i++)
+					{
+						conf[i] = ft.ReadByte();
+					}
+					ft.Write(new byte[] { 8 }, 1);//***********************************************SYNC
+					int end = 12;
+					if (firmTotA >= 1000000)
+					{
+						end = 26;
+					}
+					for (int i = 528; i < 528 + end; i++)
+					{
+						conf[i] = ft.ReadByte();
+					}
+				}
+				ft.Write(new byte[] { 9 }, 1);//***********************************************SYNC
+			}
+			catch
+			{
+				Thread.Sleep(100);
+				throw new Exception(unitNotReady);
+			}
+
 			return conf;
 		}
 
@@ -662,17 +652,27 @@ namespace X_Manager.Units
 					throw new Exception(unitNotReady);
 				}
 				ft.ReadTimeout = 400;
+				uint packetLength = 28;
+				uint packetNumber = 17;
+				if (firmTotA < 1003001)
+				{
+					packetLength = 64;
+					packetNumber = 7;
+				}
 				try
 				{
 					ft.ReadByte();
-					for (uint i = 0; i < 17; i++)
+					for (uint i = 0; i < packetNumber; i++)
 					{
-						ft.Write(conf, (i * 28) + 32, 28);
+						ft.Write(conf, (i * packetLength) + 32, packetLength);
 						ft.ReadByte();
 					}
 
 					ft.Write(conf, 480, 20);
-					ft.ReadByte();
+					if (firmTotA > 1003000)
+					{
+						ft.ReadByte();
+					}
 
 					ft.Write(conf, 500, 16);
 					ft.ReadByte();
@@ -752,7 +752,6 @@ namespace X_Manager.Units
 			if (!ask("D"))
 			{
 				throw new Exception(unitNotReady);
-				return;
 			}
 
 			ft.ReadTimeout = 1600;
@@ -862,7 +861,6 @@ namespace X_Manager.Units
 			if (!ask("D"))
 			{
 				throw new Exception(unitNotReady);
-				return;
 			}
 
 			ft.ReadTimeout = 3200;
@@ -1137,9 +1135,6 @@ namespace X_Manager.Units
 			TimeStamp timeStamp = new TimeStamp();
 			List<byte> noStampBuffer = new List<byte>();
 
-			int relTxt = 0;
-			int relkml = 0;
-
 			//Inizializza la progress bar
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
 			{
@@ -1257,8 +1252,6 @@ namespace X_Manager.Units
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
 			string[] tabs = new string[10];
-			int contoStatus = 0;
-			int pbmax = 0;
 			var t = new TimeStamp();
 			while (true)
 			{
@@ -1377,7 +1370,6 @@ namespace X_Manager.Units
 			placeMark.Write(Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2);
 
 			int contoCoord = 0;
-			int contoStatus = 0;
 			int pbmax = 0;
 			bool primaCoordinata = true;
 			string lonS = "", latS = "", altS = "";
