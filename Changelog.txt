@@ -168,3 +168,8 @@
 	Gipsy6: Aggiunta retrocompatibilità invio pacchetti da 64byte per configurazione unità con firmware fino a 1.3.0
 	Ripristinata connessione con unità diverse da gipsy6
 	Bugfix: La Finestra di Dialogo Open File per conversione ard AxyTrek non puntava correttamente all'ultimo percorso aperto
+1.16.4
+	Basestation1: ridotti tentativi di connessione da 6 a 3
+	Gipsy6 - download remoto: per ogni pacchetto arrivato male o andato in timeout saranno effettuati 200 tentativi
+	Remoto - Inizio progettazione BaseManager
+	Bugfix Gipsy6: la latitudine prendeva erroneamente il segno della longitudine

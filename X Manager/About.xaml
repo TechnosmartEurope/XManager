@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
         <Image Grid.Row="0" x:Name="banner" Source="Resources\technosmartLogoBlurred.png"/>
         <Label Grid.Row="1" x:Name="programNameLabel" HorizontalAlignment="Center" Content="X Manager" FontSize="26" FontStyle="Italic" Foreground="Gray" />
-        <Label Grid.Row="2" HorizontalAlignment="Center" Content="propvaProva" x:Name="versionLabel" FontSize="12" FontStyle="Italic" Foreground="Gray" Padding="5,0,5,5" />
+        <Label Grid.Row="2" HorizontalAlignment="Center" Content="provaProva" x:Name="versionLabel" FontSize="12" FontStyle="Italic" Foreground="Gray" Padding="5,0,5,5" />
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />

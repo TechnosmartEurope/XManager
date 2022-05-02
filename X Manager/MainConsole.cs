@@ -42,8 +42,8 @@ namespace X_Manager
 			newPrefs = new string[19];
 			newPrefs[Unit.pref_pressMetri] = "millibars";
 			newPrefs[Unit.pref_millibars] = "1016";
-			newPrefs[Unit.pref_dateFormat] = "1";	//Date format
-			newPrefs[Unit.pref_timeFormat] = "1";	//Time format
+			newPrefs[Unit.pref_dateFormat] = "1";   //Date format
+			newPrefs[Unit.pref_timeFormat] = "1";   //Time format
 			newPrefs[Unit.pref_fillEmpty] = "False";
 			newPrefs[Unit.pref_sameColumn] = "False";
 			newPrefs[Unit.pref_battery] = "True";
@@ -59,19 +59,6 @@ namespace X_Manager
 			newPrefs[Unit.pref_metadata] = "True";
 			newPrefs[Unit.pref_leapSeconds] = "2";
 			newPrefs[Unit.pref_removeNonGps] = "False";
-
-			//lastSettings = new string[11];
-			//lastSettings[0] = "null";
-			//lastSettings[1] = "null";
-			//lastSettings[2] = "null";
-			//lastSettings[3] = "";//Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads";
-			//lastSettings[4] = "";// Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads";
-			//lastSettings[5] = "depth";
-			//lastSettings[6] = "false";
-			//lastSettings[7] = "3";
-			//lastSettings[8] = "\t";
-			//lastSettings[9] = "A";
-			//lastSettings[10] = "";// Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule\r\n";
 
 			statusLabel = new Label();
 			statusLabel.Content = "Console";
@@ -113,7 +100,7 @@ namespace X_Manager
 
 					case "-txt":
 						pref = false;
-						if (args.Count == 0 || (!bool.TryParse(lRead(args), out pref)) )
+						if (args.Count == 0 || (!bool.TryParse(lRead(args), out pref)))
 						{
 							Console.WriteLine("TXT parameter missing. Exiting...");
 							res = false;
@@ -142,7 +129,8 @@ namespace X_Manager
 						if (arg.Contains("meter"))
 						{
 							newPrefs[Unit.pref_pressMetri] = "meters";
-						}else if (arg.Contains("bar"))
+						}
+						else if (arg.Contains("bar"))
 						{
 							newPrefs[Unit.pref_pressMetri] = "millibars";
 						}
@@ -161,7 +149,7 @@ namespace X_Manager
 							break;
 						}
 						arg = lRead(args);
-						if(!int.TryParse(arg,out val))
+						if (!int.TryParse(arg, out val))
 						{
 							Console.WriteLine("Pressure offset bad value. Exiting...");
 							res = false;
@@ -345,7 +333,7 @@ namespace X_Manager
 							break;
 						}
 						arg = lRead(args);
-						if (!int.TryParse(arg,out val))
+						if (!int.TryParse(arg, out val))
 						{
 							Console.WriteLine("Bad Leap seconds value. Exiting...");
 							res = false;
@@ -393,7 +381,7 @@ namespace X_Manager
 				string pub = source.ReadToEnd();
 				source.Dispose();
 				stream.Dispose();
-				Console.Write(pub+"\r\n");
+				Console.Write(pub + "\r\n");
 				exit();
 			}
 
@@ -544,6 +532,7 @@ namespace X_Manager
 		{
 
 		}
+
 		private string lRead(List<string> li)
 		{
 			string lo = li[0];

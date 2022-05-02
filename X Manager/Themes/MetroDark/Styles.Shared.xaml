@@ -510,7 +510,7 @@
     </Setter>
   </Style>
 
-  <!-- ********************************** CheckBoxStyle **********************************-->
+	<!-- ********************************** CheckBoxStyle **********************************-->
   <Style x:Key="CheckBoxStyle" TargetType="CheckBox">
     <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     <Setter Property="FontSize" Value="14.667" />

@@ -11,29 +11,29 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+using X_Manager.Remote;
 using System.IO.Ports;
 using X_Manager.Units;
 
-namespace X_Manager
+namespace X_Manager.Remote
 {
 	/// <summary>
 	/// Logica di interazione per RemoteConfigurator.xaml
 	/// </summary>
-	public partial class RemoteConfigurator : UserControl
+	public partial class MS_Configurator_1 : UserControl
 	{
-		RemoteManagement rm;
+		MS_Main rm;
 		SerialPort sp;
 
 		int physycalAddress;
 		int logicalAddress;
 		Unit u;
 
-		public RemoteConfigurator(ref SerialPort sp, object rm)
+		public MS_Configurator_1(ref SerialPort sp, object rm)
 		{
 			InitializeComponent();
 			this.sp = sp;
-			this.rm = (RemoteManagement)rm;
+			this.rm = (MS_Main)rm;
 			physicalTB.IsEnabled = false;
 			logicalTB.IsEnabled = false;
 			//physicalTB.Text = logicalTB.Text = "Not connected.";

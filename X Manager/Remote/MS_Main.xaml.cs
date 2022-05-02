@@ -14,29 +14,29 @@ using System.Windows.Shapes;
 using System.IO.Ports;
 using System.Runtime.InteropServices;
 
-namespace X_Manager
+namespace X_Manager.Remote
 {
 	/// <summary>
 	/// Interaction logic for RemoteManagement.xaml
 	/// </summary>
-	public partial class RemoteManagement : Window
+	public partial class MS_Main : Window
 	{
 
 		//public int connectionResult = 0;
 		MainWindow parent;
 		SerialPort sp;
 
-		public RemoteManagement(ref SerialPort sp, object p, string portShortName)
+		public MS_Main(ref SerialPort sp, object p, string portShortName)
 		{
 			InitializeComponent();
 			parent = (MainWindow)p;
 			this.sp = sp;
 			//this.sp = sp;
-			var rconn = new RemoteConnector(ref sp, this, portShortName);
+			var rconn = new MS_Connector(ref sp, this, portShortName);
 			connTab.Content = rconn;
-			var rtime = new RemoteSupervisor(ref sp, this);
+			var rtime = new MS_Supervisor_DateTime_1(ref sp, this);
 			timeTab.Content = rtime;
-			var rconf = new RemoteConfigurator(ref sp, this);
+			var rconf = new MS_Configurator_1(ref sp, this);
 			confTab.Content = rconf;
 		}
 
@@ -55,7 +55,7 @@ namespace X_Manager
 		{
 			if (mainTab.SelectedIndex == (mainTab.Items.Count - 1))
 			{
-				((RemoteConfigurator)(confTab.Content)).read();
+				((MS_Configurator_1)(confTab.Content)).read();
 			}
 		}
 
@@ -63,11 +63,11 @@ namespace X_Manager
 		{
 			if (tab == 0)
 			{
-				((RemoteConfigurator)(confTab.Content)).read();
+				((MS_Configurator_1)(confTab.Content)).read();
 			}
 			else if (tab == 1)
 			{
-				((RemoteConnector)(connTab.Content)).UI_disconnected();
+				((MS_Connector)(connTab.Content)).UI_disconnected();
 			}
 
 		}

@@ -27,7 +27,6 @@ namespace X_Manager.Bootloader
 		bool unitConnected;
 		public bool success = false;
 		string firmwareFile;
-		//readonly byte[] baudrateSYnc = { 0x55, 0x55 };
 		readonly byte[] COMMAND_PING = { 0x03, 0x20, 0x20 };
 		readonly byte[] COMMAND_GET_CHIP_ID = { 0x03, 0x28, 0x28 };
 		readonly uint bootloaderBaudRate = 1000000;

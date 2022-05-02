@@ -31,7 +31,7 @@ namespace X_Manager
             InitializeComponent();
             labelMex.Content = mText;
             okB.Focus();
-            this.Loaded += loaded;
+            Loaded += loaded;
         }
 
         private void loaded(object sender, EventArgs e)
@@ -42,7 +42,7 @@ namespace X_Manager
 
         private void okClick(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void setMouse()

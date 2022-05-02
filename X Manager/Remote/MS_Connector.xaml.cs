@@ -9,7 +9,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using X_Manager.Remote;
 using System.IO.Ports;
 using System.Threading;
 using System.Windows.Threading;
@@ -22,13 +22,13 @@ using FT_HANDLE = System.UInt64;
 using FT_HANDLE = System.UInt32;
 #endif
 
-namespace X_Manager
+namespace X_Manager.Remote
 {
 	/// <summary>
 	/// Interaction logic for RemoteConnector.xaml
 	/// </summary>
 
-	public partial class RemoteConnector : UserControl
+	public partial class MS_Connector : UserControl
 	{
 
 		string portShortName;
@@ -43,7 +43,7 @@ namespace X_Manager
 		int masterStationType = 0;
 		bool autoClose = true;
 
-		RemoteManagement parent;
+		MS_Main parent;
 
 		SolidColorBrush grigio = new SolidColorBrush();
 		SolidColorBrush blu = new SolidColorBrush();
@@ -57,11 +57,11 @@ namespace X_Manager
 		string lastListPath = "";
 
 
-		public RemoteConnector(ref SerialPort serialPort, object p, string portShortName)
+		public MS_Connector(ref SerialPort serialPort, object p, string portShortName)
 		{
 			InitializeComponent();
 
-			parent = (RemoteManagement)p;
+			parent = (MS_Main)p;
 			this.portShortName = portShortName;
 			//parent.connectionResult = 0;
 
@@ -281,7 +281,7 @@ namespace X_Manager
 			byte status = 0;
 			byte connCount = 0;
 			byte connCountMax = 15;
-			if (masterStationType == 1) connCountMax = 6;
+			if (masterStationType == 1) connCountMax = 3;
 			while (stop == 0)
 			{
 				try

@@ -1,4 +1,4 @@
-﻿<Window x:Class="X_Manager.RemoteManagement"
+﻿<Window x:Class="X_Manager.Remote.MS_Main"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -6,7 +6,7 @@
         mc:Ignorable="d" KeyDown="remoteManagement_KeyDown"
         xmlns:dc="clr-namespace:X_Manager"
         ResizeMode="NoResize" Closed="remoteManagement_Closed"
-        Title="REMOTE MANAGEMENT" Height="305" Width="630" Loaded="remoteManagement_Loaded">
+        Title="MASTER STATION DRIVER" Height="305" Width="630" Loaded="remoteManagement_Loaded">
     <Grid>
         <TabControl SelectionChanged="tabSelectionChanged" x:Name="mainTab">
             <TabItem Header="Connection" x:Name="connTab" />

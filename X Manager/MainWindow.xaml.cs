@@ -2,28 +2,21 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-//using System.Windows.Forms;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.VisualBasic.FileIO;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.ComponentModel;
 using X_Manager.Units;
 using X_Manager.ConfigurationWindows;
-using Xceed.Wpf.Toolkit.PropertyGrid;
-using System.Security.RightsManagement;
-using System.Windows.Media.Animation;
+using X_Manager.Remote;
 
 
 
@@ -441,7 +434,7 @@ namespace X_Manager
 			statusProgressBar.Value = 0;
 			positionCanSend = false;
 			dumpViewTabItem.IsEnabled = true;
-			remoteButton.Content = "Remote";
+			remoteButton.Content = "Remote Management";
 			remoteButton.IsEnabled = true;
 			Title = "X MANAGER";
 			configureMovementButton.Content = "Accelerometer configuration";
@@ -1799,45 +1792,56 @@ namespace X_Manager
 			}
 		}
 
-		private void remoteClick(object sender, RoutedEventArgs e)
+		private void remoteManagementClick(object sender, RoutedEventArgs e)
 		{
 			if (connectButton.Content.Equals("Connect"))
 			{
-				sp.BaudRate = Baudrate_base;
-				sp.ReadTimeout = 400;
-				sp.NewLine = "\r\n";
 
-				//isola la porta COM selezionata
-				string portShortName;
-				portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-				try
+				var remoteMain = new Remote.Remote_Main(this);
+				var res = remoteMain.showDialog();
+				if (res == 1)				//Gestione Master Station
 				{
-					portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
+					sp.BaudRate = Baudrate_base;
+					sp.ReadTimeout = 400;
+					sp.NewLine = "\r\n";
+
+					//isola la porta COM selezionata
+					string portShortName;
+					portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
+					try
+					{
+						portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
+					}
+					catch
+					{
+						MessageBox.Show(STR_noComPortAvailable);
+						return;
+					}
+
+					if (sp.IsOpen) sp.Close();
+					sp.PortName = portShortName;
+
+					//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
+					try
+					{
+						sp.Open();
+						ftdiSerialNumber = setLatency(portShortName, 1);
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(ex.Message);
+						return;
+					}
+					if (sp.IsOpen) sp.Close();
+					var remoteManagement = new MS_Main(ref sp, this, portShortName);
+					remoteManagement.ShowDialog();
 				}
-				catch
+				else if (res == 2)				//Gestione Base Station
 				{
-					MessageBox.Show(STR_noComPortAvailable);
-					return;
+					var remoteManagement = new BS_Main();
+					remoteManagement.ShowDialog();
 				}
 
-				if (sp.IsOpen) sp.Close();
-				sp.PortName = portShortName;
-
-				//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
-				try
-				{
-					sp.Open();
-					ftdiSerialNumber = setLatency(portShortName, 1);
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message);
-					return;
-				}
-				if (sp.IsOpen) sp.Close();
-
-				var remoteManagement = new RemoteManagement(ref sp, this, portShortName);
-				remoteManagement.ShowDialog();
 				if ((string)connectButton.Content == "Disconnect")
 				{
 					if (sp.IsOpen == false)
@@ -1851,17 +1855,6 @@ namespace X_Manager
 				}
 				return;
 
-				//var remote = new RemoteConnector(ref sp);
-				//if (remote.ShowDialog() == 1)
-				//{
-				//	remoteButton.IsEnabled = false;
-				//	connectClick(connectButton, new System.Windows.RoutedEventArgs());
-				//}
-				//else if (remote.ShowDialog() == 2)
-				//{
-				//	remoteButton.Content = "Configure Remote Unit";
-				//	connectClick(connectButton, new System.Windows.RoutedEventArgs());
-				//}
 			}
 			else
 			{
@@ -2085,7 +2078,11 @@ namespace X_Manager
 			}
 			catch
 			{
-				keepAliveTimer.Stop();
+				try
+				{
+					keepAliveTimer.Stop();
+				}
+				catch { }
 				if (confForm != null)
 				{
 					try
@@ -2101,8 +2098,8 @@ namespace X_Manager
 			}
 
 		}
-		
-	public ref Unit getReferenceUnit()
+
+		public ref Unit getReferenceUnit()
 		{
 			return ref oUnit;
 		}

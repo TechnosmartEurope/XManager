@@ -23,8 +23,8 @@ namespace X_Manager.Units
 	{
 
 		FTDI_Device ft;
-		byte[] buffIn;
-		byte[] buffOut;
+		//byte[] buffIn;
+		//byte[] buffOut;
 		struct TimeStamp
 		{
 			private int _pos;
@@ -193,8 +193,8 @@ namespace X_Manager.Units
 			useFtdi = true;
 			configureMovementButtonEnabled = true;
 			configurePositionButtonEnabled = false;
-			buffIn = new byte[8192];
-			buffOut = new byte[8192];
+			//buffIn = new byte[8192];
+			//buffOut = new byte[8192];
 			if (sp.IsOpen) sp.Close();
 			ft = new FTDI_Device(sp.PortName);
 			ft.Open();
@@ -834,7 +834,7 @@ namespace X_Manager.Units
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[8];
 
-			ft.ReadTimeout = 1000;
+			ft.ReadTimeout = 500;
 
 			uint buffSize;
 			if (mem_address > mem_max_logical_address)
@@ -873,7 +873,10 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = buffSize));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 
-			address = BitConverter.GetBytes(mem_max_logical_address >> 8);
+
+
+			uint phyAddress = mem_max_logical_address;
+			address = BitConverter.GetBytes(phyAddress >> 8);
 			Array.Copy(address, 0, outBuffer, 1, 3);
 			outBuffer[0] = 0x65;        //load address
 			ft.Write(outBuffer, 4);
@@ -889,38 +892,74 @@ namespace X_Manager.Units
 			}
 
 			bool ok = true;
-
+			int retry = 0;
+			int res = 0;
+			outBuffer[0] = 66;
+			uint bytesToWrite = 1;
 			while (buffPointer < buffSize)
 			{
-
 				if (convertStop)
 				{
 					break;
 				}
 
 				Thread.Sleep(1);
-				ft.Write(new byte[] { 66 }, 1);
-				if (ft.Read(inBuffer, buffPointer, 0x200) < 0x200)
+				ft.Write(outBuffer, bytesToWrite);          //Scrive il byte singolo per nuovo pacchetto, o 0x65 più tre byte per caricare un indirizzo nel puntatore
+				res = 1;                                    //Inizializza res a 1
+				if (bytesToWrite == 4)
 				{
-					ok = false;
-					if (buffPointer != 0)
+					res = ft.Read(inBuffer, buffPointer, 0x01); //Se abbiamo caricato un indirizzo, dobbiamo ricevere un byte di risposta; se lo riceviamo correttamente res = 1
+				}
+				if (res > 0)                                    //Se res è = 1, il caricamento dell'indirizzo è andato a buon fine oppure non avevamo un indirizzo da caricare
+				{
+					res = ft.Read(inBuffer, buffPointer, 0x200);//Legge il pacchetto da 512 byte e memorizza in res il numero di byte ricevuti
+				}
+				if (res < 0x200)                                //Nel caso non siano stati ricevuti 512 byte, o il caricamento dell'indirizzo non è andato a buon fine
+				{
+					retry++;                                    //Incremente il contatore dei tentativi
+					if (res < 0)
 					{
-						var foC = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
-						foC.Write(inBuffer, 0, inBuffer.Length);
-						foC.Close();
+						ft.Close();
+						ft.Open();
 					}
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					break;
+					if (retry >= 32)             //Se i tentativi sono 200 o c'è stata un'anomalia ftdi (res = -1) esce immediatamente
+					{
+						ok = false;
+						if (buffPointer != 0)                   //Se almeno un pacchetto era stato scaricato lo scrive nel file
+						{
+							var foC = new BinaryWriter(File.Open(fileNameMdp, FileMode.Create));
+							foC.Write(inBuffer, 0, inBuffer.Length);
+							foC.Close();
+						}
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+						break;
+					}
+					else                                        //Se invece la ricezione è andata in timeout, imposta il comando di caricamento indirizzo, per ottenere di nuovo
+					{                                           //il pacchetto arrivato male
+						address = BitConverter.GetBytes(phyAddress >> 8);
+						Array.Copy(address, 0, outBuffer, 1, 3);
+						outBuffer[0] = 0x65;        //load address
+						bytesToWrite = 4;
+					}
 				}
-
-				buffPointer += 0x200;
-				if (MainWindow.keepAliveTimer != null)
+				else
 				{
-					MainWindow.keepAliveTimer.Stop();
-					MainWindow.keepAliveTimer.Start();
+					retry = 0;                                  //Se invece il pacchetto è arrivato bene, icrementa il puntatore del buffer ram e quello della posizione
+					buffPointer += 0x200;                       //di memoria nel gipsy, implementando l'effetto pacman
+					phyAddress += 0x200;
+					if (phyAddress == mem_max_physical_address)
+					{
+						phyAddress = mem_min_physical_address;
+					}
+					outBuffer[0] = 66;                          //Imposta il comando di nuovo pacchetto
+					bytesToWrite = 1;
+					if (MainWindow.keepAliveTimer != null)
+					{
+						MainWindow.keepAliveTimer.Stop();
+						MainWindow.keepAliveTimer.Start();
+					}
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 				}
-
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 			}
 
 			if (ok)
@@ -932,7 +971,7 @@ namespace X_Manager.Units
 			inBuffer[inBuffer.Length - 2] = 0x0a;
 			inBuffer[inBuffer.Length - 1] = 0x00;
 
-			var fo = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
+			var fo = new BinaryWriter(File.Open(fileNameMdp, FileMode.Create));
 
 			fo.Write(inBuffer, 0, inBuffer.Length);
 			fo.Close();
@@ -1657,7 +1696,7 @@ namespace X_Manager.Units
 				llat += gp6[pos + 4] << 16;
 				llat += gp6[pos + 5] << 8;
 				llat += (gp6[pos + 6] & 0x30) << 2;
-				if ((gp6[pos] & 0x40) == 0x40)
+				if ((gp6[pos + 3] & 0x40) == 0x40)
 				{
 					llat = -llat;
 				}

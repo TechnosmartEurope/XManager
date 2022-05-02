@@ -9,28 +9,28 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using X_Manager.Remote;
 using System.Windows.Threading;
 using System.Threading;
 using System.IO.Ports;
 
-namespace X_Manager
+namespace X_Manager.Remote
 {
 	/// <summary>
 	/// Interaction logic for RemoteSupervisor.xaml
 	/// </summary>
-	public partial class RemoteSupervisor : UserControl
+	public partial class MS_Supervisor_DateTime_1 : UserControl
 	{
 		SerialPort sp;
-		RemoteManagement parent;
+		MS_Main parent;
 
 
-		public RemoteSupervisor(ref SerialPort sp, object p)
+		public MS_Supervisor_DateTime_1(ref SerialPort sp, object p)
 		{
 			InitializeComponent();
 			this.sp = sp;
 			sp.ReadTimeout = 800;
-			parent = (RemoteManagement)p;
+			parent = (MS_Main)p;
 			var c = new Thread(clock);
 			c.Start();
 		}
