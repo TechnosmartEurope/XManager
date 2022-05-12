@@ -22,6 +22,7 @@ namespace X_Manager.Remote
 	{
 
 		public DriveInfo Drive;
+		public int address;
 		public string Text
 		{
 			get { return (string)driveL.Content; }
@@ -41,7 +42,9 @@ namespace X_Manager.Remote
 			{
 				driveL.Foreground = new SolidColorBrush(Colors.Green);
 			}
+			this.address = address;
 			Text = address.ToString();
+			Name = "N" + address.ToString();
 		}
 	}
 }

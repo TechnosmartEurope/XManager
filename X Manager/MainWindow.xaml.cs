@@ -61,6 +61,7 @@ namespace X_Manager
 		int realTimeType = 0;
 
 		bool askOverwrite = true;
+		bool remoteConnection = false;
 
 		byte[] unitFirmware = new byte[15];
 
@@ -415,6 +416,7 @@ namespace X_Manager
 			catch { }
 			Baudrate_base = 115200;
 			unitConnected = false;
+			remoteConnection = false;
 			modelLabel.Content = "";
 			firmwareLabel.Content = "";
 			unitNameTextBox.Text = "";
@@ -663,6 +665,29 @@ namespace X_Manager
 		public override void downloadFinished()
 		{
 			warningShow("Download completed.");
+			mainGrid.IsEnabled = true;
+			statusLabel.Content = "Connected";
+			progressBarStopButton.IsEnabled = false;
+			progressBarStopButtonColumn.Width = new GridLength(0);
+			try
+			{
+				if (sp.IsOpen) sp.ReadExisting();
+				Thread.Sleep(100);
+				uint[] maxM = oUnit.askMaxMemory();
+				Thread.Sleep(100);
+				uint[] actM = oUnit.askMemory();
+				setPBMemory(actM, maxM);
+				Thread.Sleep(100);
+			}
+			catch
+			{
+				downloadFailed();
+			}
+		}
+
+		public override void downloadIncomplete()
+		{
+			warningShow("Download incomplete!");
 			mainGrid.IsEnabled = true;
 			statusLabel.Content = "Connected";
 			progressBarStopButton.IsEnabled = false;
@@ -980,7 +1005,7 @@ namespace X_Manager
 			var openPicture = new Microsoft.Win32.OpenFileDialog();
 			openPicture.DefaultExt = ("JPG Files|*.jpg");
 			openPicture.Filter = ("JPG Files|*.jpg|PNG Files|*.png|BMP Files|*.bmp");
-			if (File.Exists(System.IO.Path.GetDirectoryName(getParameter("backgroundImagePath"))))
+			if (File.Exists(Path.GetDirectoryName(getParameter("backgroundImagePath"))))
 			{
 				openPicture.InitialDirectory = System.IO.Path.GetDirectoryName(getParameter("backgroundImagePath"));
 			}
@@ -1247,7 +1272,7 @@ namespace X_Manager
 					}
 					else if (rs == '6')     //In caso di Gipsy6 bisogna mandare una stringa corta
 					{
-						sp.Write("TTTTGGAP");
+						sp.Write("TTTTTTTGGAP");
 					}
 					else
 					{
@@ -1311,6 +1336,7 @@ namespace X_Manager
 								break;
 							case "GiPSy-6":
 								oUnit = new Gipsy6(this);   //Nel costruttore viene chiusa la porta seriale e riaperta mediante driver ftdi
+								((Gipsy6)oUnit).remoteConnection = remoteConnection;
 								if (sender is MainWindow)
 								{
 									oUnit.msBaudrate();
@@ -1321,6 +1347,7 @@ namespace X_Manager
 								break;
 						}
 						modelLabel.Content = model;
+						//if (!getConf()) return;
 						getConf();
 						getRemote();
 						getSolar();
@@ -1608,10 +1635,15 @@ namespace X_Manager
 			saveRaw.AddExtension = true;
 			saveRaw.FileName = unitNameTextBox.Text;
 
-			saveRaw.DefaultExt = "Ard file|*." + oUnit.defaultArdExtension;
-			saveRaw.Filter = "Ard file|*." + oUnit.defaultArdExtension;
+			saveRaw.DefaultExt = "RAW file|*." + oUnit.defaultArdExtension;
+			saveRaw.Filter = "RAW file|*." + oUnit.defaultArdExtension;
 
-			if (File.Exists(getParameter("dataSavePath")))
+			if (oUnit.defaultArdExtension.Contains("gp6"))
+			{
+				saveRaw.OverwritePrompt = false;
+			}
+
+			if (Directory.Exists(getParameter("dataSavePath")))
 			{
 				saveRaw.InitialDirectory = getParameter("dataSavePath");
 			}
@@ -1640,7 +1672,7 @@ namespace X_Manager
 				}
 				else          //Chiede di sovrascrivere o continuare il download in caso di memorie senza effetto pacman
 				{
-					if (File.Exists((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp")))))
+					if (File.Exists(Path.GetDirectoryName(saveRaw.FileName) + "\\" + Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp"))
 					{
 						YesNo yn = new YesNo(STR_resumeDownloadQuestion, "RESUME?", "", STR_Resume, STR_Restart);
 						switch (yn.ShowDialog())
@@ -1653,7 +1685,7 @@ namespace X_Manager
 								statusProgressBar.IsIndeterminate = false;
 								return;
 							case 1:
-								FileInfo fi = new FileInfo((System.IO.Path.GetDirectoryName(saveRaw.FileName) + ("\\" + (System.IO.Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp"))));
+								FileInfo fi = new FileInfo(Path.GetDirectoryName(saveRaw.FileName) + "\\" + Path.GetFileNameWithoutExtension(saveRaw.FileName) + ".mdp");
 								fromMemory = Convert.ToUInt32(fi.Length);
 								break;
 							case 2:
@@ -1730,9 +1762,19 @@ namespace X_Manager
 			// /sviluppo
 			mainGrid.IsEnabled = false;
 			Thread downloadThread = new Thread(() => oUnit.download(saveRaw.FileName, fromMemory, toMemory, baudrate));
-			if (oUnit.remote)
+			if (oUnit is Gipsy6)
 			{
-				downloadThread = new Thread(() => oUnit.downloadRemote(saveRaw.FileName, fromMemory, toMemory, baudrate));
+				if (((Gipsy6)oUnit).remoteConnection)
+				{
+					downloadThread = new Thread(() => oUnit.downloadRemote(saveRaw.FileName, fromMemory, toMemory, baudrate));
+				}
+			}
+			else
+			{
+				if (oUnit.remote)
+				{
+					downloadThread = new Thread(() => oUnit.downloadRemote(saveRaw.FileName, fromMemory, toMemory, baudrate));
+				}
 			}
 
 			downloadThread.SetApartmentState(ApartmentState.STA);
@@ -1797,9 +1839,9 @@ namespace X_Manager
 			if (connectButton.Content.Equals("Connect"))
 			{
 
-				var remoteMain = new Remote.Remote_Main(this);
+				var remoteMain = new Remote_Main(this);
 				var res = remoteMain.showDialog();
-				if (res == 1)				//Gestione Master Station
+				if (res == 1)               //Gestione Master Station
 				{
 					sp.BaudRate = Baudrate_base;
 					sp.ReadTimeout = 400;
@@ -1836,7 +1878,7 @@ namespace X_Manager
 					var remoteManagement = new MS_Main(ref sp, this, portShortName);
 					remoteManagement.ShowDialog();
 				}
-				else if (res == 2)				//Gestione Base Station
+				else if (res == 2)              //Gestione Base Station
 				{
 					var remoteManagement = new BS_Main();
 					remoteManagement.ShowDialog();
@@ -1914,6 +1956,7 @@ namespace X_Manager
 		public bool externConnect(int baudRate)
 		{
 			Baudrate_base = baudRate;
+			remoteConnection = true;
 			connectClick(this, new RoutedEventArgs());
 			if (unitConnected && oUnit is Gipsy6)       //In caso di gipsy6 remoto disabilita il pulsante per l'upload del firmware
 			{
@@ -1925,6 +1968,13 @@ namespace X_Manager
 				configurePositionButton.IsEnabled = false;
 			}
 			return connectButton.Content.Equals("Disconnect");
+		}
+
+
+		public void externBootloader()
+		{
+			var boot = new Bootloader.Bootloader_Gipsy6(false, this);
+			boot.ShowDialog();
 		}
 
 		void refreshBattery(object sender, RoutedEventArgs e)
@@ -2029,10 +2079,9 @@ namespace X_Manager
 				realTimeType = oUnit.askRealTime();
 				uiConnected();
 			}
-			catch (Exception ex)
+			catch
 			{
-				warningShow(ex.Message);
-				uiDisconnected();
+				throw (new Exception());
 			}
 		}
 
@@ -2074,7 +2123,7 @@ namespace X_Manager
 		{
 			try
 			{
-				oUnit.keepAlive();
+				oUnit.keepAlive();      //Rimettere dopo sviluppo
 			}
 			catch
 			{
@@ -2317,41 +2366,42 @@ namespace X_Manager
 
 			if (GoOn)
 			{
-				string exten = System.IO.Path.GetExtension(fileName);
-				if ((exten.Length > 4))
+				string exten = Path.GetExtension(fileName);
+				if (exten.Length > 4)
 				{
 					addOn = ("_S" + exten.Remove(0, 4));
 				}
-				fileNameCsv = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-				fileNametxt = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
-				fileNameKml = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
-				fileNamePlaceMark = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
+				fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
+				fileNametxt = Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
+				fileNameKml = Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
+				fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
 				nomiFile = new string[] { fileNameCsv, fileNametxt, fileNamePlaceMark };
 			}
 
 			if (GoOn)
 			{
-				if ((System.IO.Path.GetExtension(fileName).Contains("Dump") || (System.IO.Path.GetExtension(fileName).Contains("dump") || System.IO.Path.GetExtension(fileName).Contains("mdp"))))
+				if (Path.GetExtension(fileName).Contains("Dump") || Path.GetExtension(fileName).Contains("dump") || Path.GetExtension(fileName).Contains("mdp"))
 				{
 					fileHeader = "MEMDUMP ";
 					fileType = type_mdp;
 				}
 				else
 				{
-					if (System.IO.Path.GetExtension(fileName).Contains("rem"))
+					if (Path.GetExtension(fileName).Contains("rem"))
 					{
 						fileHeader = "REM ";
 					}
-					if (System.IO.Path.GetExtension(fileName).Contains("gp6"))
+					if (Path.GetExtension(fileName).Contains("gp6"))
 					{
 						fileType = type_gp6;
 					}
+
 					foreach (string nomefile in nomiFile)
 					{
 						if (File.Exists(nomefile) & askOverwrite)
 						{
-							YesNo yn = new YesNo((System.IO.Path.GetFileName(nomefile) + " already exists. Do you want to overwrite it?"), "OVERWRITE");
-							if ((yn.ShowDialog() == YesNo.no))
+							YesNo yn = new YesNo(Path.GetFileName(nomefile) + " already exists. Do you want to overwrite it?", "OVERWRITE");
+							if (yn.ShowDialog() == YesNo.no)
 							{
 								GoOn = false;
 								yn.Close();

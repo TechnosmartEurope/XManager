@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Threading;
 using System.IO;
 using System.Windows;
@@ -19,7 +19,7 @@ using FT_HANDLE = System.UInt32;
 
 namespace X_Manager.Units
 {
-	class Gipsy6 : Units.Unit
+	class Gipsy6 : Unit
 	{
 
 		FTDI_Device ft;
@@ -134,6 +134,10 @@ namespace X_Manager.Units
 			}
 		}
 
+		const int RETRY_MAX = 4;
+		int rfAddress = -1;
+		string rfAddressString = "N.A.";
+		string unitName = "";
 		enum eventType : byte
 		{
 			E_POWER_ON = 0,
@@ -172,6 +176,7 @@ namespace X_Manager.Units
 		};
 
 		bool repeatEmptyValues = false;
+		public bool remoteConnection = false;
 
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 
@@ -203,7 +208,6 @@ namespace X_Manager.Units
 		private bool ask(string command)
 		{
 			ft.Open();
-			ft.ReadTimeout = 30;
 			ft.ReadExisting();
 			int test = 0;
 			bool goon = false;
@@ -212,10 +216,17 @@ namespace X_Manager.Units
 				MainWindow.keepAliveTimer.Stop();
 				MainWindow.keepAliveTimer.Start();
 			}
+			if (remoteConnection)
+			{
+				ft.ReadTimeout = 2200;
+				ft.Write("TTTTTTTGGA" + command);
+				return true;
+			}
+			ft.ReadTimeout = 30;
 			for (int y = 0; y < 4; y++) //(rimettere y < 4 dopo sviluppo
 			{
 				goon = false;
-				ft.Write("TTTTTTGGA" + command);
+				ft.Write("TTTTTTTGGA" + command);
 
 				try
 				{
@@ -249,8 +260,15 @@ namespace X_Manager.Units
 		public override void keepAlive()
 		{
 			uint oldTimeout = ft.ReadTimeout;
-			ft.ReadTimeout = 400;
-			ft.Write("TTTTTGGAP");
+			if (remoteConnection)
+			{
+				ft.ReadTimeout = 100;
+			}
+			else
+			{
+				ft.ReadTimeout = 400;
+			}
+			ft.Write("TTTTTTTGGAP");
 			try
 			{
 				ft.ReadByte();
@@ -259,7 +277,10 @@ namespace X_Manager.Units
 			}
 			catch
 			{
-				throw new Exception(unitNotReady);
+				if (!remoteConnection)
+				{
+					throw new Exception(unitNotReady);
+				}
 			}
 			ft.ReadTimeout = oldTimeout;
 		}
@@ -268,39 +289,42 @@ namespace X_Manager.Units
 		{
 			ft.BaudRate = 2000000;
 		}
+
 		public override void changeBaudrate(ref SerialPort sp, int maxMin)
 		{
-
-			uint oldBaudRate = ft.BaudRate;
-			uint newBaudRate = 0;
-			uint b;
-			try
+			if (!remoteConnection)
 			{
-
-				//sp.Write(new byte[] { 0x54, 0x54, 0x47, 0x47, 0x41, 0x62, 0x4b, 0x01 }, 0, 8);
-
-				if (!ask("b"))
+				uint oldBaudRate = ft.BaudRate;
+				uint newBaudRate = 0;
+				uint b;
+				try
 				{
-					return;
+
+					//sp.Write(new byte[] { 0x54, 0x54, 0x47, 0x47, 0x41, 0x62, 0x4b, 0x01 }, 0, 8);
+
+					if (!ask("b"))
+					{
+						return;
+					}
+					ft.Write(new byte[] { (byte)maxMin }, 1);
+					ft.ReadTimeout = 1200;
+					newBaudRate = (uint)ft.ReadByte();
+					newBaudRate = newBaudRate + ((uint)ft.ReadByte() << 8);
+					newBaudRate = newBaudRate + ((uint)ft.ReadByte() << 16);
+					newBaudRate = newBaudRate + ((uint)ft.ReadByte() << 24);
+					b = ft.ReadByte();
+					//sp.Close();
+					ft.BaudRate = newBaudRate;
+					//sp.Open();
+					ft.Write(new byte[] { 0x55 }, 1);
+					Thread.Sleep(5);
+					b = ft.ReadByte();
+					Thread.Sleep(5);
 				}
-				ft.Write(new byte[] { (byte)maxMin }, 1);
-				ft.ReadTimeout = 1200;
-				newBaudRate = (uint)ft.ReadByte();
-				newBaudRate = newBaudRate + ((uint)ft.ReadByte() << 8);
-				newBaudRate = newBaudRate + ((uint)ft.ReadByte() << 16);
-				newBaudRate = newBaudRate + ((uint)ft.ReadByte() << 24);
-				b = ft.ReadByte();
-				//sp.Close();
-				ft.BaudRate = newBaudRate;
-				//sp.Open();
-				ft.Write(new byte[] { 0x55 }, 1);
-				Thread.Sleep(5);
-				b = ft.ReadByte();
-				Thread.Sleep(5);
-			}
-			catch
-			{
-				ft.BaudRate = oldBaudRate;
+				catch
+				{
+					ft.BaudRate = oldBaudRate;
+				}
 			}
 		}
 
@@ -308,253 +332,455 @@ namespace X_Manager.Units
 		{
 			byte[] f = new byte[3];
 			string firmware = "";
+			int retryMax = 1;
+			if (remoteConnection) retryMax = RETRY_MAX;
+			for (int retry = 0; retry < retryMax; retry++)
+			{
 
-			if (!ask("F"))
-			{
-				throw new Exception(unitNotReady);
-			}
-			ft.ReadTimeout = 400;
-			int i = 0;
-			try
-			{
-				for (i = 0; i < 3; i++)
+				if (!ask("F"))
 				{
-					f[i] = (byte)ft.ReadByte();
+					throw new Exception(unitNotReady);
+				}
+				if (!remoteConnection) ft.ReadTimeout = 400;
+				int i = 0;
+				try
+				{
+					for (i = 0; i < 3; i++)
+					{
+						f[i] = ft.ReadByte();
+					}
+					break;
+				}
+				catch
+				{
+					if (retry == retryMax - 1)
+					{
+						throw new Exception(unitNotReady);
+					}
 				}
 			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
 			firmTotA = 0;
-			for (i = 0; i < 3; i++)
+			for (int i = 0; i < 3; i++)
 			{
 				firmTotA *= 1000;
 				firmTotA += f[i];
 			}
-			for (i = 0; i <= (f.Length - 2); i++)
+
+			for (int i = 0; i <= (f.Length - 2); i++)
 			{
 				firmware += f[i].ToString() + ".";
 			}
+
 			firmware += f[f.Length - 1].ToString();
-
 			firmwareArray = f;
-
 			return firmware;
 		}
 
 		public override string askName()
 		{
 			name = "";
-
-			if (!ask("N"))
+			int retryMax = 1;
+			if (remoteConnection) retryMax = RETRY_MAX;
+			for (int retry = 0; retry < retryMax; retry++)
 			{
-				throw new Exception(unitNotReady);
-			}
-			try
-			{
-				byte nIn = 255;
-				for (int i = 0; i < 28; i++)
+				if (!ask("N"))
 				{
-					nIn = (byte)ft.ReadByte();
-					if (nIn != 0)
+					throw new Exception(unitNotReady);
+				}
+				try
+				{
+					byte nIn = 255;
+					for (int i = 0; i < 28; i++)
 					{
-						name += Convert.ToChar(nIn).ToString();
+						nIn = ft.ReadByte();
+						if (nIn != 0)
+						{
+							name += Convert.ToChar(nIn).ToString();
+						}
 					}
+					break;
+				}
+				catch
+				{
+					if (retry == retryMax - 1) throw new Exception(unitNotReady);
 				}
 			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
 			if (name == "") name = "[No Name]";
+			unitName = name;
 			return name;
 		}
 
 		public override string askBattery()
 		{
 			string battery = "";
-			double battLevel;
-			if (!ask("B"))
+			double battLevel = 0;
+			int retryMax = 1;
+			if (remoteConnection) retryMax = RETRY_MAX;
+			for (int retry = 0; retry < retryMax; retry++)
 			{
-				throw new Exception(unitNotReady);
-			}
-			try
-			{
-				ft.ReadTimeout = 500;
-				battLevel = ft.ReadByte(); battLevel *= 256;
-				battLevel += ft.ReadByte();
-				battLevel *= 6;
-				battLevel /= 4096;
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-			//battLevel = battLevel + (battLevel - 3) * .05 + .14;
+				if (!ask("B"))
+				{
+					throw new Exception(unitNotReady);
+				}
+				try
+				{
+					if (!remoteConnection) ft.ReadTimeout = 500;
+					battLevel = ft.ReadByte(); battLevel *= 256;
+					battLevel += ft.ReadByte();
+					battLevel *= 6;
+					battLevel /= 4096;
+					break;
+				}
+				catch
+				{
+					if (retry == retryMax - 1) throw new Exception(unitNotReady);
+				}
+				//battLevel = battLevel + (battLevel - 3) * .05 + .14;
 
+
+			}
 			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
 			return battery;
 		}
 
 		public override void setPcTime()
 		{
-			if (!ask("t"))
+			byte[] dateAr = new byte[6];
+
+			if (remoteConnection)
 			{
-				throw new Exception(unitNotReady);
+				ft.ReadTimeout = 2200;
+				byte[] command = new byte[] { 84, 84, 84, 84, 84, 84, 84, 71, 71, 65, 0x74, 0, 0, 0, 0, 0, 0 };
+				bool ok = false;
+				for (int retry = 0; retry < RETRY_MAX; retry++)
+				{
+					var dateToSend = DateTime.UtcNow;
+					dateAr[0] = (byte)dateToSend.Second;
+					dateAr[1] = (byte)dateToSend.Minute;
+					dateAr[2] = (byte)dateToSend.Hour;
+					dateAr[3] = (byte)dateToSend.Day;
+					dateAr[4] = (byte)dateToSend.Month;
+					dateAr[5] = (byte)(dateToSend.Year - 2000);
+					Array.Copy(dateAr, 0, command, 11, dateAr.Length);
+					ft.Write(command, 17);
+					try
+					{
+						ft.ReadByte();
+						ok = true;
+						break;
+					}
+					catch { }
+				}
+				if (!ok)
+				{
+					throw new Exception(unitNotReady);
+				}
 			}
-			try
+			else
 			{
-				byte[] dateAr = new byte[6];
-				var dateToSend = DateTime.UtcNow;
-				dateAr[0] = (byte)dateToSend.Second;
-				dateAr[1] = (byte)dateToSend.Minute;
-				dateAr[2] = (byte)dateToSend.Hour;
-				dateAr[3] = (byte)dateToSend.Day;
-				dateAr[4] = (byte)dateToSend.Month;
-				dateAr[5] = (byte)(dateToSend.Year - 2000);
-				Thread.Sleep(10);
-				ft.Write(dateAr, 6);
-				ft.ReadByte();
+				if (!ask("t"))
+				{
+					throw new Exception(unitNotReady);
+				}
+				try
+				{
+					var dateToSend = DateTime.UtcNow;
+					dateAr[0] = (byte)dateToSend.Second;
+					dateAr[1] = (byte)dateToSend.Minute;
+					dateAr[2] = (byte)dateToSend.Hour;
+					dateAr[3] = (byte)dateToSend.Day;
+					dateAr[4] = (byte)dateToSend.Month;
+					dateAr[5] = (byte)(dateToSend.Year - 2000);
+					Thread.Sleep(10);
+					ft.Write(dateAr, 6);
+					ft.ReadByte();
+				}
+				catch
+				{
+					throw new Exception(unitNotReady);
+				}
 			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
+
 		}
 
 		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
-			if (!ask("m"))
+			int retryMax = 1;
+			if (remoteConnection) retryMax = RETRY_MAX;
+			for (int retry = 0; retry < retryMax; retry++)
 			{
-				throw new Exception(unitNotReady);
+				if (!ask("m"))
+				{
+					throw new Exception(unitNotReady);
+				}
+				try
+				{
+					m = ft.ReadByte(); m *= 256;
+					m += ft.ReadByte(); m *= 256;
+					m += ft.ReadByte(); m *= 256;
+					m += ft.ReadByte();
+					mem_min_physical_address = m;
+					m = ft.ReadByte(); m *= 256;
+					m += ft.ReadByte(); m *= 256;
+					m += ft.ReadByte(); m *= 256;
+					m += ft.ReadByte();
+					mem_max_physical_address = m;
+					break;
+				}
+				catch
+				{
+					if (retry == retryMax - 1) throw new Exception(unitNotReady);
+				}
 			}
-			try
-			{
-				m = ft.ReadByte(); m *= 256;
-				m += ft.ReadByte(); m *= 256;
-				m += ft.ReadByte(); m *= 256;
-				m += ft.ReadByte();
-				mem_min_physical_address = m;
-				m = ft.ReadByte(); m *= 256;
-				m += ft.ReadByte(); m *= 256;
-				m += ft.ReadByte(); m *= 256;
-				m += ft.ReadByte();
-				mem_max_physical_address = m;
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-
 			return new uint[] { mem_min_physical_address, mem_max_physical_address };
 		}
 
 		public override uint[] askMemory()
 		{
-			if (!ask("M"))
+			int retryMax = 1;
+			if (remoteConnection) retryMax = RETRY_MAX;
+			for (int retry = 0; retry < retryMax; retry++)
 			{
-				throw new Exception(unitNotReady);
-			}
-			try
-			{
-				mem_address = ft.ReadByte(); mem_address <<= 8;
-				mem_address += ft.ReadByte(); mem_address <<= 8;
-				mem_address += ft.ReadByte(); mem_address <<= 8;
-				mem_address += ft.ReadByte();
-				mem_max_logical_address = ft.ReadByte(); mem_max_logical_address <<= 8;
-				mem_max_logical_address += ft.ReadByte(); mem_max_logical_address <<= 8;
-				mem_max_logical_address += ft.ReadByte(); mem_max_logical_address <<= 8;
-				mem_max_logical_address += ft.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
+				if (!ask("M"))
+				{
+					throw new Exception(unitNotReady);
+				}
+				try
+				{
+					mem_address = ft.ReadByte(); mem_address <<= 8;
+					mem_address += ft.ReadByte(); mem_address <<= 8;
+					mem_address += ft.ReadByte(); mem_address <<= 8;
+					mem_address += ft.ReadByte();
+					mem_max_logical_address = ft.ReadByte(); mem_max_logical_address <<= 8;
+					mem_max_logical_address += ft.ReadByte(); mem_max_logical_address <<= 8;
+					mem_max_logical_address += ft.ReadByte(); mem_max_logical_address <<= 8;
+					mem_max_logical_address += ft.ReadByte();
+					break;
+				}
+				catch
+				{
+					if (retry == retryMax - 1) throw new Exception(unitNotReady);
+				}
 			}
 			return new uint[] { mem_max_logical_address, mem_address };
 		}
 
 		public override void eraseMemory()
 		{
-			//sp.Write("TTTTTTTTGGAE");
-			if (!ask("E"))
+			int retryMax = 1;
+			if (remoteConnection) retryMax = RETRY_MAX;
+			for (int retry = 0; retry < retryMax; retry++)
 			{
-				throw new Exception(unitNotReady);
-			}
-			try
-			{
-				ft.ReadTimeout = 500;
-				ft.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
+				if (!ask("E"))
+				{
+					throw new Exception(unitNotReady);
+				}
+				try
+				{
+					if (!remoteConnection) ft.ReadTimeout = 500;
+					ft.ReadByte();
+					break;
+				}
+				catch
+				{
+					if (retry == retryMax - 1) throw new Exception(unitNotReady);
+				}
 			}
 		}
 
 		public override void setName(string newName)
 		{
-			byte[] nameShort = Encoding.ASCII.GetBytes(newName);
-			byte[] name = new byte[28];
-			Array.Copy(nameShort, 0, name, 0, nameShort.Length);
 
-			for (int k = 0; k < 4; k++)
+			byte[] nameShort = Encoding.ASCII.GetBytes(newName);
+
+			if (remoteConnection)
 			{
-				if (!ask("n"))
+				byte[] name = new byte[28 + 11];
+				Array.Copy(nameShort, 0, name, 11, nameShort.Length);
+				name[0] = (byte)'T';
+				name[1] = (byte)'T';
+				name[2] = (byte)'T';
+				name[3] = (byte)'T';
+				name[4] = (byte)'T';
+				name[5] = (byte)'T';
+				name[6] = (byte)'T';
+				name[7] = (byte)'G';
+				name[8] = (byte)'G';
+				name[9] = (byte)'A';
+				name[10] = (byte)'n';
+
+				ft.ReadTimeout = 2200;
+				bool ok = false;
+				for (int retry = 0; retry < RETRY_MAX; retry++)
 				{
-					throw new Exception(unitNotReady);
+
+					ft.Write(name, 0, 28 + 11);
+					uint res = 0;
+					try
+					{
+						res = ft.ReadByte();
+						ok = true;
+						break;
+					}
+					catch { }
 				}
-				Thread.Sleep(10);
-				ft.ReadTimeout = 200;
-				ft.Write(name, 28);
-				uint res = 0;
-				try
+				if (!ok) throw new Exception(unitNotReady);
+			}
+			else
+			{
+				byte[] name = new byte[28];
+				Array.Copy(nameShort, 0, name, 0, nameShort.Length);
+
+				for (int k = 0; k < 4; k++)
 				{
-					res = ft.ReadByte();
+					if (!ask("n"))
+					{
+						throw new Exception(unitNotReady);
+					}
+					Thread.Sleep(10);
+					ft.ReadTimeout = 200;
+					ft.Write(name, 28);
+					uint res = 0;
+					try
+					{
+						res = ft.ReadByte();
+					}
+					catch
+					{
+						throw new Exception(unitNotReady);
+					}
+					if (res == "I".ToArray()[0])
+					{
+						break;
+					}
+					Thread.Sleep(100);
 				}
-				catch
-				{
-					throw new Exception(unitNotReady);
-				}
-				if (res == "I".ToArray()[0])
-				{
-					break;
-				}
-				Thread.Sleep(100);
 			}
 		}
 
 		public override bool getRemote()
 		{
 			remote = false;
-			if (!ask("l"))
+			int retryMax = 1;
+			if (remoteConnection) retryMax = RETRY_MAX;
+			for (int retry = 0; retry < retryMax; retry++)
 			{
-				throw new Exception(unitNotReady);
-			}
-			try
-			{
-				if (ft.ReadByte() == 1) remote = true;
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
+				if (!ask("l"))
+				{
+					throw new Exception(unitNotReady);
+				}
+
+				try
+				{
+					if (ft.ReadByte() == 1) remote = true;
+					break;
+				}
+				catch
+				{
+					if (retry == retryMax - 1) throw new Exception(unitNotReady);
+				}
 			}
 			return remote;
 		}
 
 		public override byte[] getConf()
 		{
+			if (remoteConnection)
+			{
+				return getConfRemote();
+			}
+			else
+			{
+				return getConfCable();
+			}
+		}
 
+		private byte[] getConfRemote()
+		{
+			ft.ReadTimeout = 2200;
 			byte[] conf = new byte[0x1000];
+			byte[] command = new byte[] { 84, 84, 84, 84, 84, 84, 84, 71, 71, 65, 67, 255 };
+			int size = 0;
 
+			for (int retry = 0; retry < RETRY_MAX; retry++)
+			{
+				Debug.WriteLine("get-size-" + retry.ToString());
+				ft.ReadExisting();
+				ft.Write(command, 0, 12);
+				try
+				{
+					size = ft.ReadByte();
+					size <<= 8;
+					size += ft.ReadByte();
+					if (size != 522)        //Questo poi andrà sistemato perché il software non sa a priori la dimensione del bufffer 
+					{                       //di configurazione
+						Debug.WriteLine("get-size=" + size.ToString() + " WRONG SIZE!");
+						Thread.Sleep(500);
+						retry = 0;
+						continue;
+					}
+					break;
+				}
+				catch
+				{
+					if (retry == 3) throw new Exception(unitNotReady);
+				}
+			}
+
+			Debug.WriteLine("get-size=" + size.ToString());
+
+			byte nPack = (byte)(size / 64);
+			byte rPack = (byte)(size % 64);
+
+			for (byte i = 0; i < nPack; i++)
+			{
+				command[11] = i;
+				for (int retry = 0; retry < RETRY_MAX; retry++)
+				{
+					Debug.WriteLine("get-packet" + i.ToString() + "-" + retry.ToString());
+					try
+					{
+						ft.Write(command, 0, 12);
+						ft.Read(conf, ((uint)i * 64) + 32, 64);
+						break;
+					}
+					catch
+					{
+						if (retry == 3) throw new Exception(unitNotReady);
+					}
+				}
+			}
+
+			command[11] = nPack;
+			for (int retry = 0; retry < RETRY_MAX; retry++)
+			{
+				Debug.WriteLine("get-packet" + nPack.ToString() + "-" + retry.ToString());
+				try
+				{
+					ft.Write(command, 0, 12);
+					int read = ft.Read(conf, ((uint)nPack * 64) + 32, rPack);
+					break;
+				}
+				catch
+				{
+					if (retry == 3) throw new Exception(unitNotReady);
+				}
+			}
+			ft.ReadExisting();
+
+			return conf;
+		}
+
+		private byte[] getConfCable()
+		{
+			byte[] conf = new byte[0x1000];
 			if (!ask("C"))
 			{
 				throw new Exception(unitNotReady);
 			}
 			try
 			{
-				ft.ReadTimeout = 400;
 				//ACQ, Start delay e GSV			
 				for (int i = 32; i < 32 + 20; i++)
 				{
@@ -644,7 +870,19 @@ namespace X_Manager.Units
 
 		public override void setConf(byte[] conf)
 		{
+			if (remoteConnection)
+			{
+				setConfRemote(conf);
+			}
+			else
+			{
+				setConfCable(conf);
+			}
 
+		}
+
+		private void setConfCable(byte[] conf)
+		{
 			for (int j = 0; j < 3; j++)
 			{
 				if (!ask("c"))
@@ -704,16 +942,109 @@ namespace X_Manager.Units
 			}
 		}
 
+		private void setConfRemote(byte[] conf)
+		{
+			int size = 0;
+			ft.ReadTimeout = 2200;
+			for (int retry = 0; retry < RETRY_MAX; retry++)
+			{
+				Debug.WriteLine("set-getSize-" + retry.ToString());
+				try
+				{
+					ft.ReadExisting();
+					ft.Write(new byte[] { 84, 84, 84, 84, 84, 84, 84, 71, 71, 65, 67, 255 }, 0, 12);
+					size = ft.ReadByte();
+					size <<= 8;
+					size += ft.ReadByte();
+					if (size != 522)    //Questo poi andrà sistemato perché il software non sa a priori la dimensione del bufffer 
+					{                   //di configurazione
+						Debug.WriteLine("set-getSize=" + size.ToString() + " WRONG SIZE!");
+						Thread.Sleep(500);
+						retry = 0;
+						continue;
+					}
+					break;
+				}
+				catch
+				{
+					if (retry == 3) throw new Exception(unitNotReady);
+				}
+			}
+
+			Debug.WriteLine("set-getSize=" + size.ToString());
+
+			Thread.Sleep(1);
+			byte nPack = (byte)(size / 64);
+			byte rPack = (byte)(size % 64);
+
+			byte[] command = new byte[76];
+			for (int i = 0; i < 7; i++)
+			{
+				command[i] = 84;
+			}
+			command[7] = 71;
+			command[8] = 71;
+			command[9] = 65;
+			command[10] = 99;
+
+			for (byte i = 0; i < nPack; i++)
+			{
+				command[11] = i;
+				Array.Copy(conf, ((uint)i * 64) + 32, command, 12, 64);
+				for (int retry = 0; retry < RETRY_MAX; retry++)
+				{
+					Debug.WriteLine("set-packet" + i.ToString() + "-" + retry.ToString());
+					try
+					{
+						ft.Write(command, 0, 76);
+						ft.ReadByte();
+						Thread.Sleep(1);
+						break;
+					}
+					catch
+					{
+						if (retry == 3) throw new Exception(unitNotReady);
+					}
+				}
+			}
+			command[11] = nPack;
+			Array.Copy(conf, ((uint)nPack * 64) + 32, command, 12, rPack);
+			for (int retry = 0; retry < RETRY_MAX; retry++)
+			{
+				Debug.WriteLine("set-packet" + nPack.ToString() + "-" + retry.ToString());
+				try
+				{
+					ft.Write(command, 0, (uint)12 + rPack);
+					ft.ReadByte();
+					break;
+				}
+				catch
+				{
+					if (retry == 3) throw new Exception(unitNotReady);
+				}
+			}
+		}
+
 		public override void disconnect()
 		{
 			if (remote)
 			{
 				ask("O");
+				try
+				{
+					if (remoteConnection)
+					{
+						ft.ReadTimeout = 2200;
+						sp.ReadByte();
+					}
+				}
+				catch { }
 			}
 			else
 			{
 				ask("O");
 			}
+
 			connected = false;
 		}
 
@@ -829,12 +1160,32 @@ namespace X_Manager.Units
 		public unsafe override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 
-			byte[] outBuffer = new byte[50];
-			byte[] inBuffer;
-			byte[] tempBuffer = new byte[2048];
-			byte[] address = new byte[8];
+			//Globale mem_address è fino a dove bisogna scaricare
+			//Globale mem_max_logical_address è l'indirizzo da cui iniziare a scaricare
 
-			ft.ReadTimeout = 500;
+			byte[] inBuffer;
+
+			bool resume = false;
+			if (fileName.Contains("incomplete")) resume = true;
+
+			ft.ReadTimeout = 2200;
+			MainWindow.keepAliveTimer.Stop();
+			FileStream fs = null;
+
+			uint maxLogical = mem_max_logical_address;
+			if (resume)
+			{
+				fs = File.OpenRead(fileName);
+				byte[] addArr = new byte[4];
+				try
+				{
+					fs.Position = fs.Length - 10;
+					fs.Read(addArr, 0, 4);
+				}
+				catch { }
+
+				maxLogical = BitConverter.ToUInt32(addArr, 0);
+			}
 
 			uint buffSize;
 			if (mem_address > mem_max_logical_address)
@@ -851,19 +1202,18 @@ namespace X_Manager.Units
 				buffSize &= 0xfffffe00;
 				buffSize += 0x200;
 			}
-
-			convertStop = false;
-			inBuffer = new byte[buffSize + 2];
 			uint buffPointer = 0;
-
-			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".gp6";
-
-			if (!ask("D"))
+			inBuffer = new byte[buffSize];
+			if (resume)
 			{
-				throw new Exception(unitNotReady);
+				fs.Position = 0;
+				fs.Read(inBuffer, 0, (int)(fs.Length - 10));
+				buffPointer = (uint)(fs.Length - 10);
+				fs.Close();
 			}
 
-			ft.ReadTimeout = 3200;
+			convertStop = false;
+			uint address = maxLogical;
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
@@ -873,113 +1223,130 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = buffSize));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 
+			bool sendCommand = true;
 
+			byte[] command = new byte[] {   (byte)'T', (byte)'T', (byte)'T', (byte)'T', (byte)'T', (byte)'T', (byte)'T', (byte)'G',
+											(byte)'G', (byte)'A', (byte)'D' };
 
-			uint phyAddress = mem_max_logical_address;
-			address = BitConverter.GetBytes(phyAddress >> 8);
-			Array.Copy(address, 0, outBuffer, 1, 3);
-			outBuffer[0] = 0x65;        //load address
-			ft.Write(outBuffer, 4);
-
-			try
-			{
-				ft.ReadByte();
-			}
-			catch
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				return;
-			}
-
-			bool ok = true;
-			int retry = 0;
+			byte[] outBuffer = new byte[5];
 			int res = 0;
-			outBuffer[0] = 66;
-			uint bytesToWrite = 1;
+
+			byte[] ack = new byte[1];
+			//byte seqNumber = 0;
+			outBuffer[0] = (byte)'T';
 			while (buffPointer < buffSize)
 			{
 				if (convertStop)
 				{
 					break;
 				}
+				if (sendCommand)
+				{
+					Debug.WriteLine("command-D address:" + address.ToString("X8"));
+					ft.ReadExisting();
+					ft.Write(command, 0, 11);
+					res = ft.Read(ack, 0, 1);
+					if (res != 1)
+					{
+						continue;
+					}
+					sendCommand = false;
+					//address &= 0xfffffe00;
+					//buffPointer &= 0xfffffe00;
+				}
+				if ((address % 0x200) == 0)
+				{
+					Debug.WriteLine("dl-A-" + address.ToString("X8"));
+					outBuffer[1] = (byte)'A';
+					outBuffer[2] = (byte)(address >> 24);
+					outBuffer[3] = (byte)(address >> 16);
+					outBuffer[4] = (byte)(address >> 8);
 
-				Thread.Sleep(1);
-				ft.Write(outBuffer, bytesToWrite);          //Scrive il byte singolo per nuovo pacchetto, o 0x65 più tre byte per caricare un indirizzo nel puntatore
-				res = 1;                                    //Inizializza res a 1
-				if (bytesToWrite == 4)
-				{
-					res = ft.Read(inBuffer, buffPointer, 0x01); //Se abbiamo caricato un indirizzo, dobbiamo ricevere un byte di risposta; se lo riceviamo correttamente res = 1
-				}
-				if (res > 0)                                    //Se res è = 1, il caricamento dell'indirizzo è andato a buon fine oppure non avevamo un indirizzo da caricare
-				{
-					res = ft.Read(inBuffer, buffPointer, 0x200);//Legge il pacchetto da 512 byte e memorizza in res il numero di byte ricevuti
-				}
-				if (res < 0x200)                                //Nel caso non siano stati ricevuti 512 byte, o il caricamento dell'indirizzo non è andato a buon fine
-				{
-					retry++;                                    //Incremente il contatore dei tentativi
-					if (res < 0)
+					ft.Write(outBuffer, 0, 5);
+					res = ft.Read(ack, 0, 1);
+					if (res != 1)
 					{
-						ft.Close();
-						ft.Open();
+						sendCommand = true;
+						continue;
 					}
-					if (retry >= 32)             //Se i tentativi sono 200 o c'è stata un'anomalia ftdi (res = -1) esce immediatamente
-					{
-						ok = false;
-						if (buffPointer != 0)                   //Se almeno un pacchetto era stato scaricato lo scrive nel file
-						{
-							var foC = new BinaryWriter(File.Open(fileNameMdp, FileMode.Create));
-							foC.Write(inBuffer, 0, inBuffer.Length);
-							foC.Close();
-						}
-						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-						break;
-					}
-					else                                        //Se invece la ricezione è andata in timeout, imposta il comando di caricamento indirizzo, per ottenere di nuovo
-					{                                           //il pacchetto arrivato male
-						address = BitConverter.GetBytes(phyAddress >> 8);
-						Array.Copy(address, 0, outBuffer, 1, 3);
-						outBuffer[0] = 0x65;        //load address
-						bytesToWrite = 4;
-					}
+					outBuffer[1] = (byte)'P';
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
+				}
+				outBuffer[2] = (byte)(address % 0x200 / 0x40);
+				Debug.WriteLine("dl-P-" + outBuffer[2].ToString());
+				ft.Write(outBuffer, 0, 3);
+				res = ft.Read(inBuffer, buffPointer, 0x40);
+				if (res < 0x40)
+				{
+					ft.ReadExisting();
+					sendCommand = true;
+					continue;
 				}
 				else
 				{
-					retry = 0;                                  //Se invece il pacchetto è arrivato bene, icrementa il puntatore del buffer ram e quello della posizione
-					buffPointer += 0x200;                       //di memoria nel gipsy, implementando l'effetto pacman
-					phyAddress += 0x200;
-					if (phyAddress == mem_max_physical_address)
+					//seqNumber++;
+					//outBuffer[2] = seqNumber;
+					buffPointer += 0x40;
+					address += 0x40;
+					if (address == mem_max_physical_address)
 					{
-						phyAddress = mem_min_physical_address;
+						address = mem_min_physical_address;
 					}
-					outBuffer[0] = 66;                          //Imposta il comando di nuovo pacchetto
-					bytesToWrite = 1;
-					if (MainWindow.keepAliveTimer != null)
-					{
-						MainWindow.keepAliveTimer.Stop();
-						MainWindow.keepAliveTimer.Start();
-					}
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 				}
 			}
 
-			if (ok)
+			command[1] = (byte)'x';
+			ft.Write(command, 0, 3);
+			ft.Read(command, 0, 1);
+			Thread.Sleep(100);
+
+			if (buffPointer > 0)
 			{
-				ft.Write("x");
-				ft.ReadByte();
-				Thread.Sleep(100);
+				try
+				{
+					string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName);
+					if (File.Exists(fileNameMdp + ".gp6")) File.Delete(fileNameMdp + ".gp6");
+					if (resume)
+					{
+						fileNameMdp = fileNameMdp.Remove(fileNameMdp.IndexOf("_incomplete"), 11);
+					}
+					if (buffPointer < buffSize)
+					{
+						Array.Resize(ref inBuffer, ((int)buffPointer / 0x200) * 0x200);
+						address = (address & 0xfffffe00);
+						fileNameMdp += "_incomplete";
+					}
+					fileNameMdp += ".gp6";
+					Array.Resize(ref inBuffer, inBuffer.Length + 10);
+					Array.Copy(BitConverter.GetBytes(address), 0, inBuffer, inBuffer.Length - 10, 4);
+					Array.Copy(BitConverter.GetBytes(mem_address), 0, inBuffer, inBuffer.Length - 6, 4);
+					inBuffer[inBuffer.Length - 2] = 0x0a;
+					inBuffer[inBuffer.Length - 1] = 0x00;
+					var fo = new BinaryWriter(File.Open(fileNameMdp, FileMode.Create));
+
+					fo.Write(inBuffer, 0, inBuffer.Length);
+					fo.Close();
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message);
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+					return;
+				}
+
 			}
-			inBuffer[inBuffer.Length - 2] = 0x0a;
-			inBuffer[inBuffer.Length - 1] = 0x00;
 
-			var fo = new BinaryWriter(File.Open(fileNameMdp, FileMode.Create));
 
-			fo.Write(inBuffer, 0, inBuffer.Length);
-			fo.Close();
-
-			if (ok)
+			if (buffPointer > 0)
 			{
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
 			}
+			try
+			{
+				MainWindow.keepAliveTimer.Start();
+			}
+			catch { }
+
 		}
 
 		public override void abortConf() { }
@@ -1114,6 +1481,17 @@ namespace X_Manager.Units
 
 		public override void convert(string fileName, string[] prefs)
 		{
+			//Attribuisce un nome all'unità
+			if (unitName == "")
+			{
+				string newName = Path.GetFileNameWithoutExtension(fileName);
+				if (newName.Contains("incomplete"))
+				{
+					newName = newName.Remove(newName.IndexOf("_incomplete"), 11);
+				}
+				unitName = newName;
+			}
+
 			//Triplica la progress bar
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
 			{
@@ -1130,7 +1508,7 @@ namespace X_Manager.Units
 			//lastTimestamp = 0;
 
 			//Crea e avvia il thread per la scrittura del file txt
-			string txtName = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + ".txt";
+			string txtName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".txt";
 			List<TimeStamp> txtList = new List<TimeStamp>();
 			txtSem = new Semaphore(0, 1);
 			txtSemBack = new Semaphore(1, 1);
@@ -1142,7 +1520,7 @@ namespace X_Manager.Units
 			txtBGW.RunWorkerAsync();
 
 			//Crea e avvia il thread per la scrittura del file kml
-			string kmlName = System.IO.Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName);
+			string kmlName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName);
 			List<TimeStamp> kmlList = new List<TimeStamp>();
 			kmlSem = new Semaphore(0, 1);
 			kmlSemBack = new Semaphore(1, 1);
@@ -1154,7 +1532,7 @@ namespace X_Manager.Units
 			kmlBGW.RunWorkerAsync();
 
 			//Carica il file gp6 in memoria e lo chiude
-			BinaryReader gp6File = new System.IO.BinaryReader(new FileStream(fileName, FileMode.Open));
+			BinaryReader gp6File = new BinaryReader(new FileStream(fileName, FileMode.Open));
 			int filePointer = 0;
 			byte[] gp6 = new byte[gp6File.BaseStream.Length - ((gp6File.BaseStream.Length / 512) + 1) * 2];
 			//byte[] gp6 = new byte[(gp6File.BaseStream.Length / 512) * 510];
@@ -1290,7 +1668,11 @@ namespace X_Manager.Units
 		{
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
-			string[] tabs = new string[10];
+			txtBW.Write("Name\tRF Address\tDate\tTime\tLatitude (deg)\tLongitude (deg)\tHor. Acc. (m)" +
+							"\tAltitude (m)\tVert. Acc. (m)\tSpeed\tCourse\tBattery (v)\tEvent\r\n");
+			string[] tabs = new string[13];
+			tabs[0] = unitName;
+			tabs[1] = rfAddressString;
 			var t = new TimeStamp();
 			while (true)
 			{
@@ -1327,58 +1709,60 @@ namespace X_Manager.Units
 				//}
 
 				//Si scrive il timestmap nel txt
-				if (!repeatEmptyValues)
+				//if (!repeatEmptyValues)
 				{
-					tabs = new string[12];
+					tabs = new string[13];
+					tabs[0] = unitName;
+					tabs[1] = rfAddressString;
 				}
-				tabs[0] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
-				tabs[1] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				tabs[2] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
+				tabs[3] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
 
 				if ((t.tsType & ts_battery) == ts_battery)
 				{
-					tabs[9] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[11] = t.batteryLevel.ToString("0.00") + "V";
 				}
 				if ((t.tsType & ts_coordinate) == ts_coordinate)
 				{
-					tabs[2] = t.lat.ToString("00.0000000", nfi);
-					tabs[3] = t.lon.ToString("000.0000000", nfi);
+					tabs[4] = t.lat.ToString("00.0000000", nfi);
+					tabs[5] = t.lon.ToString("000.0000000", nfi);
 					if (t.hAcc == 7)
 					{
-						tabs[4] = "> 100m";
+						tabs[6] = "200";
 					}
 					else
 					{
-						tabs[4] = String.Format("< {0}m", accuracySteps[t.hAcc]);
+						tabs[6] = String.Format("{0}", accuracySteps[t.hAcc]);
 					}
 
-					tabs[5] = t.altitude.ToString();
+					tabs[7] = t.altitude.ToString();
 					if (t.vAcc == 7)
 					{
-						tabs[6] = "> 100m";
+						tabs[8] = "200";
 					}
 					else
 					{
-						tabs[6] = String.Format("< {0}m", accuracySteps[t.vAcc]);
+						tabs[8] = String.Format("{0}", accuracySteps[t.vAcc]);
 					}
-					tabs[7] = t.speed.ToString("0.0");
-					tabs[8] = t.cog.ToString("0.0");
+					tabs[9] = t.speed.ToString("0.0");
+					tabs[10] = t.cog.ToString("0.0");
 				}
 				if ((t.tsType & ts_event) == ts_event)
 				{
-					tabs[10] = decodeEvent(ref t);
+					tabs[12] = decodeEvent(ref t);
 				}
 
 				if (debugLevel == 3)
 				{
-					tabs[10] += " - " + t.pos.ToString("X8");
+					tabs[12] += " - " + t.pos.ToString("X8");
 				}
 
 
-				for (int i = 0; i < 11; i++)
+				for (int i = 0; i < 12; i++)
 				{
 					txtBW.Write(tabs[i] + "\t");
 				}
-				txtBW.Write(tabs[11] + "\r\n");
+				txtBW.Write(tabs[12] + "\r\n");
 				txtSemBack.Release();
 
 			}
@@ -1544,72 +1928,6 @@ namespace X_Manager.Units
 			//Interlocked.Increment(ref conversionDone);
 		}
 
-		private double[] extractGroup(ref MemoryStream ard, ref TimeStamp tsc)
-		{
-			byte[] group = new byte[2000];
-			bool badGroup = false;
-			long position = 0;
-			int dummy, dummyExt;
-			int badPosition = 600;
-
-			if (ard.Position == ard.Length) return lastGroup;
-
-			do
-			{
-				dummy = ard.ReadByte();
-				if (dummy == 0xab)
-				{
-					if (ard.Position < ard.Length) dummyExt = ard.ReadByte();
-					else return lastGroup;
-
-					if (dummyExt == 0xab)
-					{
-						group[position] = (byte)0xab;
-						position += 1;
-						dummy = 0;
-					}
-					else
-					{
-						ard.Position -= 1;
-						if (badGroup)
-						{
-							//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
-						}
-					}
-				}
-				else
-				{
-					if (position < badPosition)
-					{
-						group[position] = (byte)dummy;
-						position++;
-					}
-					else if ((position == badPosition) && (!badGroup))
-					{
-						badGroup = true;
-						//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
-					}
-				}
-			} while ((dummy != (byte)0xab) && (ard.Position < ard.Length));
-
-			//Implementare dati accelerometrici quando disponibili dall'unità
-			//tsc.timeStampLength = (byte)(position);
-
-			//int resultCode = 0;
-			//double[] doubleResultArray = new double[nOutputs * 3];
-			//if (bits)
-			//{
-			//	resultCode = resample4(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
-			//}
-			//else
-			//{
-			//	resultCode = resample3(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
-			//}
-
-			//return doubleResultArray;
-			return new double[] { };
-		}
-
 		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t, ref int pos)
 		{
 
@@ -1750,6 +2068,14 @@ namespace X_Manager.Units
 				pos++;
 				t.infoAr = new byte[infoLength];
 				Array.Copy(gp6, pos, t.infoAr, 0, infoLength);
+				if (infoLength > 3)
+				{
+					rfAddress = t.infoAr[3] * 65536 + t.infoAr[4] * 256 + t.infoAr[5];
+					if (rfAddress != 0 && rfAddress != 0xffffff)
+					{
+						rfAddressString = rfAddress.ToString();
+					}
+				}
 				pos += infoLength;
 			}
 
@@ -1813,11 +2139,77 @@ namespace X_Manager.Units
 			return outs;
 		}
 
-		private bool detectEof(ref MemoryStream ard)
-		{
-			if (ard.Position >= ard.Length) return true;
-			else return false;
-		}
+		//private bool detectEof(ref MemoryStream ard)
+		//{
+		//	if (ard.Position >= ard.Length) return true;
+		//	else return false;
+		//}
+
+		//private double[] extractGroup(ref MemoryStream ard, ref TimeStamp tsc)
+		//{
+		//	byte[] group = new byte[2000];
+		//	bool badGroup = false;
+		//	long position = 0;
+		//	int dummy, dummyExt;
+		//	int badPosition = 600;
+
+		//	if (ard.Position == ard.Length) return lastGroup;
+
+		//	do
+		//	{
+		//		dummy = ard.ReadByte();
+		//		if (dummy == 0xab)
+		//		{
+		//			if (ard.Position < ard.Length) dummyExt = ard.ReadByte();
+		//			else return lastGroup;
+
+		//			if (dummyExt == 0xab)
+		//			{
+		//				group[position] = (byte)0xab;
+		//				position += 1;
+		//				dummy = 0;
+		//			}
+		//			else
+		//			{
+		//				ard.Position -= 1;
+		//				if (badGroup)
+		//				{
+		//					//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+		//				}
+		//			}
+		//		}
+		//		else
+		//		{
+		//			if (position < badPosition)
+		//			{
+		//				group[position] = (byte)dummy;
+		//				position++;
+		//			}
+		//			else if ((position == badPosition) && (!badGroup))
+		//			{
+		//				badGroup = true;
+		//				//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+		//			}
+		//		}
+		//	} while ((dummy != (byte)0xab) && (ard.Position < ard.Length));
+
+		//	//Implementare dati accelerometrici quando disponibili dall'unità
+		//	//tsc.timeStampLength = (byte)(position);
+
+		//	//int resultCode = 0;
+		//	//double[] doubleResultArray = new double[nOutputs * 3];
+		//	//if (bits)
+		//	//{
+		//	//	resultCode = resample4(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
+		//	//}
+		//	//else
+		//	//{
+		//	//	resultCode = resample3(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
+		//	//}
+
+		//	//return doubleResultArray;
+		//	return new double[] { };
+		//}
 
 		public override void Dispose()
 		{

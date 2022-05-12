@@ -8,6 +8,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
             <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
             <RowDefinition Height="3*"/>
         </Grid.RowDefinitions>
         
@@ -28,10 +29,12 @@
             <Button x:Name="stopB" Grid.Column="1" Content="STOP" FontSize="30" Margin="10" Click="stopClick"/>
         </Grid>
 
-        <Button Grid.Row="1" Margin="20,0,0,0" Width="180" Height="30" HorizontalAlignment="Left" Content="Load Channel List" Click="loadNewChannelList_Click"/>
+        <Button Grid.Row="1" Margin="20,0,0,0" Width="180" Height="26" MinHeight="10" HorizontalAlignment="Left" Content="Load Channel List" Click="loadNewChannelList_Click"/>
         
+		<Button Grid.Row="2" Margin="20,0,0,0" Width="180" Height="26" MinHeight="10" HorizontalAlignment="Left" Content="Upload New Firmware" Click="firmwareUploadClick" x:Name="bootLoaderB"/>
+		<Label Grid.Row="2" x:Name="firmwareL" Content="Current Firmware Version:" HorizontalAlignment="Right" Margin="0,0,5,0" FontSize="12" VerticalAlignment="Center" Foreground="#FF424242"/>
 
-        <Grid Grid.Row="2">
+		<Grid Grid.Row="3">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>

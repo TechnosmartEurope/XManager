@@ -528,6 +528,10 @@ namespace X_Manager
 
 		}
 
+		public override void downloadIncomplete()
+		{
+
+		}
 		public override void downloadFailed()
 		{
 

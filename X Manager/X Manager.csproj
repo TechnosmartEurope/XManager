@@ -351,8 +351,8 @@
     <Compile Include="Remote\BS_Main.xaml.cs">
       <DependentUpon>BS_Main.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Remote\BS_DriveListViewElement.xaml.cs">
-      <DependentUpon>BS_DriveListViewElement.xaml</DependentUpon>
+    <Compile Include="Remote\BS_ListViewElement.xaml.cs">
+      <DependentUpon>BS_ListViewElement.xaml</DependentUpon>
     </Compile>
     <Compile Include="Remote\MS_Configurator_1.xaml.cs">
       <DependentUpon>MS_Configurator_1.xaml</DependentUpon>
@@ -510,7 +510,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Remote\BS_DriveListViewElement.xaml">
+    <Page Include="Remote\BS_ListViewElement.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

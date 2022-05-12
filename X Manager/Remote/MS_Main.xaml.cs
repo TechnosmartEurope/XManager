@@ -46,6 +46,12 @@ namespace X_Manager.Remote
 			return parent.externConnect(baudRate);
 		}
 
+
+		public void MSbootloader()
+		{
+			parent.externBootloader();
+		}
+
 		public ref Units.Unit getUnit()
 		{
 			return ref parent.getReferenceUnit();

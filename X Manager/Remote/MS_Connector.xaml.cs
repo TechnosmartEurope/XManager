@@ -43,6 +43,14 @@ namespace X_Manager.Remote
 		int masterStationType = 0;
 		bool autoClose = true;
 
+		const int COLOR_STOP_PRESSED = 100;
+		const int COLOR_WAKE = 101;
+		const int COLOR_NOWAKE = 102;
+		const int COLOR_WAKE_NOCONN = 103;
+
+		byte[] firmware;
+
+
 		MS_Main parent;
 
 		SolidColorBrush grigio = new SolidColorBrush();
@@ -51,11 +59,13 @@ namespace X_Manager.Remote
 		SolidColorBrush bianco = new SolidColorBrush();
 		SolidColorBrush verde = new SolidColorBrush();
 		SolidColorBrush rosso = new SolidColorBrush();
+		SolidColorBrush ambra = new SolidColorBrush();
 
 		string programDataListFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) +
 			"\\TechnoSmArt Europe\\X Manager\\addressList.chn";
 		string lastListPath = "";
 
+		System.Windows.Shapes.Rectangle[] rAr;
 
 		public MS_Connector(ref SerialPort serialPort, object p, string portShortName)
 		{
@@ -63,6 +73,7 @@ namespace X_Manager.Remote
 
 			parent = (MS_Main)p;
 			this.portShortName = portShortName;
+			firmware = new byte[] { 0, 1, 0 };
 			//parent.connectionResult = 0;
 
 			grigio.Color = Color.FromArgb(0xff, 0x42, 0x42, 0x42);
@@ -71,6 +82,9 @@ namespace X_Manager.Remote
 			bianco.Color = Color.FromArgb(0xff, 0xff, 0xff, 0xff);
 			rosso.Color = Color.FromArgb(0xff, 0xff, 0x00, 0x00);
 			verde.Color = Color.FromArgb(0xff, 0x16, 0xf5, 0x00);
+			ambra.Color = Color.FromArgb(0xff, 0xff, 158, 0x03);
+
+			rAr = new System.Windows.Shapes.Rectangle[] { r1, r2, r3, r4, ra, rb };
 
 			channelListCB.Items.Clear();
 
@@ -83,6 +97,38 @@ namespace X_Manager.Remote
 			sp.Open();
 
 			DragEnter += loadNewChannelList_Click;
+
+			Loaded += loaded;
+		}
+
+		private void loaded(object sender, RoutedEventArgs e)
+		{
+			bootLoaderB.Visibility = Visibility.Hidden;
+			masterStationType = 0;
+			sp.BaudRate = 2000000;
+			sp.Write("+++");
+			try
+			{
+				Thread.Sleep(10);
+				sp.ReadExisting();
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
+				masterStationType = sp.ReadByte();
+				masterStationType = sp.ReadByte();
+				bootLoaderB.Visibility = Visibility.Visible;
+				masterStationType = 1;
+				firmware = new byte[3] { 1, 0, 2 };
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'F', (byte)'V' }, 0, 4);
+				firmware[0] = (byte)sp.ReadByte();
+				firmware[1] = (byte)sp.ReadByte();
+				firmware[2] = (byte)sp.ReadByte();
+				Thread.Sleep(190);
+			}
+			catch
+			{
+				
+			}
+			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+			firmwareL.Content = "Current Firmware Version: " + firmware[0].ToString() + "." + firmware[1].ToString() + "." + firmware[2].ToString();
 		}
 
 		public void UI_disconnected()
@@ -115,9 +161,9 @@ namespace X_Manager.Remote
 				sp.Open();
 			}
 			stop = 0;
-			sp.Write(new byte[] { 52 }, 0, 1);
 
 			sp.BaudRate = 2000000;
+			sp.Write(new byte[] { 52 }, 0, 1);
 			sp.ReadTimeout = 200;
 			Thread.Sleep(50);
 			sp.Write("+++");
@@ -126,13 +172,16 @@ namespace X_Manager.Remote
 				Thread.Sleep(10);
 				sp.ReadExisting();
 				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
-				masterStationType = sp.ReadByte();
-				masterStationType = sp.ReadByte();
-				Thread.Sleep(190);
+				sp.ReadByte();
+				sp.ReadByte();
+				Thread.Sleep(10);
+				sp.Write("ATX");
+
+				Thread.Sleep(100);
 			}
 			catch
 			{
-				masterStationType = 0;
+
 			}
 
 			if (masterStationType == 0)
@@ -218,6 +267,7 @@ namespace X_Manager.Remote
 
 		private void master1()
 		{
+			sp.Write("+++");
 			Thread.Sleep(250);
 			int address;// = byte.Parse(channelListCB.Text);
 			System.Globalization.NumberStyles ns = System.Globalization.NumberStyles.Integer;
@@ -281,7 +331,7 @@ namespace X_Manager.Remote
 			byte status = 0;
 			byte connCount = 0;
 			byte connCountMax = 15;
-			if (masterStationType == 1) connCountMax = 3;
+			if (masterStationType == 1) connCountMax = 6;
 			while (stop == 0)
 			{
 				try
@@ -292,7 +342,7 @@ namespace X_Manager.Remote
 					{
 						connCount++;
 					}
-					if (connCount == connCountMax)
+					if (connCount == connCountMax + 1)
 					{
 						status = 2;
 					}
@@ -384,6 +434,10 @@ namespace X_Manager.Remote
 						parent.close();
 					}
 				}
+				else
+				{
+					colorStep(COLOR_WAKE_NOCONN);
+				}
 			}
 		}
 
@@ -392,12 +446,11 @@ namespace X_Manager.Remote
 			switch (counter)
 			{
 				case 0:
+					foreach (System.Windows.Shapes.Rectangle r in rAr)
+					{
+						r.Fill = grigio;
+					}
 					r1.Fill = blu;
-					r2.Fill = grigio;
-					r3.Fill = grigio;
-					r4.Fill = grigio;
-					ra.Fill = grigio;
-					rb.Fill = grigio;
 					break;
 				case 1:
 					r1.Fill = grigio;
@@ -434,29 +487,29 @@ namespace X_Manager.Remote
 					ra.Fill = bianco;
 					rb.Fill = bianco;
 					break;
-				case 100:               //E' stato premuto stop
-					r1.Fill = grigio;
-					r2.Fill = grigio;
-					r3.Fill = grigio;
-					r4.Fill = grigio;
-					ra.Fill = grigio;
-					rb.Fill = grigio;
+				case COLOR_STOP_PRESSED:               //E' stato premuto stop
+					foreach (System.Windows.Shapes.Rectangle r in rAr)
+					{
+						r.Fill = grigio;
+					}
 					break;
-				case 101:               //L'unità ha risposto
-					r1.Fill = verde;
-					r2.Fill = verde;
-					r3.Fill = verde;
-					r4.Fill = verde;
-					ra.Fill = verde;
-					rb.Fill = verde;
+				case COLOR_WAKE:               //L'unità ha risposto
+					foreach (System.Windows.Shapes.Rectangle r in rAr)
+					{
+						r.Fill = verde;
+					}
 					break;
-				case 102:               //L'unità non ha risposto
-					r1.Fill = rosso;
-					r2.Fill = rosso;
-					r3.Fill = rosso;
-					r4.Fill = rosso;
-					ra.Fill = rosso;
-					rb.Fill = rosso;
+				case COLOR_NOWAKE:               //L'unità non ha risposto
+					foreach (System.Windows.Shapes.Rectangle r in rAr)
+					{
+						r.Fill = rosso;
+					}
+					break;
+				case COLOR_WAKE_NOCONN:               //L'unità ha risposto ma la connessione non è andata a buon fine
+					foreach (System.Windows.Shapes.Rectangle r in rAr)
+					{
+						r.Fill = ambra;
+					}
 					break;
 			}
 		}
@@ -505,8 +558,7 @@ namespace X_Manager.Remote
 			}
 			int resp = stop;
 			if (resp < 100) resp += 100;
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.colorStep(resp)));
-
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => colorStep(resp)));
 		}
 
 		private void channelListSelectionChangedEvent(object sender, SelectionChangedEventArgs e)
@@ -577,10 +629,29 @@ namespace X_Manager.Remote
 			loadNewChannelList(files[0]);
 		}
 
-		private void close()
+		private void firmwareUploadClick(object sender, RoutedEventArgs e)
 		{
+			var tg = new YesNo("WARNING: you are entering the Master Station bootloader!\r\nPlease, proceed only if you have a new firmware to upload,\r\nelse please close this or your Master Station could potentially get bricked.", "Master Station Bootloader", "", "Yes", "No");
+			if (tg.ShowDialog() == 2) return;
+			if (sp.IsOpen) sp.Close();
+			var ft = new FTDI_Device(sp.PortName);
+			ft.Open();
+			ft.BaudRate = 2000000;
+			ft.Write("+++");
+			Thread.Sleep(200);
+			ft.Write("ATBL");
+			Thread.Sleep(200);
+			string res = ft.ReadLine();
+			ft.Close();
 			parent.close();
+			parent.MSbootloader();
+
 		}
+
+		//private void close()
+		//{
+		//	parent.close();
+		//}
 	}
 }
 
