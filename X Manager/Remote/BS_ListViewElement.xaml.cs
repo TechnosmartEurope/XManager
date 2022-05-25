@@ -25,9 +25,29 @@ namespace X_Manager.Remote
 		public int address;
 		public string Text
 		{
-			get { return (string)driveL.Content; }
-			set { driveL.Content = value; }
+			get
+			{
+				return (string)driveL.Content;
+			}
+			set
+			{
+				driveL.Content = value;
+			}
 		}
+
+		public new Brush Foreground
+		{
+			get
+			{
+				return driveL.Foreground;
+			}
+			set
+			{
+				SolidColorBrush s = value as SolidColorBrush;
+				driveL.Foreground = new SolidColorBrush(s.Color);
+			}
+		}
+
 		public BS_listViewElement(DriveInfo di)
 		{
 			InitializeComponent();

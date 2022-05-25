@@ -9,6 +9,6 @@
     <Grid >
 		<Rectangle Fill="#00000000" Stroke="#FF181818" StrokeThickness="2" Margin="0" />
 		<!--<Button x:Name="settingsB" HorizontalAlignment="Right" Margin="2" MinHeight="10" Content="~" MinWidth="10" Width="20" Padding="0"/>-->
-		<Label x:Name="driveL" Content="PROVOLA" FontSize="10" VerticalAlignment="Center" Width="128" HorizontalAlignment="Left"/>
+		<Label x:Name="driveL" Content="PROVOLA" FontSize="10" VerticalAlignment="Center" Width="128" HorizontalAlignment="Left" />
 	</Grid>
 </UserControl>

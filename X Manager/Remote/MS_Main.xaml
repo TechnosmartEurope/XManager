@@ -6,12 +6,16 @@
         mc:Ignorable="d" KeyDown="remoteManagement_KeyDown"
         xmlns:dc="clr-namespace:X_Manager"
         ResizeMode="NoResize" Closed="remoteManagement_Closed"
-        Title="MASTER STATION DRIVER" Height="305" Width="630" Loaded="remoteManagement_Loaded">
-    <Grid>
-        <TabControl SelectionChanged="tabSelectionChanged" x:Name="mainTab">
-            <TabItem Header="Connection" x:Name="connTab" />
-            <TabItem Header="Date/Time" x:Name="timeTab"/>
-            <TabItem Header="Configuration" x:Name="confTab"/>
-        </TabControl>
-    </Grid>
+        Title="MASTER STATION DRIVER" Height="305" Width="630" Loaded="remoteManagement_Loaded" WindowStartupLocation="CenterOwner">
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="67*"/>
+			<ColumnDefinition Width="59*"/>
+		</Grid.ColumnDefinitions>
+		<TabControl SelectionChanged="tabSelectionChanged" x:Name="mainTab" Grid.ColumnSpan="2">
+			<TabItem Header="Connection" x:Name="connTab" />
+			<TabItem Header="Date/Time" x:Name="timeTab"/>
+			<TabItem Header="Configuration" x:Name="confTab"/>
+		</TabControl>
+	</Grid>
 </Window>

@@ -30,6 +30,19 @@ namespace X_Manager.ConfigurationWindows
 		DateTime sdDate;
 		string oldAdd;
 		bool isRemote = false;
+		bool _lockRfAddress = false;
+		public bool lockRfAddress
+		{
+			get
+			{
+				return _lockRfAddress;
+			}
+			set
+			{
+				_lockRfAddress = value;
+				remoteAddressTB.IsEnabled = !value;
+			}
+		}
 		public BasicsConfiguration(byte[] conf)
 			: base()
 		{
@@ -81,7 +94,7 @@ namespace X_Manager.ConfigurationWindows
 				sddCB.IsChecked = false;
 				sddDate -= 0x80000000;
 				startDelayDateDP.Visibility = Visibility.Hidden;
-				todayB.Visibility = Visibility.Hidden;;
+				todayB.Visibility = Visibility.Hidden; ;
 			}
 			else
 			{
@@ -145,7 +158,6 @@ namespace X_Manager.ConfigurationWindows
 					cb.IsChecked = true;
 				}
 			}
-
 		}
 
 		private void remoteHourUnchecked(object sender, RoutedEventArgs e)

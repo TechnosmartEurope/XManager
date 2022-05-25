@@ -1294,7 +1294,7 @@ namespace X_Manager.Units
 					}
 				}
 			}
-
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 			command[1] = (byte)'x';
 			ft.Write(command, 0, 3);
 			ft.Read(command, 0, 1);
@@ -1669,7 +1669,7 @@ namespace X_Manager.Units
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
 			txtBW.Write("Name\tRF Address\tDate\tTime\tLatitude (deg)\tLongitude (deg)\tHor. Acc. (m)" +
-							"\tAltitude (m)\tVert. Acc. (m)\tSpeed\tCourse\tBattery (v)\tEvent\r\n");
+							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tEvent\r\n");
 			string[] tabs = new string[13];
 			tabs[0] = unitName;
 			tabs[1] = rfAddressString;
@@ -1811,31 +1811,11 @@ namespace X_Manager.Units
 				}
 				t = tL[0];
 				tL.RemoveAt(0);
-				//lock (tL)
-				//{
-				//	if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, esce dal loop
-				//	{
-				//		break;
-				//	}
-				//	if (Interlocked.Read(ref lastTimestamp) > 0)
-				//	{
-				//		contoStatus++;
-				//		if (contoStatus == 100)
-				//		{
-				//			contoStatus = 0;
-				//			//int cc = tL.Count;
-				//			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Value += 100)); ;
-				//		}
-				//	}
-				//	t = tL[0];
-				//	tL.RemoveAt(0);
-				//}
 
 				if (t.sat > 0) //Si scrive il timestmap nel kml
 				{
 					if (contoCoord == 10000)
 					{
-						//kmlS += Properties.Resources.Path_Bot + Properties.Resources.Path_Top;
 						kml.Write(Properties.Resources.Path_Bot + Properties.Resources.Path_Top);
 						contoCoord = 0;
 					}
@@ -1939,7 +1919,6 @@ namespace X_Manager.Units
 			if (debugLevel > 0) t.txtAllowed++;
 			while (true)
 			{
-
 				while ((test != 0xab) & (pos < max) && (test != 0xac) && (test != 0x0a))
 				{
 					pos++;
@@ -2028,8 +2007,9 @@ namespace X_Manager.Units
 
 				t.speed = (gp6[pos + 8] & 3) << 6;
 				t.speed += (gp6[pos + 9] & 0xfc) >> 2;
+				t.speed *= 0.9;
 
-				t.cog = (gp6[pos + 9 & 3]) << 2;
+				t.cog = (gp6[pos + 9] & 3) << 2;
 				if ((gp6[pos + 10] & 0x80) == 0x80)
 				{
 					t.cog += 2;

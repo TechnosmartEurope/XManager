@@ -1,23 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using X_Manager.Remote;
-using System.IO.Ports;
-using System.Threading;
 using System.Windows.Threading;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 #if X64
-using FT_HANDLE = System.UInt64;
 #else
 using FT_HANDLE = System.UInt32;
 #endif
@@ -35,6 +27,7 @@ namespace X_Manager.Remote
 
 		//private int connectionResult = 0;
 		private SerialPort sp;
+		public FTDI_Device ft;
 		volatile int stop = 0;
 
 		private byte remoteCommunicationAddress = 2;
@@ -94,7 +87,7 @@ namespace X_Manager.Remote
 			}
 			sp = serialPort;
 
-			sp.Open();
+			//sp.Open();
 
 			DragEnter += loadNewChannelList_Click;
 
@@ -103,31 +96,35 @@ namespace X_Manager.Remote
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
+			if (sp.IsOpen) sp.Close();
+			ft = new FTDI_Device(sp.PortName);
 			bootLoaderB.Visibility = Visibility.Hidden;
 			masterStationType = 0;
-			sp.BaudRate = 2000000;
-			sp.Write("+++");
+			ft.Open();
+			ft.BaudRate = 2000000;
+			ft.ReadTimeout = 500;
+			ft.Write("+++");
 			try
 			{
 				Thread.Sleep(10);
-				sp.ReadExisting();
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
-				masterStationType = sp.ReadByte();
-				masterStationType = sp.ReadByte();
+				ft.ReadExisting();
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
+				masterStationType = ft.ReadByte();
+				masterStationType = ft.ReadByte();
 				bootLoaderB.Visibility = Visibility.Visible;
 				masterStationType = 1;
 				firmware = new byte[3] { 1, 0, 2 };
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'F', (byte)'V' }, 0, 4);
-				firmware[0] = (byte)sp.ReadByte();
-				firmware[1] = (byte)sp.ReadByte();
-				firmware[2] = (byte)sp.ReadByte();
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'F', (byte)'V' }, 0, 4);
+				firmware[0] = ft.ReadByte();
+				firmware[1] = ft.ReadByte();
+				firmware[2] = ft.ReadByte();
 				Thread.Sleep(190);
 			}
 			catch
 			{
-				
+
 			}
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 			firmwareL.Content = "Current Firmware Version: " + firmware[0].ToString() + "." + firmware[1].ToString() + "." + firmware[2].ToString();
 		}
 
@@ -139,43 +136,44 @@ namespace X_Manager.Remote
 
 		private void wakeClick(object sender, RoutedEventArgs e)
 		{
+			ft.OpenSimple();
 			autoClose = true;
 			if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Control) == System.Windows.Forms.Keys.Control)
 			{
 				autoClose = false;
 			}
 
-			parent.setLatency(portShortName, 1);
+			//parent.setLatency(portShortName, 1);
 
 			if (wakeB.Content.Equals("BREAK"))
 			{
-				sp.Write("TTTTTTTTTTTTTGGAO");
+				ft.Write("TTTTTTTTTTTTTGGAO");
 				//sp.Close();
 				UI_disconnected();
 				parent.connect(115200);
 				return;
 			}
 
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
+			//if (!sp.IsOpen)
+			//{
+			//	sp.Open();
+			//}
 			stop = 0;
 
-			sp.BaudRate = 2000000;
-			sp.Write(new byte[] { 52 }, 0, 1);
-			sp.ReadTimeout = 200;
+			ft.BaudRate = 2000000;
+			ft.Write(new byte[] { 52 }, 0, 1);
+			ft.ReadTimeout = 200;
 			Thread.Sleep(50);
-			sp.Write("+++");
+			ft.Write("+++");
 			try
 			{
 				Thread.Sleep(10);
-				sp.ReadExisting();
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
-				sp.ReadByte();
-				sp.ReadByte();
+				ft.ReadExisting();
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
+				ft.ReadByte();
+				ft.ReadByte();
 				Thread.Sleep(10);
-				sp.Write("ATX");
+				ft.Write("ATX");
 
 				Thread.Sleep(100);
 			}
@@ -197,21 +195,25 @@ namespace X_Manager.Remote
 
 		private void master0()
 		{
-			sp.Write("+++");
+			ft.Write("+++");
 			Thread.Sleep(200);
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'B', (byte)'R', 3 }, 0, 5);
-			sp.BaudRate = 115200;
+			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'B', (byte)'R', 3 }, 0, 5);
+			ft.BaudRate = 115200;
 			Thread.Sleep(100);
-			sp.Write("ATX");
+			ft.Write("ATX");
 			Thread.Sleep(250);
-			sp.Write(new byte[] { (byte)'+', (byte)'+', (byte)'+' }, 0, 3);
+			ft.Write(new byte[] { (byte)'+', (byte)'+', (byte)'+' }, 0, 3);
 
 			Thread.Sleep(250);
 			int address;// = byte.Parse(channelListCB.Text);
 			System.Globalization.NumberStyles ns = System.Globalization.NumberStyles.Integer;
 			if (channelListCB.Text == "c" | channelListCB.Text == "C")
 			{
-				channelListCB.Text = "16777215";
+				channelListCB.Text = "0xffffff";
+			}
+			else if (channelListCB.Text == "l" | channelListCB.Text == "L")
+			{
+				channelListCB.Text = "0xfffff0";
 			}
 			try
 			{
@@ -245,7 +247,7 @@ namespace X_Manager.Remote
 			{
 				remoteWakeUpAddress = 0xff;
 			}
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', remoteWakeUpAddress }, 0, 5);
+			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', remoteWakeUpAddress }, 0, 5);
 			Thread.Sleep(100);
 			channelListCB.IsEnabled = false;
 			remoteCommunicationAddress++;
@@ -253,7 +255,7 @@ namespace X_Manager.Remote
 			{
 				remoteCommunicationAddress = 3;
 			}
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',
+			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',
 				(byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff),
 				1, remoteCommunicationAddress}, 0, 9);
 			Thread antennaThread = new Thread(() => animateAntenna());
@@ -267,13 +269,17 @@ namespace X_Manager.Remote
 
 		private void master1()
 		{
-			sp.Write("+++");
+			ft.Write("+++");
 			Thread.Sleep(250);
 			int address;// = byte.Parse(channelListCB.Text);
 			System.Globalization.NumberStyles ns = System.Globalization.NumberStyles.Integer;
 			if (channelListCB.Text == "c" | channelListCB.Text == "C")
 			{
-				channelListCB.Text = "16777215";
+				channelListCB.Text = "0xffffff";
+			}
+			if (channelListCB.Text == "l" | channelListCB.Text == "L")
+			{
+				channelListCB.Text = "0xfffff0";
 			}
 			try
 			{
@@ -304,7 +310,7 @@ namespace X_Manager.Remote
 
 			channelListCB.IsEnabled = false;
 
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',0,0,1,
+			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',0,0,1,
 				(byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff)}, 0, 10);
 			Thread antennaThread = new Thread(() => animateAntenna());
 			antennaThread.Start();
@@ -327,7 +333,7 @@ namespace X_Manager.Remote
 		private void communicationAttempt(int address, byte masteSTationType)
 		{
 			//Stopwatch sw = new Stopwatch();
-			sp.ReadTimeout = 3000;
+			ft.ReadTimeout = 3000;
 			byte status = 0;
 			byte connCount = 0;
 			byte connCountMax = 15;
@@ -336,7 +342,7 @@ namespace X_Manager.Remote
 			{
 				try
 				{
-					status = (byte)sp.ReadByte();
+					status = ft.ReadByte();
 					//sw.Start();
 					if (status < 3)
 					{
@@ -365,17 +371,17 @@ namespace X_Manager.Remote
 					{
 						if (masterStationType == 0)
 						{
-							sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W', (byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff), 1, remoteCommunicationAddress }, 0, 9);
+							ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W', (byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff), 1, remoteCommunicationAddress }, 0, 9);
 						}
 						else
 						{
-							sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',0,0,1,
+							ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',0,0,1,
 				(byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff) }, 0, 10);
 						}
 					}
 					else
 					{
-						sp.Write("ATX");
+						ft.Write("ATX");
 					}
 				}
 				else
@@ -386,7 +392,7 @@ namespace X_Manager.Remote
 						//if (address == 1677216) unitType = 2;   //Chiarire!
 						stop = 1;
 						Thread.Sleep(100);
-						sp.Write("ATX");
+						ft.Write("ATX");
 						Thread.Sleep(500);
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => channelListCB.IsEnabled = true));
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => wakeB.IsEnabled = true));
@@ -396,7 +402,7 @@ namespace X_Manager.Remote
 					{
 						stop = 2;
 						Thread.Sleep(100);
-						sp.Write("ATX");
+						ft.Write("ATX");
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));
 					}
@@ -415,6 +421,7 @@ namespace X_Manager.Remote
 		private void finalize(int result, int masteStationType)
 		{
 			//parent.connectionResult = result;
+			ft.Close();
 			if (result == 1)
 			{
 				int baudRate = 115200;
@@ -437,6 +444,7 @@ namespace X_Manager.Remote
 				else
 				{
 					colorStep(COLOR_WAKE_NOCONN);
+					//ft.Close();
 				}
 			}
 		}

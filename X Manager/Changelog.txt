@@ -169,7 +169,7 @@
 	Ripristinata connessione con unità diverse da gipsy6
 	Bugfix: La Finestra di Dialogo Open File per conversione ard AxyTrek non puntava correttamente all'ultimo percorso aperto
 1.16.4
-	Basestation1: ridotti tentativi di connessione da 6 a 3
+	Masterstation_1: ridotti tentativi di connessione da 6 a 3
 	Gipsy6 - Inizio implementazione retry per pacchetti download remoto
 	Remoto - Inizio progettazione BaseManager
 	Bugfix Gipsy6: la latitudine prendeva erroneamente il segno della longitudine
@@ -178,3 +178,12 @@
 	Formattazione txt gipsy6 con nome unità e indirizzo remoto
 	Pulsante firmware per masaterstation
 	Possibilità resume donwload incompleti gipsy6
+1.17.1
+	Bugfix - AxyTrek: l'invio della configurazione accelerometro resettava l'eventuale impostazione come unità solare
+	Spostata funzione di wakeup masterstation su drive ftdi
+	Il remote connector lasciava la seriale impegnata se chiuso prima di tentare la connessione o dopo una connessione non andata a buon fine.
+	Gipsy6: possibilità con CTRL+click di aprire la finestra di configurazione del gipsy6 con configurazione di default invece di quella letta dal gipsy
+		(quella letta viene comunque salvata su file)
+	Bugfix - gipsy: corretta conversione del course over ground
+
+	

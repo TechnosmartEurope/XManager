@@ -25,18 +25,37 @@
 			<ListView x:Name="driveLV"  Margin="0,20,0,0"  Background="#FF181818" BorderThickness="0" Padding="0"
 					SelectionMode="Single" MouseUp="driveLV_MouseUp" />
 		</GroupBox>
+
 		<GroupBox x:Name="channelListGB" Grid.Column="1" Header="Channel List" Margin="5,10,5,35" Foreground="#FF00AADE">
-			<ListView x:Name="channelLV"  Margin="0,20,0,0"  Background="#FF181818" BorderThickness="0" Padding="0" MouseDoubleClick="channelLV_MouseDoubleClick"/>
+			<ListView x:Name="channelLV"  Margin="0,20,0,0"  Background="#FF181818" BorderThickness="0" Padding="0" MouseDoubleClick="channelLV_MouseDoubleClick"
+				MouseRightButtonUp="channelLV_MouseRightClick"/>
 		</GroupBox>
 		<Button x:Name="plusB" Grid.Column="1" VerticalAlignment="Bottom" Width="40" Content="+" Margin="5,2,0,5" MinHeight="0" HorizontalAlignment="Left" Click="plusB_Click"/>
 		<Button x:Name="plusPlusB" Grid.Column="1" VerticalAlignment="Bottom" Width="40" Content="++" Margin="55,2,0,5" MinHeight="0" HorizontalAlignment="Left" Click="plusPlusB_Click"/>
 		<Button x:Name="minusB" Grid.Column="1" VerticalAlignment="Bottom" Width="40" Content="-" Margin="105,2,0,5" MinHeight="0" HorizontalAlignment="Left" Click="minusB_Click"/>
 		<Button x:Name="undoB" Grid.Column="1" VerticalAlignment="Bottom" Width="40" Margin="155,2,0,5" MinHeight="0" HorizontalAlignment="Left" Click="undoB_Click"/>
+
 		<Label x:Name="notValidL" Grid.Column="2" Content="Not a valid BaseStation drive" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+		<Button Grid.Column="2" x:Name="formatB" Width="100" Content="FORMAT!" Height="30"  Margin="0,130,0,0" Foreground="#FFBB1010" Click="formatB_Click"/>
+
 		<GroupBox x:Name="scheduleGB" Grid.Column="2" Header="Schedule" Margin="5,10,5,35" Foreground="#FF00AADE" >
 			<Grid x:Name="scheduleG" />
 		</GroupBox>
 		<Button Grid.Column="2" x:Name="allOnB" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Margin="5,0,0,5" MinHeight="0" Content="ALL ON" Click="allOnB_Click"/>
-		<Button Grid.Column="2" x:Name="allOffB" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Margin="90,0,0,5" MinHeight="0" Content="ALL OFF" Click="allOffB_Click"/>
+		<Button Grid.Column="2" x:Name="allOffB" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="80" Margin="90,0,5,5" MinHeight="0" Content="ALL OFF" Click="allOffB_Click"/>
+
+
+		<GroupBox x:Name="confGB" Grid.Column="3"  Margin="5,10,5,35" Header="Configuration" Foreground="#FF00AADE">
+			<StackPanel Margin="0" Orientation="Vertical">
+				<Label Content="Basestation name:" Margin="0,20,0,0" FontSize="12" Foreground="#FF606060"/>
+				<TextBox x:Name="bsNameTB" Margin="0,0,0,0" Background="#FF202020" FontSize="12" MaxLength="30" TextWrapping="Wrap" Height="50" Foreground="White"/>
+				<Label Content="Basestation ID:" Margin="0,20,0,0" FontSize="12" Foreground="#FF606060"/>
+				<Label x:Name="bsIDL" FontSize="12"/>
+				<Label Content="Basestation Address:" Margin="0,30,0,0" FontSize="12" Foreground="#FF606060"/>
+				<Label x:Name="bsAddressL" FontSize="12"/>
+			</StackPanel>
+
+		</GroupBox>
+		<Button Grid.Column="3" x:Name="saveB" Margin="5,0,5,5" VerticalAlignment="Bottom" MinHeight="0" Width="185" Content="CLOSE AND SAVE" Foreground="#FFBB1010" Click="saveB_Click"/>
 	</Grid>
 </Window>

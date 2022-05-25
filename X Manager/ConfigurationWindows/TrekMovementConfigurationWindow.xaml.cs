@@ -57,6 +57,11 @@ namespace X_Manager.ConfigurationWindows
 
 			this.sp = sp;
 
+			for (int i = 2; i < 5; i++)
+			{
+				axyConfOut[i] = axyconf[i];
+			}
+
 			if ((firmTotA < 2000001))
 			{
 				externalGrid2.RowDefinitions[2].Height = new System.Windows.GridLength(0);
@@ -258,7 +263,7 @@ namespace X_Manager.ConfigurationWindows
 
 		}
 
-		private void loaded(object sender, System.Windows.RoutedEventArgs e)
+		private void loaded(object sender, RoutedEventArgs e)
 		{
 			movThreshUd.header.Content = "Acceleration magnitude: ";
 			movThreshUd.minValue = 0;
@@ -559,7 +564,7 @@ namespace X_Manager.ConfigurationWindows
 							sp.Write(new byte[] { b }, 0, 1);
 							b = (byte)(qp.threshold);
 							sp.Write(new byte[] { b }, 0, 1);
-							
+
 							sp.ReadByte();
 						}
 						catch

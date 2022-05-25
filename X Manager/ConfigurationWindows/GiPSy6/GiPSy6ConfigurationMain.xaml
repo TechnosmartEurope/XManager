@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
         mc:Ignorable="d" Background="#FF202020" SizeToContent="WidthAndHeight"
-        Title="GiPSy6ConfigurationMain" Loaded="loaded" ResizeMode="CanMinimize">
+        Title="GIPSY6 CONFIGURATION" Loaded="loaded" ResizeMode="CanMinimize">
     <Grid Background="#FF202020" VerticalAlignment="Top" x:Name="ExternalGrid" Height="820" Width="968" >
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>

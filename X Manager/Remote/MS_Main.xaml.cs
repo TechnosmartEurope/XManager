@@ -25,18 +25,22 @@ namespace X_Manager.Remote
 		//public int connectionResult = 0;
 		MainWindow parent;
 		SerialPort sp;
+		MS_Connector rconn;
+		MS_Supervisor_DateTime_1 rtime;
+		MS_Configurator_1 rconf;
 
 		public MS_Main(ref SerialPort sp, object p, string portShortName)
 		{
 			InitializeComponent();
 			parent = (MainWindow)p;
+			Owner = parent;
 			this.sp = sp;
 			//this.sp = sp;
-			var rconn = new MS_Connector(ref sp, this, portShortName);
+			rconn = new MS_Connector(ref sp, this, portShortName);
 			connTab.Content = rconn;
-			var rtime = new MS_Supervisor_DateTime_1(ref sp, this);
+			rtime = new MS_Supervisor_DateTime_1(ref sp, this);
 			timeTab.Content = rtime;
-			var rconf = new MS_Configurator_1(ref sp, this);
+			rconf = new MS_Configurator_1(ref sp, this);
 			confTab.Content = rconf;
 		}
 
@@ -114,6 +118,11 @@ namespace X_Manager.Remote
 				sp.Close();
 			}
 			catch { }
+			try
+			{
+				rconn.ft.Close();
+			}
+			catch { }
 		}
 
 		public string setLatency(string portName, byte latency)
@@ -124,6 +133,7 @@ namespace X_Manager.Remote
 
 		public void close()
 		{
+
 			Close();
 		}
 	}

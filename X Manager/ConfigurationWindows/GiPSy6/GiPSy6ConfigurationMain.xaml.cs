@@ -40,11 +40,30 @@ namespace X_Manager.ConfigurationWindows
 		int lastIndex;
 		int firstIndex;
 
+		public bool lockRfAddress
+		{
+			get
+			{
+				return basicsConf.lockRfAddress;
+			}
+			set
+			{
+				basicsConf.lockRfAddress = value;
+			}
+		}
+
 		DispatcherTimer windowMovingTimer = new DispatcherTimer();
 
 		public GiPSy6ConfigurationMain(byte[] conf, byte unitType)
 		{
+
 			InitializeComponent();
+
+			if (conf[541] == 0x00 && conf[542] == 0x02 && conf[543] == 0x2b)
+			{
+
+				Title += " (d.c.)";
+			}
 
 			expertCB.IsChecked = bool.Parse(MainWindow.getParameter("gipsy6ConfigurationExpertMode", "false"));
 
@@ -60,7 +79,8 @@ namespace X_Manager.ConfigurationWindows
 			}
 			catch
 			{ }
-
+			axyConfOut = conf;
+			this.unitType = unitType;
 			sbitmapAr = new List<SBitmap>();
 			bitnameAr = new List<string>();
 			//Carica in cache i file png salvati su disco. Se sono più di 1024, eleimina quelli in più.
@@ -87,13 +107,11 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			axyConfOut = conf;
 			basicsConf = new BasicsConfiguration(axyConfOut);
 			schedConf = new ScheduleConfiguration(axyConfOut);
 			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
 			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
 			backB.IsEnabled = false;
-			this.unitType = unitType;
 			pages = new PageCopy[] { schedConf, basicsConf, geoConf1, geoConf2 };
 			pagesEnabled = new bool[] { true, false, false, false };
 			lastIndex = 0;
@@ -110,7 +128,6 @@ namespace X_Manager.ConfigurationWindows
 			LocationChanged += locationChanged;
 			windowMovingTimer.Tick += windowMovingEnded;
 			windowMovingTimer.Interval = new TimeSpan(3000000);
-
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)

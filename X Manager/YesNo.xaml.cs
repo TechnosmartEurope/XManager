@@ -16,9 +16,12 @@ namespace X_Manager
 {
     public partial class YesNo : Window
     {
+
         int extraRes=0;
-        public const int yes = 1;
-        public const int no = 2;
+		public const int CANCELLED = 0;
+		public const int YES = 1;
+        public const int NO = 2;
+        
         private bool choice = false;
         public YesNo(string question)
         {

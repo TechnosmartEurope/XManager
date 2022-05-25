@@ -106,6 +106,7 @@ namespace X_Manager.Bootloader
 			ft.ReadExisting();
 			ft.ReadTimeout = 600;
 			ft.Write(new byte[] { 0x55, 0x55 }, 0, 2);
+			//ft.BaudRate = 1000000;
 
 			try
 			{

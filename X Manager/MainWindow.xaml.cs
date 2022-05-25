@@ -1222,6 +1222,7 @@ namespace X_Manager
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => statusProgressBar.IsIndeterminate = true));
 		}
 
+		//CONVERT
 		async void connectClick(object sender, RoutedEventArgs e)
 		{
 
@@ -1413,12 +1414,14 @@ namespace X_Manager
 
 		}
 
+		//NAME
 		void unitNameButtonClick(object sender, RoutedEventArgs e)
 		{
 			setName();
 			connectButton.Focus();
 		}
 
+		//ERASE
 		void eraseButtonClick(object sender, RoutedEventArgs e)
 		{
 			oUnit.closeSerialPort(sp);
@@ -1446,6 +1449,7 @@ namespace X_Manager
 			}
 		}
 
+		//CONFIGURATION (movements)
 		void configureMovementButtonClick(object sender, RoutedEventArgs e)
 		{
 			oUnit.closeSerialPort(sp);
@@ -1469,6 +1473,21 @@ namespace X_Manager
 			}
 			else if (oUnit.modelCode == Unit.model_Gipsy6)
 			{
+				if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Control) == System.Windows.Forms.Keys.Control)
+				{
+					try
+					{
+						string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\corrupted_conf.dat";
+						File.WriteAllBytes(path, conf);
+					}
+					catch { }
+					conf = new byte[600];
+					Array.Copy(BS_Main.defConf, conf, conf.Length);
+					conf[541] = 0x00;
+					conf[542] = 0x02;
+					conf[543] = 0x2b;
+
+				}
 				confForm = new GiPSy6ConfigurationMain(conf, oUnit.modelCode);
 			}
 			else if (oUnit.modelCode == Unit.model_axy5)
@@ -1531,6 +1550,7 @@ namespace X_Manager
 			}
 		}
 
+		//CONFIGURATION (position)
 		private void configurePoistionClick(object sender, RoutedEventArgs e)
 		{
 
@@ -1589,6 +1609,7 @@ namespace X_Manager
 
 		}
 
+		//DOWNLOAD
 		private void downloadButtonClick(object sender, RoutedEventArgs e)
 		{
 			oUnit.closeSerialPort(sp);
@@ -1781,6 +1802,7 @@ namespace X_Manager
 			downloadThread.Start();
 		}
 
+		//CONVERT
 		private void convertDataClick(object sender, RoutedEventArgs e)
 		{
 			askOverwrite = true;
@@ -1834,6 +1856,7 @@ namespace X_Manager
 			}
 		}
 
+		//REMOTE
 		private void remoteManagementClick(object sender, RoutedEventArgs e)
 		{
 			if (connectButton.Content.Equals("Connect"))
@@ -1955,6 +1978,7 @@ namespace X_Manager
 
 		public bool externConnect(int baudRate)
 		{
+
 			Baudrate_base = baudRate;
 			remoteConnection = true;
 			connectClick(this, new RoutedEventArgs());
@@ -1970,13 +1994,13 @@ namespace X_Manager
 			return connectButton.Content.Equals("Disconnect");
 		}
 
-
 		public void externBootloader()
 		{
 			var boot = new Bootloader.Bootloader_Gipsy6(false, this);
 			boot.ShowDialog();
 		}
 
+		//BATTERY REFRESH
 		void refreshBattery(object sender, RoutedEventArgs e)
 		{
 			try
@@ -2401,7 +2425,7 @@ namespace X_Manager
 						if (File.Exists(nomefile) & askOverwrite)
 						{
 							YesNo yn = new YesNo(Path.GetFileName(nomefile) + " already exists. Do you want to overwrite it?", "OVERWRITE");
-							if (yn.ShowDialog() == YesNo.no)
+							if (yn.ShowDialog() == YesNo.NO)
 							{
 								GoOn = false;
 								yn.Close();
@@ -2618,11 +2642,6 @@ namespace X_Manager
 
 		#endregion
 
-
-		//internal static int FT_OpenEx(string p1, FT_HANDLE p2, ref int FT_Handle)
-		//{
-		//    throw new NotImplementedException();
-		//}
 	}
 
 }
