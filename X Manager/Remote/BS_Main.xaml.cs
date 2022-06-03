@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Net;
-using System.Windows.Shapes;
+using Microsoft.VisualBasic;
 
 namespace X_Manager.Remote
 {
@@ -18,6 +18,30 @@ namespace X_Manager.Remote
 	/// Logica di interazione per BS_Main.xaml
 	/// </summary>
 
+	public class HTTP
+	{
+		public const string COMMAND_ERROR = "0xFFFFFFFF";
+		public const string COMMAND_GET_VERSION = "getversion";
+		public const string COMMAND_GET_USERSLIST = "getuserslist";
+		public const string COMMAND_CREATE_NEW_USER = "createuser";
+		public const string COMMAND_GET_USER_ID = "getuserid";
+		public const string COMMAND_CREATE_BASESTATION = "createbasestation";
+		public const string COMMAND_RENAME_BASESTATION = "renamebasestation";
+
+		static string un = "bs001";
+		static string pw = "pwd_BS001";
+		static string url = "www.technosmart-tracking.com/BS_Scripts/ts_bsapi.php?OPER=";
+		public static string cOut(string c)
+		{
+			string cComp = String.Format("https://{0}{1}", url, c);
+			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(cComp);
+			request.Credentials = new NetworkCredential(un, pw);
+			HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+			Stream stream = response.GetResponseStream();
+			StreamReader reader = new StreamReader(stream);
+			return reader.ReadToEnd();
+		}
+	}
 
 	public partial class BS_Main : Window
 	{
@@ -135,35 +159,17 @@ namespace X_Manager.Remote
 		readonly Control[] visArr;
 		private readonly Object addressLock = new Object();
 		private readonly Object scheduleLock = new Object();
+		String spName;
 
-		public class HTTP
-		{
-			public const string COMMAND_GET_VERSION = "getversion";
-
-			static string un = "bs001";
-			static string pw = "pwd_BS001";
-			static string url = "www.technosmart-tracking.com/BS_Scripts/ts_bsapi.php?OPER=";
-			public static string cOut(string c)
-			{
-				string cComp = String.Format("https://{0}{1}", url, c);
-				HttpWebRequest request = (HttpWebRequest)WebRequest.Create(cComp);
-				request.Credentials = new NetworkCredential(un, pw);
-				HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-				Stream stream = response.GetResponseStream();
-				StreamReader reader = new StreamReader(stream);
-				return reader.ReadToEnd();
-			}
-
-		}
-
-
-		public BS_Main()
+		public BS_Main(string spName)
 		{
 			InitializeComponent();
 			Point p = new Point(0, 0);
 
+			this.spName = spName;
+
 			//Crea un elenco di controlli da rendere visibili o invisibile a seconda che l'unità selezionata sia o meno una basestation
-			visArr = new Control[] { channelListGB, scheduleGB, plusB, minusB, plusPlusB, undoB, allOnB, allOffB, confGB, saveB };
+			visArr = new Control[] { channelListGB, scheduleGB, plusB, minusB, plusPlusB, undoB, allOnB, allOffB, confGB, saveB, bootloaderB, sendTimeB };
 
 			Loaded += loaded;
 			SizeChanged += sizeChanged;
@@ -718,13 +724,20 @@ namespace X_Manager.Remote
 			/*Controlla che il drive selezionato soddisfi tutti i requisiti della BaseStation (Formattazione, Etichetta di volume e presenza
 			 * di file caratteristici)
 			 * Restituisce true se il drive è una BaseStation, altrimenti false			 */
-			if (drive.DriveFormat != "FAT32") return false;
-			if (drive.VolumeLabel.IndexOf("basestation", StringComparison.OrdinalIgnoreCase) < 0) return false;
-			if (!File.Exists(drive.Name + FILE_CONF)) return false;
-			if (!File.Exists(drive.Name + FILE_NAME)) return false;
-			if (!File.Exists(drive.Name + FILE_SCHEDULE)) return false;
-			if (!File.Exists(drive.Name + FILE_UNITS)) return false;
-			if (!Directory.Exists(drive.Name + FOLDER_CONFIG)) return false;
+			try
+			{
+				if (drive.DriveFormat != "FAT32") return false;
+				if (drive.VolumeLabel.IndexOf("basestation", StringComparison.OrdinalIgnoreCase) < 0) return false;
+				if (!File.Exists(drive.Name + FILE_CONF)) return false;
+				if (!File.Exists(drive.Name + FILE_NAME)) return false;
+				if (!File.Exists(drive.Name + FILE_SCHEDULE)) return false;
+				if (!File.Exists(drive.Name + FILE_UNITS)) return false;
+				if (!Directory.Exists(drive.Name + FOLDER_CONFIG)) return false;
+			}
+			catch
+			{
+				return false;
+			}
 			return true;
 		}
 
@@ -1276,17 +1289,21 @@ namespace X_Manager.Remote
 
 		private void fillConf(DriveInfo d)
 		{
-			var id = new byte[4];
-			var add = new byte[4];
+			var basestationID = new byte[4];
+			var userID = new byte[4];
+			var address = new byte[4];
 			var fs = File.OpenRead(d.Name + FILE_CONF);
 			fs.Position = 6;
-			fs.Read(id, 1, 3);
-			fs.Read(add, 1, 3);
+			fs.Read(basestationID, 0, 4);
+			fs.Read(address, 0, 4);
+			fs.Read(userID, 0, 4);
 			fs.Close();
-			Array.Reverse(id);
-			Array.Reverse(add);
-			bsIDL.Content = BitConverter.ToInt32(id, 0).ToString();
-			bsAddressL.Content = BitConverter.ToInt32(add, 0).ToString();
+			Array.Reverse(basestationID);
+			Array.Reverse(address);
+			Array.Reverse(userID);
+			bsIDL.Content = BitConverter.ToInt32(basestationID, 0).ToString();
+			bsAddressL.Content = BitConverter.ToInt32(address, 0).ToString();
+			userIDL.Content = BitConverter.ToInt32(userID, 0).ToString();
 			bsNameTB.Text = File.ReadAllLines(d.Name + FILE_NAME)[0];
 			intialName = bsNameTB.Text;
 		}
@@ -1306,7 +1323,9 @@ namespace X_Manager.Remote
 		{
 			listDriveTimer.Stop();
 			validateDriveTimer.Stop();
-			byte[] oldId = { 0, 0, 1 };
+			byte[] bsId = { 0, 0, 0, 1 };
+			byte[] userId = { 0, 0, 0, 0 };
+			bool goOn = false;
 			lock (addressLock)
 			{
 				lock (scheduleLock) { }
@@ -1314,18 +1333,56 @@ namespace X_Manager.Remote
 			if (File.Exists((driveLV.SelectedItem as BS_listViewElement).Drive.Name + FILE_CONF))
 			{
 				var yn = new YesNo("The selected device already contains a valid ID. Do you want to keep it?", "BASESTATION ID", "", "KEEP", "DISCARD");
-				if (yn.ShowDialog() == YesNo.YES)
+				if (yn.ShowDialog() == YesNo.YES)//Se la basestation era già formattata, la riformatta usando il basestation id esistente. Non c'è bisogno di loggarsi come admin
 				{
-					Array.Copy(File.ReadAllBytes((driveLV.SelectedItem as BS_listViewElement).Drive.Name + FILE_CONF).Skip(6).Take(3).ToArray(), oldId, 3);
+					Array.Copy(File.ReadAllBytes((driveLV.SelectedItem as BS_listViewElement).Drive.Name + FILE_CONF).Skip(6).Take(4).ToArray(), bsId, 4);
+					Array.Copy(File.ReadAllBytes((driveLV.SelectedItem as BS_listViewElement).Drive.Name + FILE_CONF).Skip(14).Take(4).ToArray(), userId, 4);
+					formatProgress(0);
+					var t = new Thread(() => formatTask(bsId, userId));
+					t.SetApartmentState(ApartmentState.STA);
+					t.Start();
+					return;
+				}
+			}
+			if (!MainWindow.adminUser)      //Se la basestation è vergine, si vuole cambiare cliente o id, c'è bisogno di essere admin
+			{
+				string res = Interaction.InputBox("Insert password: ", "Password");
+				if ((res != "cetriolo") && (res != "saji"))
+				{
+					MessageBox.Show("Wrong password.");
 				}
 				else
 				{
-					
+					goOn = true;
+					MainWindow.adminUser = true;
 				}
 			}
-			formatProgress(0);
-			var t = new Thread(() => formatTask(oldId));
-			t.Start(); ;
+			else
+			{
+				goOn = true;
+			}
+			if (goOn)
+			{
+				RemoteUeserSelection rus = new RemoteUeserSelection();
+				rus.Owner = this;
+				rus.ShowDialog();
+				if (rus.basetstationID == "") return;
+				uint bsIdn = uint.Parse(rus.basetstationID);
+				uint userIdn = uint.Parse(rus.userID);
+				bsId[0] = (byte)(bsIdn >> 24);
+				bsId[1] = (byte)(bsIdn >> 16);
+				bsId[2] = (byte)(bsIdn >> 8);
+				bsId[3] = (byte)bsIdn;
+				userId[0] = (byte)(userIdn >> 24);
+				userId[1] = (byte)(userIdn >> 16);
+				userId[2] = (byte)(userIdn >> 8);
+				userId[3] = (byte)userIdn;
+				rus = null;
+				formatProgress(0);
+				var t = new Thread(() => formatTask(bsId, userId));
+				t.SetApartmentState(ApartmentState.STA);
+				t.Start();
+			}
 		}
 
 		private void formatProgress(int status)
@@ -1355,8 +1412,9 @@ namespace X_Manager.Remote
 			}
 		}
 
-		private void formatTask(byte[] oldId)
+		private void formatTask(byte[] bsId, byte[] userId)
 		{
+
 			DriveInfo di = null;
 			try
 			{
@@ -1383,7 +1441,11 @@ namespace X_Manager.Remote
 				Application.Current.Dispatcher.Invoke(() => formatProgress(200));
 				return;
 			}
-			byte[] conf = { 0x74, 0x73, 0x6D, 0x65, 0x42, 0x53, oldId[0], oldId[1], oldId[2], 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00 };
+			byte[] conf = { 0x74, 0x73, 0x6D, 0x65, 0x42, 0x53,
+							bsId[0], bsId[1], bsId[2], bsId[3],
+							0x00, 0x00, 0x00, 0x01,
+							userId[0],userId[1],userId[2],userId[3],
+							0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 			Application.Current.Dispatcher.Invoke(() => formatProgress(1));
 			Directory.CreateDirectory(di.Name + "CONFIG");
 			Directory.CreateDirectory(di.Name + "DATA");
@@ -1399,9 +1461,102 @@ namespace X_Manager.Remote
 
 
 		}
+
+		private void bsNameTB_PreviewKeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Enter)
+			{
+				e.Handled = true;
+				if (bsNameTB.Text == "")
+				{
+					bsNameTB.Text = "No Name";
+				}
+				string res = HTTP.cOut(string.Format("{0}&userid={1}&stationid={2}&stationname={3}", HTTP.COMMAND_RENAME_BASESTATION, userIDL.Content, bsIDL.Content, bsNameTB.Text));
+				if (res == HTTP.COMMAND_ERROR)
+				{
+					MessageBox.Show("Error renaming basestation.");
+				}
+				else
+				{
+					MessageBox.Show("Basestation succesfully renamed.");
+				}
+			}
+		}
+
+
 		#endregion
 
+		private void sendTimestamp_click(object sender, RoutedEventArgs e)
+		{
+			var drive = (driveLV.SelectedItem as BS_listViewElement).Drive;
+			byte[] conf = File.ReadAllBytes(drive.Name + FILE_CONF);
+			conf[0x12] = 1;
 
+			DateTime dt = DateTime.Now;
+
+			conf[0x13] = reverseByte(dec2BCD((byte)(dt.Year - 2000)));
+			conf[0x14] = reverseByte(dec2BCD((byte)dt.Month));
+			conf[0x15] = reverseByte(dec2BCD((byte)dt.Day));
+			conf[0x16] = reverseByte(dec2BCD((byte)dt.DayOfWeek));
+			conf[0x17] = reverseByte(dec2BCD((byte)dt.Hour));
+			conf[0x18] = reverseByte(dec2BCD((byte)dt.Minute));
+			conf[0x19] = reverseByte(dec2BCD((byte)dt.Second));
+
+			File.WriteAllBytes(drive.Name + FILE_CONF, conf);
+			MessageBox.Show("Date and time sent.");
+		}
+
+		private byte reverseByte(byte inb)
+		{
+			byte outb = 0;
+
+			outb = (byte)((inb << 7) & 0b1000_0000);
+			outb += (byte)((inb << 5) & 0b0100_0000);
+			outb += (byte)((inb << 3) & 0b0010_0000);
+			outb += (byte)((inb << 1) & 0b0001_0000);
+			outb += (byte)((inb >> 1) & 0b0000_1000);
+			outb += (byte)((inb >> 3) & 0b0000_0100);
+			outb += (byte)((inb >> 5) & 0b0000_0010);
+			outb += (byte)((inb >> 7) & 0b0000_0001);
+
+			return outb;
+		}
+
+		private byte dec2BCD(byte inb)
+		{
+			byte outb = 0;
+
+			outb = (byte)(inb / 10);
+			outb *= 16;
+			outb += (byte)(inb % 10);
+
+			return outb;
+		}
+
+		private void bootloader_Click(object sender, RoutedEventArgs e)
+		{
+			listDriveTimer.Stop();
+			saveAddressTimer.Stop();
+			saveScheduleTimer.Stop();
+			validateDriveTimer.Stop();
+			if (spName == "")
+			{
+				MessageBox.Show("No serial data cable detected.");
+				listDriveTimer.Start();
+				validateDriveTimer.Start();
+				return;
+			}
+			if (spName.Contains("("))
+			{
+				spName = spName.Substring(spName.IndexOf("(") + 1);
+				spName = spName.Remove(spName.IndexOf(")"), spName.Length - spName.IndexOf(")"));
+			}
+			var bl = new Bootloader.Bootloader_Gipsy6(true, spName, "BaseStation");
+
+			bl.ShowDialog();
+			listDriveTimer.Start();
+			validateDriveTimer.Start();
+		}
 	}
 }
 

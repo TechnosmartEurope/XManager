@@ -32,48 +32,95 @@ namespace X_Manager.Bootloader
 		readonly uint bootloaderBaudRate = 1000000;
 		Parent parent;
 		FTDI_Device ft;
+		String device;
 
 		BackgroundWorker bgw;
 
-		public Bootloader_Gipsy6(bool unitConnected, Parent parent)
+
+		public Bootloader_Gipsy6(bool unitConnected, Object spO, string device)
 		{
 			InitializeComponent();
 			Loaded += loaded;
 			Closing += closing;
-			this.parent = parent;
-			this.sp = parent.sp;
-			this.unitConnected = unitConnected;
+
 			flashB.IsEnabled = false;
-			if (sp.IsOpen) sp.Close();
-			ft = new FTDI_Device(sp.PortName);
-			ft.ReadTimeout = 300;
-
-			if (unitConnected == true)
+			if (spO is SerialPort)
 			{
-				ft.Open((uint)sp.BaudRate);
-				ft.BaudRate = 3000000;
-				int test = 0;
-				ft.Write("TTTTTTGGAL");
-				try
+				this.sp = spO as SerialPort;
+				if (sp.IsOpen) sp.Close();
+				ft = new FTDI_Device(sp.PortName);
+			}
+			else
+			{
+				string spName = spO as string;
+				ft = new FTDI_Device(spName);
+				if (ft.stringCode == "")
 				{
-					test = ft.ReadByte();   //Byte di risposta per verifica correttezza comando
-				}
-				catch { }
-
-				if ((char)test != 'L')
-				{
-					MessageBox.Show("Firmware updating not ready. Please try again...");
-					ft.BaudRate = 115200;
-					ft.Close();
+					MessageBox.Show("Can't open serial port.");
 					return;
 				}
 
-				ft.Write("K");
-				Thread.Sleep(10);
 			}
-			ft.Close();
+			this.unitConnected = unitConnected;
+			flashB.IsEnabled = false;
+			ft.ReadTimeout = 300;
+			this.device = device;
+			titleL.Text = device + " Bootloader";
+
+			connAtt();
 		}
 
+		private void connAtt()
+		{
+			if (unitConnected == true)
+			{
+				uint baudrate = 115200;
+				if (sp != null) baudrate = (uint)sp.BaudRate;
+				ft.Open(baudrate);
+				if (device.IndexOf("basestation", StringComparison.InvariantCultureIgnoreCase) >= 0)
+				{
+					ft.ReadTimeout = 1000;
+					ft.Close();
+					ft.Open();
+					ft.BaudRate = 115200;
+					Thread.Sleep(100);
+					byte[] piu = new byte[3] { 0x2b, 0x2b, 0x2b };
+					ft.Write(piu, 0, 3);
+					Thread.Sleep(200);
+					ft.Write("ATBL");
+					string res = ft.ReadLine();
+					if (res.IndexOf("resetting", StringComparison.InvariantCultureIgnoreCase) == -1)
+					{
+						MessageBox.Show("Firmware updating not ready. Please try again...");
+						ft.BaudRate = 115200;
+						ft.Close();
+						return;
+					}
+				}
+				else
+				{
+					ft.BaudRate = 3000000;
+					int test = 0;
+					ft.Write("TTTTTTGGAL");
+					try
+					{
+						test = ft.ReadByte();   //Byte di risposta per verifica correttezza comando
+					}
+					catch { }
+					if ((char)test != 'L')
+					{
+						MessageBox.Show("Firmware updating not ready. Please try again...");
+						ft.BaudRate = 115200;
+						ft.Close();
+						return;
+					}
+					ft.Write("K");
+					Thread.Sleep(10);
+				}
+			}
+
+			ft.Close();
+		}
 		struct program
 		{
 			public int address;

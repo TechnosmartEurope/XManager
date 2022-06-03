@@ -86,7 +86,6 @@ namespace X_Manager.Remote
 				loadChannelList();
 			}
 			sp = serialPort;
-
 			//sp.Open();
 
 			DragEnter += loadNewChannelList_Click;
@@ -98,6 +97,7 @@ namespace X_Manager.Remote
 		{
 			if (sp.IsOpen) sp.Close();
 			ft = new FTDI_Device(sp.PortName);
+			parent.ft = ft;
 			bootLoaderB.Visibility = Visibility.Hidden;
 			masterStationType = 0;
 			ft.Open();
@@ -124,6 +124,7 @@ namespace X_Manager.Remote
 			{
 
 			}
+			parent.msModel = masterStationType;
 			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 			firmwareL.Content = "Current Firmware Version: " + firmware[0].ToString() + "." + firmware[1].ToString() + "." + firmware[2].ToString();
 		}
@@ -641,13 +642,13 @@ namespace X_Manager.Remote
 		{
 			var tg = new YesNo("WARNING: you are entering the Master Station bootloader!\r\nPlease, proceed only if you have a new firmware to upload,\r\nelse please close this or your Master Station could potentially get bricked.", "Master Station Bootloader", "", "Yes", "No");
 			if (tg.ShowDialog() == 2) return;
-			if (sp.IsOpen) sp.Close();
-			var ft = new FTDI_Device(sp.PortName);
 			ft.Open();
 			ft.BaudRate = 2000000;
-			ft.Write("+++");
+			byte[] piu = System.Text.Encoding.ASCII.GetBytes("+++");
+			ft.Write(piu, 0, 3);
 			Thread.Sleep(200);
-			ft.Write("ATBL");
+			byte[] atbl = System.Text.Encoding.ASCII.GetBytes("ATBL");
+			ft.Write(atbl, 0, 4);
 			Thread.Sleep(200);
 			string res = ft.ReadLine();
 			ft.Close();

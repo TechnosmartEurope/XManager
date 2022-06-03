@@ -25,7 +25,7 @@ namespace X_Manager
 	public partial class MainWindow : Parent
 	{
 
-
+		public static Random random = new Random();
 
 		#region Dichiarazioni
 
@@ -298,7 +298,6 @@ namespace X_Manager
 			//var confForm = new GiPSy6ConfigurationMain(conf, Unit.model_Gipsy6);
 			//confForm.ShowDialog();
 			windowMovingEnded(this, new EventArgs());
-
 #endif
 		}
 
@@ -617,6 +616,11 @@ namespace X_Manager
 
 				else if (e.Key == Key.B)
 				{
+					if (comPortComboBox.Items.Count == 0)
+					{
+						MessageBox.Show("Please connect a data cable");
+						return;
+					}
 					bool uConn = true;
 					if (!((string)configurePositionButton.Content).Contains("firmware"))
 					{
@@ -638,7 +642,7 @@ namespace X_Manager
 						}
 					}
 					uiDisconnected();
-					var boot = new Bootloader.Bootloader_Gipsy6(uConn, this);
+					var boot = new Bootloader.Bootloader_Gipsy6(uConn, sp, "CC1352");
 					boot.ShowDialog();
 					if (sp.IsOpen) sp.Close();
 				}
@@ -1591,7 +1595,7 @@ namespace X_Manager
 				string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
 				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
 				//ftdiSerialNumber = setLatency(portShortName, 1);
-				var boot = new Bootloader.Bootloader_Gipsy6(true, this);
+				var boot = new Bootloader.Bootloader_Gipsy6(true, sp, "GiPSy-6");
 				boot.ShowDialog();
 				return;
 			}
@@ -1903,7 +1907,13 @@ namespace X_Manager
 				}
 				else if (res == 2)              //Gestione Base Station
 				{
-					var remoteManagement = new BS_Main();
+					try
+					{
+						if (sp.IsOpen) sp.Close();
+					}
+					catch { }
+					var remoteManagement = new BS_Main(comPortComboBox.Text);
+					remoteManagement.Owner = this;
 					remoteManagement.ShowDialog();
 				}
 
@@ -1996,7 +2006,7 @@ namespace X_Manager
 
 		public void externBootloader()
 		{
-			var boot = new Bootloader.Bootloader_Gipsy6(false, this);
+			var boot = new Bootloader.Bootloader_Gipsy6(false, sp, "MasterStation");
 			boot.ShowDialog();
 		}
 
@@ -2329,12 +2339,6 @@ namespace X_Manager
 			}
 			System.IO.File.WriteAllBytes(filenameOut, dataOut);
 		}
-
-		#endregion
-
-		#region Servizi FTDI
-
-
 
 		#endregion
 

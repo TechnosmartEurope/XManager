@@ -31,6 +31,7 @@ namespace X_Manager.ConfigurationWindows
 		string oldAdd;
 		bool isRemote = false;
 		bool _lockRfAddress = false;
+
 		public bool lockRfAddress
 		{
 			get
@@ -43,8 +44,9 @@ namespace X_Manager.ConfigurationWindows
 				remoteAddressTB.IsEnabled = !value;
 			}
 		}
+
 		public BasicsConfiguration(byte[] conf)
-			: base()
+					: base()
 		{
 			InitializeComponent();
 
@@ -367,13 +369,13 @@ namespace X_Manager.ConfigurationWindows
 					oldAdd = remoteAddressTB.Text;
 					return;
 				}
-				conv = Int32.TryParse(hexNum, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out remoteAddress);
+				conv = Int32.TryParse(hexNum, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out remoteAddress);
 			}
 			else
 			{
-				conv = Int32.TryParse(remoteAddressTB.Text, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out remoteAddress);
+				conv = Int32.TryParse(remoteAddressTB.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out remoteAddress);
 			}
-			if (!conv)
+			if (!conv || (remoteAddress == 0) || (remoteAddress >= 0xffff00))
 			{
 				remoteAddressTB.TextChanged -= remoteAddressTB_TextChanged;
 				remoteAddressTB.Text = oldAdd;

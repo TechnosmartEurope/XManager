@@ -28,6 +28,20 @@ namespace X_Manager.Remote
 		MS_Connector rconn;
 		MS_Supervisor_DateTime_1 rtime;
 		MS_Configurator_1 rconf;
+		public FTDI_Device ft;
+		int _msModel = 0;
+		public int msModel
+		{
+			get
+			{
+				return _msModel;
+			}
+			set
+			{
+				_msModel = value;
+				rtime.msModel = _msModel;
+			}
+		}
 
 		public MS_Main(ref SerialPort sp, object p, string portShortName)
 		{
@@ -49,7 +63,6 @@ namespace X_Manager.Remote
 			System.Threading.Thread.Sleep(400);
 			return parent.externConnect(baudRate);
 		}
-
 
 		public void MSbootloader()
 		{

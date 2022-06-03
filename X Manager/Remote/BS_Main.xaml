@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:X_Manager.Remote"
         mc:Ignorable="d" Background="#FF181818"
-        Title="BASE STATION MANAGER" Height="450" Width="800">
+        Title="BASE STATION MANAGER" Height="450" Width="800" WindowStartupLocation="CenterOwner">
 	<!--<Window.Resources>
 		<Style TargetType="GroupBox">
 			<Setter Property="Foreground" Value="#FF00AADE" />
@@ -45,17 +45,22 @@
 		<Button Grid.Column="2" x:Name="allOffB" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="80" Margin="90,0,5,5" MinHeight="0" Content="ALL OFF" Click="allOffB_Click"/>
 
 
-		<GroupBox x:Name="confGB" Grid.Column="3"  Margin="5,10,5,35" Header="Configuration" Foreground="#FF00AADE">
+		<GroupBox x:Name="confGB" Grid.Column="3"  Margin="5,10,5,95" Header="Configuration" Foreground="#FF00AADE">
 			<StackPanel Margin="0" Orientation="Vertical">
-				<Label Content="Basestation name:" Margin="0,20,0,0" FontSize="12" Foreground="#FF606060"/>
-				<TextBox x:Name="bsNameTB" Margin="0,0,0,0" Background="#FF202020" FontSize="12" MaxLength="30" TextWrapping="Wrap" Height="50" Foreground="White"/>
-				<Label Content="Basestation ID:" Margin="0,20,0,0" FontSize="12" Foreground="#FF606060"/>
+				<Label Content="Basestation name:" Margin="0,0,0,0" FontSize="12" Foreground="#FF606060"/>
+				<TextBox x:Name="bsNameTB" Margin="0,0,0,0" Background="#FF202020" FontSize="12" MaxLength="30" TextWrapping="Wrap" Height="50"
+					Foreground="White" PreviewKeyDown="bsNameTB_PreviewKeyDown"/>
+				<Label Content="User ID:" Margin="0,10,0,0" FontSize="12" Foreground="#FF606060"/>
+				<Label x:Name="userIDL" FontSize="12"/>
+				<Label Content="Basestation ID:" Margin="0,10,0,0" FontSize="12" Foreground="#FF606060"/>
 				<Label x:Name="bsIDL" FontSize="12"/>
-				<Label Content="Basestation Address:" Margin="0,30,0,0" FontSize="12" Foreground="#FF606060"/>
+				<Label Content="Basestation Address:" Margin="0,10,0,0" FontSize="12" Foreground="#FF606060"/>
 				<Label x:Name="bsAddressL" FontSize="12"/>
 			</StackPanel>
 
 		</GroupBox>
-		<Button Grid.Column="3" x:Name="saveB" Margin="5,0,5,5" VerticalAlignment="Bottom" MinHeight="0" Width="185" Content="CLOSE AND SAVE" Foreground="#FFBB1010" Click="saveB_Click"/>
+		<Button Grid.Column="3" x:Name="bootloaderB" Margin="0,0,0,65" VerticalAlignment="Bottom" MinHeight="0" Width="190" Content="BOOTLOADER" Click="bootloader_Click" />
+		<Button Grid.Column="3" x:Name="sendTimeB" Margin="0,0,0,35" VerticalAlignment="Bottom" MinHeight="0" Width="190" Content="SEND TIMESTAMP" Click="sendTimestamp_click" />
+		<Button Grid.Column="3" x:Name="saveB" Margin="0,0,0,5" VerticalAlignment="Bottom" MinHeight="0" Width="190" Content="CLOSE AND SAVE" Foreground="#FFBB1010" Click="saveB_Click"/>
 	</Grid>
 </Window>

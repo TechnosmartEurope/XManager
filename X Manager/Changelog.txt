@@ -185,5 +185,12 @@
 	Gipsy6: possibilità con CTRL+click di aprire la finestra di configurazione del gipsy6 con configurazione di default invece di quella letta dal gipsy
 		(quella letta viene comunque salvata su file)
 	Bugfix - gipsy: corretta conversione del course over ground
+1.17.2 - Bootloader funzionante con gipsy6, masterstation 2, basestation 2 e CC1352P generico tramite CTRL+B
+	- Titoli personalizzati per finestra di bootloader gipsy6/masterstation/basestation/CC1352
+	- Gipsy6: tolta la possibilita di assegnare indirizzi rf 0 e range 0xFFFF00-0xFFFFFF
+	- Bugfix: il bootloader da CTRL+B provava a partire anche se non era connesso nessun cavo dati
+	- Completamento funzioni Basemanager2
+	- Modalità supervisor e invio ora alla BS impostabile sia su masterstation 1 che 2
+
 
 	

@@ -1,0 +1,44 @@
+﻿<Window x:Class="X_Manager.Remote.RemoteUeserSelection"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:X_Manager.Remote"
+        mc:Ignorable="d" Background="#FF181818"
+        Title="USER SELECTION" Height="450" MaxWidth="1000" Width="480" WindowStartupLocation="CenterOwner">
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="50"/>
+			<RowDefinition/>
+		</Grid.RowDefinitions>
+		<Label Grid.Row="0" Content="Select a user from the list or create a new user." Margin="10,10,0,0" Foreground="#FF00AADE"/>
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+			<GroupBox Grid.Column="0" Header="Users list"  Margin="10,0,5,10" >
+				<Grid>
+					<ListView x:Name="usersLV" Margin="0,5,0,0" TabIndex="0" Height="309" VerticalAlignment="Top" Background="#FF202020" Foreground="#FFD0D0D0"/>
+					<TextBox x:Name="filterTB" VerticalAlignment="Bottom" MinHeight="0" FontSize="8" TabIndex="1" TextChanged="filterTB_TextChanged" PreviewKeyDown="filterTB_PreviewKeyDown"
+						Background="#FF202020" Foreground="#FFD0D0D0"/>
+				</Grid>
+			</GroupBox>
+			<GroupBox Grid.Column="1" Header="New User" Margin="5,0,10,0" Height="200" VerticalAlignment="Top">
+				<StackPanel Orientation="Vertical">
+					<Label Content="New User's name:" FontSize="12"/>
+					<TextBox x:Name="userNameTB" TabIndex="2"/>
+					<StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+						<Label Content="Password:" FontSize="12"/>
+						<Button x:Name="generateB" MinHeight="0" FontSize="9" Content="GENERATE" Margin="48,0,0,0"  VerticalContentAlignment="Center" Padding="5,0,5,0"
+							 Height="20" TabIndex="3" Click="generateB_Click"/>
+					</StackPanel>
+					<TextBox x:Name="passwordTB" TabIndex="4" />
+					<Button x:Name="addUserB" Content="ADD" Foreground="#FF00AADE" Width="50" HorizontalAlignment="Right" Margin="0,10,0,0" MinHeight="0" Height="28" Click="addUserB_Click" TabIndex="5" />
+				</StackPanel>
+			</GroupBox>
+			<Button x:Name="selectB" Grid.Column="1" VerticalAlignment="Bottom" Content="SELECT" Foreground="Red" Margin="5,0,10,10" Click="selectB_Click" TabIndex="6" />
+
+		</Grid>
+	</Grid>
+</Window>

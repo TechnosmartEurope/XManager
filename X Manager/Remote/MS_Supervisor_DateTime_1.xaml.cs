@@ -23,7 +23,7 @@ namespace X_Manager.Remote
 	{
 		SerialPort sp;
 		MS_Main parent;
-
+		public int msModel;
 
 		public MS_Supervisor_DateTime_1(ref SerialPort sp, object p)
 		{
@@ -42,19 +42,37 @@ namespace X_Manager.Remote
 
 		private void SuperB_Click(object sender, RoutedEventArgs e)
 		{
+			parent.ft.Close();
 			if (!sp.IsOpen)
 			{
 				sp.Open();
 			}
-			Thread.Sleep(10);
-			sp.Write("+++");
-			Thread.Sleep(50);
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xfc }, 0, 5);
-			Thread.Sleep(50);
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0x00 }, 0, 5);
-			Thread.Sleep(50);
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
-			Thread.Sleep(50);
+			if (msModel == 0)
+			{
+				Thread.Sleep(10);
+				sp.Write("+++");
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xfc }, 0, 5);
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0x00 }, 0, 5);
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+				Thread.Sleep(50);
+			}
+			else
+			{
+				sp.BaudRate = 2000000;
+				Thread.Sleep(10);
+				sp.Write("+++");
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xff, 0xff, 0xfc }, 0, 7);
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0xff, 0xff, 0xfd }, 0, 7);
+				//Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+				Thread.Sleep(50);
+			}
+
 
 			string pUri = "pack://application:,,,/Resources/ok.png";
 			Warning w = new Warning("Master Station set as Supervisor Station.");
@@ -62,28 +80,50 @@ namespace X_Manager.Remote
 			w.picUri = pUri;
 			w.Title = "OK";
 			w.ShowDialog();
+sp.Close();
 		}
 
 		private void TimeB_Click(object sender, RoutedEventArgs e)
 		{
+
+			parent.ft.Close();
 			if (!sp.IsOpen)
 			{
 				sp.Open();
 			}
-			sp.BaudRate = 115200;
-			Thread.Sleep(150);
-			sp.Write("+++");
-			Thread.Sleep(150);
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xfc }, 0, 5);
-			Thread.Sleep(150);
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0x00 }, 0, 5);
-			Thread.Sleep(150);
-			sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+			if (msModel == 0)
+			{
+				Thread.Sleep(10);
+				sp.Write("+++");
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xfc }, 0, 5);
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0x00 }, 0, 5);
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+				Thread.Sleep(50);
+			}
+			else
+			{
+				sp.BaudRate = 2000000;
+				Thread.Sleep(10);
+				sp.Write("+++");
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xff, 0xff, 0xfc }, 0, 7);
+				Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0xff, 0xff, 0xfd }, 0, 7);
+				//Thread.Sleep(50);
+				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+				Thread.Sleep(50);
+			}
+
+
 			Thread.Sleep(250);
 			var orario = DateTime.Now;
 			var orarioAr = new byte[10];
 
 			orarioAr[0] = (byte)'R';
+			if (msModel == 1) orarioAr[0] = (byte)'A';
 			orarioAr[1] = (byte)'T';
 			orarioAr[2] = (byte)'C';
 			orarioAr[3] = reverseByte(dec2BCD((byte)(orario.Year - 2000)));
@@ -94,55 +134,55 @@ namespace X_Manager.Remote
 			orarioAr[8] = reverseByte(dec2BCD((byte)orario.Minute));
 			orarioAr[9] = reverseByte(dec2BCD((byte)orario.Second));
 
-			byte[] orarioComp = new byte[15];
-			orarioComp[0] = (byte)'R';
-			orarioComp[1] = (byte)'T';
-			orarioComp[2] = (byte)'C';
-			orarioComp[3] = (byte)' ';
-			orarioComp[4] = (byte)'S';
-			orarioComp[5] = (byte)'E';
-			orarioComp[6] = (byte)'T';
-			orarioComp[7] = (byte)((orario.Hour / 10) + 0x30);
-			orarioComp[8] = (byte)((orario.Hour % 10) + 0x30);
-			orarioComp[9] = (byte)':';
-			orarioComp[10] = (byte)((orario.Minute / 10) + 0x30);
-			orarioComp[11] = (byte)((orario.Minute % 10) + 0x30);
-			orarioComp[12] = (byte)':';
-			orarioComp[13] = (byte)((orario.Second / 10) + 0x30);
-			orarioComp[14] = (byte)((orario.Second % 10) + 0x30);
-			while (sp.BytesToRead != 0)
-			{
-				sp.ReadExisting();
-				Thread.Sleep(200);
-			}
+			//byte[] orarioComp = new byte[15];
+			//orarioComp[0] = (byte)'R';
+			//orarioComp[1] = (byte)'T';
+			//orarioComp[2] = (byte)'C';
+			//orarioComp[3] = (byte)' ';
+			//orarioComp[4] = (byte)'S';
+			//orarioComp[5] = (byte)'E';
+			//orarioComp[6] = (byte)'T';
+			//orarioComp[7] = (byte)((orario.Hour / 10) + 0x30);
+			//orarioComp[8] = (byte)((orario.Hour % 10) + 0x30);
+			//orarioComp[9] = (byte)':';
+			//orarioComp[10] = (byte)((orario.Minute / 10) + 0x30);
+			//orarioComp[11] = (byte)((orario.Minute % 10) + 0x30);
+			//orarioComp[12] = (byte)':';
+			//orarioComp[13] = (byte)((orario.Second / 10) + 0x30);
+			//orarioComp[14] = (byte)((orario.Second % 10) + 0x30);
+			//while (sp.BytesToRead != 0)
+			//{
+			//	sp.ReadExisting();
+			//	Thread.Sleep(200);
+			//}
 
 			sp.Write(orarioAr, 0, 10);
 
-			var orarioIn = new byte[15];
+			//var orarioIn = new byte[15];
 
-			try
-			{
+			//try
+			//{
 
-				for (int i = 0; i < 15; i++)
-				{
-					orarioIn[i] = (byte)sp.ReadByte();
-				}
-				if (!orarioComp.SequenceEqual(orarioIn))
-				{
-					throw new Exception();
-				}
-			}
-			catch
-			{
-				string pUri = "pack://application:,,,/Resources/bad.png";
-				Warning w = new Warning("Basestation not ready!");
-				w.Owner = parent;
-				w.picUri = pUri;
-				w.Title = "";
-				w.ShowDialog();
-				//parent.connect();
-				return;
-			}
+			//	for (int i = 0; i < 15; i++)
+			//	{
+			//		orarioIn[i] = (byte)sp.ReadByte();
+			//	}
+			//	if (!orarioComp.SequenceEqual(orarioIn))
+			//	{
+			//		throw new Exception();
+			//	}
+			//}
+			//catch
+			//{
+			//	string pUri = "pack://application:,,,/Resources/bad.png";
+			//	Warning w = new Warning("Basestation not ready!");
+			//	w.Owner = parent;
+			//	w.picUri = pUri;
+			//	w.Title = "";
+			//	w.ShowDialog();
+			//	//parent.connect();
+			//	return;
+			//}
 
 			string pUri2 = "pack://application:,,,/Resources/ok.png";
 			var w2 = new Warning("Date and Time sent to Basestation.");
@@ -150,7 +190,7 @@ namespace X_Manager.Remote
 			w2.picUri = pUri2;
 			w2.Title = "OK";
 			w2.ShowDialog();
-
+			sp.Close();
 		}
 
 		private byte dec2BCD(byte inb)
