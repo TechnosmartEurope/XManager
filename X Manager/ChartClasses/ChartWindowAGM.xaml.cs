@@ -31,20 +31,24 @@ namespace X_Manager
 		public double offX = 0;
 		public double offY = 0;
 		public double offZ = 0;
-		SerialPort sp;
+		FTDI_Device ft;
 		double compChartFullScale = 1000;
 		byte compChartScaleIndex = 3;
 		public bool skipCalFlag = false;
 		UInt16 rawCoeff = (ushort)Math.Round(((double)32768 / 5000), 0);
-		public ChartWindowAGM(string pName)
+		public ChartWindowAGM()
 		{
 			InitializeComponent();
-			sp = new SerialPort();
-			sp.BaudRate = 115200;
-			sp.PortName = pName;
-			this.Loaded += loaded;
-			this.SizeChanged += resize;
-			this.Closing += closing;
+			ft = MainWindow.FTDI;
+			if (ft is null)
+			{
+				MessageBox.Show("Please connect a data cable first.");
+				Close();
+				return;
+			}
+			Loaded += loaded;
+			SizeChanged += resize;
+			Closing += closing;
 		}
 
 		private void loaded(object sender, EventArgs e)
@@ -213,14 +217,6 @@ namespace X_Manager
 			(mChart.Series)["compY"].Points.AddXY(0, 1000);
 			(mChart.Series)["compZ"].Points.AddXY(0.75, 1000);
 			(mChart.Series)["compMod"].Points.AddXY(1.5, 1000);
-
-			try
-			{
-				sp.Open();
-			}
-			catch { }
-
-
 		}
 
 		private void resize(object sender, SizeChangedEventArgs e)
@@ -347,54 +343,47 @@ namespace X_Manager
 
 			//bool cableFailure = false;
 
-			sp.ReadTimeout = 1000;
-			try
-			{
-				sp.Open();
-			}
-			catch
-			{
-			}
+			ft.ReadTimeout = 1000;
 
-			sp.Write("TTTTTTTTTTTTTTTTTTTTGGAr");
+			ft.Write("TTTTTTTTTTTTTTTTTTTTGGAr");
 
 			//richiesta coefficienti guadagno
-			sp.Write("C");
-			compCoeffs[0] = ((((double)sp.ReadByte()) - 128) * 0.5 / 128) + 1;
-			compCoeffs[1] = ((((double)sp.ReadByte()) - 128) * 0.5 / 128) + 1;
-			compCoeffs[2] = ((((double)sp.ReadByte()) - 128) * 0.5 / 128) + 1;
+			ft.Write("C");
+			compCoeffs[0] = ((((double)ft.ReadByte()) - 128) * 0.5 / 128) + 1;
+			compCoeffs[1] = ((((double)ft.ReadByte()) - 128) * 0.5 / 128) + 1;
+			compCoeffs[2] = ((((double)ft.ReadByte()) - 128) * 0.5 / 128) + 1;
 
 			//richiesta coefficienti offset
-			sp.Write("h");
+			ft.Write("h");
 
-			offX = (double)(((sp.ReadByte() + (sp.ReadByte() << 8)) ^ 0x8000) - 32768);
-			compTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+			offX = (double)(((ft.ReadByte() + (ft.ReadByte() << 8)) ^ 0x8000) - 32768);
+			compTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 			offX += compTemp;
 			offX /= 2;
-			offY = (double)(((sp.ReadByte() + (sp.ReadByte() << 8)) ^ 0x8000) - 32768);
-			compTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+			offY = (double)(((ft.ReadByte() + (ft.ReadByte() << 8)) ^ 0x8000) - 32768);
+			compTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 			offY += compTemp;
 			offY /= 2;
-			offZ = (double)(((sp.ReadByte() + (sp.ReadByte() << 8)) ^ 0x8000) - 32768);
-			compTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+			offZ = (double)(((ft.ReadByte() + (ft.ReadByte() << 8)) ^ 0x8000) - 32768);
+			compTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 			offZ += compTemp;
 			offZ /= 2;
 
-			while (sp.BytesToRead != 0)
+			while (ft.BytesToRead() != 0)
 			{
-				sp.ReadByte();
+				ft.ReadByte();
 			}
 
 			while (!stopp)
 			{
 				if (accStat)
 				{
-					sp.Write("a");
-					accTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+					ft.Write("a");
+					accTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 					accBuff[0] = (float)accTemp * 4 / 32768;
-					accTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+					accTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 					accBuff[1] = (float)accTemp * 4 / 32768;
-					accTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+					accTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 					accBuff[2] = (float)accTemp * 4 / 32768;
 
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => seriesUpdate(accBuff, "acc")));
@@ -402,12 +391,12 @@ namespace X_Manager
 
 				if (gyroStat)
 				{
-					  sp.Write("g");
-					gyroTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+					ft.Write("g");
+					gyroTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 					gyroBuff[0] = (float)gyroTemp * 4 / 32768;
-					gyroTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+					gyroTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 					gyroBuff[1] = (float)gyroTemp * 4 / 32768;
-					gyroTemp = (short)((((sp.ReadByte() << 8) + sp.ReadByte()) ^ 0x8000) - 32768);
+					gyroTemp = (short)((((ft.ReadByte() << 8) + ft.ReadByte()) ^ 0x8000) - 32768);
 					gyroBuff[2] = (float)gyroTemp * 4 / 32768;
 
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => seriesUpdate(gyroBuff, "gyro")));
@@ -415,10 +404,10 @@ namespace X_Manager
 
 				if (compStat)
 				{
-					sp.Write("c");
-					compBuff[0] = (double)(((sp.ReadByte() + (sp.ReadByte() << 8)) ^ 0x8000) - 32768);
-					compBuff[1] = (double)(((sp.ReadByte() + (sp.ReadByte() << 8)) ^ 0x8000) - 32768);
-					compBuff[2] = (double)(((sp.ReadByte() + (sp.ReadByte() << 8)) ^ 0x8000) - 32768);
+					ft.Write("c");
+					compBuff[0] = (double)(((ft.ReadByte() + (ft.ReadByte() << 8)) ^ 0x8000) - 32768);
+					compBuff[1] = (double)(((ft.ReadByte() + (ft.ReadByte() << 8)) ^ 0x8000) - 32768);
+					compBuff[2] = (double)(((ft.ReadByte() + (ft.ReadByte() << 8)) ^ 0x8000) - 32768);
 					if (!skipCalFlag)
 					{
 						compBuff[0] -= offX;
@@ -434,8 +423,8 @@ namespace X_Manager
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => compSeriesUpdate(compBuff)));
 				}
 			}
-			sp.Write("x");
-			sp.ReadExisting();
+			ft.Write("x");
+			ft.ReadExisting();
 		}
 
 		private void seriesUpdate(float[] buff, string series)
@@ -556,7 +545,6 @@ namespace X_Manager
 
 		private void closing(object sender, EventArgs e)
 		{
-			sp.Close();
 		}
 
 	}

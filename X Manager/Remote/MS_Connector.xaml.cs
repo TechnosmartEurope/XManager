@@ -23,10 +23,6 @@ namespace X_Manager.Remote
 	public partial class MS_Connector : UserControl
 	{
 
-		string portShortName;
-
-		//private int connectionResult = 0;
-		private SerialPort sp;
 		public FTDI_Device ft;
 		volatile int stop = 0;
 
@@ -60,14 +56,13 @@ namespace X_Manager.Remote
 
 		System.Windows.Shapes.Rectangle[] rAr;
 
-		public MS_Connector(ref SerialPort serialPort, object p, string portShortName)
+		public MS_Connector(object p)
 		{
 			InitializeComponent();
 
 			parent = (MS_Main)p;
-			this.portShortName = portShortName;
+			ft = MainWindow.FTDI;
 			firmware = new byte[] { 0, 1, 0 };
-			//parent.connectionResult = 0;
 
 			grigio.Color = Color.FromArgb(0xff, 0x42, 0x42, 0x42);
 			blu.Color = Color.FromArgb(0xff, 0x00, 0xaa, 0xde);
@@ -85,8 +80,6 @@ namespace X_Manager.Remote
 			{
 				loadChannelList();
 			}
-			sp = serialPort;
-			//sp.Open();
 
 			DragEnter += loadNewChannelList_Click;
 
@@ -95,9 +88,6 @@ namespace X_Manager.Remote
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
-			if (sp.IsOpen) sp.Close();
-			ft = new FTDI_Device(sp.PortName);
-			parent.ft = ft;
 			bootLoaderB.Visibility = Visibility.Hidden;
 			masterStationType = 0;
 			ft.Open();
@@ -144,21 +134,14 @@ namespace X_Manager.Remote
 				autoClose = false;
 			}
 
-			//parent.setLatency(portShortName, 1);
-
 			if (wakeB.Content.Equals("BREAK"))
 			{
 				ft.Write("TTTTTTTTTTTTTGGAO");
-				//sp.Close();
 				UI_disconnected();
 				parent.connect(115200);
 				return;
 			}
 
-			//if (!sp.IsOpen)
-			//{
-			//	sp.Open();
-			//}
 			stop = 0;
 
 			ft.BaudRate = 2000000;
@@ -421,8 +404,6 @@ namespace X_Manager.Remote
 
 		private void finalize(int result, int masteStationType)
 		{
-			//parent.connectionResult = result;
-			ft.Close();
 			if (result == 1)
 			{
 				int baudRate = 115200;
@@ -445,7 +426,6 @@ namespace X_Manager.Remote
 				else
 				{
 					colorStep(COLOR_WAKE_NOCONN);
-					//ft.Close();
 				}
 			}
 		}
@@ -651,16 +631,11 @@ namespace X_Manager.Remote
 			ft.Write(atbl, 0, 4);
 			Thread.Sleep(200);
 			string res = ft.ReadLine();
-			ft.Close();
 			parent.close();
 			parent.MSbootloader();
 
 		}
 
-		//private void close()
-		//{
-		//	parent.close();
-		//}
 	}
 }
 

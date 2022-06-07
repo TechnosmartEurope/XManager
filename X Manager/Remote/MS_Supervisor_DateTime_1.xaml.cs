@@ -21,15 +21,15 @@ namespace X_Manager.Remote
 	/// </summary>
 	public partial class MS_Supervisor_DateTime_1 : UserControl
 	{
-		SerialPort sp;
+		FTDI_Device ft;
 		MS_Main parent;
 		public int msModel;
 
-		public MS_Supervisor_DateTime_1(ref SerialPort sp, object p)
+		public MS_Supervisor_DateTime_1(object p)
 		{
 			InitializeComponent();
-			this.sp = sp;
-			sp.ReadTimeout = 800;
+			ft = MainWindow.FTDI;
+			ft.ReadTimeout = 800;
 			parent = (MS_Main)p;
 			var c = new Thread(clock);
 			c.Start();
@@ -42,34 +42,29 @@ namespace X_Manager.Remote
 
 		private void SuperB_Click(object sender, RoutedEventArgs e)
 		{
-			parent.ft.Close();
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
 			if (msModel == 0)
 			{
 				Thread.Sleep(10);
-				sp.Write("+++");
+				ft.Write("+++");
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xfc }, 0, 5);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xfc }, 0, 5);
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0x00 }, 0, 5);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0x00 }, 0, 5);
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 				Thread.Sleep(50);
 			}
 			else
 			{
-				sp.BaudRate = 2000000;
+				ft.BaudRate = 2000000;
 				Thread.Sleep(10);
-				sp.Write("+++");
+				ft.Write("+++");
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xff, 0xff, 0xfc }, 0, 7);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xff, 0xff, 0xfc }, 0, 7);
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0xff, 0xff, 0xfd }, 0, 7);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0xff, 0xff, 0xfd }, 0, 7);
 				//Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 				Thread.Sleep(50);
 			}
 
@@ -80,40 +75,33 @@ namespace X_Manager.Remote
 			w.picUri = pUri;
 			w.Title = "OK";
 			w.ShowDialog();
-sp.Close();
 		}
 
 		private void TimeB_Click(object sender, RoutedEventArgs e)
 		{
-
-			parent.ft.Close();
-			if (!sp.IsOpen)
-			{
-				sp.Open();
-			}
 			if (msModel == 0)
 			{
 				Thread.Sleep(10);
-				sp.Write("+++");
+				ft.Write("+++");
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xfc }, 0, 5);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xfc }, 0, 5);
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0x00 }, 0, 5);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0x00 }, 0, 5);
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 				Thread.Sleep(50);
 			}
 			else
 			{
-				sp.BaudRate = 2000000;
+				ft.BaudRate = 2000000;
 				Thread.Sleep(10);
-				sp.Write("+++");
+				ft.Write("+++");
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xff, 0xff, 0xfc }, 0, 7);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'I', (byte)'D', 0xff, 0xff, 0xfc }, 0, 7);
 				Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0xff, 0xff, 0xfd }, 0, 7);
-				//Thread.Sleep(50);
-				sp.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'R', (byte)'A', 0xff, 0xff, 0xfd }, 0, 7);
+				Thread.Sleep(50);
+				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 				Thread.Sleep(50);
 			}
 
@@ -150,39 +138,8 @@ sp.Close();
 			//orarioComp[12] = (byte)':';
 			//orarioComp[13] = (byte)((orario.Second / 10) + 0x30);
 			//orarioComp[14] = (byte)((orario.Second % 10) + 0x30);
-			//while (sp.BytesToRead != 0)
-			//{
-			//	sp.ReadExisting();
-			//	Thread.Sleep(200);
-			//}
 
-			sp.Write(orarioAr, 0, 10);
-
-			//var orarioIn = new byte[15];
-
-			//try
-			//{
-
-			//	for (int i = 0; i < 15; i++)
-			//	{
-			//		orarioIn[i] = (byte)sp.ReadByte();
-			//	}
-			//	if (!orarioComp.SequenceEqual(orarioIn))
-			//	{
-			//		throw new Exception();
-			//	}
-			//}
-			//catch
-			//{
-			//	string pUri = "pack://application:,,,/Resources/bad.png";
-			//	Warning w = new Warning("Basestation not ready!");
-			//	w.Owner = parent;
-			//	w.picUri = pUri;
-			//	w.Title = "";
-			//	w.ShowDialog();
-			//	//parent.connect();
-			//	return;
-			//}
+			ft.Write(orarioAr, 0, 10);
 
 			string pUri2 = "pack://application:,,,/Resources/ok.png";
 			var w2 = new Warning("Date and Time sent to Basestation.");
@@ -190,7 +147,6 @@ sp.Close();
 			w2.picUri = pUri2;
 			w2.Title = "OK";
 			w2.ShowDialog();
-			sp.Close();
 		}
 
 		private byte dec2BCD(byte inb)

@@ -43,9 +43,9 @@ namespace X_Manager.ConfigurationWindows
 		int burstBackUp;
 		int burstPeriod;
 		Timer reshapeTimer = null;
-		SerialPort sp;
+		FTDI_Device ft;
 
-		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm, ref SerialPort sp)
+		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
 			: base()
 		{
 			InitializeComponent();
@@ -55,7 +55,8 @@ namespace X_Manager.ConfigurationWindows
 			unitType = axyconf[0];
 			firmTotA = unitFirm;
 
-			this.sp = sp;
+			//this.sp = sp;
+			ft = MainWindow.FTDI;
 
 			for (int i = 2; i < 5; i++)
 			{
@@ -511,14 +512,14 @@ namespace X_Manager.ConfigurationWindows
 				else if (e.Key == Key.C)
 				{
 					if (unitType != Units.Unit.model_axyQuattrok) return;
-					sp.Write("TTTTTTTTTTTTTTTGGAg");
+					ft.Write("TTTTTTTTTTTTTTTGGAg");
 					int[] coeffs = new int[12];
 
 					try
 					{
 						for (int i = 0; i < 12; i++)
 						{
-							coeffs[i] = sp.ReadByte();
+							coeffs[i] = ft.ReadByte();
 						}
 					}
 					catch
@@ -543,29 +544,29 @@ namespace X_Manager.ConfigurationWindows
 						//qp.zero += 1;
 						//qp.zero *= 1000;
 
-						sp.Write("TTTTTTTTTTTTTTTGGAb");
+						ft.Write("TTTTTTTTTTTTTTTGGAb");
 						try
 						{
 							//Zero
-							sp.ReadByte();
+							ft.ReadByte();
 							byte b = (byte)((UInt16)qp.zero >> 8);
-							sp.Write(new byte[] { b }, 0, 1);
+							ft.Write(new byte[] { b }, 0, 1);
 							b = (byte)(qp.zero);
-							sp.Write(new byte[] { b }, 0, 1);
+							ft.Write(new byte[] { b }, 0, 1);
 
 							//Span
 							b = (byte)((UInt16)qp.span >> 8);
-							sp.Write(new byte[] { b }, 0, 1);
+							ft.Write(new byte[] { b }, 0, 1);
 							b = (byte)(qp.span);
-							sp.Write(new byte[] { b }, 0, 1);
+							ft.Write(new byte[] { b }, 0, 1);
 
 							//Threshold
 							b = (byte)((UInt16)qp.threshold >> 8);
-							sp.Write(new byte[] { b }, 0, 1);
+							ft.Write(new byte[] { b }, 0, 1);
 							b = (byte)(qp.threshold);
-							sp.Write(new byte[] { b }, 0, 1);
+							ft.Write(new byte[] { b }, 0, 1);
 
-							sp.ReadByte();
+							ft.ReadByte();
 						}
 						catch
 						{

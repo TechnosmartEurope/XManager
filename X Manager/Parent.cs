@@ -16,7 +16,6 @@ namespace X_Manager
 		public ProgressBar txtProgressBar;
 		public ProgressBar kmlProgressBar;
 		public Label etaLabel;
-		public System.IO.Ports.SerialPort sp;
 
 		public static string[] settings;
 

@@ -193,4 +193,6 @@
 	- Modalità supervisor e invio ora alla BS impostabile sia su masterstation 1 che 2
 1.17.3 - Transizione completa a driver FTDI.
 	- Dumpview: possibilità di cancellare lo schermo e di cambiare baudrate
-	- Possibilità di modificare l'indirizzo ricevente della basestation
+
+
+	

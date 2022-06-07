@@ -75,13 +75,13 @@ namespace X_Manager.Units
 			byte[] f = new byte[3];
 			string firmware = "";
 
-			sp.ReadExisting();
-			sp.Write("TTTTTTTGGAF");
-			sp.ReadTimeout = 400;
+			ft.ReadExisting();
+			ft.Write("TTTTTTTGGAF");
+			ft.ReadTimeout = 400;
 			int i = 0;
 			try
 			{
-				for (i = 0; i < 3; i++) f[i] = (byte)sp.ReadByte();
+				for (i = 0; i < 3; i++) f[i] = (byte)ft.ReadByte();
 			}
 			catch
 			{
@@ -116,11 +116,11 @@ namespace X_Manager.Units
 		{
 			string battery = "";
 			double battLevel;
-			sp.Write("TTTTGGAB");
+			ft.Write("TTTTGGAB");
 			try
 			{
-				battLevel = sp.ReadByte(); battLevel *= 256;
-				battLevel += sp.ReadByte();
+				battLevel = ft.ReadByte(); battLevel *= 256;
+				battLevel += ft.ReadByte();
 				battLevel *= 6;
 				battLevel /= 4096;
 			}
@@ -137,8 +137,8 @@ namespace X_Manager.Units
 			string unitNameBack;
 			try
 			{
-				sp.Write("TTTTTTTGGAN");
-				unitNameBack = sp.ReadLine();
+				ft.Write("TTTTTTTGGAN");
+				unitNameBack = ft.ReadLine();
 			}
 			catch
 			{
@@ -151,13 +151,13 @@ namespace X_Manager.Units
 		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
-			sp.Write("TTTTTTTGGAm");
+			ft.Write("TTTTTTTGGAm");
 			try
 			{
-				m = (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte();
+				m = (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte();
 			}
 			catch
 			{
@@ -171,13 +171,13 @@ namespace X_Manager.Units
 		public override uint[] askMemory()
 		{
 			UInt32 m;
-			sp.Write("TTTTTTTGGAM");
+			ft.Write("TTTTTTTGGAM");
 			try
 			{
-				m = (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte();
+				m = (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte();
 			}
 			catch
 			{
@@ -190,10 +190,10 @@ namespace X_Manager.Units
 
 		public override void eraseMemory()
 		{
-			sp.Write("TTTTTTTTTGGAE");
+			ft.Write("TTTTTTTTTGGAE");
 			try
 			{
-				sp.ReadByte();
+				ft.ReadByte();
 			}
 			catch
 			{
@@ -204,12 +204,12 @@ namespace X_Manager.Units
 		public override void getCoeffs()
 		{
 			coeffs[0] = 0;
-			sp.Write("TTTTTTTTTTTGGAg");
+			ft.Write("TTTTTTTTTTTGGAg");
 			try
 			{
 				for (int i = 1; i <= 6; i++)
 				{
-					coeffs[i] = (ushort)(sp.ReadByte() * 256 + sp.ReadByte());
+					coeffs[i] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
 				}
 			}
 			catch
@@ -235,10 +235,10 @@ namespace X_Manager.Units
 		{
 			if (firmTotA < 2006000) return;
 
-			sp.Write("TTTTTTTTGGAt");
+			ft.Write("TTTTTTTTGGAt");
 			try
 			{
-				sp.ReadByte();
+				ft.ReadByte();
 				byte[] dateAr = new byte[6];
 				var dateToSend = DateTime.UtcNow;
 				dateAr[0] = (byte)dateToSend.Second;
@@ -247,8 +247,8 @@ namespace X_Manager.Units
 				dateAr[3] = (byte)dateToSend.Day;
 				dateAr[4] = (byte)dateToSend.Month;
 				dateAr[5] = (byte)(dateToSend.Year - 2000);
-				sp.Write(dateAr, 0, 6);
-				sp.ReadByte();
+				ft.Write(dateAr, 0, 6);
+				ft.ReadByte();
 			}
 			catch
 			{
@@ -264,24 +264,24 @@ namespace X_Manager.Units
 			conf[22] = 0;
 			conf[25] = modelCode;
 
-			sp.ReadExisting();
-			sp.Write("TTTTTTTTTTTTGGAC");
+			ft.ReadExisting();
+			ft.Write("TTTTTTTTTTTTGGAC");
 			try
 			{
 				for (int i = 15; i < 19; i++)
 				{
-					conf[i] = (byte)sp.ReadByte();
+					conf[i] = (byte)ft.ReadByte();
 				}
 				if (firmTotA >= 3000000)
 				{
 					if (firmTotA >= 3001000)
 					{
-						conf[19] = (byte)sp.ReadByte();
+						conf[19] = (byte)ft.ReadByte();
 					}
-					conf[21] = (byte)sp.ReadByte();
+					conf[21] = (byte)ft.ReadByte();
 					if (firmTotA >= 3002000)
 					{
-						conf[22] = (byte)sp.ReadByte();
+						conf[22] = (byte)ft.ReadByte();
 					}
 				}
 			}
@@ -294,25 +294,25 @@ namespace X_Manager.Units
 
 		public override void setConf(byte[] conf)
 		{
-			sp.ReadExisting();
-			sp.Write("TTTTTTTTTTTTGGAc");
+			ft.ReadExisting();
+			ft.Write("TTTTTTTTTTTTGGAc");
 			try
 			{
-				sp.ReadByte();
-				sp.Write(conf, 15, 4);
+				ft.ReadByte();
+				ft.Write(conf, 15, 4);
 				if (firmTotA >= 3000000)
 				{
 					if (firmTotA >= 3001000)
 					{
-						sp.Write(conf, 19, 1);
+						ft.Write(conf, 19, 1);
 					}
-					sp.Write(conf, 21, 1);
+					ft.Write(conf, 21, 1);
 					if (firmTotA >= 3002000)
 					{
-						sp.Write(conf, 22, 1);
+						ft.Write(conf, 22, 1);
 					}
 				}
-				sp.ReadByte();
+				ft.ReadByte();
 
 
 			}
@@ -333,22 +333,22 @@ namespace X_Manager.Units
 			{
 				for (int i = newName.Length; i <= 9; i++) newName += " ";
 			}
-			sp.Write("TTTTTTTGGAn");
+			ft.Write("TTTTTTTGGAn");
 			try
 			{
-				sp.ReadByte();
+				ft.ReadByte();
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			sp.WriteLine(newName);
+			ft.WriteLine(newName);
 		}
 
 		public override void disconnect()
 		{
 			base.disconnect();
-			sp.Write("TTTTTTTTTGGAO");
+			ft.Write("TTTTTTTTTGGAO");
 		}
 
 		private uint[] calcolaSoglieDepth()
@@ -465,10 +465,10 @@ namespace X_Manager.Units
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
 			var fo = new System.IO.BinaryWriter(File.Open(fileNameMdp, fm));
 
-			sp.Write("TTTTTTTTTTTTGGAe");
+			ft.Write("TTTTTTTTTTTTGGAe");
 			try
 			{
-				sp.ReadByte();
+				ft.ReadByte();
 			}
 			catch
 			{
@@ -483,8 +483,8 @@ namespace X_Manager.Units
 
 			Thread.Sleep(70);
 			byte b = (byte)(baudrate / 1000000);
-			sp.Write(new byte[] { b }, 0, 1);
-			sp.BaudRate = baudrate;
+			ft.Write(new byte[] { b }, 0, 1);
+			ft.BaudRate = (uint)baudrate;
 
 			Thread.Sleep(200);
 			if (firmTotA < 2006004)
@@ -492,13 +492,13 @@ namespace X_Manager.Units
 				Thread.Sleep(750);
 			}
 
-			sp.Write("S");
+			ft.Write("S");
 			Thread.Sleep(200);
 
 			int dieCount = 0;
 			try
 			{
-				dieCount = sp.ReadByte();
+				dieCount = ft.ReadByte();
 				if (dieCount == 0x53) dieCount = 2;
 				if (dieCount == 0x73) dieCount = 1;
 				if ((dieCount != 1) & (dieCount != 2))
@@ -526,9 +526,6 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
 
-			//Passa alla gestione FTDI D2XX
-			sp.Close();
-
 			byte[] outBuffer = new byte[50];
 			byte[] tempBuffer = new byte[2048];
 			byte[] address = new byte[8];
@@ -536,17 +533,6 @@ namespace X_Manager.Units
 			uint bytesToWrite = 0;
 			int bytesReturned = 0;
 
-			FTDI_Device ft = new FTDI_Device(sp.PortName);
-			if (!ft.Open())
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
 			ft.BaudRate = (uint)baudrate;
 			ft.ReadTimeout = 1000;
 
@@ -627,9 +613,7 @@ namespace X_Manager.Units
 			outBuffer[0] = 88;
 			bytesToWrite = 1;
 			ft.Write(outBuffer, 1);
-			ft.Close();
-			sp.BaudRate = 115200;
-			sp.Open();
+			ft.BaudRate = 115200;
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
@@ -675,7 +659,7 @@ namespace X_Manager.Units
 					}
 					counter++;
 					fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "_S" + counter.ToString() + ".ard";
-					if (System.IO.File.Exists(fileNameArd))
+					if (File.Exists(fileNameArd))
 					{
 						if (resp < 11)
 						{
@@ -691,7 +675,7 @@ namespace X_Manager.Units
 							do
 							{
 								fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileNameArd) + " (1)" + ".ard";
-							} while (System.IO.File.Exists(fileNameArd));
+							} while (File.Exists(fileNameArd));
 						}
 					}
 					ard = new System.IO.BinaryWriter(System.IO.File.Open(fileNameArd, FileMode.Create));

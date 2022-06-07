@@ -107,7 +107,7 @@ namespace X_Manager.Units
 		protected byte debugLevel;
 
 		protected Parent parent;
-		protected SerialPort sp;
+		protected FTDI_Device ft;
 
 		protected string csvSeparator;
 		protected string dateSeparator;
@@ -119,7 +119,6 @@ namespace X_Manager.Units
 		protected double progMax = 1;
 
 		public string defaultArdExtension = "gp6";
-		public bool useFtdi = false;
 
 #if X64
 		[DllImport(@"resampleLib_x64.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -145,23 +144,25 @@ namespace X_Manager.Units
 		public Unit(object p)
 		{
 			parent = (Parent)p;
-			sp = parent.sp;
+			ft = MainWindow.FTDI;
 			connected = false;
 			csvSeparator = parent.csvSeparator;
 			progressWorker.DoWork += prog_doWork;
 			progressWorker.RunWorkerCompleted += prog_endWork;
 		}
 
-		public virtual void changeBaudrate(ref SerialPort sp, int newBaudrate)
+		public virtual void changeBaudrate(int newBaudrate)
 		{ }
 
-		public static string askModel(ref SerialPort sp)
+		public static string askModel()
 		{
-			sp.Write("TTTTTTTGGAf");
+			FTDI_Device ft = MainWindow.FTDI;
+
+			ft.Write("TTTTTTTGGAf");
 			string unitModelString;
 			try
 			{
-				unitModelString = sp.ReadLine();
+				unitModelString = ft.ReadLine();
 			}
 			catch
 			{
@@ -200,9 +201,10 @@ namespace X_Manager.Units
 			return unitModelString;
 		}
 
-		public static string askLegacyModel(ref SerialPort sp)
+		public static string askLegacyModel()
 		{
-			string model = sp.ReadLine();
+			FTDI_Device ft = MainWindow.FTDI;
+			string model = ft.ReadLine();
 			model = model.Split('.')[1];
 			switch (Int16.Parse(model))
 			{
@@ -222,17 +224,6 @@ namespace X_Manager.Units
 		public virtual void keepAlive()
 		{
 
-		}
-
-		public virtual void closeSerialPort(SerialPort sp)
-		{
-			if (useFtdi)
-			{
-				if (sp.IsOpen)
-				{
-					sp.Close();
-				}
-			}
 		}
 
 		public virtual void msBaudrate()
@@ -299,47 +290,19 @@ namespace X_Manager.Units
 
 		public virtual byte[] getAccSchedule()
 		{
-			if (useFtdi)
-			{
-				if (sp.IsOpen)
-				{
-					sp.Close();
-				}
-			}
 			return new byte[] { 0 };
 		}
 
 		public virtual void setAccSchedule(byte[] schedule)
 		{
-			if (useFtdi)
-			{
-				if (sp.IsOpen)
-				{
-					sp.Close();
-				}
-			}
 		}
 
 		public virtual void download(string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
 		{
-			if (useFtdi)
-			{
-				if (sp.IsOpen)
-				{
-					sp.Close();
-				}
-			}
 		}
 
 		public virtual void downloadRemote(string fileName, UInt32 fromMemory, UInt32 toMemory, int baudrate)
 		{
-			if (useFtdi)
-			{
-				if (sp.IsOpen)
-				{
-					sp.Close();
-				}
-			}
 		}
 
 		public abstract void extractArds(string fileNameMdp, string fileName, bool fromDownload);
@@ -358,13 +321,6 @@ namespace X_Manager.Units
 
 		public virtual void disconnect()
 		{
-			if (useFtdi)
-			{
-				if (sp.IsOpen)
-				{
-					sp.Close();
-				}
-			}
 			connected = false;
 		}
 

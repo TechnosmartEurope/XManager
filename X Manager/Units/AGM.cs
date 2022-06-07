@@ -84,11 +84,11 @@ namespace X_Manager.Units
 		{
 			string battery = "";
 			double battLevel;
-			sp.Write("TTTTGGAB");
+			ft.Write("TTTTGGAB");
 			try
 			{
-				battLevel = sp.ReadByte(); battLevel *= 256;
-				battLevel += sp.ReadByte();
+				battLevel = ft.ReadByte(); battLevel *= 256;
+				battLevel += ft.ReadByte();
 				battLevel *= 6;
 				battLevel /= 4096;
 			}
@@ -105,13 +105,13 @@ namespace X_Manager.Units
 			byte[] f = new byte[3];
 			string firmware = "";
 
-			sp.ReadExisting();
-			sp.Write("TTTTTTTGGAF");
-			sp.ReadTimeout = 400;
+			ft.ReadExisting();
+			ft.Write("TTTTTTTGGAF");
+			ft.ReadTimeout = 400;
 			int i = 0;
 			try
 			{
-				for (i = 0; i < 3; i++) f[i] = (byte)sp.ReadByte();
+				for (i = 0; i < 3; i++) f[i] = (byte)ft.ReadByte();
 			}
 			catch
 			{
@@ -130,13 +130,13 @@ namespace X_Manager.Units
 		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
-			sp.Write("TTTTTTTGGAm");
+			ft.Write("TTTTTTTGGAm");
 			try
 			{
-				m = (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte();
+				m = (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte();
 			}
 			catch
 			{
@@ -150,13 +150,13 @@ namespace X_Manager.Units
 		public override uint[] askMemory()
 		{
 			UInt32 m;
-			sp.Write("TTTTTTTGGAM");
+			ft.Write("TTTTTTTGGAM");
 			try
 			{
-				m = (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte(); m *= 256;
-				m += (UInt32)sp.ReadByte();
+				m = (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte(); m *= 256;
+				m += (UInt32)ft.ReadByte();
 				mem_address = m;
 			}
 			catch
@@ -173,8 +173,8 @@ namespace X_Manager.Units
 			string unitNameBack;
 			try
 			{
-				sp.Write("TTTTTTTGGAN");
-				unitNameBack = sp.ReadLine();
+				ft.Write("TTTTTTTGGAN");
+				unitNameBack = ft.ReadLine();
 			}
 			catch
 			{
@@ -195,31 +195,31 @@ namespace X_Manager.Units
 			{
 				for (int i = newName.Length; i <= 9; i++) newName += " ";
 			}
-			sp.Write("TTTTTTTGGAn");
+			ft.Write("TTTTTTTGGAn");
 			try
 			{
-				sp.ReadByte();
+				ft.ReadByte();
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			sp.WriteLine(newName);
+			ft.WriteLine(newName);
 		}
 
 		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
-			System.IO.FileMode fm = System.IO.FileMode.Create;
-			if (fromMemory != 0) fm = System.IO.FileMode.Append;
+			FileMode fm = FileMode.Create;
+			if (fromMemory != 0) fm = FileMode.Append;
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
-			var fo = new System.IO.BinaryWriter(File.Open(fileNameMdp, fm));
+			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
 
-			sp.Write("TTTTTTTTTTTTGGAe");
+			ft.Write("TTTTTTTTTTTTGGAe");
 			try
 			{
-				sp.ReadByte();
+				ft.ReadByte();
 			}
 			catch
 			{
@@ -233,14 +233,14 @@ namespace X_Manager.Units
 			}
 
 			byte b = (byte)(baudrate / 1000000);
-			sp.Write(new byte[] { b }, 0, 1);
-			sp.BaudRate = baudrate;
+			ft.Write(new byte[] { b }, 0, 1);
+			ft.BaudRate = (uint)baudrate;
 
 			Thread.Sleep(200);
-			sp.Write("S");
+			ft.Write("S");
 			Thread.Sleep(1100);
 
-			int dieCount = sp.ReadByte();
+			int dieCount = ft.ReadByte();
 
 			if (dieCount == 0x53) dieCount = 2;     //S
 			if (dieCount == 0x73) dieCount = 1;     //s
@@ -263,9 +263,6 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
 
-			//Passa alla gestione FTDI D2XX
-			sp.Close();
-
 			byte[] outBuffer = new byte[50];
 			byte[] inBuffer = new byte[4096];
 			byte[] tempBuffer = new byte[2048];
@@ -274,24 +271,9 @@ namespace X_Manager.Units
 			uint bytesToWrite = 0;
 			int bytesReturned = 0;
 
-			FTDI_Device ft = new FTDI_Device(sp.PortName);
-			if (!ft.Open())
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
-
-			ft.BaudRate = (uint)baudrate;
 			ft.ReadTimeout = 1000;
 
 			bool firstLoop = true;
-			//bool mem4Gb = false;
-			//if (firmTotA > 1999999) mem4Gb = true;
 
 			while (actMemory < toMemory)
 			{
@@ -316,7 +298,6 @@ namespace X_Manager.Units
 				{
 					outBuffer[0] = 88;
 					ft.Write(outBuffer, 1);
-					ft.Close();
 					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
 					fo.Write(inBuffer);
 					fo.Close();
@@ -375,9 +356,7 @@ namespace X_Manager.Units
 			outBuffer[0] = 88;
 			bytesToWrite = 1;
 			ft.Write(outBuffer, bytesToWrite);
-			ft.Close();
-			sp.BaudRate = 115200;
-			sp.Open();
+			ft.BaudRate = 115200;
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
@@ -391,10 +370,10 @@ namespace X_Manager.Units
 
 		public override void eraseMemory()
 		{
-			sp.Write("TTTTTTTTTGGAE");
+			ft.Write("TTTTTTTTTGGAE");
 			try
 			{
-				sp.ReadByte();
+				ft.ReadByte();
 			}
 			catch
 			{
@@ -511,11 +490,11 @@ namespace X_Manager.Units
 			conf[22] = 0;
 			conf[26] = modelCode;
 
-			sp.ReadExisting();
-			sp.Write("TTTTTTTTTTTTGGAC");
+			ft.ReadExisting();
+			ft.Write("TTTTTTTTTTTTGGAC");
 			try
 			{
-				for (int i = 0; i <= 25; i++) { conf[i] = (byte)sp.ReadByte(); }
+				for (int i = 0; i <= 25; i++) { conf[i] = (byte)ft.ReadByte(); }
 			}
 			catch
 			{
@@ -526,15 +505,15 @@ namespace X_Manager.Units
 
 		public override void setConf(byte[] conf)
 		{
-			sp.ReadExisting();
-			sp.Write("TTTTTTTTTTTTGGAc");
+			ft.ReadExisting();
+			ft.Write("TTTTTTTTTTTTGGAc");
 			try
 			{
-				sp.ReadByte();
-				sp.Write(conf, 2, 3);
-				sp.Write(conf, 15, 10);
-				sp.Write(conf, 25, 1);
-				sp.ReadByte();
+				ft.ReadByte();
+				ft.Write(conf, 2, 3);
+				ft.Write(conf, 15, 10);
+				ft.Write(conf, 25, 1);
+				ft.ReadByte();
 			}
 			catch
 			{
@@ -545,7 +524,7 @@ namespace X_Manager.Units
 		public override void disconnect()
 		{
 			base.disconnect();
-			sp.Write("TTTTTTTTTGGAO");
+			ft.Write("TTTTTTTTTGGAO");
 		}
 
 		public override void convert(string fileName, string[] prefs)

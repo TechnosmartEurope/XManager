@@ -24,11 +24,9 @@ namespace X_Manager.Remote
 
 		//public int connectionResult = 0;
 		MainWindow parent;
-		SerialPort sp;
 		MS_Connector rconn;
 		MS_Supervisor_DateTime_1 rtime;
 		MS_Configurator_1 rconf;
-		public FTDI_Device ft;
 		int _msModel = 0;
 		public int msModel
 		{
@@ -43,18 +41,16 @@ namespace X_Manager.Remote
 			}
 		}
 
-		public MS_Main(ref SerialPort sp, object p, string portShortName)
+		public MS_Main(object p)
 		{
 			InitializeComponent();
 			parent = (MainWindow)p;
 			Owner = parent;
-			this.sp = sp;
-			//this.sp = sp;
-			rconn = new MS_Connector(ref sp, this, portShortName);
+			rconn = new MS_Connector(this);
 			connTab.Content = rconn;
-			rtime = new MS_Supervisor_DateTime_1(ref sp, this);
+			rtime = new MS_Supervisor_DateTime_1(this);
 			timeTab.Content = rtime;
-			rconf = new MS_Configurator_1(ref sp, this);
+			rconf = new MS_Configurator_1(this);
 			confTab.Content = rconf;
 		}
 
@@ -126,16 +122,7 @@ namespace X_Manager.Remote
 
 		private void remoteManagement_Closed(object sender, EventArgs e)
 		{
-			try
-			{
-				sp.Close();
-			}
-			catch { }
-			try
-			{
-				rconn.ft.Close();
-			}
-			catch { }
+
 		}
 
 		public string setLatency(string portName, byte latency)

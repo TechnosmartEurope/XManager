@@ -100,6 +100,8 @@ namespace X_Manager
 		ConfigurationWindow confForm;
 		bool manageConfform = true;
 
+		public static FTDI_Device FTDI;
+
 		#endregion
 
 		#region Interfaccia
@@ -107,7 +109,7 @@ namespace X_Manager
 		public MainWindow()
 		{
 			InitializeComponent();
-			sp = new System.IO.Ports.SerialPort();
+			FTDI = null;
 			Loaded += mainWindowLoaded;
 			parseArgIn();
 			progressBarStopButton = progressBarStopButtonM;
@@ -174,7 +176,7 @@ namespace X_Manager
 			uiDisconnected();
 			initPicture();
 			//scanButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-			scanPorts();
+			scanPorts(true);
 			string press = getParameter("pressureRange", "depth");
 			switch (press)
 			{
@@ -347,7 +349,7 @@ namespace X_Manager
 
 		private void ComPortComboBox_DropDownOpened(object sender, EventArgs e)
 		{
-			scanPorts();
+			scanPorts(false);
 		}
 
 		private void loadUserPrefs()
@@ -444,7 +446,8 @@ namespace X_Manager
 			configureMovementButton.Content = "Accelerometer Configuration";
 			configurePositionButton.Content = "GPS configuration";
 			manageConfform = true;
-			if (sp.IsOpen) sp.Close();
+			dumpBaudrateCB.Visibility = Visibility.Hidden;
+			dumpClearB.Visibility = Visibility.Hidden;
 			batteryRefreshB.Visibility = Visibility.Hidden;
 			batteryRefreshB.Click -= refreshBattery;
 			if (keepAliveTimer != null)
@@ -510,6 +513,12 @@ namespace X_Manager
 		{
 			if (Keyboard.Modifiers == ModifierKeys.Control)
 			{
+				if (FTDI is null)
+				{
+					MessageBox.Show("Please, connect a data cable first");
+					return;
+				}
+
 				//Apertura cartella program Data
 				if (e.Key == Key.D)
 				{
@@ -527,10 +536,7 @@ namespace X_Manager
 				{
 					if (connectButton.Content.Equals("Connect"))
 					{
-						if (sp.IsOpen)
-						{
-							sp.Write("TTTTTTTTTTTTTGGA4");
-						}
+						FTDI.Write("TTTTTTTTTTTTTGGA4");
 					}
 					Console.Beep();
 				}
@@ -540,10 +546,7 @@ namespace X_Manager
 				{
 					if (connectButton.Content.Equals("Connect"))
 					{
-						if (sp.IsOpen)
-						{
-							sp.Write("TTTTTTTTTTTTTGGA5");
-						}
+						FTDI.Write("TTTTTTTTTTTTTGGA5");
 					}
 
 					Console.Beep();
@@ -555,12 +558,9 @@ namespace X_Manager
 					startUpMonitor.Text = "";
 					if (connectButton.Content.Equals("Connect"))
 					{
-						if (sp.IsOpen)
-						{
-							sp.Write("T");
-							Thread.Sleep(5);
-							sp.Write("TTTTTTTTTTTTTGGAr");
-						}
+						FTDI.Write("T");
+						Thread.Sleep(5);
+						FTDI.Write("TTTTTTTTTTTTTGGAr");
 						Console.Beep();
 					}
 
@@ -572,12 +572,9 @@ namespace X_Manager
 					startUpMonitor.Text = "";
 					if (connectButton.Content.Equals("Connect"))
 					{
-						if (sp.IsOpen)
-						{
-							sp.Write("T");
-							Thread.Sleep(5);
-							sp.Write("TTTTTTTTTTTTTGGAR");
-						}
+						FTDI.Write("T");
+						Thread.Sleep(5);
+						FTDI.Write("TTTTTTTTTTTTTGGAR");
 					}
 					Console.Beep();
 				}
@@ -588,12 +585,9 @@ namespace X_Manager
 					startUpMonitor.Text = "";
 					if (connectButton.Content.Equals("Connect"))
 					{
-						if (sp.IsOpen)
-						{
-							sp.Write("T");
-							Thread.Sleep(5);
-							sp.Write("TTTTTTTTTTTTTGGAS");
-						}
+						FTDI.Write("T");
+						Thread.Sleep(5);
+						FTDI.Write("TTTTTTTTTTTTTGGAS");
 					}
 					Console.Beep();
 				}
@@ -604,47 +598,22 @@ namespace X_Manager
 					startUpMonitor.Text = "";
 					if (connectButton.Content.Equals("Connect"))
 					{
-						if (sp.IsOpen)
-						{
-							sp.Write("T");
-							Thread.Sleep(5);
-							sp.Write("TTTTTTTTTTTTTGGAs");
-						}
+						FTDI.Write("T");
+						Thread.Sleep(5);
+						FTDI.Write("TTTTTTTTTTTTTGGAs");
 					}
 					Console.Beep();
 				}
 
 				else if (e.Key == Key.B)
 				{
-					if (comPortComboBox.Items.Count == 0)
-					{
-						MessageBox.Show("Please connect a data cable");
-						return;
-					}
-					bool uConn = true;
 					if (!((string)configurePositionButton.Content).Contains("firmware"))
 					{
-						try
-						{
-							string portShortName;
-							portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-							portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-							sp.PortName = portShortName;
-							sp.BaudRate = 115200;
-							//sp.Open();
-							uConn = false;
-
-						}
-						catch (Exception ex)
-						{
-							MessageBox.Show(ex.Message);
-							return;
-						}
+						uiDisconnected();
+						FTDI.BaudRate = 1000000;
+						var boot = new Bootloader.Bootloader_Gipsy6(false, "CC1352");
+						boot.ShowDialog();
 					}
-					uiDisconnected();
-					var boot = new Bootloader.Bootloader_Gipsy6(uConn, sp, "CC1352");
-					boot.ShowDialog();
-					if (sp.IsOpen) sp.Close();
 				}
 
 				//Pubblicazione help
@@ -661,9 +630,7 @@ namespace X_Manager
 					startUpMonitor.Text += "\tC: AxyQuattrok: imposta coefficienti";
 					startUpMonitor.Text += "\tB: GiPSy6 Bootloader";
 				}
-
 			}
-
 		}
 
 		public override void downloadFinished()
@@ -675,7 +642,7 @@ namespace X_Manager
 			progressBarStopButtonColumn.Width = new GridLength(0);
 			try
 			{
-				if (sp.IsOpen) sp.ReadExisting();
+				FTDI.ReadExisting();
 				Thread.Sleep(100);
 				uint[] maxM = oUnit.askMaxMemory();
 				Thread.Sleep(100);
@@ -698,7 +665,7 @@ namespace X_Manager
 			progressBarStopButtonColumn.Width = new GridLength(0);
 			try
 			{
-				if (sp.IsOpen) sp.ReadExisting();
+				FTDI.ReadExisting();
 				Thread.Sleep(100);
 				uint[] maxM = oUnit.askMaxMemory();
 				Thread.Sleep(100);
@@ -760,29 +727,12 @@ namespace X_Manager
 				catch { }
 				uiDisconnected();
 				connectButton.IsEnabled = true;
-				if (sp.IsOpen) sp.Close();
 			}
 			else
 			{
-				string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-				if (portShortName == "" | string.IsNullOrEmpty(portShortName))
+				if (FTDI is null)
 				{
 					mainTabControl.SelectedIndex = 0;
-					return;
-				}
-				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-				sp.BaudRate = Baudrate_base;
-				sp.ReadTimeout = 5;
-				sp.NewLine = "\r\n";
-
-				try
-				{
-					sp.PortName = portShortName;
-					sp.Open();
-				}
-				catch (Exception ex)
-				{
-					MessageBox.Show(ex.Message);
 					return;
 				}
 
@@ -797,6 +747,8 @@ namespace X_Manager
 				statusProgressBar.Value = 0;
 				dumpViewTabItem.IsEnabled = false;
 				configurePositionButton.IsEnabled = false;
+				dumpBaudrateCB.Visibility = Visibility.Visible;
+				dumpClearB.Visibility = Visibility.Visible;
 
 				startUpMonitor.Text = "";
 
@@ -812,18 +764,35 @@ namespace X_Manager
 			}
 		}
 
+		private void dumpBaudrateCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if (FTDI is null) return;
+			string baudrate = "";
+			baudrate = ((ComboBoxItem)dumpBaudrateCB.SelectedItem).Content as string;
+			baudrate = baudrate.Split(' ')[0];
+			FTDI.BaudRate = uint.Parse(baudrate);
+		}
+
+		private void dumpClearB_Click(object sender, RoutedEventArgs e)
+		{
+			startUpMonitor.Text = "";
+		}
+
 		private void startUpMonitorBW_DoWork(object sender, DoWorkEventArgs e)
 		{
 			var sb = new System.Text.StringBuilder();
+			uint oldTimeout = FTDI.ReadTimeout;
+			FTDI.ReadTimeout = 1;
 
 			while (true)
 			{
-				while (!startUpMonitorBW.CancellationPending && sp.BytesToRead == 0) ;
+				while (!startUpMonitorBW.CancellationPending && FTDI.BytesToRead() == 0) ;
 
 
 				if (startUpMonitorBW.CancellationPending)
 				{
 					e.Cancel = true;
+					FTDI.ReadTimeout = oldTimeout;
 					return;
 				}
 				sb.Clear();
@@ -831,7 +800,7 @@ namespace X_Manager
 				{
 					try
 					{
-						sb.Append(System.Convert.ToChar(sp.ReadByte()));
+						sb.Append(Convert.ToChar(FTDI.ReadByte()));
 					}
 					catch
 					{
@@ -846,11 +815,7 @@ namespace X_Manager
 
 		private void startUpMonitorBW_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			try
-			{
-				sp.Close();
-			}
-			catch { }
+
 		}
 
 		void selectAddressMouse(object sender, MouseButtonEventArgs e)
@@ -936,72 +901,7 @@ namespace X_Manager
 
 		void unlockUnit_Click(object sender, RoutedEventArgs e)
 		{
-			bool eraAperta = true;
-			if (!sp.IsOpen)
-			{
-				if (comPortComboBox.Items.Count == 0)
-				{
-					warningShow("Please connect a data cable and press 'Scan for port'.");
-					return;
-				}
-				eraAperta = false;
-				string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-				sp.PortName = portShortName;
-				sp.NewLine = "\r\n";
-			}
 
-			var w = new Warning("Please wait...");
-			w.Owner = this;
-			w.picUri = "pack://application:,,,/resources/alert2.png";
-			w.Show();
-
-			byte[] arr = new byte[5]; //0 to 4
-			sp.BaudRate = Baudrate_base;
-			sp.ReadTimeout = 1000;
-			try
-			{
-				sp.Open();
-			}
-			catch (Exception ex)
-			{
-				w.Close();
-				warningShow(ex.Message);
-				return;
-			}
-
-			arr[0] = 0xf;
-			for (int i = 0; i < 3; i++)
-			{
-				try
-				{
-					sp.ReadByte();
-				}
-				catch
-				{
-					if (i == 2)
-					{
-						w.Close();
-						warningShow("Unit not reachable.");
-						if (!eraAperta)
-						{
-							if (sp.IsOpen) sp.Close();
-						}
-						return;
-					}
-				}
-			}
-
-			arr[0] = 8;
-			arr[1] = 8;
-			arr[2] = 0x81;
-			arr[3] = 4;
-			sp.Write(arr, 0, 4);
-			warningShow("Unit unlocked.");
-			if (!eraAperta)
-			{
-				if (sp.IsOpen) sp.Close();
-			}
 		}
 
 		void changePictureClick(object sender, RoutedEventArgs e)
@@ -1167,13 +1067,24 @@ namespace X_Manager
 
 		#region Pulsanti
 
-		void scanPorts()
+		void scanPorts(bool select)
 		{
-			if (sp.IsOpen)
+			if (FTDI != null)
 			{
-				sp.Close();
+				FTDI.Close();
 			}
-			this.comPortComboBox.Items.Clear();
+			while (true)
+			{
+				try
+				{
+					comPortComboBox.Items.Clear();
+					comPortComboBox.Text = "";
+					break;
+				}
+				catch
+				{
+				}
+			}
 			System.Management.ManagementObjectSearcher moSearch = new System.Management.ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity");
 			//System.Management.ManagementObjectCollection moReturn = moSearch.Get();
 			//System.Management.ManagementObject mo;// = moReturn.ite
@@ -1208,16 +1119,64 @@ namespace X_Manager
 			}
 			if (comPortComboBox.Items.Count == 0)
 			{
-				//comPortComboBox.IsEnabled = false;
+				comPortComboBoxClear();
 				connectButton.IsEnabled = false;
-				//warningShow(STR_noComPortAvailable);
+				FTDI = null;
 			}
 			else
 			{
 				comPortComboBox.IsEnabled = true;
-				comPortComboBox.SelectedIndex = 0;
 				connectButton.IsEnabled = true;
+				if (select)
+				{
+					comPortComboBox.SelectedIndex = -1;
+					comPortComboBox.SelectedIndex = 0;
+				}
 			}
+		}
+
+		private void comPortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if (!(FTDI is null))
+			{
+				FTDI.Close();
+			}
+			if ((string)comPortComboBox.SelectedItem == "")
+			{
+				FTDI = null;
+				return;
+			}
+
+
+
+			for (int i = 0; i < 3; i++)
+			{
+				FTDI = null;
+				string portShortName = (string)comPortComboBox.SelectedItem;
+				portShortName = portShortName.Substring(portShortName.IndexOf("(") + 1);
+				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
+				FTDI = new FTDI_Device(portShortName);
+				FTDI.ReadTimeout = 550;
+				if (FTDI.Open()) break;
+				Thread.Sleep(3000);
+			}
+			if (!FTDI.Open())
+			{
+				MessageBox.Show("Invalid datacable or port already open.");
+				comPortComboBoxClear();
+				uiDisconnected();
+				FTDI = null;
+				return;
+			}
+		}
+
+		private void comPortComboBoxClear()
+		{
+			comPortComboBox.SelectionChanged -= comPortComboBox_SelectionChanged;
+			comPortComboBox.Items.Add("");
+			comPortComboBox.SelectedIndex = 0;
+			comPortComboBox.Items.Clear();
+			comPortComboBox.SelectionChanged += comPortComboBox_SelectionChanged;
 		}
 
 		private async Task pbTask()
@@ -1235,77 +1194,56 @@ namespace X_Manager
 				Task pbbTask = pbTask();
 				await pbbTask;
 
-				sp.BaudRate = Baudrate_base;
-				sp.ReadTimeout = 550;
-				sp.NewLine = "\r\n";
-
-				//isola la porta COM selezionata
-				string portShortName;
-				portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-				if (sp.IsOpen) sp.Close();
-
-				//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
-				//ftdiSerialNumber = setLatency(portShortName, 1);
-				try
-				{
-					sp.PortName = portShortName;
-					sp.Open();
-				}
-				catch (Exception ex)
-				{
-					badShow(ex.Message);
-					uiDisconnected();
-					return;
-				}
-
 				string response;
-				sp.ReadExisting();
+				if (sender is Button)		//Se la connessione è stata chiamata da pulsante, utilizza il baudrate principale, altrimenti potrebbe essere stata chiamata da
+				{							//Masterstation, in questo caso il baudrate deve rimanere com'è
+					FTDI.BaudRate = 115200;
+				}
+				FTDI.ReadExisting();
 
-				sp.Write("T");
+				FTDI.Write("T");
 				try
 				{
-					int rs = sp.ReadByte();
+					int rs = FTDI.ReadByte();
 					if (rs == 0x23)
 					{
 						//completeCommand = false;
 						Thread.Sleep(55);
-						sp.ReadExisting();
-						sp.Write("T");
+						FTDI.ReadExisting();
+						FTDI.Write("T");
 						Thread.Sleep(5);
-						sp.Write("TTTTTTTTTTTTTTGGAP");
+						FTDI.Write("TTTTTTTTTTTTTTGGAP");
 					}
 					else if (rs == '6')     //In caso di Gipsy6 bisogna mandare una stringa corta
 					{
-						sp.Write("TTTTTTTGGAP");
+						FTDI.Write("TTTTTTTGGAP");
 					}
 					else
 					{
-						sp.Write("TTTTTTTTTTTGGAP");
+						FTDI.Write("TTTTTTTTTTTGGAP");
 					}
 
 					if (remote) Thread.Sleep(400);
-					response = sp.ReadLine();
+					response = FTDI.ReadLine();
 				}
 				catch
 				{
 					try
 					{
-						sp.Write("TTTTTTTTTTTTTTGGAP");
+						FTDI.Write("TTTTTTTTTTTTTTGGAP");
 						Thread.Sleep(200);
-						response = sp.ReadLine();
+						response = FTDI.ReadLine();
 						//completeCommand = false;
 						//if (response.Contains("RReady")) completeCommand = true;
 					}
 					catch
 					{
 						badShow(STR_unitNotReady);
-						if (sp.IsOpen) sp.Close();
 						uiDisconnected();
 						return;
 					}
 				}
-				sp.ReadTimeout = 1100;
+				FTDI.ReadTimeout = 1100;
 
 				bool esito = true;
 				if (response.Contains("Ready"))
@@ -1313,7 +1251,7 @@ namespace X_Manager
 					try
 					{
 						Thread.Sleep(10);
-						string model = Unit.askModel(ref sp);
+						string model = Unit.askModel();
 						switch (model)
 						{
 							case "Axy-Trek":
@@ -1371,7 +1309,7 @@ namespace X_Manager
 				{
 					try
 					{
-						string model = Unit.askLegacyModel(ref sp);
+						string model = Unit.askLegacyModel();
 						switch (model)
 						{
 							case "Axy-4":
@@ -1396,14 +1334,12 @@ namespace X_Manager
 				else
 				{
 					badShow(STR_unitNotReady);
-					if (sp.IsOpen) sp.Close();
 					uiDisconnected();
 				}
 
 				if (!esito)
 				{
 					badShow(STR_unitNotReady);
-					if (sp.IsOpen) sp.Close();
 					uiDisconnected();
 					return;
 				}
@@ -1428,7 +1364,6 @@ namespace X_Manager
 		//ERASE
 		void eraseButtonClick(object sender, RoutedEventArgs e)
 		{
-			oUnit.closeSerialPort(sp);
 			YesNo yn = new YesNo("Do you really want to erase the memory?", "MEMORY ERASING");
 			yn.Owner = this;
 			if (yn.ShowDialog() == 1)
@@ -1456,7 +1391,6 @@ namespace X_Manager
 		//CONFIGURATION (movements)
 		void configureMovementButtonClick(object sender, RoutedEventArgs e)
 		{
-			oUnit.closeSerialPort(sp);
 			byte[] conf;
 			byte[] accSchedule;
 			try
@@ -1500,11 +1434,11 @@ namespace X_Manager
 			}
 			else if (oUnit.modelCode == Unit.model_axyTrek | oUnit.modelCode == Unit.model_axyQuattrok)
 			{
-				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA, ref sp);
+				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA);
 			}
 			else if (oUnit.modelCode == Unit.model_drop_off)
 			{
-				confForm = new DropOffConfigurationWindow(conf, oUnit.firmTotA, ref sp);
+				confForm = new DropOffConfigurationWindow(conf, oUnit.firmTotA);
 			}
 			else
 			{
@@ -1568,7 +1502,6 @@ namespace X_Manager
 			}
 			else
 			{
-				oUnit.closeSerialPort(sp);
 				if ((oUnit is AxyTrek) | (oUnit is AxyQuattrok))
 				{
 					type = 1;
@@ -1592,10 +1525,10 @@ namespace X_Manager
 				var tg = new YesNo("WARNING: you are entering the GiPSy6 bootloader!\r\nPlease, proceed only if you have a new firmware to upload, else please leave or your unit could potentially get bricked.", "GiPSy6 Bootloader", "", "Yes", "No");
 				if (tg.ShowDialog() == 2) return;
 				uiDisconnected();
-				string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
+				//string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
+				//portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
 				//ftdiSerialNumber = setLatency(portShortName, 1);
-				var boot = new Bootloader.Bootloader_Gipsy6(true, sp, "GiPSy-6");
+				var boot = new Bootloader.Bootloader_Gipsy6(true, "GiPSy-6");
 				boot.ShowDialog();
 				return;
 			}
@@ -1616,7 +1549,6 @@ namespace X_Manager
 		//DOWNLOAD
 		private void downloadButtonClick(object sender, RoutedEventArgs e)
 		{
-			oUnit.closeSerialPort(sp);
 			uint[] memoryLogical;
 			uint[] memoryPhysical;
 			try
@@ -1870,101 +1802,21 @@ namespace X_Manager
 				var res = remoteMain.showDialog();
 				if (res == 1)               //Gestione Master Station
 				{
-					sp.BaudRate = Baudrate_base;
-					sp.ReadTimeout = 400;
-					sp.NewLine = "\r\n";
-
-					//isola la porta COM selezionata
-					string portShortName;
-					portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-					try
+					if (FTDI is null)
 					{
-						portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-					}
-					catch
-					{
-						MessageBox.Show(STR_noComPortAvailable);
+						MessageBox.Show("Please connect a data cable first.");
 						return;
 					}
-
-					if (sp.IsOpen) sp.Close();
-					sp.PortName = portShortName;
-
-					//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
-					try
-					{
-						sp.Open();
-						ftdiSerialNumber = setLatency(portShortName, 1);
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message);
-						return;
-					}
-					if (sp.IsOpen) sp.Close();
-					var remoteManagement = new MS_Main(ref sp, this, portShortName);
+					var remoteManagement = new MS_Main(this);
 					remoteManagement.ShowDialog();
 				}
 				else if (res == 2)              //Gestione Base Station
 				{
-					try
-					{
-						if (sp.IsOpen) sp.Close();
-					}
-					catch { }
-					var remoteManagement = new BS_Main(comPortComboBox.Text);
+					var remoteManagement = new BS_Main();
 					remoteManagement.Owner = this;
 					remoteManagement.ShowDialog();
 				}
-
-				if ((string)connectButton.Content == "Disconnect")
-				{
-					if (sp.IsOpen == false)
-					{
-						try
-						{
-							sp.Open();
-						}
-						catch { }
-					}
-				}
 				return;
-
-			}
-			else
-			{
-				if (remoteButton.Content.ToString().Contains("figure"))
-				{
-					//isola la porta COM selezionata
-					string portShortName;
-					portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-					try
-					{
-						portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-					}
-					catch
-					{
-						MessageBox.Show(STR_noComPortAvailable);
-						return;
-					}
-
-					if (sp.IsOpen) sp.Close();
-					sp.PortName = portShortName;
-
-					//Imposta a 1ms il latency del buffer ftdi e tenta di aprire la porta
-					ftdiSerialNumber = setLatency(portShortName, 1);
-					try
-					{
-						sp.Open();
-					}
-					catch (Exception ex)
-					{
-						MessageBox.Show(ex.Message);
-						return;
-					}
-					if (sp.IsOpen) sp.Close();
-					//Far partire finestra di configurazione unità remota con indirizzo 0xffffff
-				}
 			}
 		}
 
@@ -1977,8 +1829,7 @@ namespace X_Manager
 				case (0):
 					return;
 				case (2):
-					oUnit.closeSerialPort(sp);
-					charts = new ChartWindowAGM(sp.PortName);
+					charts = new ChartWindowAGM();
 					((ChartWindowAGM)charts).WindowState = WindowState.Maximized;
 					((ChartWindowAGM)charts).ShowDialog();
 					break;
@@ -2006,7 +1857,8 @@ namespace X_Manager
 
 		public void externBootloader()
 		{
-			var boot = new Bootloader.Bootloader_Gipsy6(false, sp, "MasterStation");
+			FTDI.BaudRate = 1000000;
+			var boot = new Bootloader.Bootloader_Gipsy6(false, "MasterStation");
 			boot.ShowDialog();
 		}
 
@@ -2067,7 +1919,6 @@ namespace X_Manager
 		private void setName()
 		{
 			if (string.IsNullOrEmpty(unitNameTextBox.Text)) return;
-			oUnit.closeSerialPort(sp);
 			try
 			{
 				oUnit.setName(unitNameTextBox.Text);
@@ -2087,17 +1938,16 @@ namespace X_Manager
 		private void getConf()
 		{
 			positionCanSend = oUnit.positionCanSend;
-			oUnit.closeSerialPort(sp);
 			try
 			{
 				Thread.Sleep(10);
-				oUnit.changeBaudrate(ref sp, 1);
+				oUnit.changeBaudrate(1);
 				Thread.Sleep(10);
 				firmwareLabel.Content = oUnit.askFirmware();
 				Thread.Sleep(10);
 				unitNameTextBox.Text = oUnit.askName();
 				Thread.Sleep(10);
-				if (!(oUnit is Gipsy6)) sp.ReadExisting();
+				FTDI.ReadExisting();
 				Thread.Sleep(10);
 				batteryLabel.Content = oUnit.askBattery();
 				Thread.Sleep(10);
@@ -2121,7 +1971,6 @@ namespace X_Manager
 
 		private void getRemote()
 		{
-			oUnit.closeSerialPort(sp);
 			Thread.Sleep(10);
 			remote = false;
 			string title = "X MANAGER";
@@ -2135,7 +1984,6 @@ namespace X_Manager
 
 		private void getSolar()
 		{
-			oUnit.closeSerialPort(sp);
 			Thread.Sleep(10);
 			remote = false;
 			string title = "X MANAGER";
@@ -2146,12 +1994,6 @@ namespace X_Manager
 			}
 			this.Title = title;
 		}
-
-		//private void spurgo()
-		//{
-		//	oUnit.closeSerialPort(sp);
-		//	while (sp.BytesToRead != 0) sp.ReadByte();
-		//}
 
 		private void keepAliveTimerElapsed(Object source, System.Timers.ElapsedEventArgs e)
 		{
@@ -2639,12 +2481,16 @@ namespace X_Manager
 
 		private void Window_Closing(object sender, CancelEventArgs e)
 		{
-
+			if (!(FTDI is null))
+			{
+				FTDI.Close();
+			}
 		}
 
 
 
 		#endregion
+
 
 	}
 

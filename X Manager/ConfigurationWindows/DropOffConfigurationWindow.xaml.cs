@@ -21,15 +21,15 @@ namespace X_Manager.ConfigurationWindows
 	public partial class DropOffConfigurationWindow : ConfigurationWindow
 	{
 		int hours = 0;
-		SerialPort sp;
-		public DropOffConfigurationWindow(byte[] axyconf, UInt32 unitFirm, ref SerialPort sp) : base()
+		FTDI_Device ft;
+		public DropOffConfigurationWindow(byte[] axyconf, UInt32 unitFirm) : base()
 		{
 			InitializeComponent();
 			hours = axyconf[0] * 256 + axyconf[1];
 			timerTb.Text = hours.ToString();
 			axyConfOut = new byte[2];
 			mustWrite = false;
-			this.sp = sp;
+			ft = MainWindow.FTDI;
 		}
 
 		private void timerTb_LostFocus(object sender, RoutedEventArgs e)
@@ -72,14 +72,14 @@ namespace X_Manager.ConfigurationWindows
 
 		private void testB_Click(object sender, RoutedEventArgs e)
 		{
-			int oldTimeout = sp.ReadTimeout;
+			uint oldTimeout = ft.ReadTimeout;
 			int res = 0;
-			sp.ReadTimeout = 5000;
-			sp.Write("TTTTTTTGGAV");
+			ft.ReadTimeout = 5000;
+			ft.Write("TTTTTTTGGAV");
 			try
 			{
-				currentTb.Text = sp.ReadLine();
-				res = sp.ReadByte();
+				currentTb.Text = ft.ReadLine();
+				res = ft.ReadByte();
 			}
 			catch
 			{

@@ -23,16 +23,16 @@ namespace X_Manager.Remote
 	public partial class MS_Configurator_1 : UserControl
 	{
 		MS_Main rm;
-		SerialPort sp;
+		FTDI_Device ft;
 
 		int physycalAddress;
 		int logicalAddress;
 		Unit u;
 
-		public MS_Configurator_1(ref SerialPort sp, object rm)
+		public MS_Configurator_1(object rm)
 		{
 			InitializeComponent();
-			this.sp = sp;
+			ft = MainWindow.FTDI;
 			this.rm = (MS_Main)rm;
 			physicalTB.IsEnabled = false;
 			logicalTB.IsEnabled = false;
@@ -70,14 +70,13 @@ namespace X_Manager.Remote
 		public void read()
 		{
 			if (!checkConnectedUnit()) return;
-			if (!sp.IsOpen) sp.Open();
-			sp.Write("TTTTTTTTGGAA");
-			sp.ReadTimeout = 1000;
+			ft.Write("TTTTTTTTGGAA");
+			ft.ReadTimeout = 1000;
 			try
 			{
-				sp.ReadLine();
-				physycalAddress = sp.ReadByte();
-				logicalAddress = (sp.ReadByte() * 65536) + (sp.ReadByte() * 256) + sp.ReadByte();
+				ft.ReadLine();
+				physycalAddress = ft.ReadByte();
+				logicalAddress = (ft.ReadByte() * 65536) + (ft.ReadByte() * 256) + ft.ReadByte();
 				string phMod = null;
 				string loMod = null;
 				if ((bool)phCB.IsChecked) phMod = "x";
@@ -95,17 +94,16 @@ namespace X_Manager.Remote
 		private void write()
 		{
 			if (!checkConnectedUnit()) return;
-			if (!sp.IsOpen) sp.Open();
-			sp.Write("TTTTTTTTGGAa");
-			sp.ReadTimeout = 1000;
+			ft.Write("TTTTTTTTGGAa");
+			ft.ReadTimeout = 1000;
 			try
 			{
-				sp.ReadLine();
-				sp.Write(new byte[] { (byte)physycalAddress }, 0, 1);
-				sp.Write(new byte[] { (byte)((logicalAddress >> 16) & 0xff) }, 0, 1);
-				sp.Write(new byte[] { (byte)((logicalAddress >> 8) & 0xff) }, 0, 1);
-				sp.Write(new byte[] { (byte)(logicalAddress & 0xff) }, 0, 1);
-				sp.ReadLine();
+				ft.ReadLine();
+				ft.Write(new byte[] { (byte)physycalAddress }, 0, 1);
+				ft.Write(new byte[] { (byte)((logicalAddress >> 16) & 0xff) }, 0, 1);
+				ft.Write(new byte[] { (byte)((logicalAddress >> 8) & 0xff) }, 0, 1);
+				ft.Write(new byte[] { (byte)(logicalAddress & 0xff) }, 0, 1);
+				ft.ReadLine();
 			}
 			catch
 			{

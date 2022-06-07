@@ -24,11 +24,11 @@ namespace X_Manager.Units
 		{
 			string battery = "";
 			double battLevel;
-			sp.Write("TTTTGGAB");
+			ft.Write("TTTTGGAB");
 			try
 			{
-				battLevel = sp.ReadByte(); battLevel *= 256;
-				battLevel += sp.ReadByte();
+				battLevel = ft.ReadByte(); battLevel *= 256;
+				battLevel += ft.ReadByte();
 				battLevel *= 6;
 				battLevel /= 4096;
 			}
@@ -45,13 +45,13 @@ namespace X_Manager.Units
 			byte[] f = new byte[3];
 			string firmware = "";
 
-			sp.ReadExisting();
-			sp.Write("TTTTTTTGGAF");
-			sp.ReadTimeout = 400;
+			ft.ReadExisting();
+			ft.Write("TTTTTTTGGAF");
+			ft.ReadTimeout = 400;
 			int i = 0;
 			try
 			{
-				for (i = 0; i < 3; i++) f[i] = (byte)sp.ReadByte();
+				for (i = 0; i < 3; i++) f[i] = (byte)ft.ReadByte();
 			}
 			catch
 			{
@@ -97,8 +97,8 @@ namespace X_Manager.Units
 			string unitNameBack;
 			try
 			{
-				sp.Write("TTTTTTTGGAN");
-				unitNameBack = sp.ReadLine();
+				ft.Write("TTTTTTTGGAN");
+				unitNameBack = ft.ReadLine();
 			}
 			catch
 			{
@@ -122,12 +122,12 @@ namespace X_Manager.Units
 		{
 			byte[] conf = new byte[2];
 
-			sp.ReadExisting();
-			sp.Write("TTTTTTTTTTTTGGAC");
+			ft.ReadExisting();
+			ft.Write("TTTTTTTTTTTTGGAC");
 			try
 			{
-				conf[0] = (byte)sp.ReadByte();
-				conf[1] = (byte)sp.ReadByte();
+				conf[0] = (byte)ft.ReadByte();
+				conf[1] = (byte)ft.ReadByte();
 			}
 			catch
 			{
@@ -138,13 +138,13 @@ namespace X_Manager.Units
 
 		public override void setConf(byte[] conf)
 		{
-			sp.ReadExisting();
-			sp.Write("TTTTTTTTTTTTGGAc");
+			ft.ReadExisting();
+			ft.Write("TTTTTTTTTTTTGGAc");
 			try
 			{
-				sp.ReadByte();
-				sp.Write(conf, 0, 2);
-				sp.ReadByte();
+				ft.ReadByte();
+				ft.Write(conf, 0, 2);
+				ft.ReadByte();
 			}
 			catch
 			{
@@ -155,7 +155,7 @@ namespace X_Manager.Units
 		public override void disconnect()
 		{
 			base.disconnect();
-			sp.Write("TTTTTTTTTGGAO");
+			ft.Write("TTTTTTTTTGGAO");
 
 		}
 	}

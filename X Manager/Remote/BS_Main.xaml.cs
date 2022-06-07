@@ -60,6 +60,7 @@ namespace X_Manager.Remote
 		//volatile bool closingP = false;
 		BS_listViewElement tempBsLvElement;
 		int tempBsLvIndex;
+		int bsAddress;
 		List<CheckBox> scheduleCBArr;
 		byte[] oldScheduleArr;
 		DriveStatus oldDriveStatus;
@@ -159,14 +160,14 @@ namespace X_Manager.Remote
 		readonly Control[] visArr;
 		private readonly Object addressLock = new Object();
 		private readonly Object scheduleLock = new Object();
-		String spName;
+		FTDI_Device ft;
 
-		public BS_Main(string spName)
+		public BS_Main()
 		{
 			InitializeComponent();
 			Point p = new Point(0, 0);
 
-			this.spName = spName;
+			ft = MainWindow.FTDI;
 
 			//Crea un elenco di controlli da rendere visibili o invisibile a seconda che l'unità selezionata sia o meno una basestation
 			visArr = new Control[] { channelListGB, scheduleGB, plusB, minusB, plusPlusB, undoB, allOnB, allOffB, confGB, saveB, bootloaderB, sendTimeB };
@@ -225,6 +226,9 @@ namespace X_Manager.Remote
 				scheduleCBArr.Add(chb);
 				thickness.Top += 40;
 			}
+
+			//Invalida l'indirizzo di ricezzione
+			bsAddress = -1;
 
 		}
 
@@ -399,6 +403,24 @@ namespace X_Manager.Remote
 
 		private void saveB_Click(object sender, RoutedEventArgs e)
 		{
+			string num = bsAddressTB.Text;
+			var ns = System.Globalization.NumberStyles.Integer;
+			if (num.IndexOf("0x", StringComparison.InvariantCultureIgnoreCase) != -1)
+			{
+				ns = System.Globalization.NumberStyles.HexNumber;
+				num = num.Remove(0, 2);
+				num = num.ToLower();
+			}
+			int.TryParse(num, ns, System.Globalization.CultureInfo.InvariantCulture, out bsAddress);
+			if (bsAddress == 0 || bsAddress == 555 || bsAddress >= 0xffff00)
+			{
+				bsAddress = -1;
+			}
+			if (bsAddress == -1)
+			{
+				MessageBox.Show("Invalid Receiving Address!");
+				return;
+			}
 			save = true;
 			Close();
 		}
@@ -599,12 +621,18 @@ namespace X_Manager.Remote
 							}
 
 						}
-						validateDriveTimer.Start();
+						if (!(listDriveTimer is null))
+						{
+							validateDriveTimer.Start();
+						}
 					}
 				}
 			}
 			//Fa ripartire il timer per il controllo periodico dei drive
-			listDriveTimer.Start();
+			if (!(listDriveTimer is null))
+			{
+				listDriveTimer.Start();
+			}
 		}
 
 		private void validateDriveTimerElapsed(Object source, ElapsedEventArgs e)
@@ -618,7 +646,10 @@ namespace X_Manager.Remote
 					Application.Current.Dispatcher.Invoke(() => validateDriveTimerElapsedDelegate());
 				}
 			}
-			validateDriveTimer.Start();
+			if (!(validateDriveTimer is null))
+			{
+				validateDriveTimer.Start();
+			}
 		}
 
 		private void validateDriveTimerElapsedDelegate()
@@ -715,8 +746,10 @@ namespace X_Manager.Remote
 				//Altrimenti rende invisibili i controlli di lavoro
 				selectedDriveAspect(DriveStatus.NOT_VALID);
 			}
-			validateDriveTimer.Start();
-
+			if (!(validateDriveTimer is null))
+			{
+				validateDriveTimer.Start();
+			}
 		}
 
 		private bool validateDrive(DriveInfo drive)
@@ -1302,7 +1335,8 @@ namespace X_Manager.Remote
 			Array.Reverse(address);
 			Array.Reverse(userID);
 			bsIDL.Content = BitConverter.ToInt32(basestationID, 0).ToString();
-			bsAddressL.Content = BitConverter.ToInt32(address, 0).ToString();
+			bsAddressTB.Text = BitConverter.ToInt32(address, 0).ToString();
+			bsAddress = BitConverter.ToInt32(address, 0);
 			userIDL.Content = BitConverter.ToInt32(userID, 0).ToString();
 			bsNameTB.Text = File.ReadAllLines(d.Name + FILE_NAME)[0];
 			intialName = bsNameTB.Text;
@@ -1310,11 +1344,23 @@ namespace X_Manager.Remote
 
 		private void saveConfiguration()
 		{
-			DriveInfo dr;
+			DriveInfo dr = null;
+			//Salva il nome della basestation
 			try
 			{
 				dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
 				File.WriteAllText(dr.Name + FILE_NAME, bsNameTB.Text);
+			}
+			catch { }
+			//Salva l'indirizzo di ricezione
+			try
+			{
+				byte[] conf = File.ReadAllBytes(dr.Name + FILE_CONF);
+				byte[] add = BitConverter.GetBytes(bsAddress);
+				Array.Reverse(add);
+				Array.Copy(add, 0, conf, 0x0a, 4);
+				File.WriteAllBytes(dr.Name + FILE_CONF, conf);
+
 			}
 			catch { }
 		}
@@ -1539,19 +1585,14 @@ namespace X_Manager.Remote
 			saveAddressTimer.Stop();
 			saveScheduleTimer.Stop();
 			validateDriveTimer.Stop();
-			if (spName == "")
+			if (ft is null)
 			{
 				MessageBox.Show("No serial data cable detected.");
 				listDriveTimer.Start();
 				validateDriveTimer.Start();
 				return;
 			}
-			if (spName.Contains("("))
-			{
-				spName = spName.Substring(spName.IndexOf("(") + 1);
-				spName = spName.Remove(spName.IndexOf(")"), spName.Length - spName.IndexOf(")"));
-			}
-			var bl = new Bootloader.Bootloader_Gipsy6(true, spName, "BaseStation");
+			var bl = new Bootloader.Bootloader_Gipsy6(true, "BaseStation");
 
 			bl.ShowDialog();
 			listDriveTimer.Start();

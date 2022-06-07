@@ -23,43 +23,29 @@ namespace X_Manager.Bootloader
 	/// </summary>
 	public partial class Bootloader_Gipsy6 : Window
 	{
-		SerialPort sp;
-		bool unitConnected;
+		bool unitConnected = false;
 		public bool success = false;
 		string firmwareFile;
 		readonly byte[] COMMAND_PING = { 0x03, 0x20, 0x20 };
 		readonly byte[] COMMAND_GET_CHIP_ID = { 0x03, 0x28, 0x28 };
 		readonly uint bootloaderBaudRate = 1000000;
-		Parent parent;
 		FTDI_Device ft;
-		String device;
+		string device;
 
 		BackgroundWorker bgw;
 
 
-		public Bootloader_Gipsy6(bool unitConnected, Object spO, string device)
+		public Bootloader_Gipsy6(bool unitConnected, string device)
 		{
 			InitializeComponent();
 			Loaded += loaded;
 			Closing += closing;
-
 			flashB.IsEnabled = false;
-			if (spO is SerialPort)
+			ft = MainWindow.FTDI;
+			if (ft is null)
 			{
-				this.sp = spO as SerialPort;
-				if (sp.IsOpen) sp.Close();
-				ft = new FTDI_Device(sp.PortName);
-			}
-			else
-			{
-				string spName = spO as string;
-				ft = new FTDI_Device(spName);
-				if (ft.stringCode == "")
-				{
-					MessageBox.Show("Can't open serial port.");
-					return;
-				}
-
+				MessageBox.Show("Can't open serial port.");
+				return;
 			}
 			this.unitConnected = unitConnected;
 			flashB.IsEnabled = false;
@@ -74,26 +60,23 @@ namespace X_Manager.Bootloader
 		{
 			if (unitConnected == true)
 			{
-				uint baudrate = 115200;
-				if (sp != null) baudrate = (uint)sp.BaudRate;
-				ft.Open(baudrate);
+				ft.ReadTimeout = 1000;
 				if (device.IndexOf("basestation", StringComparison.InvariantCultureIgnoreCase) >= 0)
 				{
-					ft.ReadTimeout = 1000;
-					ft.Close();
-					ft.Open();
 					ft.BaudRate = 115200;
 					Thread.Sleep(100);
 					byte[] piu = new byte[3] { 0x2b, 0x2b, 0x2b };
 					ft.Write(piu, 0, 3);
 					Thread.Sleep(200);
 					ft.Write("ATBL");
-					string res = ft.ReadLine();
-					if (res.IndexOf("resetting", StringComparison.InvariantCultureIgnoreCase) == -1)
+					try
+					{
+						ft.ReadLine();
+					}
+					catch
 					{
 						MessageBox.Show("Firmware updating not ready. Please try again...");
 						ft.BaudRate = 115200;
-						ft.Close();
 						return;
 					}
 				}
@@ -111,15 +94,12 @@ namespace X_Manager.Bootloader
 					{
 						MessageBox.Show("Firmware updating not ready. Please try again...");
 						ft.BaudRate = 115200;
-						ft.Close();
 						return;
 					}
 					ft.Write("K");
 					Thread.Sleep(10);
 				}
 			}
-
-			ft.Close();
 		}
 		struct program
 		{
@@ -148,6 +128,7 @@ namespace X_Manager.Bootloader
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
+			ft.Close();
 			ft.Open(bootloaderBaudRate);
 			Thread.Sleep(100);
 			ft.ReadExisting();
@@ -177,7 +158,6 @@ namespace X_Manager.Bootloader
 						{
 							MessageBox.Show("Bootloader not ready. Please try again...");
 							ft.BaudRate = 115200;
-							ft.Close();
 							return;
 
 						}
@@ -202,7 +182,6 @@ namespace X_Manager.Bootloader
 			{
 				MessageBox.Show("Bootloader not ready. Please try again...");
 				ft.BaudRate = 115200;
-				ft.Close();
 				return;
 			}
 
@@ -249,7 +228,6 @@ namespace X_Manager.Bootloader
 			X_Manager.Parent.updateParameter("gipsy6BootloaderWipeData", b);
 
 			ft.BaudRate = 115200;
-			ft.Close();
 		}
 
 		void getChipId()
@@ -267,7 +245,6 @@ namespace X_Manager.Bootloader
 				{
 					MessageBox.Show("Bootloader not ready. Please try again...");
 					ft.BaudRate = 115200;
-					ft.Close();
 					Close();
 					return;
 				}
@@ -281,7 +258,6 @@ namespace X_Manager.Bootloader
 			{
 				MessageBox.Show("Bootloader not ready. Please try again...");
 				ft.BaudRate = 115200;
-				ft.Close();
 				Close();
 				return;
 			}
@@ -404,7 +380,6 @@ namespace X_Manager.Bootloader
 			//bool wipeSettings = (bool)wipeSettingsCB.IsChecked;
 			uint oldReadTimeout = ft.ReadTimeout;
 			ft.Open();
-			//string ftdiSerialNumber = parent.setLatency(sp.PortName, 1);
 			ft.ReadTimeout = 300;
 			bgw.ReportProgress(-1);
 			uint address = 0;
@@ -716,7 +691,6 @@ namespace X_Manager.Bootloader
 					if (i == 1)
 					{
 						MessageBox.Show("Bootloader not ready. Please try again...");
-						//Close();
 						return;
 					}
 				}

@@ -22,9 +22,9 @@ namespace X_Manager.Units
 	class Gipsy6 : Unit
 	{
 
-		FTDI_Device ft;
 		//byte[] buffIn;
 		//byte[] buffOut;
+
 		struct TimeStamp
 		{
 			private int _pos;
@@ -195,14 +195,8 @@ namespace X_Manager.Units
 			: base(p)
 		{
 			modelCode = model_Gipsy6;
-			useFtdi = true;
 			configureMovementButtonEnabled = true;
 			configurePositionButtonEnabled = false;
-			//buffIn = new byte[8192];
-			//buffOut = new byte[8192];
-			if (sp.IsOpen) sp.Close();
-			ft = new FTDI_Device(sp.PortName);
-			ft.Open();
 		}
 
 		private bool ask(string command)
@@ -230,13 +224,11 @@ namespace X_Manager.Units
 
 				try
 				{
-					//test = sp.ReadByte();   //Byte di risposta per verifica correttezza comando
-					test = ft.ReadByte();
+					test = ft.ReadByte();   //Byte di risposta per verifica correttezza comando
 				}
 				catch
 				{
 					Thread.Sleep(500);
-					//	sp.Write(new byte[] { 0 }, 0, 1);
 					ft.Write(new byte[] { 0 }, 1);
 					continue;               //Dopo il timeout di 3 ms non è arrivata la risposta: il comando viene reinviato
 				}
@@ -290,7 +282,7 @@ namespace X_Manager.Units
 			ft.BaudRate = 2000000;
 		}
 
-		public override void changeBaudrate(ref SerialPort sp, int maxMin)
+		public override void changeBaudrate(int maxMin)
 		{
 			if (!remoteConnection)
 			{
@@ -299,8 +291,6 @@ namespace X_Manager.Units
 				uint b;
 				try
 				{
-
-					//sp.Write(new byte[] { 0x54, 0x54, 0x47, 0x47, 0x41, 0x62, 0x4b, 0x01 }, 0, 8);
 
 					if (!ask("b"))
 					{
@@ -313,9 +303,7 @@ namespace X_Manager.Units
 					newBaudRate = newBaudRate + ((uint)ft.ReadByte() << 16);
 					newBaudRate = newBaudRate + ((uint)ft.ReadByte() << 24);
 					b = ft.ReadByte();
-					//sp.Close();
 					ft.BaudRate = newBaudRate;
-					//sp.Open();
 					ft.Write(new byte[] { 0x55 }, 1);
 					Thread.Sleep(5);
 					b = ft.ReadByte();
@@ -1035,7 +1023,7 @@ namespace X_Manager.Units
 					if (remoteConnection)
 					{
 						ft.ReadTimeout = 2200;
-						sp.ReadByte();
+						ft.ReadByte();
 					}
 				}
 				catch { }
@@ -2193,10 +2181,6 @@ namespace X_Manager.Units
 
 		public override void Dispose()
 		{
-			if (ft.IsOpen)
-			{
-				ft.Close();
-			}
 			base.Dispose();
 		}
 

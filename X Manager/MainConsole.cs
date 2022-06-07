@@ -37,7 +37,7 @@ namespace X_Manager
 		public MainConsole()
 		{
 			csvSeparator = "\t";
-			sp = null;
+			MainWindow.FTDI = null;
 			var dt = DateTime.Now;
 			newPrefs = new string[19];
 			newPrefs[Unit.pref_pressMetri] = "millibars";
