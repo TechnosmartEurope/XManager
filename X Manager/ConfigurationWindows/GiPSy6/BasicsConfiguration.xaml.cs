@@ -160,8 +160,18 @@ namespace X_Manager.ConfigurationWindows
 					cb.IsChecked = true;
 				}
 			}
+			if (conf[57] == 0)
+			{
+				debugEventsL.Text = "";
+			}
+
+			Loaded += loaded;
 		}
 
+		private void loaded(object sender, RoutedEventArgs e)
+		{
+			acqOnTB.Focus();
+		}
 		private void remoteHourUnchecked(object sender, RoutedEventArgs e)
 		{
 			CheckBox v = (CheckBox)sender;
@@ -276,6 +286,20 @@ namespace X_Manager.ConfigurationWindows
 							bc.ShowDialog();
 						}
 						e.Handled = true;
+					}
+					e.Handled = true;
+				}
+				else if (e.Key == Key.D)
+				{
+					if (conf[57] == 0)
+					{
+						conf[57] = 1;
+						debugEventsL.Text = "(Debug Events ON)";
+					}
+					else
+					{
+						conf[57] = 0;
+						debugEventsL.Text = "";
 					}
 					e.Handled = true;
 				}

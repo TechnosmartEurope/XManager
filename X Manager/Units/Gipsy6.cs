@@ -146,6 +146,8 @@ namespace X_Manager.Units
 			E_ACQ_ON,
 			E_ACQ_OFF,
 			E_SCHEDULE,
+			E_ALTON_START,
+			E_ALTON_TIMEOUT,
 			E_BATTERY_LOW,
 			E_MEM_FULL,
 			E_POWER_OFF,
@@ -162,6 +164,8 @@ namespace X_Manager.Units
 			"Start searching for satellites...",
 			"No visible satellite. Going to sleep...",
 			"GPS Schedule: {0} {1}",
+			"Fix Acquisition Start",
+			"Fix Timeout (Checkpoint #{0})",
 			"Low Battery.",
 			"Memory Full.",
 			"Power OFF",
@@ -2099,6 +2103,9 @@ namespace X_Manager.Units
 					break;
 				case eventType.E_SD_START:
 					outs = events[ts.eventAr[1]];
+					break;
+				case eventType.E_ALTON_TIMEOUT:
+					outs = String.Format(events[ts.eventAr[1]], ts.eventAr[2]);
 					break;
 				default:
 					outs = events[ts.eventAr[1]];

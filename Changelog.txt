@@ -194,3 +194,9 @@
 1.17.3 - Transizione completa a driver FTDI.
 	- Dumpview: possibilità di cancellare lo schermo e di cambiare baudrate
 	- Possibilità di modificare l'indirizzo ricevente della basestation
+1.17.4 - Gipsy6: Decodifica eventi Fix Start e Fix Timeout
+	- Gipsy6: Aggiunto settaggio nascosto in Basic Configuration (CTRL+D) per eventi di debug
+	- Basestation: Corretto l'invio della data sulla sd che era locale e non GMT0
+
+
+	

@@ -48,6 +48,7 @@
         <TextBlock Grid.Row="4" Text="(dB/Hz)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
 
         <TextBlock Grid.Row="6" Text="LOGGING options:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+        <TextBlock Grid.Row="6" x:Name="debugEventsL" Text="(Debug Events ON)" Foreground="Gray" FontSize="25" Margin="0,0,20,0" HorizontalAlignment="Right" />
         <TextBlock Grid.Row="7" Text="ON time:" Foreground="White" FontSize="25" Margin="80,0,0,0" />
         <TextBox Grid.Row="7" x:Name="altOnTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" TabIndex="106" GotFocus="onTB_GotFocus" />
         <TextBlock Grid.Row="7" Text="(sec)" Margin="800,0,0,0" FontSize="25" Foreground="White" />

@@ -497,7 +497,10 @@ namespace X_Manager.Remote
 							}
 							else
 							{
-								lve.Foreground = new SolidColorBrush(Color.FromArgb(255, 220, 180, 0));
+								if (dl[i].DriveFormat == "FAT32")
+								{
+									lve.Foreground = new SolidColorBrush(Color.FromArgb(255, 220, 180, 0));
+								}
 							}
 						}
 						driveLV.Items.Add(lve);
@@ -659,7 +662,7 @@ namespace X_Manager.Remote
 				return;
 			}
 
-			DriveStatus d;
+			DriveStatus d = DriveStatus.VALID;
 
 			if (validateDrive((driveLV.SelectedItem as BS_listViewElement).Drive))
 			{
@@ -669,7 +672,10 @@ namespace X_Manager.Remote
 			{
 				if ((driveLV.SelectedItem as BS_listViewElement).Drive.VolumeLabel.IndexOf("basestation", StringComparison.OrdinalIgnoreCase) >= 0)
 				{
-					d = DriveStatus.TO_BE_FORMATTED;
+					if ((driveLV.SelectedItem as BS_listViewElement).Drive.DriveFormat == "FAT32")
+					{
+						d = DriveStatus.TO_BE_FORMATTED;
+					}
 				}
 				else
 				{
@@ -739,7 +745,10 @@ namespace X_Manager.Remote
 			//else if (drive.VolumeLabel.Contains("BaseStation") || drive.VolumeLabel.Contains("BASESTATION"))
 			else if (drive.VolumeLabel.IndexOf("basestation", StringComparison.OrdinalIgnoreCase) >= 0)
 			{
-				selectedDriveAspect(DriveStatus.TO_BE_FORMATTED);
+				if (drive.DriveFormat == "FAT32")
+				{
+					selectedDriveAspect(DriveStatus.TO_BE_FORMATTED);
+				}
 			}
 			else
 			{
@@ -1462,31 +1471,51 @@ namespace X_Manager.Remote
 		{
 
 			DriveInfo di = null;
-			try
-			{
-				Application.Current.Dispatcher.Invoke(() => di = ((BS_listViewElement)driveLV.SelectedItem).Drive);
+			//try
+			//{
+			Application.Current.Dispatcher.Invoke(() => di = ((BS_listViewElement)driveLV.SelectedItem).Drive);
 
-				string drive = di.Name.Substring(0, 1) + ":";
-				var psi = new ProcessStartInfo();
-				psi.FileName = "format.com";
-				psi.CreateNoWindow = true; //if you want to hide the window
-				psi.WorkingDirectory = Environment.SystemDirectory;
-				psi.Arguments = "/FS:FAT32" + " /Y" + " /V:BaseStation /Q /A:2048 " + drive;
-				psi.UseShellExecute = false;
-				psi.CreateNoWindow = true;
-				psi.RedirectStandardOutput = true;
-				psi.RedirectStandardInput = true;
-				var formatProcess = Process.Start(psi);
-				var swStandardInput = formatProcess.StandardInput;
-				swStandardInput.WriteLine();
-				formatProcess.WaitForExit();
-			}
-			catch (Exception ex)
+			//	string drive = di.Name.Substring(0, 1) + ":";
+
+			//	var psi = new ProcessStartInfo();
+			//	psi.FileName = "format.com";
+			//	psi.CreateNoWindow = true; //if you want to hide the window
+			//	psi.WorkingDirectory = Environment.SystemDirectory;
+			//	psi.Arguments = "/FS:FAT32" + " /Y" + " /V:BaseStation /Q /A:2048 " + drive;
+			//	psi.UseShellExecute = false;
+			//	psi.CreateNoWindow = true;
+			//	psi.RedirectStandardOutput = true;
+			//	psi.RedirectStandardInput = true;
+			//	var formatProcess = Process.Start(psi);
+			//	var swStandardInput = formatProcess.StandardInput;
+			//	swStandardInput.WriteLine();
+			//	formatProcess.WaitForExit();
+			//}
+			//catch (Exception ex)
+			//{
+			//	MessageBox.Show(ex.Message);
+			//	Application.Current.Dispatcher.Invoke(() => formatProgress(200));
+			//	return;
+			//}
+
+			DirectoryInfo Di = new DirectoryInfo(di.Name);
+			foreach (FileInfo f in Di.GetFiles())
 			{
-				MessageBox.Show(ex.Message);
-				Application.Current.Dispatcher.Invoke(() => formatProgress(200));
-				return;
+				try
+				{
+					f.Delete();
+				}
+				catch { }
 			}
+			foreach (DirectoryInfo d in Di.GetDirectories())
+			{
+				try
+				{
+					d.Delete(true);
+				}
+				catch { }
+			}
+
 			byte[] conf = { 0x74, 0x73, 0x6D, 0x65, 0x42, 0x53,
 							bsId[0], bsId[1], bsId[2], bsId[3],
 							0x00, 0x00, 0x00, 0x01,
@@ -1538,7 +1567,7 @@ namespace X_Manager.Remote
 			byte[] conf = File.ReadAllBytes(drive.Name + FILE_CONF);
 			conf[0x12] = 1;
 
-			DateTime dt = DateTime.Now;
+			DateTime dt = DateTime.UtcNow;
 
 			conf[0x13] = reverseByte(dec2BCD((byte)(dt.Year - 2000)));
 			conf[0x14] = reverseByte(dec2BCD((byte)dt.Month));

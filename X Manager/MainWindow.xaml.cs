@@ -1195,8 +1195,8 @@ namespace X_Manager
 				await pbbTask;
 
 				string response;
-				if (sender is Button)		//Se la connessione è stata chiamata da pulsante, utilizza il baudrate principale, altrimenti potrebbe essere stata chiamata da
-				{							//Masterstation, in questo caso il baudrate deve rimanere com'è
+				if (sender is Button)       //Se la connessione è stata chiamata da pulsante, utilizza il baudrate principale, altrimenti potrebbe essere stata chiamata da
+				{                           //Masterstation, in questo caso il baudrate deve rimanere com'è
 					FTDI.BaudRate = 115200;
 				}
 				FTDI.ReadExisting();
@@ -1488,7 +1488,7 @@ namespace X_Manager
 			}
 		}
 
-		//CONFIGURATION (position)
+		//CONFIGURATION (position/bootloader)
 		private void configurePoistionClick(object sender, RoutedEventArgs e)
 		{
 
@@ -1523,12 +1523,14 @@ namespace X_Manager
 			else
 			{
 				var tg = new YesNo("WARNING: you are entering the GiPSy6 bootloader!\r\nPlease, proceed only if you have a new firmware to upload, else please leave or your unit could potentially get bricked.", "GiPSy6 Bootloader", "", "Yes", "No");
+				tg.Owner = this;
 				if (tg.ShowDialog() == 2) return;
 				uiDisconnected();
 				//string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
 				//portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
 				//ftdiSerialNumber = setLatency(portShortName, 1);
 				var boot = new Bootloader.Bootloader_Gipsy6(true, "GiPSy-6");
+				boot.Owner = this;
 				boot.ShowDialog();
 				return;
 			}
@@ -1595,7 +1597,7 @@ namespace X_Manager
 			saveRaw.DefaultExt = "RAW file|*." + oUnit.defaultArdExtension;
 			saveRaw.Filter = "RAW file|*." + oUnit.defaultArdExtension;
 
-			if (oUnit.defaultArdExtension.Contains("gp6"))
+			if (oUnit.defaultArdExtension.Contains("gp6") || oUnit.defaultArdExtension.Contains("bs6"))
 			{
 				saveRaw.OverwritePrompt = false;
 			}
@@ -1750,7 +1752,7 @@ namespace X_Manager
 			}
 
 			//fOpen.FileName = "*.ard";
-			fOpen.Filter = "Sensor Raw Data | *.ard;*.rem;*.gp6;*.memDump;*.mdp";
+			fOpen.Filter = "Sensor Raw Data | *.ard;*.rem;*.gp6;*.bs6;*.memDump;*.mdp";
 
 			fOpen.Multiselect = true;
 			if ((fOpen.ShowDialog() == false))
@@ -2261,7 +2263,7 @@ namespace X_Manager
 					{
 						fileHeader = "REM ";
 					}
-					if (Path.GetExtension(fileName).Contains("gp6"))
+					if (Path.GetExtension(fileName).Contains("gp6") || Path.GetExtension(fileName).Contains("bs6"))
 					{
 						fileType = type_gp6;
 					}
@@ -2326,7 +2328,7 @@ namespace X_Manager
 			convFiles.RemoveAt(0);
 			FileStream fs = File.OpenRead(fileName);
 			byte model;
-			byte fw = 0; //COntrollare cosa succede in caso di ardfile=false alla riga 1555 e poi al caso successivo (Depth)
+			byte fw = 0; //Controllare cosa succede in caso di ardfile=false alla riga 1555 e poi al caso successivo (Depth)
 			if (fileType == type_ard)
 			{
 				model = (byte)fs.ReadByte();
@@ -2358,8 +2360,14 @@ namespace X_Manager
 					cUnit = new Axy3(this);
 					break;
 				case Unit.model_axy4:
-					if (fileType == type_ard) fw = (byte)fs.ReadByte();
-					if ((fw < 2)) cUnit = new Axy4_1(this);
+					if (fileType == type_ard)
+					{
+						fw = (byte)fs.ReadByte();
+					}
+					if (fw < 2)
+					{
+						cUnit = new Axy4_1(this);
+					}
 					else cUnit = new Axy4_2(this);
 					break;
 				case Unit.model_axy5:
