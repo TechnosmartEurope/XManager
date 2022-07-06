@@ -64,6 +64,7 @@ namespace X_Manager.Remote
 		List<CheckBox> scheduleCBArr;
 		byte[] oldScheduleArr;
 		DriveStatus oldDriveStatus;
+		byte[] timestamp;
 
 		private enum DriveStatus
 		{
@@ -78,81 +79,6 @@ namespace X_Manager.Remote
 		const string FILE_SCHEDULE = "BS_SCHEDULE.dat";
 		const string FILE_UNITS = "BS_UNITS.dat";
 		const string FOLDER_CONFIG = "CONFIG";
-
-		#region DEFCONF
-
-		public static readonly byte[] defConf = new byte[600] {    0xCF, 0x00, 0x00, 0x02,
-		// 4	Nome unità: 27 caratteri + terminatore 0
-		0x4e, 0x6f, 0x20, 0x4e, 0x61, 0x6d, 0x65, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		// 32	ACQ ON (240s) - ACQ OFF (6s)
-		0xf0, 0x00, 0x0a, 0x00,
-		// 36	Alt on e SAT condition
-		0xb4, 0x00,
-		0x81,   //flag sat condition + n satelliti
-		0x10,   //gsv minima
-		// 40	Start delay (minuti, 32 bit)
-		0x00, 0x00, 0x00, 0x80,
-		// 44	Start delay (date)
-		0x02, 0x05, 0xe5, 0x87,
-		// 48	ADC soglia + magmin, flag trigger, flag log
-		0x02, 0x00, 0x00, 0x00,
-		// 52	P1: Schedule A (10 minuti)
-		0x0a, 0x01,
-		// 54	P1: Schedule B (1 ora)
-		0x01, 0x02,
-		// 56	Charging current (1 byte) + 2 byte disponibili
-		0x64, 0x00, 0x00, 0x00,
-		// 60 - P1: Orari (0 = off, 1 = sch.A, 2 = sch.B)
-		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-		// 84	P2: Schedule C (3 minuti)
-		0x03, 0x01,
-		// 86	P2: Schedule D (12 minuti)
-		0x0c, 0x01,
-		// 88	P2: Disponibile
-		0x00, 0x0c, 0x00, 0x00,
-		// 92 - P2: Orari (0 = off, 1 = sch.C, 2 = sch.D)
-		0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x02, 0x00, 0x01, 0x01, 0x02, 0x00, 0x00, 0x02, 0x02, 0x02, 0x01, 0x01, 0x01, 0x00, 0x02, 0x00, 0x01, 0x01,
-		// 116 - P2: Mesi validità
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		// 128 - G1: Vertici
-		0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		//288 - G1: Schedule E (15 minuto)
-		0x0f, 0x01,
-		//290 - G1: Schedule F (20 secondi)
-		0x14, 0x00,
-		// 292	G1: Disponibile
-		0x00, 0x0c, 0x00, 0x00,
-		// 296	G1: Orari
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		// 320 - G2: Vertici
-		0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		//480 - G2: Schedule G (1 ora)
-		0x01, 0x02,
-		//482 - G2: Schedule H (5 minuti)
-		0x05, 0x01,
-		// 484	G2: Disponibile
-		0x00, 0x00, 0x00, 0x00,
-		// 488	G2: Orari
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		// 512	G1/G2 Enable + 2 byte padding
-		0x00, 0x00, 0x00, 0x00,
-		//516 Orari remoto
-		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-		//540	Unità remota/!locale, Indirizzo remoto
-		0x01, 0xFF, 0xFF, 0xFF,
-		//544	Soglie batteria
-		0xBC, 0x09,     //3.65V		batteryStartLogging
-		0xBC, 0x09,     //3.65V		batteryPauseLogging
-		0x44, 0x0A,     //3.85V		batteryRestartLogging
-		0x11, 0x09,     //3.40V		batteryLowRfStart
-		0x77, 0x09,	 	//3.55V		batteryLowRfLog
-		//554
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-		//600
-		};
-
-		#endregion
 
 		bool save = false;
 		bool somethingChanged = false;
@@ -401,6 +327,47 @@ namespace X_Manager.Remote
 			catch { }
 		}
 
+		private void bootloader_Click(object sender, RoutedEventArgs e)
+		{
+			listDriveTimer.Stop();
+			saveAddressTimer.Stop();
+			saveScheduleTimer.Stop();
+			validateDriveTimer.Stop();
+			if (ft is null)
+			{
+				MessageBox.Show("No serial data cable detected.");
+				listDriveTimer.Start();
+				validateDriveTimer.Start();
+				return;
+			}
+			var bl = new Bootloader.Bootloader_Gipsy6(true, "BaseStation");
+
+			bl.ShowDialog();
+			listDriveTimer.Start();
+			validateDriveTimer.Start();
+		}
+
+		private void sendTimestamp_click(object sender, RoutedEventArgs e)
+		{
+			//var drive = (driveLV.SelectedItem as BS_listViewElement).Drive;
+			//byte[] conf = File.ReadAllBytes(drive.Name + FILE_CONF);
+			//conf[0x12] = 1;
+			timestamp = new byte[8];
+			DateTime dt = DateTime.UtcNow;
+
+			timestamp[0] = 1;
+			timestamp[1] = reverseByte(dec2BCD((byte)(dt.Year - 2000)));
+			timestamp[2] = reverseByte(dec2BCD((byte)dt.Month));
+			timestamp[3] = reverseByte(dec2BCD((byte)dt.Day));
+			timestamp[4] = reverseByte(dec2BCD((byte)dt.DayOfWeek));
+			timestamp[5] = reverseByte(dec2BCD((byte)dt.Hour));
+			timestamp[6] = reverseByte(dec2BCD((byte)dt.Minute));
+			timestamp[7] = reverseByte(dec2BCD((byte)dt.Second));
+
+			//File.WriteAllBytes(drive.Name + FILE_CONF, conf);
+			MessageBox.Show("Date and time set.");
+		}
+
 		private void saveB_Click(object sender, RoutedEventArgs e)
 		{
 			string num = bsAddressTB.Text;
@@ -450,9 +417,9 @@ namespace X_Manager.Remote
 						disableControls(MainGrid);
 						try
 						{
-							saveUnitList();
+							saveNameConfigurationDate();
 							saveSchedule();
-							saveConfiguration();
+							saveUnitList();
 						}
 						catch (Exception ex)
 						{
@@ -824,10 +791,55 @@ namespace X_Manager.Remote
 			for (int i = 0; i < (int)units; i++)
 			{
 				var lve = new BS_listViewElement(addsIn[i].Item1, addsIn[i].Item2);
+				//Se per l'unità corrente esiste un file di configurazione:
+				if (File.Exists(d.Name + "\\CONFIG\\" + lve.Address.ToString("00000000") + ".cfg"))
+				{
+					if (buff[((i + 1) * 0x10) + 5] == 1)    //Se è anche presente il flag carica la configurazione e
+					{
+						byte[] conf = File.ReadAllBytes(d.Name + "\\CONFIG\\" + lve.Address.ToString("00000000") + ".cfg");
+						lve.NewConf = conf;
+					}
+					else                                    //Altrimenti cancella il file
+					{
+						File.Delete(d.Name + "\\CONFIG\\" + lve.Address.ToString("00000000") + ".cfg");
+					}
+				}
+				else //Se il file non esiste ma è presente la spunta, la toglie perché è un errore
+				{
+					if (buff[((i + 1) * 0x10) + 5] == 1)
+					{
+						buff[((i + 1) * 0x10) + 5] = 0;
+					}
+				}
+
+				//Se per l'unità corrente esiste un file di nuovo nome:
+				if (File.Exists(d.Name + "\\CONFIG\\" + lve.Address.ToString("00000000") + ".nnm"))
+				{
+					if (buff[((i + 1) * 0x10) + 6] == 1)    //Se è anche presente il flag carica la configurazione e
+					{
+						string name = File.ReadAllText(d.Name + "\\CONFIG\\" + lve.Address.ToString("00000000") + ".nnm");
+						lve.NewName = name;
+					}
+					else                                    //Altrimenti cancella il file
+					{
+						File.Delete(d.Name + "\\CONFIG\\" + lve.Address.ToString("00000000") + ".nnm");
+					}
+				}
+				else //Se il file non esiste ma è presente la spunta, la toglie perché è un errore
+				{
+					if (buff[((i + 1) * 0x10) + 6] == 1)
+					{
+						buff[((i + 1) * 0x10) + 6] = 0;
+					}
+				}
+
 				channelLV.Items.Add(lve);
 
 				counter += 0x10;
 			}
+
+			//Aggiorna il file con la lista unità (nel caso fossero state tolte spunte)
+			File.WriteAllBytes(d.Name + FILE_UNITS, buff);
 
 			//Reinizializza la lista degli undo
 			historyList.Clear();
@@ -888,10 +900,10 @@ namespace X_Manager.Remote
 							lvv.Width = channelLV.ActualWidth - 15;
 							channelLV.Items.Insert(pos, lvv);
 							channelLV.ScrollIntoView(lvv);      //Fa scorrere la listview per inquadrare il nuovo indirizzo
-							lock (addressLock)
-							{
-								saveUnitList();
-							}
+																//lock (addressLock)
+																//{
+																//	saveUnitList();
+																//}
 						}
 					}
 				}
@@ -990,7 +1002,7 @@ namespace X_Manager.Remote
 			tb.Background = new SolidColorBrush(Colors.White);
 			tb.Width = ((BS_listViewElement)channelLV.SelectedItem).ActualWidth;
 			tb.Height = ((BS_listViewElement)channelLV.SelectedItem).ActualHeight;
-			tb.Text = tempBsLvElement.address.ToString();                   //Si inserisce il testo originale dell'elemento da modificare
+			tb.Text = tempBsLvElement.Address.ToString();                   //Si inserisce il testo originale dell'elemento da modificare
 			tb.PreviewKeyDown += doubleClick_TextBoxKD;                     //Si aggiunge l'evnto di keydown per intercettare INVIO
 			channelLV.Items.RemoveAt(index);                                //Viene rimosso l'elemento da modificare
 			disableControls(MainGrid);                                      //Si disattivano tutto gli altri controlli
@@ -1011,20 +1023,28 @@ namespace X_Manager.Remote
 			//E' stato premuto INVIO:
 			if (e.Key == Key.Enter)
 			{
-				e.Handled = true;
+				//e.Handled = true;
+				channelLV.Items.RemoveAt(tempBsLvIndex);    //La casella di input viene rimossa
 				int newCh = -1;
 				if (int.TryParse(tb.Text, out newCh))       //Se il valore inserito è valido e maggiore o uguale a zero si prosegue
 				{
 					if (newCh >= 0)
 					{
-						channelLV.Items.RemoveAt(tempBsLvIndex);    //La casella di input viene rimossa
+						add = true;
 						int pos = 0;
-						for (int i = 0; i < channelLV.Items.Count; i++) //Si cicla per tutti gli elementi esistenti nella listview
+						var forEnd = channelLV.Items.Count;
+						if (newCh == tempBsLvElement.Address)
+						{
+							//channelLV.Items.Insert(tempBsLvIndex, tempBsLvElement);
+							add = false;
+							forEnd = 0;
+						}
+						for (int i = 0; i < forEnd; i++) //Si cicla per tutti gli elementi esistenti nella listview
 						{
 							BS_listViewElement lv = (BS_listViewElement)channelLV.Items[i];
 							if (int.Parse(lv.Text) == newCh)        //Se il valore inserito era già esistente, si esce senza aggiungerelo
 							{
-								channelLV.Items.Insert(tempBsLvIndex, tempBsLvElement);
+								//channelLV.Items.Insert(tempBsLvIndex, tempBsLvElement);
 								add = false;
 								break;
 							}
@@ -1034,7 +1054,7 @@ namespace X_Manager.Remote
 								break;
 							}
 							pos++;
-							if (i == channelLV.Items.Count - 1)     /*Se si è raggiunta la fine della lsita, la posizione in cui inserire è in fondo alla
+							if (i == channelLV.Items.Count - 1)     /*Se si è raggiunta la fine della lista, la posizione in cui inserire è in fondo alla
 							                                   		 * lista	*/
 							{
 								add = true;
@@ -1049,13 +1069,17 @@ namespace X_Manager.Remote
 							channelLV.Items.Insert(pos, tempBsLvElement);
 							channelLV.ScrollIntoView(tempBsLvElement);
 							//Si salva su basestation la nuova lista
-							lock (addressLock)
-							{
-								saveUnitList();
-							}
+							//lock (addressLock)
+							//{
+							//	saveUnitList();
+							//}
 						}
 					}
 				}
+			}
+			if (e.Key == Key.Escape)
+			{
+				channelLV.Items.RemoveAt(tempBsLvIndex);    //La casella di input viene rimossa
 			}
 			if (e.Key == Key.Enter || e.Key == Key.Escape)
 			{
@@ -1063,8 +1087,8 @@ namespace X_Manager.Remote
 				if (!add)
 				{
 					/* Se è stato premuto INVIO e il valore non è valido o preesistente, o se è stato premuto ESC,
-					* si toglie la casella di testo e si reinserisce il precedente valore */
-					channelLV.Items.RemoveAt(tempBsLvIndex);
+					* si reinserisce il precedente valore */
+					//channelLV.Items.RemoveAt(tempBsLvIndex);
 					channelLV.Items.Insert(tempBsLvIndex, tempBsLvElement);
 					historyList.RemoveAt(historyList.Count - 1);
 				}
@@ -1081,7 +1105,6 @@ namespace X_Manager.Remote
 		private void channelLV_MouseRightClick(object sender, MouseButtonEventArgs e)
 		{
 			if (channelLV.SelectedIndex < 0) return;
-			channelLV.MouseRightButtonUp -= channelLV_MouseRightClick;       //Viene rimosso l'interrupt, sarà reinserito a fine funzione
 			tempBsLvElement = (BS_listViewElement)channelLV.SelectedItem;   //Vengono salvati riferimento e posizione dell'elemento da gestire
 			tempBsLvIndex = channelLV.SelectedIndex;
 
@@ -1091,26 +1114,66 @@ namespace X_Manager.Remote
 			addressMI.Header = "Modify Address";
 			addressMI.Click += addressMi_Clicked;
 			cm.Items.Add(addressMI);
+			cm.Items.Add(new Separator());
 			MenuItem scheduleMI = new MenuItem();
 			scheduleMI.Header = "Change Unit Schedule";
 			scheduleMI.Click += scheduleMi_Clicked;
 			cm.Items.Add(scheduleMI);
+			MenuItem unitnameMI = new MenuItem();
+			unitnameMI.Header = "Change Unit Name";
+			unitnameMI.Click += unitnameMi_Clicked;
+			cm.Items.Add(unitnameMI);
+			cm.Items.Add(new Separator());
+			MenuItem resetUnitconfMI = new MenuItem();
+			resetUnitconfMI.Header = "Cancel New Unit Schedule";
+			resetUnitconfMI.Click += resetscheduleMi_Clicked;
+			cm.Items.Add(resetUnitconfMI);
+			MenuItem resetUnitnameMI = new MenuItem();
+			resetUnitnameMI.Header = "Cancel New Unit Name";
+			resetUnitnameMI.Click += resetunitnameMi_Clicked;
+			cm.Items.Add(resetUnitnameMI);
 			tempBsLvElement.ContextMenu = cm;
 			cm.IsOpen = true;
 		}
 
 		private void addressMi_Clicked(object sender, RoutedEventArgs e)
 		{
+			channelLV.MouseRightButtonUp -= channelLV_MouseRightClick;       //Viene rimosso l'interrupt, sarà reinserito a fine funzione
 			var lve = (BS_listViewElement)channelLV.SelectedItem;
 			lve.ContextMenu = null;
 			channelLV_MouseDoubleClick(channelLV, new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left));
+			channelLV.MouseRightButtonUp += channelLV_MouseRightClick;
+		}
+
+		private void unitnameMi_Clicked(object sender, RoutedEventArgs e)
+		{
+			channelLV.MouseRightButtonUp -= channelLV_MouseRightClick;       //Viene rimosso l'interrupt, sarà reinserito a fine funzione
+			var nn = new BS_NewUnitName((channelLV.SelectedItem as BS_listViewElement).Address);
+			nn.ShowDialog();
+			if (!nn.newName.Equals(""))
+			{
+				(channelLV.SelectedItem as BS_listViewElement).NewName = nn.newName;
+			}
+			channelLV.MouseRightButtonUp += channelLV_MouseRightClick;
+		}
+
+		private void resetunitnameMi_Clicked(object sender, RoutedEventArgs e)
+		{
+			var dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
+			var item = channelLV.SelectedItem as BS_listViewElement;
+			item.NewName = "";
+			if (File.Exists(dr.Name + FOLDER_CONFIG + "\\" + item.Address.ToString("00000000") + ".nnm"))
+			{
+				File.Delete(dr.Name + FOLDER_CONFIG + "\\" + item.Address.ToString("00000000") + ".nnm");
+			}
 		}
 
 		private void scheduleMi_Clicked(object sender, RoutedEventArgs e)
 		{
+			channelLV.MouseRightButtonUp -= channelLV_MouseRightClick;       //Viene rimosso l'interrupt, sarà reinserito a fine funzione
 			(channelLV.SelectedItem as BS_listViewElement).ContextMenu = null;
 			string configPath = (driveLV.SelectedItem as BS_listViewElement).Drive.Name + "CONFIG\\" +
-							(channelLV.SelectedItem as BS_listViewElement).address.ToString("X8") + ".cfg";
+							(channelLV.SelectedItem as BS_listViewElement).Address.ToString("00000000") + ".cfg";
 			byte[] conf = new byte[600];
 			if (File.Exists(configPath))
 			{
@@ -1118,11 +1181,11 @@ namespace X_Manager.Remote
 			}
 			else
 			{
-				Array.Copy(defConf, conf, 600);
+				Array.Copy(Units.Gipsy6.defConf, conf, 600);
 			}
-			conf[541] = (byte)((channelLV.SelectedItem as BS_listViewElement).address >> 16);
-			conf[542] = (byte)((channelLV.SelectedItem as BS_listViewElement).address >> 8);
-			conf[543] = (byte)(channelLV.SelectedItem as BS_listViewElement).address;
+			conf[541] = (byte)((channelLV.SelectedItem as BS_listViewElement).Address >> 16);
+			conf[542] = (byte)((channelLV.SelectedItem as BS_listViewElement).Address >> 8);
+			conf[543] = (byte)(channelLV.SelectedItem as BS_listViewElement).Address;
 			var cf = new ConfigurationWindows.GiPSy6ConfigurationMain(conf, Units.Unit.model_Gipsy6);
 			cf.lockRfAddress = true;
 			cf.ShowDialog();
@@ -1132,9 +1195,21 @@ namespace X_Manager.Remote
 			}
 			if (cf.mustWrite)
 			{
-				File.WriteAllBytes(configPath, cf.axyConfOut);
+				(channelLV.SelectedItem as BS_listViewElement).NewConf = cf.axyConfOut;
 			}
+
 			channelLV.MouseRightButtonUp += channelLV_MouseRightClick;
+		}
+
+		private void resetscheduleMi_Clicked(object sender, RoutedEventArgs e)
+		{
+			var dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
+			var item = channelLV.SelectedItem as BS_listViewElement;
+			item.NewConf = null;
+			if (File.Exists(dr.Name + FOLDER_CONFIG + "\\" + item.Address.ToString("00000000") + ".cfg"))
+			{
+				File.Delete(dr.Name + FOLDER_CONFIG + "\\" + item.Address.ToString("00000000") + ".cfg");
+			}
 		}
 
 		private void undoB_Click(object sender, RoutedEventArgs e)
@@ -1169,10 +1244,10 @@ namespace X_Manager.Remote
 		{
 			//Allo scadere del timer viene salvata su file la lista indirizzi
 			saveAddressTimer.Stop();
-			lock (addressLock)
-			{
-				Application.Current.Dispatcher.Invoke(() => saveUnitList());
-			}
+			//lock (addressLock)
+			//{
+			//	Application.Current.Dispatcher.Invoke(() => saveUnitList());
+			//}
 		}
 
 		private void saveUnitList()
@@ -1184,14 +1259,31 @@ namespace X_Manager.Remote
 				dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
 				if (!validateDrive(dr)) return;
 				buff = new byte[(channelLV.Items.Count * 16) + 16];
+				//Scrive il numero di unità nella prima riga (0x00 - 0x0f)
 				byte[] unitNum = BitConverter.GetBytes((UInt64)channelLV.Items.Count);
 				Array.Reverse(unitNum);
 				Array.Copy(unitNum, 0, buff, 8, 8);
+				//Scrive le righe per ogni unità presente (0x10 in poi)
 				for (int i = 0; i < channelLV.Items.Count; i++)
 				{
-					var add = BitConverter.GetBytes((UInt32)((BS_listViewElement)channelLV.Items[i]).address);
+					var item = (BS_listViewElement)channelLV.Items[i];
+					var add = BitConverter.GetBytes((UInt32)item.Address);
 					Array.Reverse(add);
-					Array.Copy(add, 1, buff, (i + 1) * 16, 3);
+					Array.Copy(add, 1, buff, (i + 1) * 0x10, 3);
+					if (item.NewConf != null)
+					{
+						File.WriteAllBytes(dr.Name + FOLDER_CONFIG + "\\" + item.Address.ToString("00000000") + ".cfg", item.NewConf);
+						buff[((i + 1) * 0x10) + 5] = 1;
+					}
+					if (item.NewName != "")
+					{
+						while (item.NewName.Length < 28)
+						{
+							item.NewName = item.NewName + " ";
+						}
+						File.WriteAllText(dr.Name + FOLDER_CONFIG + "\\" + item.Address.ToString("00000000") + ".nnm", item.NewName);
+						buff[((i + 1) * 0x10) + 6] = 1;
+					}
 				}
 				File.WriteAllBytes(dr.Name + FILE_UNITS, buff);
 			}
@@ -1250,10 +1342,10 @@ namespace X_Manager.Remote
 				scheduleCBArr[i].Checked += scheduleCBchanged;
 				scheduleCBArr[i].Unchecked += scheduleCBchanged;
 			}
-			lock (scheduleLock)
-			{
-				saveSchedule();
-			}
+			//lock (scheduleLock)
+			//{
+			//	saveSchedule();
+			//}
 		}
 
 		private void allOffB_Click(object sender, RoutedEventArgs e)
@@ -1267,10 +1359,10 @@ namespace X_Manager.Remote
 				scheduleCBArr[i].Checked += scheduleCBchanged;
 				scheduleCBArr[i].Unchecked += scheduleCBchanged;
 			}
-			lock (scheduleLock)
-			{
-				saveSchedule();
-			}
+			//lock (scheduleLock)
+			//{
+			//	saveSchedule();
+			//}
 		}
 
 		private void saveScheduleTimerElapsed(object sender, ElapsedEventArgs e)
@@ -1284,10 +1376,10 @@ namespace X_Manager.Remote
 			if (!newScheduleArr.SequenceEqual(oldScheduleArr))
 			{
 				Array.Copy(newScheduleArr, oldScheduleArr, newScheduleArr.Length);
-				lock (scheduleLock)
-				{
-					Application.Current.Dispatcher.Invoke(() => saveSchedule());
-				}
+				//lock (scheduleLock)
+				//{
+				//	Application.Current.Dispatcher.Invoke(() => saveSchedule());
+				//}
 			}
 
 		}
@@ -1351,25 +1443,30 @@ namespace X_Manager.Remote
 			intialName = bsNameTB.Text;
 		}
 
-		private void saveConfiguration()
+		private void saveNameConfigurationDate()
 		{
 			DriveInfo dr = null;
-			//Salva il nome della basestation
-			try
-			{
-				dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
-				File.WriteAllText(dr.Name + FILE_NAME, bsNameTB.Text);
-			}
-			catch { }
-			//Salva l'indirizzo di ricezione
+
+			//Salva l'indirizzo di ricezione e, se impostate, data e ora
 			try
 			{
 				byte[] conf = File.ReadAllBytes(dr.Name + FILE_CONF);
 				byte[] add = BitConverter.GetBytes(bsAddress);
 				Array.Reverse(add);
 				Array.Copy(add, 0, conf, 0x0a, 4);
+				if (!(timestamp is null))
+				{
+					Array.Copy(timestamp, 0, conf, 0x12, 8);
+				}
 				File.WriteAllBytes(dr.Name + FILE_CONF, conf);
+			}
+			catch { }
 
+			//Salva il nome della basestation
+			try
+			{
+				dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
+				File.WriteAllText(dr.Name + FILE_NAME, bsNameTB.Text);
 			}
 			catch { }
 		}
@@ -1561,25 +1658,6 @@ namespace X_Manager.Remote
 
 		#endregion
 
-		private void sendTimestamp_click(object sender, RoutedEventArgs e)
-		{
-			var drive = (driveLV.SelectedItem as BS_listViewElement).Drive;
-			byte[] conf = File.ReadAllBytes(drive.Name + FILE_CONF);
-			conf[0x12] = 1;
-
-			DateTime dt = DateTime.UtcNow;
-
-			conf[0x13] = reverseByte(dec2BCD((byte)(dt.Year - 2000)));
-			conf[0x14] = reverseByte(dec2BCD((byte)dt.Month));
-			conf[0x15] = reverseByte(dec2BCD((byte)dt.Day));
-			conf[0x16] = reverseByte(dec2BCD((byte)dt.DayOfWeek));
-			conf[0x17] = reverseByte(dec2BCD((byte)dt.Hour));
-			conf[0x18] = reverseByte(dec2BCD((byte)dt.Minute));
-			conf[0x19] = reverseByte(dec2BCD((byte)dt.Second));
-
-			File.WriteAllBytes(drive.Name + FILE_CONF, conf);
-			MessageBox.Show("Date and time sent.");
-		}
 
 		private byte reverseByte(byte inb)
 		{
@@ -1608,25 +1686,6 @@ namespace X_Manager.Remote
 			return outb;
 		}
 
-		private void bootloader_Click(object sender, RoutedEventArgs e)
-		{
-			listDriveTimer.Stop();
-			saveAddressTimer.Stop();
-			saveScheduleTimer.Stop();
-			validateDriveTimer.Stop();
-			if (ft is null)
-			{
-				MessageBox.Show("No serial data cable detected.");
-				listDriveTimer.Start();
-				validateDriveTimer.Start();
-				return;
-			}
-			var bl = new Bootloader.Bootloader_Gipsy6(true, "BaseStation");
-
-			bl.ShowDialog();
-			listDriveTimer.Start();
-			validateDriveTimer.Start();
-		}
 	}
 }
 

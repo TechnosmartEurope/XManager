@@ -354,6 +354,9 @@
     <Compile Include="Remote\BS_ListViewElement.xaml.cs">
       <DependentUpon>BS_ListViewElement.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Remote\BS_NewUnitName.xaml.cs">
+      <DependentUpon>BS_NewUnitName.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Remote\MS_Configurator_1.xaml.cs">
       <DependentUpon>MS_Configurator_1.xaml</DependentUpon>
     </Compile>
@@ -514,6 +517,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Remote\BS_ListViewElement.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Remote\BS_NewUnitName.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -772,7 +779,12 @@
   <ItemGroup>
     <None Include="Changelog.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\ImportICO.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\ExportICO.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

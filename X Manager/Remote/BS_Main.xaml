@@ -62,6 +62,6 @@
 		</GroupBox>
 		<Button Grid.Column="3" x:Name="bootloaderB" Margin="0,0,0,65" VerticalAlignment="Bottom" MinHeight="0" Width="190" Content="BOOTLOADER" Click="bootloader_Click" />
 		<Button Grid.Column="3" x:Name="sendTimeB" Margin="0,0,0,35" VerticalAlignment="Bottom" MinHeight="0" Width="190" Content="SEND TIMESTAMP" Click="sendTimestamp_click" />
-		<Button Grid.Column="3" x:Name="saveB" Margin="0,0,0,5" VerticalAlignment="Bottom" MinHeight="0" Width="190" Content="CLOSE AND SAVE" Foreground="#FFBB1010" Click="saveB_Click"/>
+		<Button Grid.Column="3" x:Name="saveB" Margin="0,0,0,5" VerticalAlignment="Bottom" MinHeight="0" Width="190" Content="SAVE AND CLOSE" Foreground="#FFBB1010" Click="saveB_Click"/>
 	</Grid>
 </Window>

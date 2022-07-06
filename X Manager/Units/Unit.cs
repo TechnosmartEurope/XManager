@@ -118,7 +118,7 @@ namespace X_Manager.Units
 		protected int progLock = 0;
 		protected double progMax = 1;
 
-		public string defaultArdExtension = "gp6";
+		public string defaultArdExtension = "ard";
 
 #if X64
 		[DllImport(@"resampleLib_x64.dll", CallingConvention = CallingConvention.Cdecl)]

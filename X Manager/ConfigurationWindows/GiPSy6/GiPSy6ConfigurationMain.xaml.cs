@@ -15,7 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using X_Manager.ConfigurationWindows;
+using X_Manager;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -33,13 +33,12 @@ namespace X_Manager.ConfigurationWindows
 		bool[] pagesEnabled;
 		public volatile List<SBitmap> sbitmapAr;
 		public volatile List<string> bitnameAr;
-		byte unitType;
-		public string appDataPath;
+		//byte unitType;
+		string appDataPath;
 		public bool conn;
-		public bool expertMode;
+		//bool expertMode;
 		int lastIndex;
 		int firstIndex;
-
 		public bool lockRfAddress
 		{
 			get
@@ -59,9 +58,9 @@ namespace X_Manager.ConfigurationWindows
 
 			InitializeComponent();
 
+
 			if (conf[541] == 0x00 && conf[542] == 0x02 && conf[543] == 0x2b)
 			{
-
 				Title += " (d.c.)";
 			}
 
@@ -80,10 +79,11 @@ namespace X_Manager.ConfigurationWindows
 			catch
 			{ }
 			axyConfOut = conf;
-			this.unitType = unitType;
+			//this.unitType = unitType;
 			sbitmapAr = new List<SBitmap>();
 			bitnameAr = new List<string>();
-			//Carica in cache i file png salvati su disco. Se sono più di 1024, eleimina quelli in più.
+
+			//Carica in cache i file png salvati su disco. Se sono più di 1024, elimina quelli in più.
 			string[] fileNames = System.IO.Directory.GetFiles(appDataPath, "*.png");
 			int maxF = Math.Max(1024, fileNames.Length);
 			for (int i = 0; i < Math.Min(fileNames.Length, 1024); i++)
@@ -223,6 +223,12 @@ namespace X_Manager.ConfigurationWindows
 				Close();
 				return;
 			}
+			else if ((string)forthB.Content == "CLOSE")
+			{
+				mustWrite = false;
+				Close();
+				return;
+			}
 
 			clearHistory();
 			backB.IsEnabled = true;
@@ -239,7 +245,7 @@ namespace X_Manager.ConfigurationWindows
 
 			if (pagePointer == lastIndex)
 			{
-				forthB.Content = "SEND";
+				forthB.Content = lastForthContent;
 			}
 			Gipsy6ConfigurationBrowser.Content = pages[pagePointer];
 		}
@@ -345,6 +351,76 @@ namespace X_Manager.ConfigurationWindows
 			{
 				forthB.Content = "SEND";
 			}
+		}
+
+		private void importB_Click(object sender, RoutedEventArgs e)
+		{
+			var fopen = new System.Windows.Forms.OpenFileDialog();
+			fopen.InitialDirectory = X_Manager.Parent.getParameter("gipsy6ConfigurationsFolder", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+			fopen.Filter = "Gipsy6 Configuration File | *.cfg";
+			var res = fopen.ShowDialog();
+			if ((res == System.Windows.Forms.DialogResult.No) || (res == System.Windows.Forms.DialogResult.None) || (res == System.Windows.Forms.DialogResult.Cancel))
+			{
+				return;
+			}
+
+			var fp = fopen.FileName;
+			var newConf = System.IO.File.ReadAllBytes(fp);
+			X_Manager.Parent.updateParameter(MainWindow.INI_GIPSY6_SCHEDULE_PATH, System.IO.Path.GetDirectoryName(fp));
+			if (!Encoding.ASCII.GetString(newConf.Take(16).ToArray()).Equals("--gipsy6Config--"))
+			{
+				MessageBox.Show("Invalid configuration file.");
+				return;
+			}
+
+			basicsConf = null;
+			schedConf = null;
+			geoConf1 = null;
+			geoConf2 = null;
+			Gipsy6ConfigurationBrowser.Content = null;
+
+			Array.Copy(newConf, 16, axyConfOut, 0, 0x22a);
+
+			basicsConf = new BasicsConfiguration(axyConfOut);
+			schedConf = new ScheduleConfiguration(axyConfOut);
+			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
+			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
+			pages = new PageCopy[] { schedConf, basicsConf, geoConf1, geoConf2 };
+			pagesEnabled = new bool[] { true, false, false, false };
+			lastIndex = 0;
+			firstIndex = 0;
+			forthB.Content = "SEND";
+			backB.IsEnabled = false;
+			forthB.IsEnabled = true;
+			pagePointer = 0;
+			if ((bool)expertCB.IsChecked)
+			{
+				pagesEnabled = new bool[] { true, true, true, true };
+				forthB.Content = "-->";
+				lastIndex = 3;
+			}
+			Gipsy6ConfigurationBrowser.Content = pages[0];
+		}
+
+		private void exportB_Click(object sender, RoutedEventArgs e)
+		{
+			var fsave = new System.Windows.Forms.SaveFileDialog();
+			fsave.InitialDirectory = MainWindow.getParameter("gipsy6ConfigurationsFolder", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+			fsave.Filter = "Gipsy6 Configuration File | *.cfg";
+			var res = fsave.ShowDialog();
+			if ((res == System.Windows.Forms.DialogResult.No) || (res == System.Windows.Forms.DialogResult.None) || (res == System.Windows.Forms.DialogResult.Cancel))
+			{
+				return;
+			}
+
+			var cf = Gipsy6ConfigurationBrowser.Content as PageCopy;
+			cf.copyValues();
+
+			byte[] newConf = new byte[0x610];
+			Array.Copy(Encoding.ASCII.GetBytes("--gipsy6Config--"), newConf, 16);
+			Array.Copy(axyConfOut, 0, newConf, 16, axyConfOut.Length);
+
+			System.IO.File.WriteAllBytes(fsave.FileName, newConf);
 		}
 	}
 }

@@ -13,6 +13,7 @@ namespace X_Manager.ConfigurationWindows
 		public bool mustWrite = false;
 		public byte[] axyConfOut;
 		public byte[] axyScheduleOut;
+		public string lastForthContent = "SEND";
 
 		protected string iniFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + MainWindow.companyFolder + MainWindow.appFolder + "\\settings.ini";
 		protected string trekSchedFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + MainWindow.companyFolder + MainWindow.appFolder + "\\trekLastSchedule.ini";

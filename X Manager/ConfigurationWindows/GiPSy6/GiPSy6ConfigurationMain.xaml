@@ -6,22 +6,34 @@
         xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
         mc:Ignorable="d" Background="#FF202020" SizeToContent="WidthAndHeight"
         Title="GIPSY6 CONFIGURATION" Loaded="loaded" ResizeMode="CanMinimize">
-    <Grid Background="#FF202020" VerticalAlignment="Top" x:Name="ExternalGrid" Height="820" Width="968" >
-        <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="720"/>
-        </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" Background="DarkGray">
-            <Button x:Name="backB" Content="&lt;--" Background="#FF404040" FontSize="20" FontWeight="Bold" Height="40" VerticalAlignment="Top" Click="backClick"/>
-            <CheckBox x:Name="expertCB" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="20,0,0,0" Content="Expert Mode" Foreground="DarkSlateGray"
+	<Grid Background="#FF202020" VerticalAlignment="Top" x:Name="ExternalGrid" Height="820" Width="968" >
+		<Grid.RowDefinitions>
+			<RowDefinition Height="40"/>
+			<RowDefinition Height="720"/>
+		</Grid.RowDefinitions>
+		<StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" Background="DarkGray">
+			<Button x:Name="backB" Content="&lt;--" Background="#FF404040" FontSize="20" FontWeight="Bold" Height="40" VerticalAlignment="Top" Click="backClick"/>
+			<CheckBox x:Name="expertCB" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="20,0,0,0" Content="Expert Mode" Foreground="DarkSlateGray"
                       Checked="expertCB_Checked" Unchecked="expertCB_Unchecked"/>
-        </StackPanel>
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" HorizontalAlignment="Right">
-            <Button x:Name="forthB" Content="-->" Background="#FF404040" FontSize="20" FontWeight="Bold" Click="forthClick" Height="40" VerticalAlignment="Top" />
-        </StackPanel>
-        <Frame Grid.Row="1" x:Name="Gipsy6ConfigurationBrowser" NavigationUIVisibility="Hidden"
+			<Button x:Name="importB" Margin="400,0,0,0" MinHeight="0" Height="36" Width="120" Padding="0" Click="importB_Click" >
+				<StackPanel Orientation="Horizontal" Background="#FF202020" Height="36" Width="120" >
+					<Image Source="/Resources/ImportICO.png" Margin="10,2,0,0" VerticalAlignment="Center" Height="20" HorizontalAlignment="Left"/>
+					<TextBlock Margin="5,0,0,0" Text="IMPORT" VerticalAlignment="Center" FontSize="20" Foreground="White"/>
+				</StackPanel>
+			</Button>
+			<Button x:Name="exportB" Margin="10,0,0,0" MinHeight="0" Height="36" Width="120" Padding="0" Click="exportB_Click" >
+				<StackPanel Orientation="Horizontal" Background="#FF202020" Height="36" Width="120" >
+					<TextBlock Margin="10,0,0,0" Text="EXPORT" VerticalAlignment="Center" FontSize="20" Foreground="White"/>
+					<Image Source="/Resources/importICO.png" Margin="5,2,0,0" VerticalAlignment="Center" Height="20" HorizontalAlignment="Left"/>
+				</StackPanel>
+			</Button>
+		</StackPanel>
+		<StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" HorizontalAlignment="Right">
+			<Button x:Name="forthB" Content="-->" Background="#FF404040" FontSize="20" FontWeight="Bold" Click="forthClick" Height="40" VerticalAlignment="Top" />
+		</StackPanel>
+		<Frame Grid.Row="1" x:Name="Gipsy6ConfigurationBrowser" NavigationUIVisibility="Hidden"
                VerticalAlignment="Top" VerticalContentAlignment="Top" Height="768" MaxHeight="720" >
-            
-        </Frame>
-    </Grid>
+
+		</Frame>
+	</Grid>
 </local:ConfigurationWindow>

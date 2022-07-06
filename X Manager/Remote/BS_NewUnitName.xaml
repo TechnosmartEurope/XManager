@@ -1,0 +1,16 @@
+﻿<Window x:Class="X_Manager.Remote.BS_NewUnitName"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:X_Manager.Remote"
+        mc:Ignorable="d" Background="#FF181818"
+        Title="BS_NewUnitName" Height="230" Width="220">
+    <Grid>
+		<TextBlock Text="Please specifiy a new name for unit" Foreground="#FFAAAAAA" TextWrapping="Wrap"
+            TextAlignment="Center" Margin="20,10,20,0"/>
+		<TextBox x:Name="unitNameTB" TextWrapping="Wrap" MaxLength="28" Foreground="White" Background="#FF0b0b0b" FontSize="13"
+            Height="90" Width="180" VerticalAlignment="Top" Margin="0,50,0,0" PreviewKeyDown="unitNameTB_PreviewKeyDown"/>
+		<Button x:Name="sendB" VerticalAlignment="Bottom" Margin="0,0,0,20" Content="SEND" Width="180" Height="40" Click="sendB_Click"/>
+	</Grid>
+</Window>

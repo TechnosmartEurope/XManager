@@ -22,7 +22,9 @@ namespace X_Manager.Remote
 	{
 
 		public DriveInfo Drive;
-		public int address;
+		public int Address;
+		byte[] newConf;
+		string newName = "";
 		public string Text
 		{
 			get
@@ -32,6 +34,48 @@ namespace X_Manager.Remote
 			set
 			{
 				driveL.Content = value;
+			}
+		}
+
+		public byte[] NewConf
+		{
+			get
+			{
+				return newConf;
+			}
+			set
+			{
+				if (value == null)
+				{
+					newConfL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0x24, 0x20, 0x20));
+					newConf = null;
+				}
+				else
+				{
+					newConfL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0));
+					newConf = value;
+				}
+			}
+		}
+
+		public string NewName
+		{
+			get
+			{
+				return newName;
+			}
+			set
+			{
+				if (value == "")
+				{
+					newNameL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0x24, 0x20, 0x20));
+					newName = "";
+				}
+				else
+				{
+					newNameL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0));
+					newName = value;
+				}
 			}
 		}
 
@@ -62,7 +106,7 @@ namespace X_Manager.Remote
 			{
 				driveL.Foreground = new SolidColorBrush(Colors.Green);
 			}
-			this.address = address;
+			this.Address = address;
 			Text = address.ToString();
 			Name = "N" + address.ToString();
 		}

@@ -197,6 +197,16 @@
 1.17.4 - Gipsy6: Decodifica eventi Fix Start e Fix Timeout
 	- Gipsy6: Aggiunto settaggio nascosto in Basic Configuration (CTRL+D) per eventi di debug
 	- Basestation: Corretto l'invio della data sulla sd che era locale e non GMT0
+1.17.5 - Inizio predisposizione conversione file basestation gipsy6
+	- Aggiunti controlli d'errore su apertura automatica del primo dispositivo FTDI all'avvio del software
+1.18.0 - Basemanager: aggiunti pulsanti Import/Export
+	- Basemanager: aggiunta possibilità di configurazione schedule senza unità connessa
+	- Bugfix-Basemanager: i file di configurazione unità venivano salvati con nome indirizzo esadecimale invece che decimale
+	- Bugfix-Basemanager: non veniva scritto il a 1 il byte di configurazione per presenza di nuova configurazione unità
+	- Gipsy6: aggiunta conversione file da basestation
+	- Interfaccia: il nome della porta seriale si colora di verde se la connessione con il dispositivo FTDI è andata a buon fine
+
+1.18.1DR - da fare: tutte le classi prima di utilizzare il dispositivo ftdi devono controllare se è effettivamente connesso
 
 
 	

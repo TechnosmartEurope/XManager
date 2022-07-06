@@ -80,6 +80,23 @@ namespace X_Manager
 		const string STR_Restart = "Restart";
 		const string STR_memoryEMpty = "Memory is empty.";
 
+		public const string INI_BACKGROUND_IMAGE_PATH = "backgroundImagePath";
+		public const string INI_DATA_SAVE_PATH = "dataSavePath";
+		public const string INI_CONVERT_OPEN_PATH = "convertPath";
+		public const string INI_PRESSURE_RANGE = "pressureRange";
+		public const string INI_KEEP_MDP = "keepMdp";
+		public const string INI_DOWNLOAD_SPEED = "downloadSpeed";
+		public const string INI_CSV_SEPARATOR = "csvSeparator";
+		public const string INI_DOWNLOAD_MDOE = "downloadMode";
+		public const string INI_TREK_SCHEDULE_SAVE_PATH = "trekScheduleSavePath";
+		public const string INI_TREK_SCHEDULE_OPEN_PATH = "trekScheduleOpenPath";
+		public const string INI_AXY5_SCHEDULE_PATH = "axy5SchedulePath";
+		public const string INI_GIPSY6_SCHEDULE_PATH = "gipsy6ConfigurationsFolder";
+		public const string INI_GIPSY6_EXPERT_MODE = "gipsy6ConfigurationExpertMode";
+		public const string INI_GIPSY6_BOOTLOADER_WIPE_DATA = "gipsy6BootloaderWipeData";
+		public const string INI_GIPSY6_BOOTLOADER_WIPE_SETTINGS = "gipsy6BootloaderWipeSettings";
+
+
 		public static string companyFolder = "\\" + System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).CompanyName;
 		public static string appFolder = "\\" + System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).ProductName;
 
@@ -713,7 +730,7 @@ namespace X_Manager
 		private void openDataFolder(object sender, RoutedEventArgs e)
 		{
 			//lastSettings = File.ReadAllLines(iniFile);
-			System.Diagnostics.Process.Start(getParameter("dataSavePath"));
+			System.Diagnostics.Process.Start(getParameter(INI_DATA_SAVE_PATH));
 		}
 
 		void tabControlTabChanged(object sender, RoutedEventArgs e)
@@ -909,9 +926,9 @@ namespace X_Manager
 			var openPicture = new Microsoft.Win32.OpenFileDialog();
 			openPicture.DefaultExt = ("JPG Files|*.jpg");
 			openPicture.Filter = ("JPG Files|*.jpg|PNG Files|*.png|BMP Files|*.bmp");
-			if (File.Exists(Path.GetDirectoryName(getParameter("backgroundImagePath"))))
+			if (File.Exists(Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH))))
 			{
-				openPicture.InitialDirectory = System.IO.Path.GetDirectoryName(getParameter("backgroundImagePath"));
+				openPicture.InitialDirectory = Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH));
 			}
 
 
@@ -919,7 +936,7 @@ namespace X_Manager
 			{
 				return;
 			}
-			updateParameter("backgroundImagePath", openPicture.FileName);
+			updateParameter(INI_BACKGROUND_IMAGE_PATH, openPicture.FileName);
 			//lastSettings[0] = openPicture.FileName;
 			//System.IO.File.WriteAllLines(iniFile, lastSettings);
 			try
@@ -1105,7 +1122,7 @@ namespace X_Manager
 					{
 						if (!deviceName.Contains("XDS") && !deviceName.Contains("RFC"))
 						{
-							if (!deviceName.Contains("COM1)"))
+							if (!deviceName.Contains("COM1)") && !deviceName.Contains("COM2"))
 							{
 								comPortComboBox.Items.Add(deviceName);
 							}
@@ -1129,14 +1146,23 @@ namespace X_Manager
 				connectButton.IsEnabled = true;
 				if (select)
 				{
-					comPortComboBox.SelectedIndex = -1;
-					comPortComboBox.SelectedIndex = 0;
+					try
+					{
+						comPortComboBox.SelectedIndex = -1;
+						comPortComboBox.SelectedIndex = 0;
+					}
+					catch (Exception ex)
+					{
+						MessageBox.Show(ex.Message);
+					}
 				}
 			}
 		}
 
 		private void comPortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
+			//comPortComboBox.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 0x45, 0x45, 0x45));
+			comPortComboBox.Foreground = new SolidColorBrush(Color.FromArgb(255, 0xba, 0xba, 0xba));
 			if (!(FTDI is null))
 			{
 				FTDI.Close();
@@ -1147,27 +1173,39 @@ namespace X_Manager
 				return;
 			}
 
-
-
 			for (int i = 0; i < 3; i++)
 			{
 				FTDI = null;
 				string portShortName = (string)comPortComboBox.SelectedItem;
 				portShortName = portShortName.Substring(portShortName.IndexOf("(") + 1);
 				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-				FTDI = new FTDI_Device(portShortName);
-				FTDI.ReadTimeout = 550;
-				if (FTDI.Open()) break;
-				Thread.Sleep(3000);
+				if (portShortName.IndexOf("com", StringComparison.InvariantCultureIgnoreCase) >= 0)
+				{
+					try
+					{
+						FTDI = new FTDI_Device(portShortName);
+						FTDI.ReadTimeout = 550;
+						if (FTDI.Open()) break;
+						Thread.Sleep(150);
+					}
+					catch
+					{
+						break;
+					}
+				}
 			}
+
 			if (!FTDI.Open())
 			{
 				MessageBox.Show("Invalid datacable or port already open.");
-				comPortComboBoxClear();
+				//comPortComboBoxClear();
 				uiDisconnected();
 				FTDI = null;
 				return;
 			}
+
+			//comPortComboBox.BorderBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
+			comPortComboBox.Foreground = new SolidColorBrush(Colors.LightGreen);
 		}
 
 		private void comPortComboBoxClear()
@@ -1185,7 +1223,7 @@ namespace X_Manager
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => statusProgressBar.IsIndeterminate = true));
 		}
 
-		//CONVERT
+		//CONNECT
 		async void connectClick(object sender, RoutedEventArgs e)
 		{
 
@@ -1200,11 +1238,14 @@ namespace X_Manager
 					FTDI.BaudRate = 115200;
 				}
 				FTDI.ReadExisting();
+				FTDI.ReadTimeout = 200;
 
 				FTDI.Write("T");
+				int wr = -1;
+				int rs = -1;
 				try
 				{
-					int rs = FTDI.ReadByte();
+					rs = FTDI.ReadByte();
 					if (rs == 0x23)
 					{
 						//completeCommand = false;
@@ -1216,14 +1257,18 @@ namespace X_Manager
 					}
 					else if (rs == '6')     //In caso di Gipsy6 bisogna mandare una stringa corta
 					{
-						FTDI.Write("TTTTTTTGGAP");
+						Thread.Sleep(100);
+						wr = FTDI.Write("TTTTTTTGGAP");
 					}
 					else
 					{
 						FTDI.Write("TTTTTTTTTTTGGAP");
 					}
 
-					if (remote) Thread.Sleep(400);
+					if (remote)
+					{
+						Thread.Sleep(400);
+					}
 					response = FTDI.ReadLine();
 				}
 				catch
@@ -1420,7 +1465,7 @@ namespace X_Manager
 					}
 					catch { }
 					conf = new byte[600];
-					Array.Copy(BS_Main.defConf, conf, conf.Length);
+					Array.Copy(Gipsy6.defConf, conf, conf.Length);
 					conf[541] = 0x00;
 					conf[542] = 0x02;
 					conf[543] = 0x2b;
@@ -1522,17 +1567,27 @@ namespace X_Manager
 			}
 			else
 			{
-				var tg = new YesNo("WARNING: you are entering the GiPSy6 bootloader!\r\nPlease, proceed only if you have a new firmware to upload, else please leave or your unit could potentially get bricked.", "GiPSy6 Bootloader", "", "Yes", "No");
-				tg.Owner = this;
-				if (tg.ShowDialog() == 2) return;
-				uiDisconnected();
-				//string portShortName = comPortComboBox.Text.Substring(comPortComboBox.Text.IndexOf("(") + 1);
-				//portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
-				//ftdiSerialNumber = setLatency(portShortName, 1);
-				var boot = new Bootloader.Bootloader_Gipsy6(true, "GiPSy-6");
-				boot.Owner = this;
-				boot.ShowDialog();
-				return;
+				if (oUnit == null)
+				{
+					byte[] axyconf = new byte[Gipsy6.defConf.Length];
+					Array.Copy(Gipsy6.defConf, axyconf, Gipsy6.defConf.Length);
+					conf = new GiPSy6ConfigurationMain(axyconf, Unit.model_Gipsy6);
+					conf.lastForthContent = "CLOSE";
+				}
+				else
+				{
+					var tg = new YesNo("WARNING: you are entering the GiPSy6 bootloader!\r\nPlease, " +
+										"proceed only if you have a new firmware to upload, " +
+										"else please leave or your unit could potentially get bricked.",
+										"GiPSy6 Bootloader", "", "Yes", "No");
+					tg.Owner = this;
+					if (tg.ShowDialog() == 2) return;
+					uiDisconnected();
+					var boot = new Bootloader.Bootloader_Gipsy6(true, "GiPSy-6");
+					boot.Owner = this;
+					boot.ShowDialog();
+					return;
+				}
 			}
 
 			//conf = new TrekPositionConfigurationWindow(ref oUnit);
@@ -1602,9 +1657,9 @@ namespace X_Manager
 				saveRaw.OverwritePrompt = false;
 			}
 
-			if (Directory.Exists(getParameter("dataSavePath")))
+			if (Directory.Exists(getParameter(INI_DATA_SAVE_PATH)))
 			{
-				saveRaw.InitialDirectory = getParameter("dataSavePath");
+				saveRaw.InitialDirectory = getParameter(INI_DATA_SAVE_PATH);
 			}
 
 			if ((saveRaw.ShowDialog() == false))
@@ -1616,7 +1671,7 @@ namespace X_Manager
 				statusProgressBar.IsIndeterminate = false;
 				return;
 			}
-			updateParameter("dataSavePath", System.IO.Path.GetDirectoryName(saveRaw.FileName));
+			updateParameter(INI_DATA_SAVE_PATH, Path.GetDirectoryName(saveRaw.FileName));
 			//lastSettings[3] = System.IO.Path.GetDirectoryName(saveRaw.FileName);
 			//File.WriteAllLines(iniFile, lastSettings);
 			UInt32 fromMemory = 0;
@@ -2077,7 +2132,7 @@ namespace X_Manager
 		}
 		private void initPicture()
 		{
-			if (getParameter("backgroundImagePath").Contains("null") | !File.Exists(getParameter("backgroundImagePath")))
+			if (getParameter(INI_BACKGROUND_IMAGE_PATH).Contains("null") | !File.Exists(getParameter(INI_BACKGROUND_IMAGE_PATH)))
 			{
 				var png = new BitmapImage();
 				png.BeginInit();
@@ -2092,7 +2147,7 @@ namespace X_Manager
 				//pictureBox.Source= ImageSourceForBitmap(new Uri(lastSettings[0]));
 				var png = new BitmapImage();
 				png.BeginInit();
-				png.UriSource = new Uri(getParameter("backgroundImagePath"), UriKind.Absolute);
+				png.UriSource = new Uri(getParameter(INI_BACKGROUND_IMAGE_PATH), UriKind.Absolute);
 				png.EndInit();
 				pictureBox.Source = png;
 			}
@@ -2117,7 +2172,7 @@ namespace X_Manager
 				{
 					if (System.IO.Path.GetExtension(files[0]) == ".jpg" | System.IO.Path.GetExtension(files[0]) == ".bmp" | System.IO.Path.GetExtension(files[0]) == ".png")
 					{
-						updateParameter("backgroundImagePath", files[0]);
+						updateParameter(INI_BACKGROUND_IMAGE_PATH, files[0]);
 						//File.WriteAllLines(iniFile, lastSettings);
 						var bmp = new BitmapImage();
 						bmp.BeginInit();
@@ -2243,10 +2298,10 @@ namespace X_Manager
 				{
 					addOn = ("_S" + exten.Remove(0, 4));
 				}
-				fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-				fileNametxt = Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
-				fileNameKml = Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
-				fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + System.IO.Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
+				fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
+				fileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
+				fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
+				fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
 				nomiFile = new string[] { fileNameCsv, fileNametxt, fileNamePlaceMark };
 			}
 

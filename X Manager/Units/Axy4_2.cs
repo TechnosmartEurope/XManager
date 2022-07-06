@@ -17,7 +17,7 @@ using FT_HANDLE = System.UInt32;
 
 namespace X_Manager.Units
 {
-	class Axy4_2 : Units.Unit
+	class Axy4_2 : Unit
 	{
 		//bool evitaSoglie = false;
 		bool disposed = false;
@@ -57,13 +57,12 @@ namespace X_Manager.Units
 		bool metadata;
 		bool overrideTime;
 		string ardPos = "";
+		string ardFileName = "";
 		int magen;
 		int adcEn = 0;
 		double[] magData_A = new double[3];
 		double[] magData_B = new double[3];
-
-		//double mediaFreq = 0;    //sviluppo
-		//double contoFreq = 0;     //sviluppo
+		ushort badPosition = 600;
 
 		public Axy4_2(object p)
 			: base(p)
@@ -525,7 +524,7 @@ namespace X_Manager.Units
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
 		{
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusLabel.Content = "Creating Ard file(s)..."));
-			var mdp = new BinaryReader(System.IO.File.Open(fileNameMdp, FileMode.Open));
+			var mdp = new BinaryReader(File.Open(fileNameMdp, FileMode.Open));
 
 			BinaryWriter ard = BinaryWriter.Null;
 			//ushort packLength = 255;
@@ -631,7 +630,7 @@ namespace X_Manager.Units
 
 		public override void convert(string fileName, string[] prefs)
 		{
-
+			ardFileName = fileName;
 			timeStamp timeStampO = new timeStamp();
 			string barStatus = "";
 			string shortFileName;
@@ -639,20 +638,28 @@ namespace X_Manager.Units
 			string exten = Path.GetExtension(fileName);
 			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
 			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-			BinaryReader ard = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
-			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+			BinaryReader ardT = new BinaryReader(File.Open(fileName, FileMode.Open));
+			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
+			if (File.Exists(ardFileName + "_tslength.csv"))
+			{
+				File.Delete(ardFileName + "_tslength.csv");
+			}
+			if (File.Exists(ardFileName + "_errorList.txt"))
+			{
+				File.Delete(ardFileName + "_errorList.txt");
+			}
 
-			ard.BaseStream.Position = 1;
-			firmTotA = (uint)(ard.ReadByte() * 1000 + ard.ReadByte());
+			ardT.BaseStream.Position = 1;
+			firmTotA = (uint)(ardT.ReadByte() * 1000 + ardT.ReadByte());
 			if (firmTotA > 2004)
 			{
-				firmTotA *= 1000; firmTotA += ard.ReadByte();
+				firmTotA *= 1000; firmTotA += ardT.ReadByte();
 			}
 
 			//Imposta le preferenze di conversione
 			debugLevel = parent.stDebugLevel;
 
-			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
+			if (prefs[pref_fillEmpty] == "False") repeatEmptyValues = false;
 
 			dateSeparator = csvSeparator;
 			if ((prefs[pref_sameColumn] == "True"))
@@ -698,9 +705,9 @@ namespace X_Manager.Units
 
 
 			//Legge i parametri di logging
-			ard.ReadByte();
+			ardT.ReadByte();
 
-			byte rrb = ard.ReadByte();
+			byte rrb = ardT.ReadByte();
 			rate = findSamplingRate(rrb);
 			rateComp = rate;
 			if (rate == 1 & firmTotA < 3001000) rateComp = 10;
@@ -709,13 +716,13 @@ namespace X_Manager.Units
 			bitsDiv = findBytesPerSample();
 			if (firmTotA >= 3000000)
 			{
-				magen = ard.ReadByte();
+				magen = ardT.ReadByte();
 			}
 			if (firmTotA >= 3002000)
 			{
-				adcEn = ard.ReadByte();
+				adcEn = ardT.ReadByte();
 			}
-
+			badPosition = (ushort)(rate * bitsDiv * 1.75);
 			Array.Resize(ref lastGroup, ((rateComp * 3)));
 			nOutputs = rateComp;
 
@@ -737,15 +744,23 @@ namespace X_Manager.Units
 
 			convertStop = false;
 
-			ard.ReadByte();
+			ardT.ReadByte();
+			var pos = ardT.BaseStream.Position;
+			ardT.BaseStream.Position = 0;
+			byte[] ardBuffer = new byte[ardT.BaseStream.Length];
+			ardT.Read(ardBuffer, 0, ardBuffer.Length);
+			ardT.Close();
+
+			MemoryStream ard = new MemoryStream(ardBuffer);
+			ard.Position = pos;
 
 			csvPlaceHeader(ref csv);
 
 			//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 			//	new Action(() => parent.statusProgressBar.Maximum = ard.BaseStream.Length - 1));
-			progMax = ard.BaseStream.Length - 1;
+			progMax = ard.Length - 1;
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.statusProgressBar.Maximum = ard.BaseStream.Length - 1));
+				new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
 			progressWorker.RunWorkerAsync();
 
 			while (!convertStop)
@@ -754,7 +769,7 @@ namespace X_Manager.Units
 				//			new Action(() => parent.statusProgressBar.Value = ard.BaseStream.Position));
 				while (Interlocked.Exchange(ref progLock, 2) > 0) { }
 
-				progVal = ard.BaseStream.Position;
+				progVal = ard.Position;
 				Interlocked.Exchange(ref progLock, 0);
 				if (detectEof(ref ard)) break;
 
@@ -778,12 +793,8 @@ namespace X_Manager.Units
 
 			}
 
-			//sviluppo
-			//mediaFreq = mediaFreq / contoFreq;
-			//MessageBox.Show(mediaFreq.ToString());
-			///sviluppo
 			while (Interlocked.Exchange(ref progLock, 2) > 0) { }
-			progVal = ard.BaseStream.Position;
+			progVal = ard.Position;
 			Thread.Sleep(300);
 			progVal = -1;
 			Interlocked.Exchange(ref progLock, 0);
@@ -795,33 +806,39 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 		}
 
-		private double[] extractGroup(ref BinaryReader ard, ref timeStamp tsc)
+		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
 		{
 			byte[] group = new byte[2000];
 			bool badGroup = false;
 			long position = 0;
 			byte dummy, dummyExt;
-			ushort badPosition = 600;
+			//sviluppo
+			long posReg = ard.Position;
+			int positionComp = 0;
+			//sviluppo
 
-			if (ard.BaseStream.Position == ard.BaseStream.Length) return lastGroup;
+			if (ard.Position == ard.Length) return lastGroup;
 
 			do
 			{
-				dummy = ard.ReadByte();
+				dummy = (byte)ard.ReadByte();
 				if (dummy == 0xab)
 				{
-					if (ard.BaseStream.Position < ard.BaseStream.Length) dummyExt = ard.ReadByte();
+					if (ard.Position < ard.Length) dummyExt = (byte)ard.ReadByte();
 					else return lastGroup;
 
 					if (dummyExt == 0xab)
 					{
-						group[position] = (byte)0xab;
+						group[position] = 0xab;
 						position += 1;
+						//sviluppo
+						positionComp++;
+						///sviluppo
 						dummy = 0;
 					}
 					else if (dummyExt == 0xac)
 					{
-						if (ard.BaseStream.Position < ard.BaseStream.Length - 6)
+						if (ard.Position < ard.Length - 6)
 						{
 							tsc.magX_B = ard.ReadByte();
 							tsc.magX_B += (ard.ReadByte() * 256);
@@ -851,12 +868,16 @@ namespace X_Manager.Units
 					}
 					else
 					{
-						ard.BaseStream.Position -= 1;
+						ard.Position -= 1;
 						if (badGroup)
 						{
-							File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+							File.AppendAllText(ardFileName + "_errorList.txt", "-> " + ard.Position.ToString("X8") + "\r\n");
 						}
+						//sviluppo
+						File.AppendAllText(ardFileName + "_tslength.csv", positionComp.ToString() + ";" + posReg.ToString("X8") + "\r\n");
+						///sviluppo
 					}
+
 				}
 				else
 				{
@@ -868,18 +889,17 @@ namespace X_Manager.Units
 					else if ((position == badPosition) && (!badGroup))
 					{
 						badGroup = true;
-						System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+						File.AppendAllText(ardFileName + "_errorList.txt", "-> " + ard.Position.ToString("X8") + "\r\n");
 					}
+					//sviluppo
+					positionComp++;
+					///sviluppo
 				}
-			} while ((dummy != (byte)0xab) && (ard.BaseStream.Position < ard.BaseStream.Length));
+			} while ((dummy != 0xab) && (ard.Position < ard.Length));
 
 			//Array.Resize(ref group, (int)position);
 
 			tsc.timeStampLength = (byte)(position / bitsDiv);
-			//sviluppo
-			//contoFreq++;
-			//mediaFreq += tsc.timeStampLength;
-			///sviluppo
 
 			//IntPtr doubleResultArray = Marshal.AllocCoTaskMem(sizeof(double) * nOutputs * 3);
 			int resultCode = 0;
@@ -1265,12 +1285,12 @@ namespace X_Manager.Units
 			return tsTypeOut;
 		}
 
-		private void decodeTimeStamp(ref BinaryReader ard, ref timeStamp tsc)
+		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc)
 		{
-			if (debugLevel == 3) ardPos = "  " + ard.BaseStream.Position.ToString("X");
+			if (debugLevel == 3) ardPos = "  " + ard.Position.ToString("X");
 
 			tsc.stopEvent = 0;
-			tsc.tsType = ard.ReadByte();
+			tsc.tsType = (byte)ard.ReadByte();
 			tsc.tsTypeExt1 = 0;
 
 			if (firmTotA < 2000)
@@ -1299,10 +1319,10 @@ namespace X_Manager.Units
 			{
 				try
 				{
-					tsc.tsTypeExt1 = ard.ReadByte();
+					tsc.tsTypeExt1 = (byte)ard.ReadByte();
 					if ((tsc.tsTypeExt1 & ts_ext2) == ts_ext2)
 					{
-						tsc.tsTypeExt2 = ard.ReadByte();
+						tsc.tsTypeExt2 = (byte)ard.ReadByte();
 					}
 				}
 				catch
@@ -1404,14 +1424,14 @@ namespace X_Manager.Units
 
 					try
 					{
-						tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
+						//tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);	//rimettere dopo sviluppo
 					}
 					catch { }
 
 				}
 				else
 				{
-					ard.ReadBytes(8);
+					ard.Position += 8;
 				}
 			}
 		}
@@ -1452,9 +1472,9 @@ namespace X_Manager.Units
 			csv.Write(Encoding.ASCII.GetBytes(csvHeader));
 		}
 
-		private bool detectEof(ref BinaryReader ard)
+		private bool detectEof(ref MemoryStream ard)
 		{
-			if (ard.BaseStream.Position >= ard.BaseStream.Length)
+			if (ard.Position >= ard.Length)
 			{
 				return true;
 			}

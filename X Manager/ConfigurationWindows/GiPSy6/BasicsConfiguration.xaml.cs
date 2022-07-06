@@ -172,6 +172,7 @@ namespace X_Manager.ConfigurationWindows
 		{
 			acqOnTB.Focus();
 		}
+
 		private void remoteHourUnchecked(object sender, RoutedEventArgs e)
 		{
 			CheckBox v = (CheckBox)sender;
