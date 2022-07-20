@@ -205,8 +205,12 @@
 	- Bugfix-Basemanager: non veniva scritto il a 1 il byte di configurazione per presenza di nuova configurazione unità
 	- Gipsy6: aggiunta conversione file da basestation
 	- Interfaccia: il nome della porta seriale si colora di verde se la connessione con il dispositivo FTDI è andata a buon fine
-
-1.18.1DR - da fare: tutte le classi prima di utilizzare il dispositivo ftdi devono controllare se è effettivamente connesso
+1.18.1
+	- Gipsy6-Schedule: Aggiunto warning in caso di schedule principale totalmente OFF
+	- Gipsy6-Schedule: Aggiunti pulsanti "All as A/B/C/D"
+	- Gipsy6-Schedule: Aggiunta selezione secondi di enhanced accuracy (per firmware uguali o superiori a 1.4.7)
+	- AxyTrek: aumentato timeout per attesa risposta alla connessione remota
+1.18.2DR - DA FARE: tutte le classi prima di utilizzare il dispositivo ftdi devono controllare se è effettivamente connesso
 
 
 	

@@ -31,6 +31,7 @@ namespace X_Manager.ConfigurationWindows
 		public ScheduleConfiguration(byte[] conf)
 		{
 			InitializeComponent();
+			warningTB.Text = "";
 			this.conf = conf;
 			int riga = 0;
 			int colonna = 0;
@@ -54,10 +55,10 @@ namespace X_Manager.ConfigurationWindows
 
 				primaryScheduleGrid.Children.Add(timePanelAB);
 				timePanelArAB[i] = timePanelAB;
-				timePanelAB.checkedChanged += leftCheckedManager;
+				//timePanelAB.checkedChanged += leftCheckedManager;
 				secondaryScheduleGrid.Children.Add(timePanelCD);
 				timePanelArCD[i] = timePanelCD;
-				timePanelCD.checkedChanged += rightCheckedManager;
+				//timePanelCD.checkedChanged += rightCheckedManager;
 
 				riga++;
 				if (riga == 12)
@@ -72,6 +73,9 @@ namespace X_Manager.ConfigurationWindows
 			sch[1] = BitConverter.ToUInt16(conf, 54);   //54-55
 			sch[2] = BitConverter.ToUInt16(conf, 84);   //84-85
 			sch[3] = BitConverter.ToUInt16(conf, 86);   //86-87
+
+
+
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -102,8 +106,14 @@ namespace X_Manager.ConfigurationWindows
 					timePanelArCD[i].sel = 1;
 				}
 			}
-			leftCheckedManager(new object(), new EventArgs());
-			rightCheckedManager(new object(), new EventArgs());
+
+			//Mesi ABCD
+			for (int i = 0; i < 12; i++)
+			{
+				mAr_sx[i].IsChecked = conf[i + 116] == 0 ? true : false;
+				mAr_dx[i].IsChecked = conf[i + 116] == 1 ? true : false;
+
+			}
 
 			if (bChecked)
 			{
@@ -136,17 +146,23 @@ namespace X_Manager.ConfigurationWindows
 				unitArr[i].SelectionChanged += cbSelChanged;
 			}
 
-			//Mesi C/D
-			for (int i = 0; i < 12; i++)
+			//Abilitazione eventi
+			for (int i = 0; i < 24; i++)
 			{
-				mAr_sx[i].IsChecked = conf[i + 116] == 0 ? true : false;
-				mAr_dx[i].IsChecked = conf[i + 116] == 1 ? true : false;
-				mAr_sx[i].Checked += mSx_Checked;
-				mAr_sx[i].Unchecked += mSx_Checked;
-				mAr_dx[i].Checked += mDx_Checked;
-				mAr_dx[i].Unchecked += mDx_Checked;
-
+				if (i < 12)
+				{
+					mAr_sx[i].Checked += mSx_Checked;
+					mAr_sx[i].Unchecked += mSx_Checked;
+					mAr_dx[i].Checked += mDx_Checked;
+					mAr_dx[i].Unchecked += mDx_Checked;
+				}
+				timePanelArAB[i].checkedChanged += leftCheckedManager;
+				timePanelArCD[i].checkedChanged += rightCheckedManager;
 			}
+
+			leftCheckedManager(new object(), new EventArgs());
+			rightCheckedManager(new object(), new EventArgs());
+
 		}
 
 		public override void copyValues()
@@ -282,6 +298,7 @@ namespace X_Manager.ConfigurationWindows
 			mAr_sx[index].IsChecked = !mAr_dx[index].IsChecked;
 			mAr_sx[index].Checked += mSx_Checked;
 			mAr_sx[index].Unchecked += mSx_Checked;
+			rightCheckedManager(new object(), new EventArgs());
 		}
 
 		private void mSx_Checked(object sender, RoutedEventArgs e)
@@ -300,11 +317,13 @@ namespace X_Manager.ConfigurationWindows
 			mAr_dx[index].IsChecked = !mAr_sx[index].IsChecked;
 			mAr_dx[index].Checked += mDx_Checked;
 			mAr_dx[index].Unchecked += mDx_Checked;
+			leftCheckedManager(new object(), new EventArgs());
 		}
 
 		private void leftSelectAll_Checked(object sender, RoutedEventArgs e)
 		{
-			for (int i = 0;i < 24;i++){
+			for (int i = 0; i < 24; i++)
+			{
 				timePanelArAB[i].checkedChanged -= leftCheckedManager;
 				timePanelArAB[i].isChecked = (bool)leftSelectAll.IsChecked;
 				timePanelArAB[i].checkedChanged += leftCheckedManager;
@@ -314,6 +333,7 @@ namespace X_Manager.ConfigurationWindows
 			leftSelectAll.IsChecked = leftSelectAll.IsChecked;
 			leftSelectAll.Checked += leftSelectAll_Checked;
 			leftSelectAll.Unchecked += leftSelectAll_Checked;
+			leftCheckedManager(new object(), new EventArgs());
 		}
 
 		private void rightSelectAll_Checked(object sender, RoutedEventArgs e)
@@ -329,16 +349,36 @@ namespace X_Manager.ConfigurationWindows
 			rightSelectAll.IsChecked = rightSelectAll.IsChecked;
 			rightSelectAll.Checked += rightSelectAll_Checked;
 			rightSelectAll.Unchecked += rightSelectAll_Checked;
+			leftCheckedManager(new object(), new EventArgs());
 		}
 
 		private void leftCheckedManager(object sender, EventArgs e)
 		{
+			warningTB.Text = "";
 			int lc = 0;
+			int rc = 0;
+			int lm = 0;
+			int rm = 0;
 			for (int i = 0; i < 24; i++)
 			{
 				if (timePanelArAB[i].isChecked == true)
 				{
 					lc++;
+				}
+				if (timePanelArCD[i].isChecked == true)
+				{
+					rc++;
+				}
+				if (i < 12)
+				{
+					if (mAr_sx[i].IsChecked == true)
+					{
+						lm++;
+					}
+					if (mAr_dx[i].IsChecked == true)
+					{
+						rm++;
+					}
 				}
 			}
 			leftSelectAll.Checked -= leftSelectAll_Checked;
@@ -353,16 +393,39 @@ namespace X_Manager.ConfigurationWindows
 			}
 			leftSelectAll.Checked += leftSelectAll_Checked;
 			leftSelectAll.Unchecked += leftSelectAll_Checked;
+			if ((lc * lm + rc * rm) == 0)
+			{
+				warningTB.Text = "Warning: no fix will be performed!\r\nGeoefencing disabled.";
+			}
 		}
 
 		private void rightCheckedManager(object sender, EventArgs e)
 		{
+			warningTB.Text = "";
+			int lc = 0;
 			int rc = 0;
+			int lm = 0;
+			int rm = 0;
 			for (int i = 0; i < 24; i++)
 			{
+				if (timePanelArAB[i].isChecked == true)
+				{
+					lc++;
+				}
 				if (timePanelArCD[i].isChecked == true)
 				{
 					rc++;
+				}
+				if (i < 12)
+				{
+					if (mAr_sx[i].IsChecked == true)
+					{
+						lm++;
+					}
+					if (mAr_dx[i].IsChecked == true)
+					{
+						rm++;
+					}
 				}
 			}
 			rightSelectAll.Checked -= rightSelectAll_Checked;
@@ -377,7 +440,54 @@ namespace X_Manager.ConfigurationWindows
 			}
 			rightSelectAll.Checked += rightSelectAll_Checked;
 			rightSelectAll.Unchecked += rightSelectAll_Checked;
+			if ((lc * lm + rc * rm) == 0)
+			{
+				warningTB.Text = "Warning: no fix will be performed!\r\nGeoefencing disabled.";
+			}
 		}
 
+		private void allAsClick(object sender, RoutedEventArgs e)
+		{
+			var b = sender as Button;
+			TimePanel[] tp;
+			int sel;
+			if (b.Name == "allAsA" || b.Name == "allAsB")
+			{
+				tp = timePanelArAB;
+			}
+			else
+			{
+				tp = timePanelArCD;
+			}
+			if (b.Name == "allAsA" || b.Name == "allAsC")
+			{
+				sel = 0;
+			}
+			else
+			{
+				sel = 1;
+			}
+			for (int i = 0; i < 24; i++)
+			{
+				if (tp[i].isChecked == true)
+				{
+					tp[i].setAB();
+					tp[i].sel = sel;
+				}
+			}
+			if (b.Name == "allAsB")
+			{
+				scheduleBCB.Checked-=scheduleBCB_Checked;
+				scheduleBCB.IsChecked = true;
+				scheduleBCB.Checked += scheduleBCB_Checked;
+			}
+			if (b.Name == "allAsD")
+			{
+				scheduleDCB.Checked -= scheduleDCB_Checked;
+				scheduleDCB.IsChecked = true;
+				scheduleDCB.Checked += scheduleDCB_Checked;
+			}
+
+		}
 	}
 }

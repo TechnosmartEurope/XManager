@@ -31,6 +31,7 @@ namespace X_Manager.ConfigurationWindows
 		string oldAdd;
 		bool isRemote = false;
 		bool _lockRfAddress = false;
+		uint firmware;
 
 		public bool lockRfAddress
 		{
@@ -45,13 +46,30 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		public BasicsConfiguration(byte[] conf)
+		public BasicsConfiguration(byte[] conf, uint fw)
 					: base()
 		{
 			InitializeComponent();
 
+			firmware = fw;
+
 			ctrAr = new List<TextBox> { acqOnTB, acqOffTB, altOnTB, nsatTB, gsvTB, startDelayTimeTB };
 			this.conf = conf;
+
+			if (conf[58] == 0)
+			{
+				conf[58] = 15;
+			}
+			for (int i = 15; i <= 60; i += 5)
+			{
+				enAccSelCB.Items.Add(i.ToString());
+			}
+			enAccSelCB.SelectedItem = conf[58].ToString();
+			if (firmware < 1004007)
+			{
+				enAccSelCB.IsEnabled = false;
+				enAccSelCB.Visibility = Visibility.Hidden;
+			}
 
 			acqOn = BitConverter.ToInt16(conf, 32);     //32-33
 			acqOff = BitConverter.ToInt16(conf, 34);    //34-35
@@ -530,6 +548,8 @@ namespace X_Manager.ConfigurationWindows
 			conf[45] = (byte)(ddate >> 8);
 			conf[46] = (byte)(ddate >> 16);
 			conf[47] = (byte)(ddate >> 24);
+
+			conf[58] = byte.Parse(enAccSelCB.SelectedItem as string);
 
 			for (int i = 0; i < 24; i++)
 			{

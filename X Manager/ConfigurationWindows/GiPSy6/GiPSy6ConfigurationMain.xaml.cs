@@ -15,7 +15,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using X_Manager;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -39,6 +38,7 @@ namespace X_Manager.ConfigurationWindows
 		//bool expertMode;
 		int lastIndex;
 		int firstIndex;
+		uint firmware;
 		public bool lockRfAddress
 		{
 			get
@@ -53,18 +53,34 @@ namespace X_Manager.ConfigurationWindows
 
 		DispatcherTimer windowMovingTimer = new DispatcherTimer();
 
-		public GiPSy6ConfigurationMain(byte[] conf, byte unitType)
+		public GiPSy6ConfigurationMain(byte[] conf, Units.Unit unit)
 		{
 
 			InitializeComponent();
 
+			if (unit is null)
+			{
+				firmware = 999999999;
+			}
+			else
+			{
+				firmware = unit.firmTotA;
+			}
+			if (conf[58] < 15 || conf[58] > 60)
+			{
+				conf[58] = 15;
+			}
+			if (firmware < 1004007)
+			{
+				conf[58] = 15;
+			}
 
 			if (conf[541] == 0x00 && conf[542] == 0x02 && conf[543] == 0x2b)
 			{
 				Title += " (d.c.)";
 			}
 
-			expertCB.IsChecked = bool.Parse(MainWindow.getParameter("gipsy6ConfigurationExpertMode", "false"));
+			expertCB.IsChecked = bool.Parse(X_Manager.Parent.getParameter("gipsy6ConfigurationExpertMode", "false"));
 
 			appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\TechnoSmArt Europe\\X Manager\\map cache\\";
 			System.IO.Directory.CreateDirectory(appDataPath);
@@ -107,7 +123,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			basicsConf = new BasicsConfiguration(axyConfOut);
+			basicsConf = new BasicsConfiguration(axyConfOut, firmware);
 			schedConf = new ScheduleConfiguration(axyConfOut);
 			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
 			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
@@ -381,7 +397,12 @@ namespace X_Manager.ConfigurationWindows
 
 			Array.Copy(newConf, 16, axyConfOut, 0, 0x22a);
 
-			basicsConf = new BasicsConfiguration(axyConfOut);
+			if (firmware < 1004007)
+			{
+				axyConfOut[58] = 15;
+			}
+
+			basicsConf = new BasicsConfiguration(axyConfOut, firmware);
 			schedConf = new ScheduleConfiguration(axyConfOut);
 			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
 			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);

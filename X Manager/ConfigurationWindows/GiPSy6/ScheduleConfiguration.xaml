@@ -14,9 +14,11 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Margin="0,0,0,0" Text="Schedule" Background="#FF303030" Foreground="White" FontSize="35" />
+        <TextBlock Grid.Row="0" Margin="0,0,0,0" Text=" Schedule" Background="#FF303030" Foreground="White" FontSize="35" />
+		<TextBlock x:Name="warningTB" Grid.Row="0" HorizontalAlignment="Center" Text="Prova\r\nProva" TextWrapping="Wrap" TextAlignment="Center"
+			Foreground="#FFD00000" VerticalAlignment="Center"/>
 
-        <Grid Grid.Row="1">
+		<Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="5"/>
@@ -111,7 +113,9 @@
                     <ComboBoxItem Content="Hours"/>
                 </ComboBox>
 				<Rectangle Grid.Row="6" Fill="#FFA0A0A0" Height="2"/>
-				<CheckBox Grid.Row="7" x:Name="leftSelectAll" Margin="0,10,0,0" Content="Select/Deselect All" />
+				<CheckBox Grid.Row="7" x:Name="leftSelectAll" Margin="0,10,0,0" Content="Select/Deselect All" Width="200" HorizontalAlignment="Left"/>
+				<Button Grid.Row="7" x:Name="allAsA" Margin="190,0,0,0" Content="All as A" Width="80" HorizontalAlignment="Left" MinHeight="0" Height="26" Click="allAsClick"/>
+				<Button Grid.Row="7" x:Name="allAsB" Margin="320,0,0,0" Content="All as B" Width="80" HorizontalAlignment="Left" MinHeight="0" Height="26" Click="allAsClick"/>
 				<Grid Grid.Row="8" x:Name="primaryScheduleGrid" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -218,7 +222,9 @@
                     <ComboBoxItem Content="Hours"/>
                 </ComboBox>
 				<Rectangle Grid.Row="6" Fill="#FFA0A0A0" Height="2"/>
-				<CheckBox Grid.Row="7" x:Name="rightSelectAll" Margin="0,10,0,0" Content="Select/Deselect All"/>
+				<CheckBox Grid.Row="7" x:Name="rightSelectAll" Margin="0,10,0,0" Content="Select/Deselect All" HorizontalAlignment="Left"/>
+				<Button Grid.Row="7" x:Name="allAsC" Margin="190,0,0,0" Content="All as C" Width="80" HorizontalAlignment="Left" MinHeight="0" Height="26" Click="allAsClick"/>
+				<Button Grid.Row="7" x:Name="allAsD" Margin="320,0,0,0" Content="All as D" Width="80" HorizontalAlignment="Left" MinHeight="0" Height="26" Click="allAsClick"/>
 				<Grid Grid.Row="8" x:Name="secondaryScheduleGrid">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>

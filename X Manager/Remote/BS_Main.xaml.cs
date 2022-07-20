@@ -1186,7 +1186,9 @@ namespace X_Manager.Remote
 			conf[541] = (byte)((channelLV.SelectedItem as BS_listViewElement).Address >> 16);
 			conf[542] = (byte)((channelLV.SelectedItem as BS_listViewElement).Address >> 8);
 			conf[543] = (byte)(channelLV.SelectedItem as BS_listViewElement).Address;
-			var cf = new ConfigurationWindows.GiPSy6ConfigurationMain(conf, Units.Unit.model_Gipsy6);
+			//var g6 = new Units.Gipsy6(this);
+			//g6.firmTotA = 999999999;
+			var cf = new ConfigurationWindows.GiPSy6ConfigurationMain(conf, null);
 			cf.lockRfAddress = true;
 			cf.ShowDialog();
 			for (int i = 0; i < 32; i++)        //Questi byte vengono messi tutti a 0xff perché per cambiare il nome unità c'è il file .nnm
@@ -1197,7 +1199,6 @@ namespace X_Manager.Remote
 			{
 				(channelLV.SelectedItem as BS_listViewElement).NewConf = cf.axyConfOut;
 			}
-
 			channelLV.MouseRightButtonUp += channelLV_MouseRightClick;
 		}
 

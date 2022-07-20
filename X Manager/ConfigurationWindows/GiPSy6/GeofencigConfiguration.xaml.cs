@@ -607,6 +607,7 @@ namespace X_Manager.ConfigurationWindows
 				titleL.Text = "Geofencing 2";
 				squareOffset += 192;
 				scheduleOffset += 192;
+				allAsB.Content = "ALL AS G/H";
 			}
 			sch[0] = (((uint)conf[scheduleOffset + 1]) << 8) + conf[scheduleOffset];
 			sch[1] = (((uint)conf[scheduleOffset + 3]) << 8) + conf[scheduleOffset + 2];
@@ -620,6 +621,7 @@ namespace X_Manager.ConfigurationWindows
 				Grid.SetRow(timePanel, i);
 				timeGrid.Children.Add(timePanel);
 				timePanelAr.Add(timePanel);
+				bool allOff = false;
 				if (conf[scheduleOffset + i] == 0)
 				{
 					timePanel.isChecked = false;
@@ -629,6 +631,15 @@ namespace X_Manager.ConfigurationWindows
 					schedBselected = true;
 					timePanel.setAB();
 					timePanel.sel = 1;
+					allOff = true;
+				}
+				if (allOff)
+				{
+					allOnB.Content = "ALL OFF";
+				}
+				else
+				{
+					allOnB.Content = "ALL ON";
 				}
 
 				timePanel.checkedChanged += tpCheckedChanged;
@@ -1766,15 +1777,24 @@ namespace X_Manager.ConfigurationWindows
 						geoEnSquare = true;
 					}
 				}
-
-				if (!(geoEnTime && geoEnSquare))
-				{
-					mainEnableTB.Text = "Disabled";
-				}
-				else
-				{
-					mainEnableTB.Text = "Enabled";
-				}
+			}
+			if (!(geoEnTime && geoEnSquare))
+			{
+				mainEnableTB.Text = "Disabled";
+				mainEnableTB.Foreground = new SolidColorBrush(Color.FromArgb(0xff, 0xd0, 0, 0));
+			}
+			else
+			{
+				mainEnableTB.Text = "Enabled";
+				mainEnableTB.Foreground = new SolidColorBrush(Color.FromArgb(0xff, 0, 0xd0, 0));
+			}
+			if (geoEnTime)
+			{
+				allOnB.Content = "ALL OFF";
+			}
+			else
+			{
+				allOnB.Content = "ALL ON";
 			}
 		}
 
@@ -2122,5 +2142,51 @@ namespace X_Manager.ConfigurationWindows
 
 		#endregion
 
+		private void allOnB_Click(object sender, RoutedEventArgs e)
+		{
+			foreach (var tp in timePanelAr)
+			{
+				tp.checkedChanged -= tpCheckedChanged;
+				if ((string)allOnB.Content == "ALL ON")
+				{
+					tp.isChecked = true;
+				}
+				else
+				{
+					tp.isChecked = false;
+				}
+				tp.checkedChanged += tpCheckedChanged;
+			}
+			checkMainEn();
+		}
+
+		private void allAsB_Click(object sender, RoutedEventArgs e)
+		{
+			int index = 0;
+			bool ch = false;
+			for (int i = 0; i < 24; i++)
+			{
+				if (timePanelAr[i].isChecked == true)
+				{
+					index = timePanelAr[i].sel;
+					ch = true;
+					break;
+				}
+			}
+			if (!ch) return;
+			if (index == 0) index = 1;
+			else index = 0;
+			if (index == 1)
+			{
+				secModeCB.IsChecked = true;
+			}
+			for (int i = 0; i < 24; i++)
+			{
+				if (timePanelAr[i].isChecked == true)
+				{
+					timePanelAr[i].sel = index;
+				}
+			}
+		}
 	}
 }

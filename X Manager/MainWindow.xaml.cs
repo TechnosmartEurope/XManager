@@ -1162,12 +1162,13 @@ namespace X_Manager
 		private void comPortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
 			//comPortComboBox.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 0x45, 0x45, 0x45));
+			//if (comPortComboBox.SelectedIndex == -1) return;
 			comPortComboBox.Foreground = new SolidColorBrush(Color.FromArgb(255, 0xba, 0xba, 0xba));
 			if (!(FTDI is null))
 			{
 				FTDI.Close();
 			}
-			if ((string)comPortComboBox.SelectedItem == "")
+			if ((string)comPortComboBox.SelectedItem == "" || comPortComboBox.SelectedItem is null)
 			{
 				FTDI = null;
 				return;
@@ -1229,23 +1230,59 @@ namespace X_Manager
 
 			if ((string)connectButton.Content == "Connect")
 			{
+
+				if (comPortComboBox.Items.Count == 0)
+				{
+					MessageBox.Show("No valid DataCable found.");
+					return;
+				}
+
+				if (comPortComboBox.SelectedIndex == -1 || FTDI is null)
+				{
+
+					int newIndex = comPortComboBox.Text == "" ? 0 : comPortComboBox.Items.IndexOf(comPortComboBox.Text);
+
+					//comPortComboBox.SelectionChanged -= comPortComboBox_SelectionChanged;
+					comPortComboBox.SelectedIndex = -1;
+					//comPortComboBox.SelectionChanged += comPortComboBox_SelectionChanged;
+					comPortComboBox.SelectedIndex = newIndex;
+					if (FTDI is null || FTDI.IsOpen == false)
+					{
+						return;
+					}
+
+				}
+
+				FTDI.Open();
+				if (FTDI.IsOpen == false)
+				{
+					MessageBox.Show("Invalid DataCable or port already open.");
+				}
+
 				Task pbbTask = pbTask();
 				await pbbTask;
 
 				string response;
+				FTDI.Open();
+				if (!FTDI.IsOpen)
+				{
+
+				}
 				if (sender is Button)       //Se la connessione è stata chiamata da pulsante, utilizza il baudrate principale, altrimenti potrebbe essere stata chiamata da
 				{                           //Masterstation, in questo caso il baudrate deve rimanere com'è
 					FTDI.BaudRate = 115200;
 				}
 				FTDI.ReadExisting();
-				FTDI.ReadTimeout = 200;
+				FTDI.ReadTimeout = 400;
 
+				int errCode = 0;
 				FTDI.Write("T");
 				int wr = -1;
 				int rs = -1;
 				try
 				{
 					rs = FTDI.ReadByte();
+					errCode = rs;
 					if (rs == 0x23)
 					{
 						//completeCommand = false;
@@ -1264,12 +1301,14 @@ namespace X_Manager
 					{
 						FTDI.Write("TTTTTTTTTTTGGAP");
 					}
-
+					errCode = 2;
 					if (remote)
 					{
 						Thread.Sleep(400);
 					}
+					errCode = 3;
 					response = FTDI.ReadLine();
+					errCode = 4;
 				}
 				catch
 				{
@@ -1283,7 +1322,7 @@ namespace X_Manager
 					}
 					catch
 					{
-						badShow(STR_unitNotReady);
+						badShow(STR_unitNotReady + " (FRR_CODE = " + errCode.ToString("000") + ")");
 						uiDisconnected();
 						return;
 					}
@@ -1337,8 +1376,11 @@ namespace X_Manager
 						modelLabel.Content = model;
 						//if (!getConf()) return;
 						getConf();
+						errCode = 30;
 						getRemote();
+						errCode = 31;
 						getSolar();
+						errCode = 32;
 						if (oUnit.solar)
 						{
 							modelLabel.Content += " (s)";
@@ -1378,13 +1420,13 @@ namespace X_Manager
 				}
 				else
 				{
-					badShow(STR_unitNotReady);
+					badShow(STR_unitNotReady + " (ERR_CODE = " + errCode.ToString("000") + ")");
 					uiDisconnected();
 				}
 
 				if (!esito)
 				{
-					badShow(STR_unitNotReady);
+					badShow(STR_unitNotReady + " (ERR_CODE = " + errCode.ToString("000") + ")");
 					uiDisconnected();
 					return;
 				}
@@ -1471,7 +1513,7 @@ namespace X_Manager
 					conf[543] = 0x2b;
 
 				}
-				confForm = new GiPSy6ConfigurationMain(conf, oUnit.modelCode);
+				confForm = new GiPSy6ConfigurationMain(conf, oUnit);
 			}
 			else if (oUnit.modelCode == Unit.model_axy5)
 			{
@@ -1571,7 +1613,7 @@ namespace X_Manager
 				{
 					byte[] axyconf = new byte[Gipsy6.defConf.Length];
 					Array.Copy(Gipsy6.defConf, axyconf, Gipsy6.defConf.Length);
-					conf = new GiPSy6ConfigurationMain(axyconf, Unit.model_Gipsy6);
+					conf = new GiPSy6ConfigurationMain(axyconf, null);
 					conf.lastForthContent = "CLOSE";
 				}
 				else

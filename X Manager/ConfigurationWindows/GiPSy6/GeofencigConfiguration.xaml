@@ -14,8 +14,13 @@
             <RowDefinition Height="660"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" x:Name="titleL" Text="Geofencing 1" Background="#FF303030" Foreground="White" FontSize="40" />
-        <TextBlock Grid.Row="0" Name="mainEnableTB" HorizontalAlignment="Right" Text="Enabled" FontSize="26" Margin="0,0,20,0" VerticalAlignment="Center" Padding="4,0" />
+        <TextBlock Grid.Row="0" x:Name="titleL" Text=" Geofencing 1" Background="#FF303030" Foreground="White" FontSize="40" />
+		<TextBlock x:Name="mainEnableTB" Grid.Row="0" HorizontalAlignment="Center" Text="Prova\r\nProva" TextWrapping="Wrap" TextAlignment="Center"
+			Foreground="#FFD00000" VerticalAlignment="Center"/>
+		<Button x:Name="allOnB" Grid.Row="0" HorizontalAlignment="Right" Content="All OFF" Margin="0,0,115,0" MinHeight="0" Height="30" Width="85"
+			Click="allOnB_Click"/>
+		<Button x:Name="allAsB" Grid.Row="0" HorizontalAlignment="Right" MinHeight="0" Height="30" Width="100" Margin="0,0,10,0" Content="ALL AS E/F" Click="allAsB_Click" />
+		<!--<TextBlock Grid.Row="0" Name="mainEnableTB" HorizontalAlignment="Right" Text="Enabled" FontSize="26" Margin="0,0,20,0" VerticalAlignment="Center" Padding="4,0" />-->
         <!--<CheckBox Grid.Row="0" Name="mainEnableCB" HorizontalAlignment="Right" VerticalContentAlignment="Center" 
             Content="Enable" FontSize="26" Margin="0,0,20,0" VerticalAlignment="Center" Padding="4,0" Checked="enableChecked"/>-->
 
@@ -151,7 +156,7 @@
 				<Button Grid.Row="0" Grid.Column="1" Width="70" Margin="116,0,0,0" HorizontalAlignment="Left" Height="30" Content="All OFF" Click="allOff"/>
 
 				<Button Click="lockBClick" Grid.Row="0" FontSize="13" x:Name="lockB" HorizontalAlignment="Right" Width="120" Height="40" VerticalAlignment="Top" Grid.Column="1"/>
-                <CheckBox Grid.Row="1" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Checked="cbSchedChecked" Unchecked="cbSchedUnchecked"/>
+                <CheckBox x:Name="secModeCB" Grid.Row="1" Margin="10,0,0,0" Width="20" HorizontalAlignment="Left" FontSize="8" VerticalContentAlignment="Center" Checked="cbSchedChecked" Unchecked="cbSchedUnchecked"/>
                 <TextBlock Grid.Row="1" x:Name="schBL" Text="Schedule F:" Margin="45,7,0,6" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
                 <ComboBox Grid.Row="1" x:Name="fValCB" Margin="160,3,0,1" Width="100" HorizontalAlignment="Left" FontSize="18" Height="36" VerticalAlignment="Center" TabIndex="3">
                     <ComboBoxItem Content="1"/>
