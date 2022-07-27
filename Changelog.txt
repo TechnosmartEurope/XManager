@@ -210,3 +210,8 @@
 	- Gipsy6-Schedule: Aggiunti pulsanti "All as A/B/C/D"
 	- Gipsy6-Schedule: Aggiunta selezione secondi di enhanced accuracy (per firmware uguali o superiori a 1.4.7)
 	- AxyTrek: aumentato timeout per attesa risposta alla connessione remota
+1.18.2 - Gipsy6-Schedule: aggiunte  impostazioni per la prossimità
+	- Gipsy6-Schedule: modificata modalità impostazione orari remoto (e prossimità)
+	- Gipsy6: aggiunta decodifica rilevamento unità prossima nel file txt
+	- Bugfix: non venivano elencate le porte seriale con numero >= 20
+	

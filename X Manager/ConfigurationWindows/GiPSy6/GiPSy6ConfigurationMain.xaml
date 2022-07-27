@@ -6,10 +6,10 @@
         xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
         mc:Ignorable="d" Background="#FF202020" SizeToContent="WidthAndHeight"
         Title="GIPSY6 CONFIGURATION" Loaded="loaded" ResizeMode="CanMinimize">
-	<Grid Background="#FF202020" VerticalAlignment="Top" x:Name="ExternalGrid" Height="820" Width="968" >
+	<Grid Background="#FF202020" VerticalAlignment="Top" x:Name="ExternalGrid" Height="860" Width="968" >
 		<Grid.RowDefinitions>
 			<RowDefinition Height="40"/>
-			<RowDefinition Height="720"/>
+			<RowDefinition Height="760"/>
 		</Grid.RowDefinitions>
 		<StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" Background="DarkGray">
 			<Button x:Name="backB" Content="&lt;--" Background="#FF404040" FontSize="20" FontWeight="Bold" Height="40" VerticalAlignment="Top" Click="backClick"/>
@@ -32,7 +32,7 @@
 			<Button x:Name="forthB" Content="-->" Background="#FF404040" FontSize="20" FontWeight="Bold" Click="forthClick" Height="40" VerticalAlignment="Top" />
 		</StackPanel>
 		<Frame Grid.Row="1" x:Name="Gipsy6ConfigurationBrowser" NavigationUIVisibility="Hidden"
-               VerticalAlignment="Top" VerticalContentAlignment="Top" Height="768" MaxHeight="720" >
+               VerticalAlignment="Top" VerticalContentAlignment="Top" Height="768" MaxHeight="760" >
 
 		</Frame>
 	</Grid>

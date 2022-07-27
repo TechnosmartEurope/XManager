@@ -1122,7 +1122,7 @@ namespace X_Manager
 					{
 						if (!deviceName.Contains("XDS") && !deviceName.Contains("RFC"))
 						{
-							if (!deviceName.Contains("COM1)") && !deviceName.Contains("COM2"))
+							if (!deviceName.Contains("COM1)") && !deviceName.Contains("COM2)"))
 							{
 								comPortComboBox.Items.Add(deviceName);
 							}

@@ -308,6 +308,9 @@
     <Compile Include="ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.xaml.cs">
       <DependentUpon>GiPSy6ConfigurationMain.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\HourBar.xaml.cs">
+      <DependentUpon>HourBar.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConfigurationWindows\GiPSy6\PageCopy.cs" />
     <Compile Include="ConfigurationWindows\GiPSy6\ScheduleConfiguration.xaml.cs">
       <DependentUpon>ScheduleConfiguration.xaml</DependentUpon>
@@ -449,6 +452,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\GiPSy6\HourBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

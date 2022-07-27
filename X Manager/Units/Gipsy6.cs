@@ -22,9 +22,6 @@ namespace X_Manager.Units
 	class Gipsy6 : Unit
 	{
 
-		//byte[] buffIn;
-		//byte[] buffOut;
-
 		#region DEFCONF
 
 		public static readonly byte[] defConf = new byte[600] {    0xCF, 0x00, 0x00, 0x02,
@@ -82,8 +79,12 @@ namespace X_Manager.Units
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		// 512	G1/G2 Enable + 2 byte padding
 		0x00, 0x00, 0x00, 0x00,
-		//516 Orari remoto
-		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+		//516 Flag. orari bitwise (0xFF), 517-519 orari remoto, 520-522 orari proximity, 523 minuti intervallo proximity
+		0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x0f,
+		//524-526 Primo indirizzo gruppo prossimità, 527-529 Ultimo indirizzo gruppo prossimità
+		0x00, 0x00, 0x02, 0x00, 0x00, 0x03,
+		//530-539 Disponibili
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		//540	Unità remota/!locale, Indirizzo remoto
 		0x01, 0xFF, 0xFF, 0xFF,
 		//544	Soglie batteria
@@ -118,19 +119,6 @@ namespace X_Manager.Units
 			public double press;
 			public double pressOffset;
 			public double altitude;
-			//public int altSegno;
-			//public int eo;
-			//public int ns;
-			//public int latGradi;
-			//public int latMinuti;
-			//public int latMinDecH;
-			//public int latMinDecL;
-			//public int latMinDecLL;
-			//public int lonGradi;
-			//public int lonMinuti;
-			//public int lonMinDecH;
-			//public int lonMinDecL;
-			//public int lonMinDecLL;
 			public double lat;
 			public double lon;
 			public double speed;
@@ -149,6 +137,7 @@ namespace X_Manager.Units
 			public int inAdc;
 			public int ADC;
 			public int GPS_second;
+			public int proximity;
 			public int pos
 			{
 				get => _pos;
@@ -203,6 +192,7 @@ namespace X_Manager.Units
 				tout.inAdc = this.inAdc;
 				tout.ADC = this.ADC;
 				tout.GPS_second = this.GPS_second;
+				tout.proximity = this.proximity;
 				tout.resetPos(this.pos);
 
 				return tout;
@@ -261,7 +251,29 @@ namespace X_Manager.Units
 			"hour(s)",
 		};
 
-		bool repeatEmptyValues = false;
+
+		enum COLUMN : int
+		{
+			COL_NAME = 0,
+			COL_RF_ADDRESS,
+			COL_DATE,
+			COL_TIME,
+			COL_LATITUDE,
+			COL_LONGITUDE,
+			COL_HORIZONTAL_ACCURACY,
+			COL_ALTITUDE,
+			COL_VERTICAL_ACCURACY,
+			COL_SPEED,
+			COL_COURSE,
+			COL_BATTERY,
+			COL_PROXIMITY,
+			COL_EVENT,
+			COL_POSITION_IN_FILE,
+			COL_LENGTH
+		}
+
+
+		//bool repeatEmptyValues = false;
 		public bool remoteConnection = false;
 
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
@@ -1535,18 +1547,18 @@ namespace X_Manager.Units
 
 			try
 			{
-				if (X_Manager.Parent.getParameter("keepMdp").Equals("false"))
+				if (Parent.getParameter("keepMdp").Equals("false"))
 				{
-					System.IO.File.Delete(fileNameMdp);
+					File.Delete(fileNameMdp);
 				}
 				else
 				{
 					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
 					{
 						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						if (System.IO.File.Exists(newFileNameMdp)) System.IO.File.Delete(newFileNameMdp);
+						if (File.Exists(newFileNameMdp)) System.IO.File.Delete(newFileNameMdp);
 						//string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						System.IO.File.Move(fileNameMdp, newFileNameMdp);
+						File.Move(fileNameMdp, newFileNameMdp);
 					}
 				}
 			}
@@ -1718,8 +1730,10 @@ namespace X_Manager.Units
 
 			int progressBarCounter = 0;
 			//Cicla nel buffer decodificando i timestamp e aggiungendoli alla pila
+			int actPos = 0;
 			while (pos < end)
 			{
+				actPos = timeStamp.pos + (2 * ((timeStamp.pos / 512) + 1)) + 0x600;
 				try
 				{
 					noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);   //decodifica il timestamp
@@ -1815,10 +1829,10 @@ namespace X_Manager.Units
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
 			txtBW.Write("Name\tRF Address\tDate\tTime\tLatitude (deg)\tLongitude (deg)\tHor. Acc. (m)" +
-							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tEvent\r\n");
-			string[] tabs = new string[13];
-			tabs[0] = unitName;
-			tabs[1] = rfAddressString;
+							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tProximity\tEvent\r\n");
+			string[] tabs = new string[14];
+			tabs[(int)COLUMN.COL_NAME] = unitName;
+			tabs[(int)COLUMN.COL_RF_ADDRESS] = rfAddressString;
 			if (fileType == FileType.FILE_BS6)
 			{
 				unitName = Path.GetFileNameWithoutExtension(txtName);
@@ -1861,58 +1875,64 @@ namespace X_Manager.Units
 				//Si scrive il timestmap nel txt
 				//if (!repeatEmptyValues)
 				{
-					tabs = new string[13];
-					tabs[0] = unitName;
-					tabs[1] = rfAddressString;
+					tabs = new string[(int)COLUMN.COL_LENGTH];
+					tabs[(int)COLUMN.COL_NAME] = unitName;
+					tabs[(int)COLUMN.COL_RF_ADDRESS] = rfAddressString;
 				}
-				tabs[2] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
-				tabs[3] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				tabs[(int)COLUMN.COL_DATE] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
+				tabs[(int)COLUMN.COL_TIME] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
 
 				if ((t.tsType & ts_battery) == ts_battery)
 				{
-					tabs[11] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[(int)COLUMN.COL_BATTERY] = t.batteryLevel.ToString("0.00") + "V";
 				}
 				if ((t.tsType & ts_coordinate) == ts_coordinate)
 				{
-					tabs[4] = t.lat.ToString("00.0000000", nfi);
-					tabs[5] = t.lon.ToString("000.0000000", nfi);
+					tabs[(int)COLUMN.COL_LATITUDE] = t.lat.ToString("00.0000000", nfi);
+					tabs[(int)COLUMN.COL_LONGITUDE] = t.lon.ToString("000.0000000", nfi);
 					if (t.hAcc == 7)
 					{
-						tabs[6] = "200";
+						tabs[(int)COLUMN.COL_HORIZONTAL_ACCURACY] = "200";
 					}
 					else
 					{
-						tabs[6] = String.Format("{0}", accuracySteps[t.hAcc]);
+						tabs[(int)COLUMN.COL_HORIZONTAL_ACCURACY] = String.Format("{0}", accuracySteps[t.hAcc]);
 					}
 
-					tabs[7] = t.altitude.ToString();
+					tabs[(int)COLUMN.COL_ALTITUDE] = t.altitude.ToString();
 					if (t.vAcc == 7)
 					{
-						tabs[8] = "200";
+						tabs[(int)COLUMN.COL_VERTICAL_ACCURACY] = "200";
 					}
 					else
 					{
-						tabs[8] = String.Format("{0}", accuracySteps[t.vAcc]);
+						tabs[(int)COLUMN.COL_VERTICAL_ACCURACY] = String.Format("{0}", accuracySteps[t.vAcc]);
 					}
-					tabs[9] = t.speed.ToString("0.0");
-					tabs[10] = t.cog.ToString("0.0");
+					tabs[(int)COLUMN.COL_SPEED] = t.speed.ToString("0.0");
+					tabs[(int)COLUMN.COL_COURSE] = t.cog.ToString("0.0");
 				}
+
+				if ((t.tsTypeExt1 & ts_proximity) == ts_proximity)
+				{
+					tabs[(int)COLUMN.COL_PROXIMITY] = t.proximity.ToString();
+				}
+
 				if ((t.tsType & ts_event) == ts_event)
 				{
-					tabs[12] = decodeEvent(ref t);
+					tabs[(int)COLUMN.COL_EVENT] = decodeEvent(ref t);
 				}
 
 				if (debugLevel == 3)
 				{
-					tabs[12] += " - " + t.pos.ToString("X8");
+					tabs[(int)COLUMN.COL_POSITION_IN_FILE] += " - " + t.pos.ToString("X8");
 				}
 
 
-				for (int i = 0; i < 12; i++)
+				for (int i = 0; i < (int)COLUMN.COL_LENGTH - 1; i++)
 				{
 					txtBW.Write(tabs[i] + "\t");
 				}
-				txtBW.Write(tabs[12] + "\r\n");
+				txtBW.Write(tabs[(int)COLUMN.COL_LENGTH - 1] + "\r\n");
 				txtSemBack.Release();
 
 			}
@@ -2184,6 +2204,7 @@ namespace X_Manager.Units
 				pos += evLength;
 			}
 
+			//Inserire Flag Attività
 			//Inserire Accelerometro
 
 			if ((t.tsTypeExt1 == 0) & (t.tsTypeExt2 == 0))
@@ -2208,6 +2229,8 @@ namespace X_Manager.Units
 				}
 				pos += infoLength;
 			}
+
+			//Inserire Magnetometro
 
 			//Data e Ora
 			if ((t.tsTypeExt1 & ts_time) == ts_time)
@@ -2240,6 +2263,14 @@ namespace X_Manager.Units
 			else
 			{
 				t.dateTime.AddSeconds(1);
+			}
+
+			//Prossimità
+			t.proximity = 0;
+			if ((t.tsTypeExt1 & ts_proximity) == ts_proximity)
+			{
+				t.proximity = gp6[pos + 1] * 65536 + gp6[pos + 2] * 256 + gp6[pos + 3];
+				pos += 4;
 			}
 
 			return bufferNoStamp;

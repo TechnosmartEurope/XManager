@@ -1,17 +1,19 @@
-﻿<local:PageCopy x:Class="X_Manager.ConfigurationWindows.BasicsConfiguration"
+﻿<local:PageCopy
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
-      mc:Ignorable="d" Background="#FF202020" d:DesignHeight="720" 
-      d:DesignWidth="968" Height="720" Width="968" KeyDown="ctrlManager"
+      xmlns:GiPSy6="clr-namespace:X_Manager.ConfigurationWindows.GiPSy6" x:Class="X_Manager.ConfigurationWindows.BasicsConfiguration"
+      mc:Ignorable="d" Background="#FF202020" d:DesignHeight="770" 
+      d:DesignWidth="968" Height="770" Width="968" KeyDown="ctrlManager"
       Title="BasicsConfiguration">
 
 	<Grid x:Name="maingGrid">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="60"/>
 			<RowDefinition Height="50" />
+			<RowDefinition Height="Auto" />
 			<RowDefinition Height="40" />
 			<RowDefinition Height="40" />
 			<RowDefinition Height="40" />
@@ -26,7 +28,7 @@
 			<RowDefinition Height="40" />
 			<RowDefinition Height="40" />
 			<RowDefinition Height="40" />
-			<RowDefinition Height="40" />
+			<RowDefinition Height="56" />
 			<RowDefinition />
 		</Grid.RowDefinitions>
 		<TextBlock Grid.Row="0" Text="Basics" Foreground="White" FontSize="35" Margin="0,0,0,0" Background="#FF303030"/>
@@ -71,11 +73,26 @@
 		<TextBox Grid.Row="12" x:Name="startDelayTimeTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" LostFocus="validate" KeyDown="validate" TabIndex="105" GotFocus="onTB_GotFocus" />
 		<TextBlock Grid.Row="12" x:Name="minLabel" Text="(min)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
 
-		<TextBlock Grid.Row="14" x:Name="remoteScheduleTitleTB" Text="REMOTE SCHEDULE" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
-		<Button Grid.Row="14" x:Name="allOnB" Width="70" HorizontalAlignment="Left" Margin="280,0,0,0" Height="26" Content="All ON" Click="allOnClick"/>
-		<Button Grid.Row="14" x:Name="allOffB" Width="70" HorizontalAlignment="Left" Margin="360,0,0,0" Height="26" Content="All OFF" Click="allOffClick"/>
-		<TextBlock Grid.Row="14" x:Name="remoteAddressTitleTB" Text="ADDRESS:" Foreground="#FF00AADE" FontSize="25" HorizontalAlignment="Right" Margin="0,0,30,0" />
+		<TextBlock Grid.Row="14" x:Name="remoteScheduleTitleTB" Text="RADIO SCHEDULE" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+		<!--<Button Grid.Row="14" x:Name="allOnB" Width="70" HorizontalAlignment="Left" Margin="280,0,0,0" Height="26" Content="All ON" Click="allOnClick"/>
+		<Button Grid.Row="14" x:Name="allOffB" Width="70" HorizontalAlignment="Left" Margin="360,0,0,0" Height="26" Content="All OFF" Click="allOffClick"/>-->
+
+		<TextBlock x:Name="remoteScheduleTB" Grid.Row="15" Text="Remote" Foreground="White" Width="90" HorizontalAlignment="Left" FontSize="16" VerticalAlignment="Center" Margin="40,0,0,0"/>
+		<GiPSy6:HourBar Grid.Row="15" x:Name="remoteHB" HorizontalAlignment="Left" Margin="110,0,0,0" VerticalAlignment="Center"/>
+		<TextBlock x:Name="rfAddressTB" Text="RF Address:" Grid.Row="15" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="0,0,150,0"/>
 		<TextBox Grid.Row="15" Width="122" x:Name="remoteAddressTB" HorizontalAlignment="Right" Margin="0,0,20,0" FontSize="20" Text="0X000000"/>
+		<TextBlock Grid.Row="16" x:Name="proximityTB" Text="Proximity" Foreground="White" HorizontalAlignment="Left" Width="90" FontSize="16" VerticalAlignment="Center" Margin="40,0,0,0"/>
+		<GiPSy6:HourBar Grid.Row="16" x:Name="proximityHB" HorizontalAlignment="Left" Margin="110,0,0,0" VerticalAlignment="Center"/>
+		<TextBlock x:Name="pxIntervalLabel" Text="Time (min):" Grid.Row="16" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="0,0,150,0"/>
+		<TextBox Grid.Row="16" Width="122" x:Name="pxIntervalTB" HorizontalAlignment="Right" Margin="0,0,20,0" FontSize="20" Text="0X000000" LostFocus="validate" KeyDown="validate"/>
+		<StackPanel Orientation="Horizontal" Grid.Row="17" x:Name="rfAddressesSP">
+			<TextBlock Text="Proximity First Address:" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="120,0,0,0"/>
+			<TextBox x:Name="pxFirstTB" Width="104" HorizontalAlignment="Right" Margin="10,0,0,0" FontSize="18" Text="0X000000" MinHeight="0" Height="34"/>
+			<TextBlock Text="Proximity Last Address:" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="42,0,0,0"/>
+			<TextBox x:Name="pxLastTB" Width="104" HorizontalAlignment="Right" Margin="10,0,0,0" FontSize="18" Text="0X000000" MinHeight="0" Height="34"/>
+
+		</StackPanel>
+
 
 	</Grid>
 </local:PageCopy>

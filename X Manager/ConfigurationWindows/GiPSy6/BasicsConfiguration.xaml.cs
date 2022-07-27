@@ -20,18 +20,20 @@ namespace X_Manager.ConfigurationWindows
 	/// </summary>
 	partial class BasicsConfiguration : PageCopy
 	{
-		int acqOn, acqOff, altOn, nSat, gsv, remoteAddress;
+		int acqOn, acqOff, altOn, nSat, gsv, remoteAddress, pxInterval, pxFirst, pxLast;
 		uint sdTime, sddDate;
 		List<TextBox> ctrAr;
-		int[] maxs = new int[6] { 65000, 65000, 65000, 8, 200, 0x7ffffff };
-		int[] mins = new int[6] { 10, 2, 2, 0, 5, 0 };
-		CheckBox[] remSchAr = new CheckBox[24];
+		int[] maxs = new int[7] { 65000, 65000, 65000, 8, 200, 0x7ffffff, 60 };
+		int[] mins = new int[7] { 10, 2, 2, 0, 5, 0, 5 };
+		//CheckBox[] remSchAr = new CheckBox[24];
 		byte[] conf;
 		DateTime sdDate;
-		string oldAdd;
+		string[] oldAdd;
 		bool isRemote = false;
 		bool _lockRfAddress = false;
 		uint firmware;
+		FrameworkElement[] remoteControls;
+		FrameworkElement[] proximityControls;
 
 		public bool lockRfAddress
 		{
@@ -51,9 +53,17 @@ namespace X_Manager.ConfigurationWindows
 		{
 			InitializeComponent();
 
+			remoteHB.oneAtLeast = true;
+			proximityHB.oneAtLeast = false;
+			oldAdd = new string[3];
+
 			firmware = fw;
 
-			ctrAr = new List<TextBox> { acqOnTB, acqOffTB, altOnTB, nsatTB, gsvTB, startDelayTimeTB };
+			ctrAr = new List<TextBox> { acqOnTB, acqOffTB, altOnTB, nsatTB, gsvTB, startDelayTimeTB, pxIntervalTB };
+
+			remoteControls = new FrameworkElement[] { remoteScheduleTitleTB, remoteScheduleTB, proximityTB, remoteHB, proximityHB, rfAddressTB, pxIntervalLabel, remoteAddressTB,
+														pxIntervalTB, rfAddressesSP};
+			proximityControls = new FrameworkElement[] { proximityTB, proximityHB, pxIntervalLabel, pxIntervalTB, rfAddressesSP };
 			this.conf = conf;
 
 			if (conf[58] == 0)
@@ -79,6 +89,9 @@ namespace X_Manager.ConfigurationWindows
 			sdTime = BitConverter.ToUInt32(conf, 40);    //40-43
 			sddDate = BitConverter.ToUInt32(conf, 44);    //44-47
 			remoteAddress = (conf[541] << 16) + (conf[542] << 8) + (conf[543]);
+			pxInterval = conf[523];
+			pxFirst = (conf[524] << 16) + (conf[525] << 8) + (conf[526]);
+			pxLast = (conf[527] << 16) + (conf[528] << 8) + (conf[529]);
 
 			earlyStopCB.IsChecked = (conf[38] & 0x80) == 0x80;
 			enhancedAccuracyCB.IsChecked = (conf[38] & 0x40) == 0x40;
@@ -88,9 +101,20 @@ namespace X_Manager.ConfigurationWindows
 			altOnTB.Text = altOn.ToString();
 			nsatTB.Text = nSat.ToString();
 			gsvTB.Text = gsv.ToString();
+			pxIntervalTB.Text = pxInterval.ToString();
 			remoteAddressTB.Text = remoteAddress.ToString();
-			remoteAddressTB.PreviewKeyDown += remoteAddressTB_PreviewKeyDown;
-			remoteAddressTB.TextChanged += remoteAddressTB_TextChanged;
+			remoteAddressTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
+			remoteAddressTB.TextChanged += rfAddressTB_TextChanged;
+			pxFirstTB.Text = pxFirst.ToString();
+			pxFirstTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
+			pxFirstTB.TextChanged += rfAddressTB_TextChanged;
+			pxLastTB.Text = pxLast.ToString();
+			pxLastTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
+			pxLastTB.TextChanged += rfAddressTB_TextChanged;
+
+			oldAdd[0] = remoteAddressTB.Text;
+			oldAdd[1] = pxFirstTB.Text;
+			oldAdd[2] = pxLastTB.Text;
 
 			KeyDown += ctrlManager;
 
@@ -128,56 +152,63 @@ namespace X_Manager.ConfigurationWindows
 			sdDate = new DateTime(anno, mese, giorno);
 			startDelayDateDP.SelectedDate = sdDate;
 
-			for (int i = 0; i < 12; i++)
-			{
-				var v = new CheckBox();
-				v.HorizontalContentAlignment = HorizontalAlignment.Left;
-				v.VerticalContentAlignment = VerticalAlignment.Center;
-				v.Content = (i + 1).ToString("00");
-				Grid.SetRow(v, 15);
-				v.Margin = new Thickness(20 + (i * 65), 0, 0, 0);
-				v.Unchecked += remoteHourUnchecked;
-				maingGrid.Children.Add(v);
-				remSchAr[i] = v;
-			}
-			for (int i = 0; i < 12; i++)
-			{
-				var v = new CheckBox();
-				v.HorizontalContentAlignment = HorizontalAlignment.Left;
-				v.VerticalContentAlignment = VerticalAlignment.Center;
-				v.Content = (i + 13).ToString("00");
-				Grid.SetRow(v, 16);
-				v.Margin = new Thickness(20 + (i * 65), 0, 0, 0);
-				v.Unchecked += remoteHourUnchecked;
-				maingGrid.Children.Add(v);
-				remSchAr[i + 12] = v;
-			}
 			if (conf[540] == 1)
 			{
 				isRemote = true;
+				if (firmware < 1005000)
+				{
+					//proximityTB.Visibility = Visibility.Hidden;
+					//proximityHB.Visibility = Visibility.Hidden;
+					foreach (FrameworkElement fe in proximityControls)
+					{
+						fe.Visibility = Visibility.Hidden;
+					}
+				}
 			}
 			else
 			{
 				isRemote = false;
-				remoteAddressTitleTB.Visibility = Visibility.Hidden;
-				remoteAddressTB.Visibility = Visibility.Hidden;
-				remoteScheduleTitleTB.Visibility = Visibility.Hidden;
-				allOnB.Visibility = Visibility.Hidden;
-				allOffB.Visibility = Visibility.Hidden;
+				foreach (FrameworkElement fe in remoteControls)
+				{
+					fe.Visibility = Visibility.Hidden;
+				}
+				//remoteScheduleTitleTB.Visibility = Visibility.Hidden;
+				//remoteAddressTitleTB.Visibility = Visibility.Hidden;
+				//remoteAddressTB.Visibility = Visibility.Hidden;
+				//remoteScheduleTB.Visibility = Visibility.Hidden;
+				//remoteHB.Visibility = Visibility.Hidden;
+				//proximityTB.Visibility = Visibility.Hidden;
+				//proximityHB.Visibility = Visibility.Hidden;
 			}
-			for (int i = 0; i < 24; i++)
+
+			if (isRemote)
 			{
-				if (!isRemote)
+				if (conf[516] == 0xff)
 				{
-					conf[i + 516] = 0;
-					remSchAr[i].Visibility = Visibility.Hidden;
+					byte[] rSch = conf.Skip(517).Take(3).ToArray();
+					byte[] pSch = conf.Skip(520).Take(3).ToArray();
+					remoteHB.setStatus(rSch);
+					proximityHB.setStatus(pSch);
 				}
-				if (conf[i + 516] == 1)
+				else
 				{
-					var cb = remSchAr[i];
-					cb.IsChecked = true;
+					remoteHB.setStatus(conf.Skip(516).Take(24).ToArray());
+					proximityHB.setStatus(new byte[24]);
 				}
 			}
+			else
+			{
+				byte schMode = conf[516];
+				for (int i = 516; i < 540; i++)
+				{
+					conf[i] = 0;
+				}
+				if (schMode == 0xff)
+				{
+					conf[516] = 0xff;
+				}
+			}
+
 			if (conf[57] == 0)
 			{
 				debugEventsL.Text = "";
@@ -189,44 +220,6 @@ namespace X_Manager.ConfigurationWindows
 		private void loaded(object sender, RoutedEventArgs e)
 		{
 			acqOnTB.Focus();
-		}
-
-		private void remoteHourUnchecked(object sender, RoutedEventArgs e)
-		{
-			CheckBox v = (CheckBox)sender;
-			int check = 0;
-			for (int i = 0; i < 24; i++)
-			{
-				if (remSchAr[i].IsChecked == true)
-				{
-					check++;
-				}
-			}
-			if (check == 0)
-			{
-				MessageBox.Show("WARNING: at least one hour must be selected.");
-				v.IsChecked = true;
-			}
-
-		}
-
-		private void allOnClick(object sender, RoutedEventArgs e)
-		{
-			for (int i = 0; i < 24; i++)
-			{
-				remSchAr[i].IsChecked = true;
-			}
-		}
-
-		private void allOffClick(object sender, RoutedEventArgs e)
-		{
-			for (int i = 0; i < 24; i++)
-			{
-				remSchAr[i].Unchecked -= remoteHourUnchecked;
-				remSchAr[i].IsChecked = false;
-				remSchAr[i].Unchecked += remoteHourUnchecked;
-			}
-			remSchAr[0].IsChecked = true;
 		}
 
 		private void ctrlManager(object sender, KeyEventArgs e)
@@ -255,14 +248,25 @@ namespace X_Manager.ConfigurationWindows
 						if (e.Key == Key.L)
 						{
 							isRemote = false;
-							remoteAddressTitleTB.Visibility = Visibility.Hidden;
-							remoteAddressTB.Visibility = Visibility.Hidden;
-							remoteScheduleTitleTB.Visibility = Visibility.Hidden;
-							allOnB.Visibility = Visibility.Hidden;
-							allOffB.Visibility = Visibility.Hidden;
-							for (int i = 0; i < 24; i++)
+							//remoteScheduleTitleTB.Visibility = Visibility.Hidden;
+							//remoteAddressTitleTB.Visibility = Visibility.Hidden;
+							//remoteAddressTB.Visibility = Visibility.Hidden;
+							//remoteScheduleTB.Visibility = Visibility.Hidden;
+							//proximityTB.Visibility = Visibility.Hidden;
+							//remoteHB.Visibility = Visibility.Hidden;
+							//proximityHB.Visibility = Visibility.Hidden;
+							foreach (FrameworkElement fe in remoteControls)
 							{
-								remSchAr[i].Visibility = Visibility.Hidden;
+								fe.Visibility = Visibility.Hidden;
+							}
+							byte schMode = conf[516];
+							for (int i = 516; i < 540; i++)
+							{
+								conf[i] = 0;
+							}
+							if (schMode == 0xff)
+							{
+								conf[516] = 0xff;
 							}
 							conf[544] = 0x11; conf[545] = 0x09;
 							conf[546] = 0xcd; conf[547] = 0x08;
@@ -274,24 +278,27 @@ namespace X_Manager.ConfigurationWindows
 						else if (e.Key == Key.R)
 						{
 							isRemote = true;
-							remoteAddressTitleTB.Visibility = Visibility.Visible;
-							remoteAddressTB.Visibility = Visibility.Visible;
-							remoteScheduleTitleTB.Visibility = Visibility.Visible;
-							allOnB.Visibility = Visibility.Visible;
-							allOffB.Visibility = Visibility.Visible;
-							int check = 0;
-							for (int i = 0; i < 24; i++)
+							foreach (FrameworkElement fe in remoteControls)
 							{
-								remSchAr[i].Visibility = Visibility.Visible;
-								if (remSchAr[i].IsChecked == true)
+								fe.Visibility = Visibility.Visible;
+							}
+							//remoteScheduleTitleTB.Visibility = Visibility.Visible;
+							//remoteAddressTitleTB.Visibility = Visibility.Visible;
+							//remoteAddressTB.Visibility = Visibility.Visible;
+							//remoteScheduleTB.Visibility = Visibility.Visible;
+							//remoteHB.Visibility = Visibility.Visible;
+							if (firmware < 1005000)
+							{
+								foreach (FrameworkElement fe in proximityControls)
 								{
-									check++;
+									fe.Visibility = Visibility.Hidden;
 								}
+								//proximityTB.Visibility = Visibility.Visible;
+								//proximityHB.Visibility = Visibility.Visible;
 							}
-							if (check == 0)
-							{
-								remSchAr[0].IsChecked = true;
-							}
+							remoteHB.allOn();
+							proximityHB.allOff();
+
 							conf[544] = 0xbc; conf[545] = 0x09;
 							conf[546] = 0xbc; conf[547] = 0x09;
 							conf[548] = 0x44; conf[549] = 0x0a;
@@ -381,53 +388,72 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		private void remoteAddressTB_PreviewKeyDown(object sender, KeyEventArgs e)
+		private void rfAddressTB_PreviewKeyDown(object sender, KeyEventArgs e)
 		{
+
 			if (e.Key == Key.Enter)
 			{
-				if (remoteAddressTB.Text == "")
+				if ((sender as TextBox).Text == "")
 				{
-					remoteAddressTB.Text = "000000";
+					(sender as TextBox).Text = "000000";
 
 				}
 			}
 			//oldAdd = remoteAddressTB.Text;
 		}
 
-		private void remoteAddressTB_TextChanged(object sender, TextChangedEventArgs e)
+		private void rfAddressTB_TextChanged(object sender, TextChangedEventArgs e)
 		{
-			if (remoteAddressTB.Text == "") return;
+			int newRfAddress = 0;
+			int index = 100;
+			if ((sender as TextBox).Name == "remoteAddressTb") index = 0;
+			if ((sender as TextBox).Name == "pxFirstTB") index = 1;
+			if ((sender as TextBox).Name == "pxLastTB") index = 2;
+			if ((sender as TextBox).Text == "") return;
 			bool conv = false;
 			char rs = 's';
 			try
 			{
-				rs = remoteAddressTB.Text.Skip(1).Take(1).ToArray()[0];
+				rs = (sender as TextBox).Text.Skip(1).Take(1).ToArray()[0];
 			}
 			catch { }
 			if (rs == 'x' || rs == 'X')
 			{
-				string hexNum = remoteAddressTB.Text.Substring(2);
+				string hexNum = (sender as TextBox).Text.Substring(2);
 				if (hexNum == "")
 				{
-					oldAdd = remoteAddressTB.Text;
+					oldAdd[index] = (sender as TextBox).Text;
 					return;
 				}
-				conv = Int32.TryParse(hexNum, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out remoteAddress);
+				conv = int.TryParse(hexNum, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out newRfAddress);
 			}
 			else
 			{
-				conv = Int32.TryParse(remoteAddressTB.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out remoteAddress);
+				conv = int.TryParse((sender as TextBox).Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out newRfAddress);
 			}
-			if (!conv || (remoteAddress == 0) || (remoteAddress >= 0xffff00))
+			if (!conv || (newRfAddress == 0) || (newRfAddress >= 0xffff00))
 			{
-				remoteAddressTB.TextChanged -= remoteAddressTB_TextChanged;
-				remoteAddressTB.Text = oldAdd;
-				remoteAddressTB.TextChanged += remoteAddressTB_TextChanged;
+				(sender as TextBox).TextChanged -= rfAddressTB_TextChanged;
+				(sender as TextBox).Text = oldAdd[index];
+				(sender as TextBox).TextChanged += rfAddressTB_TextChanged;
+				newRfAddress = Int32.Parse(oldAdd[index]);
 			}
 			else
 			{
 				//remoteAddressTB.Text = remoteAddress.ToString();
-				oldAdd = remoteAddressTB.Text;
+				oldAdd[index] = (sender as TextBox).Text;
+			}
+			switch (index)
+			{
+				case 0:
+					remoteAddress = newRfAddress;
+					break;
+				case 1:
+					pxFirst = newRfAddress;
+					break;
+				case 2:
+					pxLast = newRfAddress;
+					break;
 			}
 		}
 
@@ -468,7 +494,7 @@ namespace X_Manager.ConfigurationWindows
 		{
 			//TextBox s = (TextBox)sender;
 			int index = 100;
-			for (int i = 0; i < 6; i++)
+			for (int i = 0; i < 7; i++)
 			{
 				if (s == ctrAr[i])
 				{
@@ -477,7 +503,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 			if (index == 100) return;
-			int[] oldVal = new int[6] { acqOn, acqOff, altOn, nSat, gsv, (int)sdTime };
+			int[] oldVal = new int[7] { acqOn, acqOff, altOn, nSat, gsv, (int)sdTime, pxInterval };
 			int newVal;
 			if (!int.TryParse(s.Text, out newVal))
 			{
@@ -508,6 +534,14 @@ namespace X_Manager.ConfigurationWindows
 					break;
 				case 5:
 					sdTime = (uint)newVal;
+					break;
+				case 6:
+					pxInterval = newVal;
+					if ((newVal % 5) != 0)
+					{
+						pxInterval += 5 - (newVal % 5);
+					}
+					pxIntervalTB.Text = pxInterval.ToString();
 					break;
 			}
 
@@ -551,10 +585,25 @@ namespace X_Manager.ConfigurationWindows
 
 			conf[58] = byte.Parse(enAccSelCB.SelectedItem as string);
 
-			for (int i = 0; i < 24; i++)
+			if (firmware >= 1005000)
 			{
-				conf[i + 516] = (bool)remSchAr[i].IsChecked ? (byte)1 : (byte)0;
+				conf[516] = 0xff;
+				Array.Copy(remoteHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 517, 3);
+				Array.Copy(proximityHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 520, 3);
+
+				conf[524] = (byte)(pxFirst >> 16);
+				conf[525] = (byte)(pxFirst >> 8);
+				conf[526] = (byte)(pxFirst & 0xff);
+
+				conf[527] = (byte)(pxLast >> 16);
+				conf[528] = (byte)(pxLast >> 8);
+				conf[529] = (byte)(pxLast & 0xff);
 			}
+			else
+			{
+				Array.Copy(remoteHB.getStatus(GiPSy6.HourBar.MODE.MODE_OLD), 0, conf, 516, 24);
+			}
+
 			conf[540] = isRemote ? (byte)1 : (byte)0;
 			char rs = 't';
 			try

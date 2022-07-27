@@ -58,6 +58,7 @@ namespace X_Manager.Units
 		public const byte ts_sched = 0b_0001_0000;
 		public const byte ts_time = 0b0010_0000;
 		public const byte ts_multi = 0b0100_0000;
+		public const byte ts_proximity = 0b1000_0000;
 		public const byte ts_escape = 0b1000_0000;
 
 		//Maschere timestamp di fine blocco
