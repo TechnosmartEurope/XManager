@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define PRINT_TS_LENGTH
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,10 +17,13 @@ using FT_HANDLE = System.UInt64;
 using FT_HANDLE = System.UInt32;
 #endif
 
+
 namespace X_Manager.Units
 {
+
 	class Axy4_2 : Unit
 	{
+
 		//bool evitaSoglie = false;
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[6];
@@ -640,6 +645,7 @@ namespace X_Manager.Units
 			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
 			BinaryReader ardT = new BinaryReader(File.Open(fileName, FileMode.Open));
 			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
+#if PRINT_TS_LENGTH
 			if (File.Exists(ardFileName + "_tslength.csv"))
 			{
 				File.Delete(ardFileName + "_tslength.csv");
@@ -648,6 +654,7 @@ namespace X_Manager.Units
 			{
 				File.Delete(ardFileName + "_errorList.txt");
 			}
+#endif
 
 			ardT.BaseStream.Position = 1;
 			firmTotA = (uint)(ardT.ReadByte() * 1000 + ardT.ReadByte());
@@ -812,10 +819,10 @@ namespace X_Manager.Units
 			bool badGroup = false;
 			long position = 0;
 			byte dummy, dummyExt;
-			//sviluppo
+#if PRINT_TS_LENGTH
 			long posReg = ard.Position;
 			int positionComp = 0;
-			//sviluppo
+#endif
 
 			if (ard.Position == ard.Length) return lastGroup;
 
@@ -831,9 +838,9 @@ namespace X_Manager.Units
 					{
 						group[position] = 0xab;
 						position += 1;
-						//sviluppo
+#if PRINT_TS_LENGTH
 						positionComp++;
-						///sviluppo
+#endif
 						dummy = 0;
 					}
 					else if (dummyExt == 0xac)
@@ -873,9 +880,9 @@ namespace X_Manager.Units
 						{
 							File.AppendAllText(ardFileName + "_errorList.txt", "-> " + ard.Position.ToString("X8") + "\r\n");
 						}
-						//sviluppo
+#if PRINT_TS_LENGTH
 						File.AppendAllText(ardFileName + "_tslength.csv", positionComp.ToString() + ";" + posReg.ToString("X8") + "\r\n");
-						///sviluppo
+#endif
 					}
 
 				}
@@ -891,9 +898,9 @@ namespace X_Manager.Units
 						badGroup = true;
 						File.AppendAllText(ardFileName + "_errorList.txt", "-> " + ard.Position.ToString("X8") + "\r\n");
 					}
-					//sviluppo
+#if PRINT_TS_LENGTH
 					positionComp++;
-					///sviluppo
+#endif
 				}
 			} while ((dummy != 0xab) && (ard.Position < ard.Length));
 
@@ -1424,7 +1431,7 @@ namespace X_Manager.Units
 
 					try
 					{
-						//tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);	//rimettere dopo sviluppo
+						tsc.orario = new DateTime(anno, mese, giorno, ore, minuti, secondi);
 					}
 					catch { }
 

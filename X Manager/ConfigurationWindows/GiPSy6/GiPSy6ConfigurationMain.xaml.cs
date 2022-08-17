@@ -371,6 +371,10 @@ namespace X_Manager.ConfigurationWindows
 
 		private void importB_Click(object sender, RoutedEventArgs e)
 		{
+
+			var oldLockRfAddress = basicsConf.lockRfAddress;
+			byte[] oldRfAddress = axyConfOut.Skip(541).Take(3).ToArray();
+
 			var fopen = new System.Windows.Forms.OpenFileDialog();
 			fopen.InitialDirectory = X_Manager.Parent.getParameter("gipsy6ConfigurationsFolder", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
 			fopen.Filter = "Gipsy6 Configuration File | *.cfg";
@@ -396,6 +400,10 @@ namespace X_Manager.ConfigurationWindows
 			Gipsy6ConfigurationBrowser.Content = null;
 
 			Array.Copy(newConf, 16, axyConfOut, 0, 0x22a);
+			if (oldLockRfAddress)
+			{
+				Array.Copy(oldRfAddress, 0, axyConfOut, 541, 3); 
+			}
 
 			if (firmware < 1004007)
 			{
@@ -406,6 +414,7 @@ namespace X_Manager.ConfigurationWindows
 			schedConf = new ScheduleConfiguration(axyConfOut);
 			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
 			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
+			lockRfAddress = oldLockRfAddress;
 			pages = new PageCopy[] { schedConf, basicsConf, geoConf1, geoConf2 };
 			pagesEnabled = new bool[] { true, false, false, false };
 			lastIndex = 0;

@@ -215,4 +215,7 @@
 	- Gipsy6: aggiunta decodifica rilevamento unità prossima nel file txt
 	- Bugfix: non venivano elencate le porte seriale con numero >= 20
 1.18.3	- Bugfix: caselle indirizzi remoto e di prossimità
+1.18.4	- Rimosso file con lunghezza dei timestamp nella conversione dell'axy4/4.5
+	- Tolta possibilità di modifica indirizzo RF in caso di settaggio schedule nel Basemanager, quando si importa uno schedule da file. Inoltre l'indirizzo
+	viene lasciato uguale a quello dell'unità selezionata, ignorando quello presente nel file importato
 	
