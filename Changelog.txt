@@ -214,4 +214,5 @@
 	- Gipsy6-Schedule: modificata modalità impostazione orari remoto (e prossimità)
 	- Gipsy6: aggiunta decodifica rilevamento unità prossima nel file txt
 	- Bugfix: non venivano elencate le porte seriale con numero >= 20
+1.18.3	- Bugfix: caselle indirizzi remoto e di prossimità
 	

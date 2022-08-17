@@ -406,10 +406,11 @@ namespace X_Manager.ConfigurationWindows
 		{
 			int newRfAddress = 0;
 			int index = 100;
-			if ((sender as TextBox).Name == "remoteAddressTb") index = 0;
+			if ((sender as TextBox).Name == "remoteAddressTB") index = 0;
 			if ((sender as TextBox).Name == "pxFirstTB") index = 1;
 			if ((sender as TextBox).Name == "pxLastTB") index = 2;
 			if ((sender as TextBox).Text == "") return;
+			if ((sender as TextBox).Text == "0") return;
 			bool conv = false;
 			char rs = 's';
 			try
@@ -621,9 +622,9 @@ namespace X_Manager.ConfigurationWindows
 			}
 			else
 			{
-				if (remoteAddressTB.Text.Length > 0)
+				if (remoteAddressTB.Text.Length > 0 && remoteAddressTB.Text != "0")
 				{
-					Int32.TryParse(remoteAddressTB.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out remoteAddress);
+					int.TryParse(remoteAddressTB.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out remoteAddress);
 				}
 			}
 			conf[541] = (byte)(remoteAddress >> 16);
