@@ -218,4 +218,9 @@
 1.18.4	- Rimosso file con lunghezza dei timestamp nella conversione dell'axy4/4.5
 	- Tolta possibilità di modifica indirizzo RF in caso di settaggio schedule nel Basemanager, quando si importa uno schedule da file. Inoltre l'indirizzo
 	viene lasciato uguale a quello dell'unità selezionata, ignorando quello presente nel file importato
-	
+1.18.5 - Aggiunta unità AxyDepth in modalità AxyDepthFast.5
+	- Basemanager: se si cambia l'indirizzo di un'unità l'eventuale nuovo schedule associato si aggancia al nuovo indirizzo
+	- Bugfix: non impostava correttamente la modalità Verbose nell axydepth
+	- Bugfix: non veniva riconosciuto l'Axy4 legacy in conversione e il file ard veniva considerato di default come un trek
+	- Gipsy6: Completata conversione Course Over Ground
+	- Bugfix: Corretti intervalli possibili di scansione per sensore di prossimità gipsy6

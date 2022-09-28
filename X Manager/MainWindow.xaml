@@ -58,21 +58,21 @@
 					<Grid.ColumnDefinitions >
 						<ColumnDefinition Width="214"/>
 						<ColumnDefinition Width="55" />
-						<ColumnDefinition Width="87"/>
-						<ColumnDefinition Width="74"/>
-						<ColumnDefinition Width="115"/>
+						<ColumnDefinition Width="106"/>
+						<ColumnDefinition Width="71"/>
+						<ColumnDefinition Width="116"/>
 						<ColumnDefinition Width="54"/>
 						<ColumnDefinition Width="41"/>
 						<ColumnDefinition Width="20"/>
 						<ColumnDefinition Width="234"/>
-						<ColumnDefinition Width="10"/>
+						<ColumnDefinition Width="*"/>
 					</Grid.ColumnDefinitions>
 					<ComboBox  Margin="10,0,0,0"  x:Name="comPortComboBox" Width="204" HorizontalAlignment="Left" TabIndex="0" IsTabStop="False" 
 						FontSize="13" Height="Auto" Padding="5,0,1,0" DropDownOpened="ComPortComboBox_DropDownOpened"
 						SelectionChanged="comPortComboBox_SelectionChanged" BorderThickness="5"/>
 					<Label Grid.Column="1" Margin="10,6,0,6" Width="46" Content="MODEL:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
 					<Label Grid.Column="2" Margin="5,6,0,6" x:Name="modelLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="Axy-Trek ND" Padding="0" Height="18" />
-					<Label Grid.Column="3" Margin="5,6,0,6" Width="66" Content="FIRMWARE:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
+					<Label Grid.Column="3" Margin="0,6,0,6" Width="66" Content="FIRMWARE:" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
 					<Label Grid.Column="4" Margin="0,6,0,6" x:Name="firmwareLabel" Width="120" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="A20.20.20B20.20.20" Padding="0" Height="18" />
 					<Label Grid.Column="5" Margin="0,6,0,6" Width="53" Content="BATTERY:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
 					<Label Grid.Column="6" Margin="5,6,0,6" x:Name="batteryLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="4.02 V" Padding="0" Width="40" Height="18" />

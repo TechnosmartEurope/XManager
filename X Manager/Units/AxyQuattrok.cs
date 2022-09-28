@@ -129,7 +129,7 @@ namespace X_Manager
 			positionCanSend = true;
 			configurePositionButtonEnabled = true;
 			modelCode = model_axyQuattrok;
-			modelName = "Axy-Quattrok";
+			//modelName = "Axy-Quattrok";
 		}
 
 		public override string askFirmware()

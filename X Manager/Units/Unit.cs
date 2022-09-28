@@ -25,6 +25,7 @@ namespace X_Manager.Units
 		public const int model_axyDepth_legacy = 255;       //0xff
 		public const int model_axy3_connecting = 253;       //0xfd
 		public const int model_axy4_legacy = 252;           //0xfc
+		public const int model_axyDepthFast = 128;          //0x80
 		public const int model_axyDepth = 127;              //0x7f
 		public const int model_axy2 = 126;                  //0x7e
 		public const int model_axy3 = 125;                  //0x7d
@@ -83,6 +84,12 @@ namespace X_Manager.Units
 		public const int pref_leapSeconds = 17;
 		public const int pref_removeNonGps = 18;
 
+		protected string _modelName = "";
+		public virtual string modelName
+		{
+			get { return _modelName; }
+			set { _modelName = value; }
+		}
 
 		public bool positionCanSend = false;
 		public bool configurePositionButtonEnabled = false;
@@ -94,7 +101,6 @@ namespace X_Manager.Units
 		public UInt32 mem_max_logical_address;
 		protected string name;
 		public byte modelCode = 0;
-		protected string modelName;
 		public UInt32 firmTotA;
 		public UInt32 firmTotB;
 		protected byte[] firmwareArray;

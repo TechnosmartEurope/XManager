@@ -58,7 +58,7 @@ namespace X_Manager.Units
 			base.positionCanSend = false;
 			configurePositionButtonEnabled = false;
 			modelCode = model_axyDepth;
-			modelName = "Axy-Depth";
+			//modelName = "Axy-Depth";
 			defaultArdExtension = "ard1";
 		}
 

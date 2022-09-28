@@ -53,7 +53,8 @@ namespace X_Manager.Remote
 				else
 				{
 					newConfL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0));
-					newConf = value;
+					newConf = new byte[value.Length];
+					Array.Copy(value, 0, newConf, 0, value.Length);
 				}
 			}
 		}

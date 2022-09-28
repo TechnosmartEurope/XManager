@@ -58,7 +58,7 @@ namespace X_Manager.Units
 			base.positionCanSend = false;
 			configurePositionButtonEnabled = false;
 			modelCode = model_axy3;
-			modelName = "Axy-3";
+			//modelName = "Axy-3";
 			defaultArdExtension = "ard1";
 		}
 

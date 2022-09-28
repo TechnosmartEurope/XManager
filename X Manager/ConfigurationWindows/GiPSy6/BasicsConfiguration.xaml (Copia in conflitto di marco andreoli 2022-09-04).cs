@@ -23,9 +23,8 @@ namespace X_Manager.ConfigurationWindows
 		int acqOn, acqOff, altOn, nSat, gsv, remoteAddress, pxInterval, pxFirst, pxLast;
 		uint sdTime, sddDate;
 		List<TextBox> ctrAr;
-		static readonly int[] maxs = new int[7] { 65000, 65000, 65000, 8, 200, 0x7ffffff, 60 };
-		static readonly int[] mins = new int[7] { 10, 2, 2, 0, 5, 0, 2 };
-
+		int[] maxs = new int[7] { 65000, 65000, 65000, 8, 200, 0x7ffffff, 60 };
+		int[] mins = new int[7] { 10, 2, 2, 0, 5, 0, 5 };
 		//CheckBox[] remSchAr = new CheckBox[24];
 		byte[] conf;
 		DateTime sdDate;
@@ -190,6 +189,7 @@ namespace X_Manager.ConfigurationWindows
 					byte[] pSch = conf.Skip(520).Take(3).ToArray();
 					remoteHB.setStatus(rSch);
 					proximityHB.setStatus(pSch);
+					pxIntervalTB.Text = conf[523].ToString();
 				}
 				else
 				{
@@ -539,20 +539,9 @@ namespace X_Manager.ConfigurationWindows
 					break;
 				case 6:
 					pxInterval = newVal;
-					if (pxInterval > 30)
+					if ((newVal % 5) != 0)
 					{
-						pxInterval = 30;
-					}
-					else if (pxInterval == 0)
-					{
-						pxInterval = 1;
-					}
-					else
-					{
-						while (60 % pxInterval != 0)
-						{
-							pxInterval--;
-						}
+						pxInterval += 5 - (newVal % 5);
 					}
 					pxIntervalTB.Text = pxInterval.ToString();
 					break;
@@ -603,6 +592,8 @@ namespace X_Manager.ConfigurationWindows
 				conf[516] = 0xff;
 				Array.Copy(remoteHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 517, 3);
 				Array.Copy(proximityHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 520, 3);
+
+				conf[523] = byte.Parse(pxIntervalTB.Text);
 
 				conf[524] = (byte)(pxFirst >> 16);
 				conf[525] = (byte)(pxFirst >> 8);

@@ -65,6 +65,8 @@ namespace X_Manager.Remote
 		byte[] oldScheduleArr;
 		DriveStatus oldDriveStatus;
 		byte[] timestamp;
+		byte[] oldConf;
+		int oldAddress;
 
 		private enum DriveStatus
 		{
@@ -993,17 +995,25 @@ namespace X_Manager.Remote
 		{
 			if (channelLV.SelectedIndex < 0) return;
 			undo_addItem();      //Si salva un undo
+
 			channelLV.MouseDoubleClick -= channelLV_MouseDoubleClick;       //Viene rimosso l'interrupt, sarà reinserito a fine funzione
 			channelLV.MouseRightButtonUp -= channelLV_MouseRightClick;       //Viene rimosso l'interrupt, sarà reinserito a fine funzione
 			tempBsLvElement = (BS_listViewElement)channelLV.SelectedItem;   //Vengono salvati riferimento e posizione dell'elemento da modificare
 			tempBsLvIndex = channelLV.SelectedIndex;
 			var index = channelLV.SelectedIndex;
-			var tb = new TextBox();                                         //VIene creata una nuova textbox 
+			var tb = new TextBox();                                         //Viene creata una nuova textbox 
 			tb.Background = new SolidColorBrush(Colors.White);
 			tb.Width = ((BS_listViewElement)channelLV.SelectedItem).ActualWidth;
 			tb.Height = ((BS_listViewElement)channelLV.SelectedItem).ActualHeight;
 			tb.Text = tempBsLvElement.Address.ToString();                   //Si inserisce il testo originale dell'elemento da modificare
-			tb.PreviewKeyDown += doubleClick_TextBoxKD;                     //Si aggiunge l'evnto di keydown per intercettare INVIO
+			oldAddress = tempBsLvElement.Address;							//Salva l'indirizzo che sarà modificato
+			oldConf = null;
+			if (tempBsLvElement.NewConf != null)                            //Salva l'eventuale nuovo schedule per associarlo al nuovo indirizzo
+			{
+				oldConf = new byte[tempBsLvElement.NewConf.Length];
+				Array.Copy(tempBsLvElement.NewConf, 0, oldConf, 0, oldConf.Length);
+			}
+			tb.PreviewKeyDown += doubleClick_TextBoxKD;                     //Si aggiunge l'evento di keydown per intercettare INVIO
 			channelLV.Items.RemoveAt(index);                                //Viene rimosso l'elemento da modificare
 			disableControls(MainGrid);                                      //Si disattivano tutto gli altri controlli
 			channelLV.Items.Insert(index, tb);                              //Nella stessa posizione viene aggiunta la casella di testo
@@ -1065,6 +1075,21 @@ namespace X_Manager.Remote
 							somethingChanged = true;
 							//Si crea il nuovo elemento e si inserisce nella posizione calcolata in precedenza
 							tempBsLvElement = new BS_listViewElement(newCh, false);
+							//Si controlla se al vecchio indirizzo era associato uno schedule da inviare
+							if (oldConf != null)
+							{
+								//Se il file con lo schedule era presente lo cancella
+								var dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
+								if (File.Exists(dr.Name + FOLDER_CONFIG + "\\" + oldAddress.ToString("00000000") + ".cfg"))
+								{
+									File.Delete(dr.Name + FOLDER_CONFIG + "\\" + oldAddress.ToString("00000000") + ".cfg");
+								}
+								oldConf[541] = (byte)(newCh >> 16);
+								oldConf[542] = (byte)(newCh >> 8);
+								oldConf[543] = (byte)(newCh & 0xff);
+								tempBsLvElement.NewConf = oldConf;
+								oldConf = null;
+							}
 							tempBsLvElement.Width = channelLV.ActualWidth - 15;
 							channelLV.Items.Insert(pos, tempBsLvElement);
 							channelLV.ScrollIntoView(tempBsLvElement);

@@ -13,7 +13,7 @@ namespace X_Manager.Units
 			base.positionCanSend = false;
 			configurePositionButtonEnabled = false;
 			modelCode = model_drop_off;
-			modelName = "Drop-Off";
+			//modelName = "Drop-Off";
 		}
 		public override void abortConf()
 		{

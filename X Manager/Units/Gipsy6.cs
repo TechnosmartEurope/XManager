@@ -162,20 +162,21 @@ namespace X_Manager.Units
 				tout.batteryLevel = this.batteryLevel;
 				tout.temperature = this.temperature;
 				tout.press = this.press;
-				tout.pressOffset = this.pressOffset;
-				tout.altitude = this.altitude;
+				tout.pressOffset = pressOffset;
+				tout.altitude = altitude;
 				//tout.altSegno = this.altSegno;
 				//tout.eo = this.eo;
 				//tout.ns = this.ns;
-				tout.lat = this.lat;
-				tout.lon = this.lon;
-				tout.speed = this.speed;
-				tout.hAcc = this.hAcc;
-				tout.vAcc = this.vAcc;
+				tout.lat = lat;
+				tout.lon = lon;
+				tout.speed = speed;
+				tout.hAcc = hAcc;
+				tout.vAcc = vAcc;
+				tout.cog = cog;
 				tout.sat = this.sat;
 				tout.gsvSum = this.gsvSum;
 				tout.timeStampLength = this.timeStampLength;
-				tout.dateTime = this.dateTime;
+				tout.dateTime = dateTime;
 				if (this.infoAr != null)
 				{
 					tout.infoAr = new byte[this.infoAr.Length];
@@ -203,6 +204,7 @@ namespace X_Manager.Units
 		int rfAddress = -1;
 		string rfAddressString = "N.A.";
 		string unitName = "";
+		string unitNameTxt = "";
 
 		FileType fileType;
 		enum FileType : byte
@@ -1233,7 +1235,7 @@ namespace X_Manager.Units
 			inBuffer[inBuffer.Length - 2] = 0x0a;
 			inBuffer[inBuffer.Length - 1] = 0x00;
 
-			var fo = new BinaryWriter(File.Open(fileNameMdp, System.IO.FileMode.Create));
+			var fo = new BinaryWriter(File.Open(fileNameMdp, FileMode.Create));
 
 			fo.Write(inBuffer, 0, inBuffer.Length);
 			fo.Close();
@@ -1708,6 +1710,7 @@ namespace X_Manager.Units
 			int pos = 0;
 			int end = gp6.Length;
 			TimeStamp timeStamp = new TimeStamp();
+			timeStamp.dateTime = new DateTime(2, 1, 1, 1, 0, 0);
 			List<byte> noStampBuffer = new List<byte>();
 
 			//Inizializza la progress bar
@@ -1876,7 +1879,7 @@ namespace X_Manager.Units
 				//if (!repeatEmptyValues)
 				{
 					tabs = new string[(int)COLUMN.COL_LENGTH];
-					tabs[(int)COLUMN.COL_NAME] = unitName;
+					tabs[(int)COLUMN.COL_NAME] = unitNameTxt;
 					tabs[(int)COLUMN.COL_RF_ADDRESS] = rfAddressString;
 				}
 				tabs[(int)COLUMN.COL_DATE] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
@@ -2188,6 +2191,8 @@ namespace X_Manager.Units
 				{
 					t.cog += 1;
 				}
+				t.cog *= 23;
+				t.cog += 11;
 
 				t.GPS_second = gp6[pos + 10] & 0x3f;
 				pos += 11;
@@ -2227,6 +2232,16 @@ namespace X_Manager.Units
 						rfAddressString = rfAddress.ToString();
 					}
 				}
+				if (infoLength > 6)
+				{
+					byte[] nomeArr = new byte[28];
+					Array.Copy(t.infoAr, 6, nomeArr, 0, 28);
+					unitNameTxt = Encoding.ASCII.GetString(nomeArr).TrimEnd((Char)0);
+				}
+				else
+				{
+					unitNameTxt = unitName;
+				}
 				pos += infoLength;
 			}
 
@@ -2255,7 +2270,7 @@ namespace X_Manager.Units
 					t.dateTime = new DateTime(t.dateTime.Year, t.dateTime.Month, t.dateTime.Day, hour, minute, second);
 					pos += 3;
 				}
-				if (t.dateTime < oldDate)
+				if (t.dateTime < oldDate.AddHours(-1))
 				{
 					t.dateTime = t.dateTime.AddDays(1);
 				}

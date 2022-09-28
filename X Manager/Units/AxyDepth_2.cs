@@ -17,7 +17,7 @@ using FT_HANDLE = System.UInt64;
 
 namespace X_Manager.Units
 {
-	class AxyDepth_2 : Units.Unit
+	class AxyDepth_2 : Unit
 	{
 		ushort[] coeffs = new ushort[7];
 		double[] convCoeffs = new double[7];
@@ -28,7 +28,7 @@ namespace X_Manager.Units
 		{
 			public byte tsType, tsTypeExt1, tsTypeExt2;
 			public float batteryLevel;
-			public float temp, press, pressOffset;
+			public double temp, fastTemp, press, pressOffset;
 			public DateTime orario;
 			public byte stopEvent;
 			public byte timeStampLength;
@@ -61,13 +61,37 @@ namespace X_Manager.Units
 		int adcEn = 0;
 		byte[] magData_A = new byte[6];
 		byte[] magData_B = new byte[6];
+
+		public override string modelName
+		{
+			get
+			{
+				return _modelName;
+			}
+			set
+			{
+				_modelName = value;
+				if (value == "Axy-Depth")
+				{
+					modelCode = model_axyDepth_legacy;
+				}
+				else if (value == "Axy-Depth.5")
+				{
+					modelCode = model_axyDepth;
+				}
+				else
+				{
+					modelCode = model_axyDepthFast;
+				}
+			}
+		}
 		public AxyDepth_2(object p)
 			: base(p)
 		{
 			base.positionCanSend = false;
 			configurePositionButtonEnabled = false;
 			modelCode = model_axyDepth;
-			modelName = "Axy-Depth";
+			//modelName = "Axy-Depth";
 		}
 
 		public override string askFirmware()
@@ -409,7 +433,7 @@ namespace X_Manager.Units
 
 			for (int count = 1; count <= 6; count++)
 			{
-				c[count - 1] = (double)coeffs[count];
+				c[count - 1] = coeffs[count];
 			}
 			dT = d2 - c[4] * 256;
 			temp = 2000 + (dT * c[5]) / 8388608;
@@ -446,7 +470,7 @@ namespace X_Manager.Units
 
 			for (int count = 1; count <= 6; count++)
 			{
-				c[count] = (double)coeffs[count];
+				c[count] = coeffs[count];
 			}
 			dt = d2 - c[5] * 256;
 			temp = 2000 + ((dt * c[6]) / 8388608);
@@ -607,7 +631,7 @@ namespace X_Manager.Units
 			{
 				fo.Write(new byte[] { 0xff }, 0, 1);
 			}
-			fo.Write(new byte[] { model_axy4, (byte)254 }, 0, 2);
+			fo.Write(new byte[] { modelCode, (byte)254 }, 0, 2);
 
 			fo.Close();
 			outBuffer[0] = 88;
@@ -716,15 +740,18 @@ namespace X_Manager.Units
 
 			try
 			{
-				if ((Parent.getParameter("keepMdp").Equals("false")) | (!connected)) fDel(fileNameMdp);
+				if (Parent.getParameter("keepMdp").Equals("false"))
+				{
+					fDel(fileNameMdp);
+				}
 				else
 				{
 					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
 					{
 						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						if (System.IO.File.Exists(newFileNameMdp)) fDel(newFileNameMdp);
+						if (File.Exists(newFileNameMdp)) fDel(newFileNameMdp);
 						//string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						System.IO.File.Move(fileNameMdp, newFileNameMdp);
+						File.Move(fileNameMdp, newFileNameMdp);
 					}
 				}
 			}
@@ -799,7 +826,7 @@ namespace X_Manager.Units
 				inMeters = true;
 			}
 
-			timeStampO.pressOffset = float.Parse(prefs[pref_millibars]);
+			timeStampO.pressOffset = double.Parse(prefs[pref_millibars]);
 			dateFormat = byte.Parse(prefs[pref_dateFormat]);
 			timeFormat = byte.Parse(prefs[pref_timeFormat]);
 			switch (dateFormat)
@@ -846,7 +873,7 @@ namespace X_Manager.Units
 				adcEn = ard.ReadByte();
 			}
 
-			Array.Resize(ref lastGroup, (rateComp * 3));
+			Array.Resize(ref lastGroup, rateComp * 3);
 			nOutputs = rateComp;
 
 			cifreDec = 3;
@@ -1092,6 +1119,14 @@ namespace X_Manager.Units
 			contoTab += 1;
 			additionalInfo += csvSeparator;
 			if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temp.ToString(nfi);
+
+			//In caso di DepthFast inserisce la temperatura rapida
+			if (modelCode == model_axyDepthFast)
+			{
+				contoTab += 1;
+				additionalInfo += csvSeparator;
+				if (((tsLoc.tsType & 16) == 16) | repeatEmptyValues) additionalInfo += tsLoc.fastTemp.ToString(nfi);
+			}
 
 			//Inserisce la batteria
 			if (prefBattery)
@@ -1408,6 +1443,16 @@ namespace X_Manager.Units
 				tsc.batteryLevel = (float)Math.Round(((((float)((ard.ReadByte() * 256) + ard.ReadByte())) * 6) / 4096), 2);
 			}
 
+			if ((tsc.tsType & 16) == 16)
+			{
+				tsc.fastTemp = ard.ReadByte() * 256 + ard.ReadByte();
+				tsc.fastTemp *= 2.048;
+				tsc.fastTemp /= 32768;
+				tsc.fastTemp /= 2;
+				//tsc.fastTemp *= 64;
+				tsc.fastTemp = Math.Round((((tsc.fastTemp + 0.9943) / 0.0014957 / 1000) - 1) / 0.00381, 2);
+			}
+
 			tsc.orario = tsc.orario.AddSeconds(1);
 
 			if ((tsc.tsType & ts_ext1) == 0) return;
@@ -1494,7 +1539,7 @@ namespace X_Manager.Units
 			}
 
 			dT = d2 - convCoeffs[4] * 256;
-			tsc.temp = (float)(2000 + (dT * convCoeffs[5]) / 8388608);
+			tsc.temp = (2000 + (dT * convCoeffs[5]) / 8388608);
 			off = convCoeffs[1] * 131072 + (convCoeffs[3] * dT) / 64;
 			sens = convCoeffs[0] * 65536 + (convCoeffs[2] * dT) / 128;
 			if (tsc.temp > 2000)
@@ -1514,11 +1559,11 @@ namespace X_Manager.Units
 					sens2 += 12 * Math.Pow((tsc.temp + 1500), 2);
 				}
 			}
-			tsc.temp -= (float)t2;
+			tsc.temp -= t2;
 			off -= off2;
 			sens -= sens2;
 			tsc.temp /= 100;
-			tsc.temp = (float)Math.Round(tsc.temp, 1);
+			tsc.temp = Math.Round(tsc.temp, 1);
 
 			if ((tsc.tsType & 4) == 4)
 			{
@@ -1530,9 +1575,9 @@ namespace X_Manager.Units
 				{
 					return true;
 				}
-				tsc.press = (float)(((d1 * sens / 2097152) - off) / 32768);
+				tsc.press = ((d1 * sens / 2097152) - off) / 32768;
 				tsc.press /= 100;
-				tsc.press = (float)Math.Round(tsc.press, 2);
+				tsc.press = Math.Round(tsc.press, 2);
 			}
 			return false;
 		}
@@ -1554,12 +1599,12 @@ namespace X_Manager.Units
 			}
 
 			dT = d2 - convCoeffs[4] * 256;
-			tsc.temp = (float)(2000 + (dT * convCoeffs[5]) / 8388608);
+			tsc.temp = (2000 + (dT * convCoeffs[5]) / 8388608);
 			off = convCoeffs[1] * 65536 + (convCoeffs[3] * dT) / 128;
 			sens = convCoeffs[0] * 32768 + (convCoeffs[2] * dT) / 256;
 			if (tsc.temp > 2000)
 			{
-				tsc.temp -= (float)((2 * Math.Pow(dT, 2)) / 137438953472);
+				tsc.temp -= (2 * Math.Pow(dT, 2)) / 137438953472;
 				off -= ((Math.Pow((tsc.temp - 2000), 2)) / 16);
 			}
 			else
@@ -1571,9 +1616,9 @@ namespace X_Manager.Units
 					off -= 7 * Math.Pow((tsc.temp + 1500), 2);
 					sens -= 4 * Math.Pow((tsc.temp + 1500), 2);
 				}
-				tsc.temp -= (float)(3 * (Math.Pow(dT, 2))) / 8589934592;
+				tsc.temp -= (3 * (Math.Pow(dT, 2))) / 8589934592;
 			}
-			tsc.temp = (float)Math.Round((tsc.temp / 100), 1);
+			tsc.temp = Math.Round((tsc.temp / 100), 1);
 			if ((tsc.tsType & 4) == 4)
 			{
 				try
@@ -1584,15 +1629,15 @@ namespace X_Manager.Units
 				{
 					return true;
 				}
-				tsc.press = (float)Math.Round((((d1 * sens / 2097152) - off) / 81920), 1);
+				tsc.press = Math.Round((((d1 * sens / 2097152) - off) / 81920), 1);
 				if (inMeters)
 				{
 					tsc.press -= tsc.pressOffset;
 					if (tsc.press <= 0) tsc.press = 0;
 					else
 					{
-						tsc.press = (float)(tsc.press / 98.1);
-						tsc.press = (float)Math.Round(tsc.press, 2);
+						tsc.press = tsc.press / 98.1;
+						tsc.press = Math.Round(tsc.press, 2);
 					}
 				}
 			}
@@ -1635,6 +1680,12 @@ namespace X_Manager.Units
 			}
 
 			csvHeader += csvSeparator + "Temp. (°C)";
+
+			if (modelCode == model_axyDepthFast)
+			{
+				csvHeader += csvSeparator + "Fast Temp. (°C)";
+			}
+
 			if (adcEn > 0)
 			{
 				csvHeader += csvSeparator + "Analog";
@@ -1651,7 +1702,7 @@ namespace X_Manager.Units
 			}
 
 			csvHeader += "\r\n";
-			csv.Write(System.Text.Encoding.ASCII.GetBytes(csvHeader));
+			csv.Write(Encoding.ASCII.GetBytes(csvHeader));
 		}
 
 		private bool detectEof(ref BinaryReader ard)

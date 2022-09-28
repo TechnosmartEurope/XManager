@@ -131,7 +131,7 @@ namespace X_Manager
 			positionCanSend = true;
 			configurePositionButtonEnabled = true;
 			modelCode = model_axyTrek;
-			modelName = "Axy-Trek";
+			//modelName = "Axy-Trek";
 		}
 
 		public override string askFirmware()

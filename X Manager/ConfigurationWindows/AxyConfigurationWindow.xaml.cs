@@ -17,14 +17,30 @@ namespace X_Manager.ConfigurationWindows
 	public partial class AxyConfigurationWindow : ConfigurationWindow
 	{
 
-		//public bool mustWrite = false;
 		public UInt32[] soglie = new UInt32[18];
-		byte mDebug = 0;
 		byte unitType;
 		UInt16[] c = new UInt16[7];
-		//byte[] unitFirmware;
 		UInt32 firmTotA;
-		//bool evitaSoglieDepth = false;
+		byte _mDebug = 0;
+		byte mDebug
+		{
+			get
+			{
+				return _mDebug;
+			}
+			set
+			{
+				_mDebug = value;
+				if (value == 0)
+				{
+					sendButton.Content = "Send configuration";
+				}
+				else
+				{
+					sendButton.Content = "Send configuration (d)";
+				}
+			}
+		}
 
 		public AxyConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
 			: base()
@@ -38,11 +54,11 @@ namespace X_Manager.ConfigurationWindows
 
 			if ((unitType == Units.Unit.model_Co2Logger))
 			{
-				mainGrid.RowDefinitions[2].Height = new System.Windows.GridLength(0);
-				mainGrid.RowDefinitions[3].Height = new System.Windows.GridLength(0);
-				mainGrid.RowDefinitions[4].Height = new System.Windows.GridLength(0);
-				mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(0);
-				accGrid.ColumnDefinitions[1].Width = new System.Windows.GridLength(0);
+				mainGrid.RowDefinitions[2].Height = new GridLength(0);
+				mainGrid.RowDefinitions[3].Height = new GridLength(0);
+				mainGrid.RowDefinitions[4].Height = new GridLength(0);
+				mainGrid.RowDefinitions[5].Height = new GridLength(0);
+				accGrid.ColumnDefinitions[1].Width = new GridLength(0);
 				Height = 450;
 				sampleRateGB.Header = "SAMPLING PERIOD (s)";
 				((RadioButton)(rates.Children[0])).Content = "1";
@@ -82,29 +98,29 @@ namespace X_Manager.ConfigurationWindows
 				catch { }
 			}
 
-			if (unitType == Units.Unit.model_Co2Logger)
-			{
-				switch (axyconf[24])
-				{
-					case 1:
-						rate1RB.IsChecked = true;
-						break;
-					case 2:
-						rate10RB.IsChecked = true;
-						break;
-					case 3:
-						rate25RB.IsChecked = true;
-						break;
-				}
-				sendButton.Content = "Send configuration";
-				mDebug = axyconf[22];
-				if ((axyconf[22] == 1))
-				{
-					sendButton.Content += " (d)";
-				}
+			//if (unitType == Units.Unit.model_Co2Logger)
+			//{
+			//	switch (axyconf[24])
+			//	{
+			//		case 1:
+			//			rate1RB.IsChecked = true;
+			//			break;
+			//		case 2:
+			//			rate10RB.IsChecked = true;
+			//			break;
+			//		case 3:
+			//			rate25RB.IsChecked = true;
+			//			break;
+			//	}
+			//	sendButton.Content = "Send configuration";
+			//	mDebug = axyconf[22];
+			//	if ((axyconf[22] == 1))
+			//	{
+			//		sendButton.Content += " (d)";
+			//	}
 
-				return;
-			}
+			//	return;
+			//}
 
 			movThreshUd.Value = axyconf[20];
 			latencyThreshUd.Value = axyconf[21];
@@ -136,10 +152,10 @@ namespace X_Manager.ConfigurationWindows
 					break;
 			}
 
-			if ((unitType == Units.Unit.model_axy4) || (unitType == Units.Unit.model_axyDepth))
+			if (unitType == Units.Unit.model_axy4 || unitType == Units.Unit.model_axyDepth || unitType == Units.Unit.model_axyDepthFast)
 			{
-				sendButton.Content = "Send configuration";
-				if ((axyconf[15] < 8))
+				//sendButton.Content = "Send configuration";
+				if (axyconf[15] < 8)
 				{
 					mDebug = 0;
 				}
@@ -201,38 +217,38 @@ namespace X_Manager.ConfigurationWindows
 				magCB.SelectedIndex = axyconf[21];
 			}
 
-			if (unitType == Units.Unit.model_axyTrek)
-			{
-				switch (axyconf[22])
-				{
-					case 0:
-						sendButton.Content = "Send configuration";
-						mDebug = 0;
-						break;
-					case 1:
-						sendButton.Content = "Send configuration (d)";
-						mDebug = 1;
-						break;
-				}
-				if ((firmTotA > 2000000))
-				{
-					switch (axyconf[23])
-					{
-						case 0:
-							WsDisabledRB.IsChecked = true;
-							break;
-						case 1:
-							WsEnabledRB.IsChecked = true;
-							break;
-						case 2:
-							WsHardwareRB.IsChecked = true;
-							break;
-						default:
-							WsDisabledRB.IsChecked = true;
-							break;
-					}
-				}
-			}
+			//	if (unitType == Units.Unit.model_axyTrek)
+			//	{
+			//		switch (axyconf[22])
+			//		{
+			//			case 0:
+			//				sendButton.Content = "Send configuration";
+			//				mDebug = 0;
+			//				break;
+			//			case 1:
+			//				sendButton.Content = "Send configuration (d)";
+			//				mDebug = 1;
+			//				break;
+			//		}
+			//		if ((firmTotA > 2000000))
+			//		{
+			//			switch (axyconf[23])
+			//			{
+			//				case 0:
+			//					WsDisabledRB.IsChecked = true;
+			//					break;
+			//				case 1:
+			//					WsEnabledRB.IsChecked = true;
+			//					break;
+			//				case 2:
+			//					WsHardwareRB.IsChecked = true;
+			//					break;
+			//				default:
+			//					WsDisabledRB.IsChecked = true;
+			//					break;
+			//			}
+			//		}
+			//	}
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -401,19 +417,19 @@ namespace X_Manager.ConfigurationWindows
 			{
 				if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
 				{
-					if ((unitType != Units.Unit.model_axy3))
+					if (unitType != Units.Unit.model_axy3)
 					{
-						if ((mDebug == 0))
+						if (mDebug == 0)
 						{
 							mDebug = 1;
 							// MessageBox.Show("mDebug enabled.")
-							sendButton.Content = "Send configuration (d)";
+							//sendButton.Content = "Send configuration (d)";
 						}
 						else
 						{
 							mDebug = 0;
 							// MessageBox.Show("mDebug disabled.")
-							sendButton.Content = "Send configuration";
+							//sendButton.Content = "Send configuration";
 						}
 
 					}
@@ -424,33 +440,33 @@ namespace X_Manager.ConfigurationWindows
 
 		}
 
-		private void sendConf(object sender, RoutedEventArgs e)
+		private void sendButton_click(object sender, RoutedEventArgs e)
 		{
 			sendConfiguration();
 		}
 
 		private void sendConfiguration()
 		{
-			if (unitType == Units.Unit.model_Co2Logger)
-			{
-				if ((bool)rate1RB.IsChecked)
-				{
-					axyConfOut[24] = 1;
-				}
-				else if ((bool)rate10RB.IsChecked)
-				{
-					axyConfOut[24] = 2;
-				}
-				else
-				{
-					axyConfOut[24] = 3;
-				}
+			//if (unitType == Units.Unit.model_Co2Logger)
+			//{
+			//	if ((bool)rate1RB.IsChecked)
+			//	{
+			//		axyConfOut[24] = 1;
+			//	}
+			//	else if ((bool)rate10RB.IsChecked)
+			//	{
+			//		axyConfOut[24] = 2;
+			//	}
+			//	else
+			//	{
+			//		axyConfOut[24] = 3;
+			//	}
 
-				axyConfOut[22] = mDebug;
-				mustWrite = true;
-				this.Close();
-				return;
-			}
+			//	axyConfOut[22] = mDebug;
+			//	mustWrite = true;
+			//	this.Close();
+			//	return;
+			//}
 
 			if ((rate50RB.IsChecked == true))
 			{
@@ -473,9 +489,9 @@ namespace X_Manager.ConfigurationWindows
 				axyConfOut[15] = 4;
 			}
 
-			if ((unitType == Units.Unit.model_axy4) || (unitType == Units.Unit.model_axyDepth))
+			if (unitType == Units.Unit.model_axy4 || unitType == Units.Unit.model_axyDepth || unitType == Units.Unit.model_axyDepthFast)
 			{
-				if ((mDebug == 1))
+				if (mDebug == 1)
 				{
 					axyConfOut[15] += 8;
 				}
@@ -524,7 +540,7 @@ namespace X_Manager.ConfigurationWindows
 				axyConfOut[22] = (bool)(adcCB.IsChecked) ? (byte)1 : (byte)0;
 			}
 			mustWrite = true;
-			this.Close();
+			Close();
 		}
 
 	}

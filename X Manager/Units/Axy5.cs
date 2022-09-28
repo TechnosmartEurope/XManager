@@ -115,7 +115,7 @@ namespace X_Manager.Units
 			positionCanSend = false;
 			configurePositionButtonEnabled = false;
 			modelCode = model_axy5;
-			modelName = "Axy-5";
+			//modelName = "Axy-5";
 			debugLevel = parent.stDebugLevel;
 			group = new byte[2000];
 		}
@@ -1092,9 +1092,9 @@ namespace X_Manager.Units
 			string barStatus = "";
 
 			//Imposta le preferenze di conversione
-			if ((Parent.getParameter("pressureRange") == "air")) isDepth = 0;
+			if (Parent.getParameter("pressureRange") == "air") isDepth = 0;
 
-			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
+			if (prefs[pref_fillEmpty] == "False") repeatEmptyValues = false;
 
 			if (prefs[pref_battery] == "True") prefBattery = 1;
 
@@ -1172,36 +1172,50 @@ namespace X_Manager.Units
 			int padding = 0;
 
 			//Legge i parametri di logging
-			convCoeffs = new double[6];
-			double convSum = 0;
-			for (int convc = 0; convc < 6; convc++)
+			if (firmTotA > 1004000)
 			{
-				convCoeffs[convc] = ard.ReadByte() * 256 + ard.ReadByte();
-				convSum += convCoeffs[convc];
+				convCoeffs = new double[6];
+				double convSum = 0;
+				for (int convc = 0; convc < 6; convc++)
+				{
+					convCoeffs[convc] = ard.ReadByte() * 256 + ard.ReadByte();
+					convSum += convCoeffs[convc];
+				}
 			}
 
 			findTDAdcEnable(ard.ReadByte());   //Temperatura, pressione e adc abilitati
 
-			dtPeriod = ard.ReadByte();               //TD periodo di logging (non serve al software)
-
-			findMagEnable(ard.ReadByte());  //Frequenza magnetometro
-
-			if (ard.ReadByte() == 1)        //Controlla se è presente la prima estensione dell'header con schedule e schedule remoto
+			if (firmTotA > 1004000)
 			{
-				padding = 8;
-				int movThreshold = ard.ReadByte();            //Legge le soglie di movimento
-				int movLatency = ard.ReadByte();
-				schedule = new byte[30];
-				ard.Read(schedule, 0, 30);
-				remSched = new byte[3];
-				ard.Read(remSched, 0, 3);
-				ard.ReadByte();          //Byte per futura estensione dello schedule
+				dtPeriod = ard.ReadByte();               //TD periodo di logging (non serve al software)
+
+				findMagEnable(ard.ReadByte());  //Frequenza magnetometro
+
+				if (ard.ReadByte() == 1)        //Controlla se è presente la prima estensione dell'header con schedule e schedule remoto
+				{
+					padding = 8;
+					int movThreshold = ard.ReadByte();            //Legge le soglie di movimento
+					int movLatency = ard.ReadByte();
+					schedule = new byte[30];
+					ard.Read(schedule, 0, 30);
+					remSched = new byte[3];
+					ard.Read(remSched, 0, 3);
+					ard.ReadByte();          //Byte per futura estensione dello schedule
+				}
+
+				for (int i = 0; i < padding; i++)
+				{
+					ard.ReadByte();
+				}
 			}
-
-			for (int i = 0; i < padding; i++)
+			else
 			{
+				byte rrd = (byte)ard.ReadByte();
+				findSamplingRateLegacy(rrd);
 				ard.ReadByte();
 			}
+
+
 
 			writeInfo(fileNameInfo);
 
@@ -1304,7 +1318,11 @@ namespace X_Manager.Units
 			do
 			{
 				dummy = ard.ReadByte();
-				if (dummy == 0xab)
+				if (dummy == 0xab && firmTotA < 1004001)
+				{
+					break;
+				}
+				else if (dummy == 0xab)
 				{
 					if (ard.Position < ard.Length)
 					{
@@ -1339,7 +1357,6 @@ namespace X_Manager.Units
 						}
 						else
 						{
-							//tsCheck++;
 							ard.Position -= 2;
 							return new double[12];
 						}
@@ -1381,67 +1398,71 @@ namespace X_Manager.Units
 				}
 			} while ((dummy != (byte)0xab) & (ard.Position < ard.Length));
 
-			try
+			if (firmTotA > 1004000)
 			{
-				if (ard.ReadByte() == 2)
+
+				try
 				{
-					gruppoCON[2] = "0";
-					gruppoCON[3] = "0";
-					gruppoCON[4] = "0";
-					tsc.tsType = tsc.tsTypeExt1 = tsc.tsTypeExt2 = 0;
+					if (ard.ReadByte() == 2)
+					{
+						gruppoCON[2] = "0";
+						gruppoCON[3] = "0";
+						gruppoCON[4] = "0";
+						tsc.tsType = tsc.tsTypeExt1 = tsc.tsTypeExt2 = 0;
+					}
+				}
+				catch
+				{
+					return lastGroup;
+				}
+
+				decodeTimeStamp(ref ard, ref tsc, false);
+
+				//Se non ha informazioni circa la frequenza, la stima dalla lunghezza del gruppo
+				if (!schedTs)
+				{
+					schedTs = true;
+					int div = 3 + bit;
+
+					double checkVal = position / div;
+					if (checkVal < 5)
+					{
+						nOutputs = 1;
+						iend1 = 3;
+						iend2 = 0;
+					}
+					else if (checkVal < 18)
+					{
+						nOutputs = 10;
+						iend1 = 15;
+						iend2 = 30;
+					}
+					else if (checkVal < 35)
+					{
+						nOutputs = 25;
+						iend1 = 36;
+						iend2 = 75;
+					}
+					else if (checkVal < 75)
+					{
+						nOutputs = 50;
+						iend1 = 75;
+						iend2 = 150;
+					}
+					else
+					{
+						nOutputs = 100;
+						iend1 = 150;
+						iend2 = 300;
+					}
 				}
 			}
-			catch
-			{
-				return lastGroup;
-			}
-
-			decodeTimeStamp(ref ard, ref tsc, false);
 
 			tsc.timeStampLength = (int)(position / (3 + bit));
 			if (position == 0)
 			{
 				//return new double[] { group[0], group[1], group[2] };
 				return new double[] { };
-			}
-
-			//Se non ha informazioni circa la frequenza, la stima dalla lunghezza del gruppo
-			if (!schedTs)
-			{
-				schedTs = true;
-				int div = 3 + bit;
-
-				double checkVal = position / div;
-				if (checkVal < 5)
-				{
-					nOutputs = 1;
-					iend1 = 3;
-					iend2 = 0;
-				}
-				else if (checkVal < 18)
-				{
-					nOutputs = 10;
-					iend1 = 15;
-					iend2 = 30;
-				}
-				else if (checkVal < 35)
-				{
-					nOutputs = 25;
-					iend1 = 36;
-					iend2 = 75;
-				}
-				else if (checkVal < 75)
-				{
-					nOutputs = 50;
-					iend1 = 75;
-					iend2 = 150;
-				}
-				else
-				{
-					nOutputs = 100;
-					iend1 = 150;
-					iend2 = 300;
-				}
 			}
 
 			int resultCode = 0;
@@ -1481,11 +1502,28 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					group = new double[3] { double.Parse(gruppoCON[2], new CultureInfo("en-US")) / gCoeff,
-											double.Parse(gruppoCON[3], new CultureInfo("en-US")) / gCoeff,
-											double.Parse(gruppoCON[4], new CultureInfo("en-US")) / gCoeff };
+					//rimettere dopo sviluppo
+					//group = new double[3] { double.Parse(gruppoCON[2], new CultureInfo("en-US")) / gCoeff,
+					//						double.Parse(gruppoCON[3], new CultureInfo("en-US")) / gCoeff,
+					//double.Parse(gruppoCON[4], new CultureInfo("en-US")) / gCoeff };
+					//iend1 = 3;
+					//iend2 = 0;
+
+					//sviluppo
+					try
+					{
+						group = new double[3] { double.Parse(gruppoCON[2], new CultureInfo("en-US")) / gCoeff,
+												double.Parse(gruppoCON[3], new CultureInfo("en-US")) / gCoeff,
+												double.Parse(gruppoCON[4], new CultureInfo("en-US")) / gCoeff };
+					}
+					catch (Exception ex)
+					{
+						ex = ex;
+						group = new double[3] { 0, 0, 0 };
+					}
 					iend1 = 3;
 					iend2 = 0;
+					///sviluppo
 				}
 			}
 
@@ -1666,14 +1704,17 @@ namespace X_Manager.Units
 			//}
 
 			//Controllo alternanza header - footer
-			tsCheck++;
-			if ((tsCheck == 2) | (tsInvalid == 1))
+			if (firmTotA > 1004000)
 			{
-				MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
-				tsc.stopEvent = 5;
-				gruppoCON[meta] = "DATA ERROR at Location 0x." + ard.Position.ToString("X"); addMilli = 0;
-				tsc.temperature = ard.Position;
-				tsc.tsTypeExt1 &= 0xfe;
+				tsCheck++;
+				if ((tsCheck == 2) | (tsInvalid == 1))
+				{
+					MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
+					tsc.stopEvent = 5;
+					gruppoCON[meta] = "DATA ERROR at Location 0x." + ard.Position.ToString("X"); addMilli = 0;
+					tsc.temperature = ard.Position;
+					tsc.tsTypeExt1 &= 0xfe;
+				}
 			}
 
 			//TEMPERATURA INTERNA
@@ -1683,7 +1724,14 @@ namespace X_Manager.Units
 				{
 					try
 					{
-						tsc.temperature = ard.ReadByte() * 256 + ard.ReadByte();
+						if (firmTotA > 1004000)
+						{
+							tsc.temperature = ard.ReadByte() * 256 + ard.ReadByte();
+						}
+						else
+						{
+							tsc.temperature = ard.ReadByte() + ard.ReadByte() * 256;
+						}
 					}
 					catch
 					{
@@ -1699,6 +1747,20 @@ namespace X_Manager.Units
 				}
 			}
 
+			//BATTERIA LEGACY
+			if (firmTotA < 1004001)
+			{
+				if ((tsc.tsType & ts_battery) == ts_battery)
+				{
+					tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
+					if (prefBattery == 1) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+				}
+				else
+				{
+					if (!repeatEmptyValues & prefBattery == 1) gruppoCON[batt] = "";
+				}
+			}
+
 			//EVENTO
 			if ((tsc.tsType & ts_event) == ts_event)
 			{
@@ -1711,7 +1773,10 @@ namespace X_Manager.Units
 				{
 					if (eventAr[0] == 11) { tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0; }
 					else if (eventAr[0] == 12) { tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; }
-					else if (eventAr[0] == 13) { tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0; }
+					else if (eventAr[0] == 13)
+					{
+						tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0;
+					}
 					else if (eventAr[0] == 14) { tsc.stopEvent = 4; gruppoCON[meta] = "Remote connection established."; addMilli = 0; }
 				}
 			}
@@ -1847,10 +1912,13 @@ namespace X_Manager.Units
 		_footer:
 
 			//Controllo alternanza header - footer
-			tsCheck--;
-			if (tsCheck < 0)
+			if (firmTotA > 1004000)
 			{
-				tsInvalid = 1;
+				tsCheck--;
+				if (tsCheck < 0)
+				{
+					tsInvalid = 1;
+				}
 			}
 
 			//PRESSIONE E TEMPERATURA ESTERNA
@@ -1983,6 +2051,78 @@ namespace X_Manager.Units
 
 		}
 
+		private void findSamplingRateLegacy(byte rateIn)
+		{
+			bit = 0;
+			rateIn = (byte)(rateIn >> 4);
+			if (rateIn > 7)
+			{
+				rateIn -= 8;
+				bit = 1;
+			}
+
+			switch (rateIn)
+			{
+				case 0:
+					nOutputs = 50;
+					addMilli = 20;
+					iend1 = 75;
+					iend2 = 150;
+					break;
+				case 1:
+					nOutputs = 25;
+					addMilli = 40;
+					iend1 = 36;
+					iend2 = 75;
+					break;
+				case 2:
+					nOutputs = 100;
+					addMilli = 10;
+					iend1 = 150;
+					iend2 = 300;
+					break;
+				case 3:
+					nOutputs = 10;
+					addMilli = 100;
+					iend1 = 15;
+					iend2 = 30;
+					break;
+				case 4:
+					nOutputs = 1;
+					addMilli = 1000;
+					iend1 = 3;
+					iend2 = 0;
+					break;
+				default:
+					nOutputs = 50;
+					addMilli = 20;
+					iend1 = 75;
+					iend2 = 150;
+					break;
+			}
+			switch (range)
+			{
+				case 0:
+					gCoeff = 15.63;
+					break;
+				case 1:
+					gCoeff = 31.26;
+					break;
+				case 2:
+					gCoeff = 62.52;
+					break;
+				case 3:
+					//gCoeff = 187.58;
+					gCoeff = 125;
+					break;
+			}
+			gCoeff /= 1000;
+			if (bit == 1)
+			{
+				gCoeff /= 4;
+			}
+
+		}
 		private void csvPlaceHeader(ref StreamWriter csv, string[] prefs)
 		{
 
@@ -2043,10 +2183,10 @@ namespace X_Manager.Units
 			}
 			else
 			{
-				adcVal--;
+				adcVal -= 3;
 				batt -= 3;
 				meta -= 3;
-				ardPosition--;
+				ardPosition -= 3;
 			}
 
 			if (adcEn > 0)

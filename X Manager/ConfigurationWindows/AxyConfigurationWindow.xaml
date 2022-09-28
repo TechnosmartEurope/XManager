@@ -137,7 +137,7 @@
 
         </GroupBox>
 
-        <Button x:Name="sendButton" Grid.Row="6" Content="Send configuration" FontSize="20" Margin="10" Click="sendConf" TabIndex="15"/>
+        <Button x:Name="sendButton" Grid.Row="6" Content="Send configuration" FontSize="20" Margin="10" Click="sendButton_click" TabIndex="15"/>
 
     </Grid>
 </local:ConfigurationWindow>

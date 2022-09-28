@@ -59,7 +59,7 @@ namespace X_Manager.Units
             base.positionCanSend = true;
             configurePositionButtonEnabled = false;
             modelCode = model_Co2Logger;
-            modelName = "CO2 Logger";
+            //modelName = "CO2 Logger";
         }
 
         public override string askFirmware()

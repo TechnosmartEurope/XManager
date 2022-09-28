@@ -569,6 +569,17 @@ namespace X_Manager
 					Console.Beep();
 				}
 
+				//Axy4d come axy depth
+				else if (e.Key == Key.D6)
+				{
+					if (connectButton.Content.Equals("Connect"))
+					{
+						FTDI.Write("TTTTTTTTTTTTTGGA6");
+					}
+
+					Console.Beep();
+				}
+
 				//Trek o Quattrok locale
 				else if (e.Key == Key.L)
 				{
@@ -1350,6 +1361,7 @@ namespace X_Manager
 								break;
 							case "Axy-Depth":
 							case "Axy-Depth.5":
+							case "Axy-Depth/Fast.5":
 								oUnit = new AxyDepth_2(this);
 								break;
 							case "AGM-1":
@@ -1374,6 +1386,7 @@ namespace X_Manager
 								break;
 						}
 						modelLabel.Content = model;
+						oUnit.modelName = model;
 						//if (!getConf()) return;
 						getConf();
 						errCode = 30;
@@ -1857,7 +1870,7 @@ namespace X_Manager
 				return;
 			}
 
-			updateParameter("convertPath", System.IO.Path.GetDirectoryName(fOpen.FileName));
+			updateParameter("convertPath", Path.GetDirectoryName(fOpen.FileName));
 			//File.WriteAllLines(iniFile, lastSettings);
 			convFiles = new List<string>();
 			convFiles.AddRange(fOpen.FileNames);
@@ -2457,6 +2470,7 @@ namespace X_Manager
 					cUnit = new Axy3(this);
 					break;
 				case Unit.model_axy4:
+				case Unit.model_axy4_legacy:
 					if (fileType == type_ard)
 					{
 						fw = (byte)fs.ReadByte();
@@ -2472,8 +2486,16 @@ namespace X_Manager
 					break;
 				case Unit.model_axyDepth:
 					if (fileType == type_ard) fw = (byte)fs.ReadByte();
-					if ((fw < 2)) cUnit = new AxyDepth_1(this);
+					if (fw < 2)
+					{
+						cUnit = new AxyDepth_1(this);
+						cUnit.modelCode = Unit.model_axyDepth_legacy;
+					}
 					else cUnit = new AxyDepth_2(this);
+					break;
+				case Unit.model_axyDepthFast:
+					cUnit = new AxyDepth_2(this);
+					cUnit.modelCode = Unit.model_axyDepthFast;
 					break;
 				case Unit.model_axyTrek:
 					cUnit = new AxyTrek(this);

@@ -59,7 +59,7 @@ namespace X_Manager.Units
 			base.positionCanSend = false;
 			configurePositionButtonEnabled = false;
 			modelCode = model_axy4;
-			modelName = "Axy-4";
+			//modelName = "Axy-4";
 		}
 
 		public override string askFirmware()

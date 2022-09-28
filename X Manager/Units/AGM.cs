@@ -69,10 +69,10 @@ namespace X_Manager.Units
 		public AGM(object p)
 			: base(p)
 		{
-			base.positionCanSend = true;
+			positionCanSend = true;
 			configurePositionButtonEnabled = false;
 			modelCode = model_AGM1;
-			modelName = "AGM-1";
+			//modelName = "AGM-1";
 		}
 
 		public override void abortConf()
