@@ -4,31 +4,124 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:X_Manager.ConfigurationWindows.GiPSy6"
-        mc:Ignorable="d"
-        Title="BatteryConfiguration" Height="450" Width="620">
-	<Grid>
-		<TextBlock HorizontalAlignment="Left" Margin="60,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="185"><Run Language="it-it" Text="Start Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="60,100,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="185"><Run Language="it-it" Text="Pause Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="60,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="204"><Run Language="it-it" Text="Resume Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="60,200,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="185"><Run Language="it-it" Text="Radio Threshold (start):"/><LineBreak/><Run Language="it-it"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="60,250,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="204"><Run Language="it-it" Text="Radio Threshold (logging):"/><LineBreak/><Run Language="it-it"/></TextBlock>
-		<TextBox x:Name="startLogging" HorizontalAlignment="Left" Margin="298,50,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
-		<TextBox x:Name="pauseLogging" HorizontalAlignment="Left" Margin="298,100,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
-		<TextBox x:Name="resumeLogging" HorizontalAlignment="Left" Margin="298,150,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
-		<TextBox x:Name="lowRf" HorizontalAlignment="Left" Margin="298,200,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
-		<TextBox x:Name="lowPc" HorizontalAlignment="Left" Margin="298,250,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="TextBox_PreviewKeyDown"/>
-		<TextBlock HorizontalAlignment="Left" Margin="388,55,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="388,105,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="388,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="388,154,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="388,255,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="17"><Run Language="it-it" Text="V"/></TextBlock>
-		<TextBlock HorizontalAlignment="Left" Margin="475,15,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" ><Run Language="it-it" Text="Presets:"/></TextBlock>
-		<Button Content="Local" HorizontalAlignment="Left" Margin="475,50,0,0" VerticalAlignment="Top" Width="96" Click="localClick"/>
-		<Button Content="Remote" HorizontalAlignment="Left" Margin="475,102,0,0" VerticalAlignment="Top" Width="96" Click="remoteClick"/>
-		<Button Content="SAVE" HorizontalAlignment="Left" Margin="475,308,0,0" VerticalAlignment="Top" Width="96" Foreground="Red" Click="Button_Click"/>
-		<TextBlock HorizontalAlignment="Left" Margin="60,308,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="25" Width="204"><Run Language="it-it" Text="Charging current:"/><LineBreak/><Run Language="it-it"/></TextBlock>
-		<TextBox x:Name="currentTB" HorizontalAlignment="Left" Margin="298,308,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="85" PreviewKeyDown="currentTB_PreviewKeyDown"/>
-		<TextBlock HorizontalAlignment="Left" Margin="388,312,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="16" Height="26" Width="27"><Run Language="it-it" Text="mA"/></TextBlock>
+        mc:Ignorable="d" Background="#FF181818"
+        Title="BatteryConfiguration" Height="490" Width="640">
+	<Grid Margin="0,0,0,20">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="230"/>
+			<ColumnDefinition Width="110"/>
+			<ColumnDefinition/>
+		</Grid.ColumnDefinitions>
+		<Grid Grid.Column="0" Margin="20,0,0,0">
+			<Grid.RowDefinitions>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Foreground="#FF00AADE" VerticalAlignment="Center" FontSize="17" Height="25" Grid.Row="0" FontWeight="Bold"><Run Language="it-it" Text="THRESHOLD"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="185" Grid.Row="1" Foreground="#FFBABABA"><Run Language="it-it" Text="Start Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="185" Grid.Row="2" Foreground="#FFBABABA"><Run Language="it-it" Text="Pause Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="3" Foreground="#FFBABABA"><Run Language="it-it" Text="Resume Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="185" Grid.Row="4" Foreground="#FFBABABA"><Run Language="it-it" Text="Radio Threshold (start):"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="5" Foreground="#FFBABABA"><Run Language="it-it" Text="Radio Threshold (logging):"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="6" Foreground="#FFBABABA"><Run Language="it-it" Text="Radio Refuse Downloading:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="7" Foreground="#FFBABABA"><Run Language="it-it" Text="Charging current:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+		</Grid>
+
+		<Grid Grid.Column="1">
+			<Grid.RowDefinitions>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+
+			<TextBox x:Name="startLogging" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Center" Width="72" PreviewKeyDown="TextBox_PreviewKeyDown" Grid.Row="1"/>
+			<TextBox x:Name="pauseLogging" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Center" Width="72" PreviewKeyDown="TextBox_PreviewKeyDown" Grid.Row="2"/>
+			<TextBox x:Name="resumeLogging" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Center" Width="72" PreviewKeyDown="TextBox_PreviewKeyDown" Grid.Row="3"/>
+			<TextBox x:Name="lowRfStart" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Center" Width="72" PreviewKeyDown="TextBox_PreviewKeyDown" Grid.Row="4" Background="#FF181818"/>
+			<TextBox x:Name="lowRfLogging" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Center" Width="72" PreviewKeyDown="TextBox_PreviewKeyDown" Grid.Row="5"/>
+			<TextBox x:Name="lowRfRefuse" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Center" Width="72" PreviewKeyDown="TextBox_PreviewKeyDown" Grid.Row="6"/>
+			<TextBox x:Name="currentTB" HorizontalAlignment="Left" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Center" Width="72" PreviewKeyDown="currentTB_PreviewKeyDown" Grid.Row="7"/>
+
+			<TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="17" Height="25" Grid.Row="0" FontWeight="Bold"><Run Language="it-it" Text="VALUE" Foreground="#FF00AADE"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="1" ><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="2"><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="3"><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="4"><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="5"><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="6"><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="27" Margin="80,0,0,0" Grid.Row="7"><Run Language="it-it" Text="mA"/></TextBlock>
+
+
+
+		</Grid>
+
+		<Grid Grid.Column="2">
+			<Grid.RowDefinitions>
+				<RowDefinition />
+				<RowDefinition Height="49"/>
+			</Grid.RowDefinitions>
+
+			<GroupBox Margin="20,12,20,8" Header="PRESETS:" x:Name="presetsGB" FontSize="17" FontWeight="Bold" Foreground="#FFBABABA" Padding="0">
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="90"/>
+						<RowDefinition Height="40"/>
+						<RowDefinition/>
+					</Grid.RowDefinitions>
+					<Button Grid.Row="0" x:Name="localB" Content="Local" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Width="150" Click="localClick" FontWeight="Normal"/>
+					<Button Grid.Row="0" x:Name="remoteB" Content="Remote" HorizontalAlignment="Center" Margin="0,40,0,0" VerticalAlignment="Top" Width="150" Click="remoteClick" FontWeight="Normal"/>
+
+					<StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Height="Auto" >
+						<Label Content="Panel: " Margin="0" FontSize="16" VerticalContentAlignment="Center" FontWeight="Normal" VerticalAlignment="Center" Padding="0"/>
+						<Button x:Name="panelYesB" Content="Yes" Margin="4,0,0,0" Height="30" Width="50" Click="panelYesClick" FontWeight="Normal" />
+						<Button x:Name="panelNoB" Content="No"  Height="30" Width="50" Click="panelNoClick" FontWeight="Normal"/>
+					</StackPanel>
+
+
+					<Grid Grid.Row="2" HorizontalAlignment="Center" Width="150" VerticalAlignment="Center" Margin="0">
+
+						<Grid.RowDefinitions>
+							<RowDefinition/>
+							<RowDefinition/>
+							<RowDefinition/>
+							<RowDefinition/>
+							<RowDefinition/>
+							<RowDefinition/>
+							<RowDefinition/>
+						</Grid.RowDefinitions>
+
+						<Button Grid.Row="0" x:Name="b1" Content="10 mAh" Click="bxClick" Width="150" MinHeight="26" FontWeight="Normal" Height="14"/>
+						<Button Grid.Row="1" x:Name="b2" Content="20 - 35 mAh" Click="bxClick" Width="150" MinHeight="26" Background="#FFCC0000" FontWeight="Normal" Height="20"/>
+						<Button Grid.Row="2" x:Name="b3" Content="40 - 50 mAh" Click="bxClick" Width="150" MinHeight="26" FontWeight="Normal" Height="20"/>
+						<Button Grid.Row="3" x:Name="b4" Content="70 - 90 mAh" Click="bxClick" Width="150" MinHeight="26" FontWeight="Normal" Height="20"/>
+						<Button Grid.Row="4" x:Name="b5" Content="110 - 300 mAh" Click="bxClick" Width="150" MinHeight="26" FontWeight="Normal" Height="20"/>
+						<Button Grid.Row="5" x:Name="b6" Content="400 - 650 mAh" Click="bxClick" Width="150" MinHeight="26" FontWeight="Normal" Height="20"/>
+						<Button Grid.Row="6" x:Name="b7" Content="1200+ mAh" Click="bxClick" Width="150" MinHeight="26" FontWeight="Normal" Height="20"/>
+
+					</Grid>
+
+				</Grid>
+			</GroupBox>
+
+
+
+
+
+			<Button Grid.Row="3" Content="SAVE" HorizontalAlignment="Center" VerticalAlignment="Center" Width="150" Foreground="Red" Click="Button_Click"/>
+		</Grid>
 
 	</Grid>
 </Window>

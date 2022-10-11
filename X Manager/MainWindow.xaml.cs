@@ -2445,6 +2445,11 @@ namespace X_Manager
 			}
 			else if (fileType == type_gp6)
 			{
+				if (fs.Length == 0)
+				{
+					nextFile();
+					return;
+				}
 				fs.Position = fs.Length - 2;
 				model = (byte)fs.ReadByte();
 			}

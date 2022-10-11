@@ -217,6 +217,31 @@ namespace X_Manager.ConfigurationWindows
 				magCB.SelectedIndex = axyconf[21];
 			}
 
+			if (firmTotA >= 3005000)
+			{
+				startDelayGB.Visibility = Visibility.Visible;
+				mainGrid.RowDefinitions[6].Height = new GridLength(74);
+				if (axyconf[2] > 20)
+				{
+					DateTime dt = new DateTime(axyconf[2] + 2000, axyconf[3], axyconf[4]);
+					startDelayDP.SelectedDate = dt;
+					startDelayCB.IsChecked = true;
+					startDelayDP.Visibility = Visibility.Visible;
+				}
+				else
+				{
+					startDelayCB.IsChecked = false;
+					startDelayDP.Visibility = Visibility.Hidden;
+				}
+				startDelayCB.Checked += startDelayCBChecked;
+				startDelayCB.Unchecked += startDelayCBChecked;
+			}
+			else
+			{
+				startDelayGB.Visibility = Visibility.Hidden;
+				mainGrid.RowDefinitions[6].Height = new GridLength(20);
+			}
+
 			//	if (unitType == Units.Unit.model_axyTrek)
 			//	{
 			//		switch (axyconf[22])
@@ -284,6 +309,17 @@ namespace X_Manager.ConfigurationWindows
 			// setThresholdUds()
 		}
 
+		private void startDelayCBChecked(object sender, RoutedEventArgs e)
+		{
+			if (startDelayCB.IsChecked == true)
+			{
+				startDelayDP.Visibility = Visibility.Visible;
+			}
+			else
+			{
+				startDelayDP.Visibility = Visibility.Hidden;
+			}
+		}
 		private void setThresholdUds()
 		{
 			if ((bool)rate1RB.IsChecked)
@@ -539,6 +575,26 @@ namespace X_Manager.ConfigurationWindows
 			{
 				axyConfOut[22] = (bool)(adcCB.IsChecked) ? (byte)1 : (byte)0;
 			}
+
+
+			if (startDelayCB.IsChecked == true)
+			{
+				if (startDelayDP.SelectedDate == null)
+				{
+					MessageBox.Show("Please, specify a valid start delay date.");
+					return;
+				}
+				axyConfOut[2] = (byte)(startDelayDP.SelectedDate.Value.Year - 2000);
+				axyConfOut[3] = (byte)(startDelayDP.SelectedDate.Value.Month);
+				axyConfOut[4] = (byte)(startDelayDP.SelectedDate.Value.Day);
+			}
+			else
+			{
+				axyConfOut[2] = 0;
+				axyConfOut[3] = 0;
+				axyConfOut[4] = 0;
+			}
+
 			mustWrite = true;
 			Close();
 		}

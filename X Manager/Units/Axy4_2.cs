@@ -269,12 +269,18 @@ namespace X_Manager.Units
 				{
 					if (firmTotA >= 3001000)
 					{
-						conf[19] = (byte)ft.ReadByte();
+						conf[19] = ft.ReadByte();
 					}
-					conf[21] = (byte)ft.ReadByte();
+					conf[21] = ft.ReadByte();
 					if (firmTotA >= 3002000)
 					{
-						conf[22] = (byte)ft.ReadByte();
+						conf[22] = ft.ReadByte();
+					}
+					if (firmTotA >= 3005000)
+					{
+						conf[2] = ft.ReadByte();
+						conf[3] = ft.ReadByte();
+						conf[4] = ft.ReadByte();
 					}
 				}
 			}
@@ -303,6 +309,10 @@ namespace X_Manager.Units
 					if (firmTotA >= 3002000)
 					{
 						ft.Write(conf, 22, 1);
+					}
+					if (firmTotA >= 3005000)
+					{
+						ft.Write(conf, 2, 3);
 					}
 				}
 				ft.ReadByte();

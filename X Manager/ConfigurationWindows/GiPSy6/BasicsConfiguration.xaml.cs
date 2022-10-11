@@ -539,7 +539,11 @@ namespace X_Manager.ConfigurationWindows
 					break;
 				case 6:
 					pxInterval = newVal;
-					if (pxInterval > 30)
+					if (pxInterval >= 60)
+					{
+						pxInterval = 60;
+					}
+					else if (pxInterval > 30)
 					{
 						pxInterval = 30;
 					}
@@ -603,6 +607,7 @@ namespace X_Manager.ConfigurationWindows
 				conf[516] = 0xff;
 				Array.Copy(remoteHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 517, 3);
 				Array.Copy(proximityHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 520, 3);
+				conf[523] = byte.Parse(pxIntervalTB.Text);
 
 				conf[524] = (byte)(pxFirst >> 16);
 				conf[525] = (byte)(pxFirst >> 8);

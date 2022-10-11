@@ -6,139 +6,146 @@
     xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
     xmlns:dc="clr-namespace:X_Manager"
     mc:Ignorable="d" 
-    Title="CONFIGURATION" Height="690" Width="403"
+    Title="CONFIGURATION" Height="740" Width="403"
     Background="#FF181818"
     ResizeMode="NoResize" ScrollViewer.VerticalScrollBarVisibility="Disabled"
     WindowStyle="SingleBorderWindow" WindowStartupLocation="CenterOwner" KeyDown="ctrlManager">
-    <Grid Name="mainGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="54"/>
-            <RowDefinition Height="240"/>
-            <RowDefinition Height="72"/>
-            <RowDefinition Height="74"/>
-            <RowDefinition Height="74"/>
-            <RowDefinition Height="74"/>
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Label Grid.Row="0" Content="Present settings:" HorizontalAlignment="Center" VerticalAlignment="Center"
+	<Grid Name="mainGrid">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="54"/>
+			<RowDefinition Height="240"/>
+			<RowDefinition Height="72"/>
+			<RowDefinition Height="74"/>
+			<RowDefinition Height="74"/>
+			<RowDefinition Height="74"/>
+			<RowDefinition Height="74"/>
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+		<Label Grid.Row="0" Content="Present settings:" HorizontalAlignment="Center" VerticalAlignment="Center"
                FontSize="26" FontWeight="Normal" />
-        <Grid Grid.Row="1" x:Name="accGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1*"/>
-            </Grid.ColumnDefinitions>
-            <GroupBox Grid.Column="0" Header="SAMPLE RATE (Hz)" Foreground="#FF00AADE" x:Name="sampleRateGB">
-                <StackPanel Name="rates" Orientation="Vertical">
-                    <RadioButton Name="rate1RB"  Content="1" Margin="20,10,0,0" TabIndex="0" Checked="setThresholdUdsEvent"/>
-                    <RadioButton Name="rate10RB" Content="10" Margin="20,10,0,0" TabIndex="1" Checked="setThresholdUdsEvent"/>
-                    <RadioButton Name="rate25RB" Content="25" Margin="20,10,0,0" TabIndex="2" Checked="setThresholdUdsEvent"/>
-                    <RadioButton Name="rate50RB" Content="50" Margin="20,10,0,0" TabIndex="3" Checked="setThresholdUdsEvent"/>
-                    <RadioButton Name="rate100RB" Content="100" Margin="20,10,0,10" TabIndex="4" Checked="setThresholdUdsEvent"/>
-                </StackPanel>
-            </GroupBox>
-            <GroupBox Grid.Column="1" Header="G FULLSCALE" Foreground="#FF00AADE">
-                <StackPanel Name="ranges" Orientation="Vertical">
-                    <RadioButton Name="range2RB" Content="+/- 2g" Margin="20,10,0,0" TabIndex="5" Checked="setThresholdUdsEvent"/>
-                    <RadioButton Name="range4RB" Content="+/- 4g" Margin="20,10,0,0" TabIndex="6" Checked="setThresholdUdsEvent"/>
-                    <RadioButton Name="range8RB" Content="+/- 8g" Margin="20,10,0,0" TabIndex="7" Checked="setThresholdUdsEvent"/>
-                    <RadioButton Name="range16RB" Content="+/- 16g" Margin="20,10,0,0" TabIndex="8" Checked="setThresholdUdsEvent"/>
-                </StackPanel>
-            </GroupBox>
-        </Grid>
-        <Grid Grid.Row="2" x:Name="magGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="5*"/>
-                <ColumnDefinition Width="5*" x:Name="magCol"/>
-            </Grid.ColumnDefinitions>
-            <GroupBox Grid.Column="0" Header="RESOLUTION (bit)" Foreground="#FF00AADE" Margin="0,0,5,5">
-                <Grid Margin="0,0,0,0" >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-                    <RadioButton Name="bits8RB" Grid.Column="0"  HorizontalAlignment="Left" Content="8" TabIndex="9" Margin="20,0,0,0"   />
-                    <RadioButton Name="bits10RB" Grid.Column="1" HorizontalAlignment="Left" Content="10" TabIndex="10" Margin="32,0,0,1"/>
-                </Grid>
-            </GroupBox>
-            <GroupBox Grid.Column="1" x:Name="magGB" Header="MAGNETOMETER" Foreground="#FF00AADE" Margin="5,0,0,5">
-                <StackPanel Orientation="Horizontal">
-                <ComboBox Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="magCB">
-                    <ComboBoxItem>OFF</ComboBoxItem>
-                    <ComboBoxItem>1</ComboBoxItem>
-                    <ComboBoxItem>2</ComboBoxItem>
-                </ComboBox>
-                    <Label Content="Hz" x:Name="magL"/>
-                </StackPanel>
-            </GroupBox>
-            
-        </Grid>
-        <GroupBox Grid.Row="3" Name="TDgroupBox" Header="TEMPERATURE AND DEPTH LOGGING" Foreground="#FF00AADE" Margin="0,0,0,5">
-            <Grid Margin="-10,0" HorizontalAlignment="Right" Width="395">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox Name="tempDepthCB" Grid.Column="0" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="24,0,0,0" />
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="29,0,-29,2">
-                    <StackPanel Name="logPeriodStackPanel" Orientation="Horizontal">
-                        <Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
-                        <TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="12"/>
-                        <Grid Width="30" Height="32" ScrollViewer.VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="1*" />
-                                <RowDefinition Height="1*"/>
-                            </Grid.RowDefinitions>
-                            <Button x:Name="LogEnup" x:FieldModifier="private" Grid.Row="0" Margin="0,1,0,0" MinHeight="0" MinWidth="0" Content="˄" ContentStringFormat="" FontSize="12" VerticalContentAlignment="Top" Click="cmdUp_Click" TabIndex="13"/>
-                            <Button x:Name="LogEndown" x:FieldModifier="private" Grid.Row="1" Margin="0" MinHeight="0" MinWidth="0" Content="˅" ContentStringFormat="" FontSize="12" Height="15" Click="cmdDown_Click" TabIndex="14"/>
-                        </Grid>
-                    </StackPanel>
-                </StackPanel>
+		<Grid Grid.Row="1" x:Name="accGrid">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="1*"/>
+				<ColumnDefinition Width="1*"/>
+			</Grid.ColumnDefinitions>
+			<GroupBox Grid.Column="0" Header="SAMPLE RATE (Hz)" Foreground="#FF00AADE" x:Name="sampleRateGB">
+				<StackPanel Name="rates" Orientation="Vertical">
+					<RadioButton Name="rate1RB"  Content="1" Margin="20,10,0,0" TabIndex="0" Checked="setThresholdUdsEvent"/>
+					<RadioButton Name="rate10RB" Content="10" Margin="20,10,0,0" TabIndex="1" Checked="setThresholdUdsEvent"/>
+					<RadioButton Name="rate25RB" Content="25" Margin="20,10,0,0" TabIndex="2" Checked="setThresholdUdsEvent"/>
+					<RadioButton Name="rate50RB" Content="50" Margin="20,10,0,0" TabIndex="3" Checked="setThresholdUdsEvent"/>
+					<RadioButton Name="rate100RB" Content="100" Margin="20,10,0,10" TabIndex="4" Checked="setThresholdUdsEvent"/>
+				</StackPanel>
+			</GroupBox>
+			<GroupBox Grid.Column="1" Header="G FULLSCALE" Foreground="#FF00AADE">
+				<StackPanel Name="ranges" Orientation="Vertical">
+					<RadioButton Name="range2RB" Content="+/- 2g" Margin="20,10,0,0" TabIndex="5" Checked="setThresholdUdsEvent"/>
+					<RadioButton Name="range4RB" Content="+/- 4g" Margin="20,10,0,0" TabIndex="6" Checked="setThresholdUdsEvent"/>
+					<RadioButton Name="range8RB" Content="+/- 8g" Margin="20,10,0,0" TabIndex="7" Checked="setThresholdUdsEvent"/>
+					<RadioButton Name="range16RB" Content="+/- 16g" Margin="20,10,0,0" TabIndex="8" Checked="setThresholdUdsEvent"/>
+				</StackPanel>
+			</GroupBox>
+		</Grid>
+		<Grid Grid.Row="2" x:Name="magGrid">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="5*"/>
+				<ColumnDefinition Width="5*" x:Name="magCol"/>
+			</Grid.ColumnDefinitions>
+			<GroupBox Grid.Column="0" Header="RESOLUTION (bit)" Foreground="#FF00AADE" Margin="0,0,5,5">
+				<Grid Margin="0,0,0,0" >
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="1*"/>
+						<ColumnDefinition Width="1*"/>
+					</Grid.ColumnDefinitions>
+					<RadioButton Name="bits8RB" Grid.Column="0"  HorizontalAlignment="Left" Content="8" TabIndex="9" Margin="20,0,0,0"   />
+					<RadioButton Name="bits10RB" Grid.Column="1" HorizontalAlignment="Left" Content="10" TabIndex="10" Margin="32,0,0,1"/>
+				</Grid>
+			</GroupBox>
+			<GroupBox Grid.Column="1" x:Name="magGB" Header="MAGNETOMETER" Foreground="#FF00AADE" Margin="5,0,0,5">
+				<StackPanel Orientation="Horizontal">
+					<ComboBox Width="100" HorizontalAlignment="Left" VerticalAlignment="Center" x:Name="magCB">
+						<ComboBoxItem>OFF</ComboBoxItem>
+						<ComboBoxItem>1</ComboBoxItem>
+						<ComboBoxItem>2</ComboBoxItem>
+					</ComboBox>
+					<Label Content="Hz" x:Name="magL"/>
+				</StackPanel>
+			</GroupBox>
 
-            </Grid>
-        </GroupBox>
-        <Grid Grid.Row="4">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="7*"/>
-                <ColumnDefinition Width="3*"/> 
-            </Grid.ColumnDefinitions>
-            <GroupBox Grid.Column="0" Margin="0,0,5,0" Header="MOVEMENT THRESHOLDS" Foreground="#FF00AADE">
-                <Grid Margin="0,0,0,0" >
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="0.5*"/>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="0.5*"/>
-                    </Grid.ColumnDefinitions>
-                    <dc:NumericUpDown x:Name="movThreshUd" Grid.Column="0" Margin="20,0,0,0" valueChanged="movChangedEvent"/>
-                    <dc:NumericUpDown x:Name="latencyThreshUd" Grid.Column="2" Margin="5,0,0,0" valueChanged="latChangedEvent"/>
-                    <!--valueChanged="latChangeEvent" />-->
-                    <Label Grid.Column="1" Margin="0,0,0,0" Name="movThresholdLabel" Content="eeee" />
-                    <Label Grid.Column="3" Margin="0,0,0,0" Name="latThresholdLabel" Content="eeee"/>
-                </Grid>
-            </GroupBox>
-            <GroupBox Grid.Column="1" Margin="5,0,0,0" Header="ADC LOG"
+		</Grid>
+		<GroupBox Grid.Row="3" Name="TDgroupBox" Header="TEMPERATURE AND DEPTH LOGGING" Foreground="#FF00AADE" Margin="0,0,0,5">
+			<Grid Margin="-10,0" HorizontalAlignment="Right" Width="395">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="1*"/>
+					<ColumnDefinition Width="1*"/>
+				</Grid.ColumnDefinitions>
+				<CheckBox Name="tempDepthCB" Grid.Column="0" VerticalAlignment="Center" Click="tempDepthCBChecked" HorizontalAlignment="left" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="24,0,0,0" />
+				<StackPanel Grid.Column="1" Orientation="Horizontal" Margin="29,0,-29,2">
+					<StackPanel Name="logPeriodStackPanel" Orientation="Horizontal">
+						<Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
+						<TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="12"/>
+						<Grid Width="30" Height="32" ScrollViewer.VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="1*" />
+								<RowDefinition Height="1*"/>
+							</Grid.RowDefinitions>
+							<Button x:Name="LogEnup" x:FieldModifier="private" Grid.Row="0" Margin="0,1,0,0" MinHeight="0" MinWidth="0" Content="˄" ContentStringFormat="" FontSize="12" VerticalContentAlignment="Top" Click="cmdUp_Click" TabIndex="13"/>
+							<Button x:Name="LogEndown" x:FieldModifier="private" Grid.Row="1" Margin="0" MinHeight="0" MinWidth="0" Content="˅" ContentStringFormat="" FontSize="12" Height="15" Click="cmdDown_Click" TabIndex="14"/>
+						</Grid>
+					</StackPanel>
+				</StackPanel>
+
+			</Grid>
+		</GroupBox>
+		<Grid Grid.Row="4">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="7*"/>
+				<ColumnDefinition Width="3*"/>
+			</Grid.ColumnDefinitions>
+			<GroupBox Grid.Column="0" Margin="0,0,5,0" Header="MOVEMENT THRESHOLDS" Foreground="#FF00AADE">
+				<Grid Margin="0,0,0,0" >
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="1*"/>
+						<ColumnDefinition Width="0.5*"/>
+						<ColumnDefinition Width="1*"/>
+						<ColumnDefinition Width="0.5*"/>
+					</Grid.ColumnDefinitions>
+					<dc:NumericUpDown x:Name="movThreshUd" Grid.Column="0" Margin="20,0,0,0" valueChanged="movChangedEvent"/>
+					<dc:NumericUpDown x:Name="latencyThreshUd" Grid.Column="2" Margin="5,0,0,0" valueChanged="latChangedEvent"/>
+					<!--valueChanged="latChangeEvent" />-->
+					<Label Grid.Column="1" Margin="0,0,0,0" Name="movThresholdLabel" Content="eeee" />
+					<Label Grid.Column="3" Margin="0,0,0,0" Name="latThresholdLabel" Content="eeee"/>
+				</Grid>
+			</GroupBox>
+			<GroupBox Grid.Column="1" Margin="5,0,0,0" Header="ADC LOG"
                       Foreground="#FF00AADE" VerticalContentAlignment="Center">
-                <CheckBox x:Name="adcCB" VerticalAlignment="Center" Content="Enabled"/>
-            </GroupBox>
-        </Grid>
-        
-        <GroupBox Grid.Row="5" Name="WaterSwitchGB" Header="WATERSWITCH" Foreground="#FF00AADE" HorizontalAlignment="Right" Width="397" >
-            <Grid Margin="0,0,0,0" x:Name="WSGrid" >
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="1*"/>
-                </Grid.ColumnDefinitions>
-                <RadioButton Name="WsEnabledRB" Grid.Column="0"  HorizontalAlignment="Left" Content="Enabled" TabIndex="9" Margin="20,0,0,0"   />
-                <RadioButton Name="WsHardwareRB" Grid.Column="1"  HorizontalAlignment="Left" Content="Enable" TabIndex="10" Margin="25,0,2,0"   />
-                <RadioButton Name="WsDisabledRB" Grid.Column="2" HorizontalAlignment="Left" Content="Disabled" TabIndex="11" Margin="25,0,0,0"/>
-            </Grid>
+				<CheckBox x:Name="adcCB" VerticalAlignment="Center" Content="Enabled"/>
+			</GroupBox>
+		</Grid>
 
+		<GroupBox Grid.Row="5" Name="WaterSwitchGB" Header="WATERSWITCH" Foreground="#FF00AADE">
+			<!--HorizontalAlignment="Right" Width="397" >-->
+			<Grid Margin="0,0,0,0" x:Name="WSGrid" >
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="1*"/>
+					<ColumnDefinition Width="1*"/>
+					<ColumnDefinition Width="1*"/>
+				</Grid.ColumnDefinitions>
+				<RadioButton Name="WsEnabledRB" Grid.Column="0"  HorizontalAlignment="Left" Content="Enabled" TabIndex="9" Margin="20,0,0,0"   />
+				<RadioButton Name="WsHardwareRB" Grid.Column="1"  HorizontalAlignment="Left" Content="Enable" TabIndex="10" Margin="25,0,2,0"   />
+				<RadioButton Name="WsDisabledRB" Grid.Column="2" HorizontalAlignment="Left" Content="Disabled" TabIndex="11" Margin="25,0,0,0"/>
+			</Grid>
+		</GroupBox>
 
-        </GroupBox>
+		<GroupBox Grid.Row="6" Header="START DELAY" Foreground="#FF00AADE" x:Name="startDelayGB">
+			<StackPanel Orientation="Horizontal" >
+				<CheckBox x:Name="startDelayCB" VerticalAlignment="Center" VerticalContentAlignment="Center" Content="Enable" Margin="14,0,0,0"/>
+				<DatePicker x:Name="startDelayDP" Margin="90,0,0,0"/>
+			</StackPanel>
+		</GroupBox>
 
-        <Button x:Name="sendButton" Grid.Row="6" Content="Send configuration" FontSize="20" Margin="10" Click="sendButton_click" TabIndex="15"/>
+		<Button x:Name="sendButton" Grid.Row="7" Content="Send configuration" FontSize="20" Margin="10" Click="sendButton_click" TabIndex="15"/>
 
-    </Grid>
+	</Grid>
 </local:ConfigurationWindow>
 

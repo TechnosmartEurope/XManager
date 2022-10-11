@@ -124,7 +124,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			basicsConf = new BasicsConfiguration(axyConfOut, firmware);
-			schedConf = new ScheduleConfiguration(axyConfOut);
+			schedConf = new ScheduleConfiguration(axyConfOut, firmware);
 			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
 			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
 			backB.IsEnabled = false;
@@ -411,7 +411,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			basicsConf = new BasicsConfiguration(axyConfOut, firmware);
-			schedConf = new ScheduleConfiguration(axyConfOut);
+			schedConf = new ScheduleConfiguration(axyConfOut, firmware);
 			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
 			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
 			lockRfAddress = oldLockRfAddress;

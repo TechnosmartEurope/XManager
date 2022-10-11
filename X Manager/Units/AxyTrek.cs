@@ -682,7 +682,7 @@ namespace X_Manager
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
 
-			
+
 			byte[] outBuffer = new byte[50];
 			byte[] inBuffer = new byte[4096];
 			byte[] tempBuffer = new byte[2048];
@@ -690,7 +690,7 @@ namespace X_Manager
 
 			uint bytesToWrite = 0;
 			int bytesReturned = 0;
-			
+
 			ft.BaudRate = (uint)baudrate;
 			bool firstLoop = true;
 			bool mem4 = false;
@@ -1890,7 +1890,7 @@ namespace X_Manager
 
 			} while ((dummy != 0xab) && (ard.Position < ard.Length));
 
-			tsc.timeStampLength = (int)(group.Count / bitsDiv);
+			tsc.timeStampLength = group.Count / bitsDiv;
 
 			int resultCode = 0;
 			if (group.Count == 0)
@@ -1996,7 +1996,7 @@ namespace X_Manager
 			additionalInfo = "";
 			if (debugLevel > 2)
 			{
-				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X");
+				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X") + csvSeparator + tsLoc.timeStampLength.ToString();
 			}
 			contoTab += 1;
 			if ((tsLoc.tsType & 64) == 64) activityWater = "Active";
@@ -2441,7 +2441,14 @@ namespace X_Manager
 				coord += "\t" + eo + lon.ToString("#00.00000", nfi);
 				coord += "\t" + altSegno + ((tsc.altH * 256 + tsc.altL) * 2).ToString() + "\t" + speed.ToString("0.0") + "\t";
 				coord += tsc.nSat.ToString() + "\t" + tsc.DOP.ToString() + "." + tsc.DOPdec.ToString();
-				coord += "\t" + tsc.gsvSum.ToString() + "\r\n";
+				coord += "\t" + tsc.gsvSum.ToString();
+				if (debugLevel > 2)
+				{
+					coord += " " + tsc.ore.ToString("00") + ":" + tsc.minuti.ToString("00") + ":" + tsc.secondi.ToString("00") + " " +
+									tsc.giorno.ToString("00") + "-" + tsc.mese.ToString("00") + "-20" + tsc.anno.ToString("00") +
+									"  --  " + tsc.ardPosition.ToString("X8");
+				}
+				coord += "\r\n";
 				txtW.Write(Encoding.ASCII.GetBytes(coord));
 			}
 

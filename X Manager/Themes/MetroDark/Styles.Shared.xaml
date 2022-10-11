@@ -688,14 +688,15 @@
   </Style>
 
   <!-- *********************************  ButtonStyle  ********************************* -->
-  <Style x:Key="ButtonStyle" TargetType="Button">
+  <Style x:Key="ButtonStyle" TargetType="Button" >
     <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     <Setter Property="FontSize" Value="14.667" />
     <Setter Property="FontFamily" Value="Segoe UI" />
     <Setter Property="Padding" Value="10,0,10,2" />
     <Setter Property="MinHeight" Value="30" />
     <Setter Property="MinWidth" Value="30" />
-    <Setter Property="Template">
+	<Setter Property="Background" Value="Aquamarine" />
+	<Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Button">
           <Grid>

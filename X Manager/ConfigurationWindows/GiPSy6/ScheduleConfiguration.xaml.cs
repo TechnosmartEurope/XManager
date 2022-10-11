@@ -18,6 +18,7 @@ namespace X_Manager.ConfigurationWindows
 	public partial class ScheduleConfiguration : PageCopy
 	{
 		byte[] conf;
+		uint firmware;
 		//TextBlockQ[] tbArr = new TextBlockQ[24];
 		TimePanel[] timePanelArAB = new TimePanel[24];
 		TimePanel[] timePanelArCD = new TimePanel[24];
@@ -28,13 +29,14 @@ namespace X_Manager.ConfigurationWindows
 		CheckBox[] mAr_sx;
 		CheckBox[] mAr_dx;
 		//int[] oldCbVal = new int[4];
-		public ScheduleConfiguration(byte[] conf)
+		public ScheduleConfiguration(byte[] conf, uint fw)
 		{
 			InitializeComponent();
 			warningTB.Text = "";
 			this.conf = conf;
 			int riga = 0;
 			int colonna = 0;
+			firmware = fw;
 			quantityArr = new ComboBox[] { aValCB, bValCB, cValCB, dValCB };
 			unitArr = new ComboBox[4] { aTimeUnitCB, bTimeUnitCB, cTimeUnitCB, dTimeUnitCB };
 			mAr_sx = new CheckBox[12] { m1_sx, m2_sx, m3_sx, m4_sx, m5_sx, m6_sx, m7_sx, m8_sx, m9_sx, m10_sx, m11_sx, m12_sx };
@@ -74,8 +76,6 @@ namespace X_Manager.ConfigurationWindows
 			sch[2] = BitConverter.ToUInt16(conf, 84);   //84-85
 			sch[3] = BitConverter.ToUInt16(conf, 86);   //86-87
 
-
-
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -108,11 +108,23 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			//Mesi ABCD
-			for (int i = 0; i < 12; i++)
+			if (conf[116] < 0x80)
 			{
-				mAr_sx[i].IsChecked = conf[i + 116] == 0 ? true : false;
-				mAr_dx[i].IsChecked = conf[i + 116] == 1 ? true : false;
+				for (int i = 0; i < 12; i++)
+				{
+					mAr_sx[i].IsChecked = conf[i + 116] == 0 ? true : false;
+					mAr_dx[i].IsChecked = conf[i + 116] == 1 ? true : false;
 
+				}
+			}
+			else
+			{
+				UInt16 monthSched = (UInt16)((conf[116] << 8) + conf[117]);
+				for (int i = 0; i < 12; i++)
+				{
+					mAr_sx[i].IsChecked = ((monthSched >> i) & 1) == 0 ? true : false;
+					mAr_dx[i].IsChecked = ((monthSched >> i) & 1) == 1 ? true : false;
+				}
 			}
 
 			if (bChecked)
@@ -203,12 +215,29 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			//Mesi validità schedule C/D
-			for (int i = 0; i < 12; i++)
+			if (firmware > 1005000)
 			{
-				conf[i + 116] = 0;
-				if (mAr_dx[i].IsChecked == true)
+				UInt16 monthSched = 0;
+				for (int i = 0; i < 12; i++)
 				{
-					conf[i + 116] = 1;
+					if (mAr_dx[i].IsChecked == true)
+					{
+						monthSched += (ushort)(1 << i);
+					}
+				}
+				monthSched += 0b1000_0000_0000_0000;
+				conf[116]=(byte)(monthSched>> 8);
+				conf[117] = (byte)(monthSched & 0xff);
+			}
+			else
+			{
+				for (int i = 0; i < 12; i++)
+				{
+					conf[i + 116] = 0;
+					if (mAr_dx[i].IsChecked == true)
+					{
+						conf[i + 116] = 1;
+					}
 				}
 			}
 
@@ -330,7 +359,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			leftSelectAll.Checked -= leftSelectAll_Checked;
 			leftSelectAll.Unchecked -= leftSelectAll_Checked;
-			leftSelectAll.IsChecked = leftSelectAll.IsChecked;
+			leftSelectAll.IsChecked = true;// leftSelectAll.IsChecked;
 			leftSelectAll.Checked += leftSelectAll_Checked;
 			leftSelectAll.Unchecked += leftSelectAll_Checked;
 			leftCheckedManager(new object(), new EventArgs());
@@ -477,7 +506,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			if (b.Name == "allAsB")
 			{
-				scheduleBCB.Checked-=scheduleBCB_Checked;
+				scheduleBCB.Checked -= scheduleBCB_Checked;
 				scheduleBCB.IsChecked = true;
 				scheduleBCB.Checked += scheduleBCB_Checked;
 			}
