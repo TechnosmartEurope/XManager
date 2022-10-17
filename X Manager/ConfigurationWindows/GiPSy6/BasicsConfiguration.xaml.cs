@@ -196,6 +196,20 @@ namespace X_Manager.ConfigurationWindows
 					remoteHB.setStatus(conf.Skip(516).Take(24).ToArray());
 					proximityHB.setStatus(new byte[24]);
 				}
+				//proximityPowerCB.SelectedIndex = conf[59];
+				var sb = (sbyte)conf[59];
+				string sbs = sb.ToString() + "dBm";
+				int ind = 0;
+				foreach (ComboBoxItem it in proximityPowerCB.Items)
+				{
+					if (it.Content.Equals(sbs))
+					{
+						break;
+					}
+					ind++;
+				}
+				proximityPowerCB.SelectedIndex = ind;
+
 			}
 			else
 			{
@@ -601,6 +615,7 @@ namespace X_Manager.ConfigurationWindows
 			conf[47] = (byte)(ddate >> 24);
 
 			conf[58] = byte.Parse(enAccSelCB.SelectedItem as string);
+			conf[59] = (byte)sbyte.Parse(proximityPowerCB.Text.Substring(0, proximityPowerCB.Text.Length - 3));
 
 			if (firmware >= 1005000)
 			{

@@ -224,3 +224,12 @@
 	- Bugfix: non veniva riconosciuto l'Axy4 legacy in conversione e il file ard veniva considerato di default come un trek
 	- Gipsy6: Completata conversione Course Over Ground
 	- Bugfix: Corretti intervalli possibili di scansione per sensore di prossimità gipsy6
+1.18.6 - Axy4.5/Depth.5/Fast - Aggiunta funzionalità start delay nella finestra di configurazione
+	- Gipsy6 - Prossimità: aggiunto intervallo da 60 minuti
+	- Bugfix Gipsy6 - prossimità: informazioni
+	- Gipsy6: aggiunti i preset alla configurazione soglie batteria e aggiunta soglia pre-download remoto
+	- Gipsy6: lettura nuovi schedule con modalità mesi a 2 byte invece che 12 (inclusa retrocompatibilità)
+	- Esclusi file da 0 byte dalla lista file da convertire
+1.18.7 - Aggiunta regolazione potenza per prossimità
+
+

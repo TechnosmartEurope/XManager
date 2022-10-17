@@ -141,7 +141,8 @@ namespace X_Manager.Units
 			public int inAdc;
 			public int ADC;
 			public int GPS_second;
-			public int proximity;
+			public int proximityAddress;
+			public sbyte proximityPower;
 			public int pos
 			{
 				get => _pos;
@@ -195,9 +196,10 @@ namespace X_Manager.Units
 				tout.stopEvent = this.stopEvent;
 				tout.inWater = this.inWater;
 				tout.inAdc = this.inAdc;
-				tout.ADC = this.ADC;
-				tout.GPS_second = this.GPS_second;
-				tout.proximity = this.proximity;
+				tout.ADC = ADC;
+				tout.GPS_second = GPS_second;
+				tout.proximityAddress = proximityAddress;
+				tout.proximityPower = proximityPower;
 				tout.resetPos(this.pos);
 
 				return tout;
@@ -273,6 +275,7 @@ namespace X_Manager.Units
 			COL_COURSE,
 			COL_BATTERY,
 			COL_PROXIMITY,
+			COL_PROXIMITY_POWER,
 			COL_EVENT,
 			COL_POSITION_IN_FILE,
 			COL_LENGTH
@@ -1836,8 +1839,8 @@ namespace X_Manager.Units
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
 			txtBW.Write("Name\tRF Address\tDate\tTime\tLatitude (deg)\tLongitude (deg)\tHor. Acc. (m)" +
-							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tProximity\tEvent\r\n");
-			string[] tabs = new string[14];
+							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tNearby Device\tNearby Device Received Signal Strength\tEvent\r\n");
+			string[] tabs = new string[(int)COLUMN.COL_LENGTH];
 			tabs[(int)COLUMN.COL_NAME] = unitName;
 			tabs[(int)COLUMN.COL_RF_ADDRESS] = rfAddressString;
 			if (fileType == FileType.FILE_BS6)
@@ -1921,7 +1924,8 @@ namespace X_Manager.Units
 
 				if ((t.tsTypeExt1 & ts_proximity) == ts_proximity)
 				{
-					tabs[(int)COLUMN.COL_PROXIMITY] = t.proximity.ToString();
+					tabs[(int)COLUMN.COL_PROXIMITY] = t.proximityAddress.ToString();
+					tabs[(int)COLUMN.COL_PROXIMITY_POWER] = t.proximityPower.ToString();
 				}
 
 				if ((t.tsType & ts_event) == ts_event)
@@ -2285,10 +2289,16 @@ namespace X_Manager.Units
 			}
 
 			//Prossimità
-			t.proximity = 0;
+			t.proximityAddress = 0;
 			if ((t.tsTypeExt1 & ts_proximity) == ts_proximity)
 			{
-				t.proximity = gp6[pos + 1] * 65536 + gp6[pos + 2] * 256 + gp6[pos + 3];
+				int proxLength = gp6[pos];
+				t.proximityAddress = gp6[pos + 1] * 65536 + gp6[pos + 2] * 256 + gp6[pos + 3];
+				if (proxLength > 3)
+				{
+					t.proximityPower = (sbyte)gp6[pos + 4];
+					pos += 1;
+				}
 				pos += 4;
 			}
 

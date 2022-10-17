@@ -230,5 +230,6 @@
 	- Gipsy6: aggiunti i preset alla configurazione soglie batteria e aggiunta soglia pre-download remoto
 	- Gipsy6: lettura nuovi schedule con modalità mesi a 2 byte invece che 12 (inclusa retrocompatibilità)
 	- Esclusi file da 0 byte dalla lista file da convertire
+1.18.7 - Aggiunta regolazione potenza per prossimità
 
 

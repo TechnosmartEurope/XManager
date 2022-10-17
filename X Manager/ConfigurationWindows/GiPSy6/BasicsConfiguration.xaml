@@ -86,11 +86,19 @@
 		<TextBlock x:Name="pxIntervalLabel" Text="Time (min):" Grid.Row="16" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="0,0,150,0"/>
 		<TextBox Grid.Row="16" Width="122" x:Name="pxIntervalTB" HorizontalAlignment="Right" Margin="0,0,20,0" FontSize="20" Text="0X000000" LostFocus="validate" KeyDown="validate"/>
 		<StackPanel Orientation="Horizontal" Grid.Row="17" x:Name="rfAddressesSP">
-			<TextBlock Text="Proximity First Address:" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="120,0,0,0"/>
+			<TextBlock Text="Proximity First Address:" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="40,0,0,0"/>
 			<TextBox x:Name="pxFirstTB" Width="104" HorizontalAlignment="Right" Margin="10,0,0,0" FontSize="18" Text="0X000000" MinHeight="0" Height="34"/>
 			<TextBlock Text="Proximity Last Address:" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="42,0,0,0"/>
 			<TextBox x:Name="pxLastTB" Width="104" HorizontalAlignment="Right" Margin="10,0,0,0" FontSize="18" Text="0X000000" MinHeight="0" Height="34"/>
-
+			<TextBlock Text="Proximity Power:" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="42,0,0,0"/>
+			<ComboBox x:Name="proximityPowerCB" Margin="30,0,0,0" Width="122" Height="40" SelectedIndex="0">
+				<ComboBoxItem>-20dBm</ComboBoxItem><ComboBoxItem>-18dBm</ComboBoxItem><ComboBoxItem>-15dBm</ComboBoxItem><ComboBoxItem>-12dBm</ComboBoxItem>
+				<ComboBoxItem>-10dBm</ComboBoxItem><ComboBoxItem>-9dBm</ComboBoxItem><ComboBoxItem>-6dBm</ComboBoxItem><ComboBoxItem>-5dBm</ComboBoxItem>
+				<ComboBoxItem>-3dBm</ComboBoxItem><ComboBoxItem>0dBm</ComboBoxItem><ComboBoxItem>1dBm</ComboBoxItem><ComboBoxItem>2dBm</ComboBoxItem>
+				<ComboBoxItem>3dBm</ComboBoxItem><ComboBoxItem>4dBm</ComboBoxItem><ComboBoxItem>5dBm</ComboBoxItem><ComboBoxItem>14dBm</ComboBoxItem>
+				<ComboBoxItem>15dBm</ComboBoxItem><ComboBoxItem>16dBm</ComboBoxItem><ComboBoxItem>17dBm</ComboBoxItem><ComboBoxItem>18dBm</ComboBoxItem>
+				<ComboBoxItem>19dBm</ComboBoxItem><ComboBoxItem>20dBm</ComboBoxItem>
+			</ComboBox>
 		</StackPanel>
 
 

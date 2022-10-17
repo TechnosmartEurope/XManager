@@ -1458,11 +1458,17 @@ namespace X_Manager.Units
 				}
 			}
 
-			tsc.timeStampLength = (int)(position / (3 + bit));
+			tsc.timeStampLength = position / (3 + bit);
 			if (position == 0)
 			{
-				//return new double[] { group[0], group[1], group[2] };
-				return new double[] { };
+				if (nOutputs == 1)
+				{
+					return new double[] { group[0], group[1], group[2] };
+				}
+				else
+				{
+					return new double[] { };
+				}
 			}
 
 			int resultCode = 0;
@@ -1502,28 +1508,11 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					//rimettere dopo sviluppo
-					//group = new double[3] { double.Parse(gruppoCON[2], new CultureInfo("en-US")) / gCoeff,
-					//						double.Parse(gruppoCON[3], new CultureInfo("en-US")) / gCoeff,
-					//double.Parse(gruppoCON[4], new CultureInfo("en-US")) / gCoeff };
-					//iend1 = 3;
-					//iend2 = 0;
-
-					//sviluppo
-					try
-					{
-						group = new double[3] { double.Parse(gruppoCON[2], new CultureInfo("en-US")) / gCoeff,
-												double.Parse(gruppoCON[3], new CultureInfo("en-US")) / gCoeff,
-												double.Parse(gruppoCON[4], new CultureInfo("en-US")) / gCoeff };
-					}
-					catch (Exception ex)
-					{
-						ex = ex;
-						group = new double[3] { 0, 0, 0 };
-					}
+					group = new double[3] { double.Parse(gruppoCON[2], new CultureInfo("en-US")) / gCoeff,
+											double.Parse(gruppoCON[3], new CultureInfo("en-US")) / gCoeff,
+											double.Parse(gruppoCON[4], new CultureInfo("en-US")) / gCoeff };
 					iend1 = 3;
 					iend2 = 0;
-					///sviluppo
 				}
 			}
 
@@ -1533,7 +1522,7 @@ namespace X_Manager.Units
 			fOut.Write((group[1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			fOut.Write((group[2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			int gLen = gruppoCON.Length - 1;
-			for (int i = 3; i < gLen; i++)
+			for (int i = 5; i < gLen; i++)
 			{
 				fOut.Write(gruppoCON[i] + csvSeparator);
 			}
