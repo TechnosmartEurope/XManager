@@ -1371,7 +1371,8 @@ namespace X_Manager
 								oUnit = new CO2_Logger(this);
 								break;
 							case "Axy-Quattrok":
-								oUnit = new AxyQuattrok(this);
+							case "Axy-Trek HD":
+								oUnit = new AxyTrekHD(this);
 								break;
 							case "GiPSy-6":
 								oUnit = new Gipsy6(this);   //Nel costruttore viene chiusa la porta seriale e riaperta mediante driver ftdi
@@ -1602,7 +1603,7 @@ namespace X_Manager
 			}
 			else
 			{
-				if ((oUnit is AxyTrek) | (oUnit is AxyQuattrok))
+				if ((oUnit is AxyTrek) | (oUnit is AxyTrekHD))
 				{
 					type = 1;
 				}
@@ -2506,7 +2507,7 @@ namespace X_Manager
 					cUnit = new AxyTrek(this);
 					break;
 				case Unit.model_axyQuattrok:
-					cUnit = new AxyQuattrok(this);
+					cUnit = new AxyTrekHD(this);
 					break;
 				case Unit.model_AGM1:
 					cUnit = new AGM(this);

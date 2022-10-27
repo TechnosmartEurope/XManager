@@ -1,0 +1,34 @@
+﻿<Window x:Class="X_Manager.ConfigurationWindows.TrekHDPressureCalibration"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
+        mc:Ignorable="d" Background="#FF606060" Loaded="loaded" Closing="closing"
+        Title="QuattrokPressureCalibration" Height="400" Width="800">
+    <Grid x:Name="mainGrid">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="0.5*"/>
+			<ColumnDefinition Width="3*"/>
+			<ColumnDefinition Width="3*"/>
+			<ColumnDefinition Width="2*"/>
+			<ColumnDefinition Width="0.5*"/>
+		</Grid.ColumnDefinitions>
+		<Label Foreground="#FF00AADE" Grid.Column="1" Content="Pressure" FontWeight="Bold" Margin="0,30,0,0" FontSize="20"/>
+		<TextBox Grid.Column="1" HorizontalAlignment="Left" x:Name="pressZeroTB" Height="23" Margin="70,110,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" LostFocus="pressZeroTB_LostFocus" KeyDown="pressZeroTB_KeyDown"/>
+        <TextBox Grid.Column="1" HorizontalAlignment="Left" x:Name="pressSpanTB" Height="23" Margin="70,195,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" LostFocus="pressSpanTB_LostFocus" KeyDown="pressSpanTB_KeyDown"/>
+        <Label Grid.Column="1" Content="Zero" HorizontalAlignment="Left" Margin="0,110,0,0" VerticalAlignment="Top" Foreground="Black"/>
+		<Label Grid.Column="1" Content="Span" HorizontalAlignment="Left" Margin="0,195,0,0" VerticalAlignment="Top" Foreground="Black"/>
+		<TextBox Grid.Column="1" HorizontalAlignment="Left" x:Name="pressThresholdTB" Height="23" Margin="70,275,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" IsReadOnly="True"/>
+		<Label Grid.Column="1" Content="Threshold" HorizontalAlignment="Left" Margin="0,275,0,0" VerticalAlignment="Top" Foreground="Black"/>
+
+		<Label Foreground="#FF00AADE" Grid.Column="2" Content="Temperature" FontWeight="Bold" Margin="0,30,0,0" FontSize="20"/>
+		<TextBox Grid.Column="2" HorizontalAlignment="Left" x:Name="tempZeroTB" Height="23" Margin="70,110,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" LostFocus="tempZeroTB_LostFocus" KeyDown="tempZeroTB_KeyDown"/>
+		<TextBox Grid.Column="2" HorizontalAlignment="Left" x:Name="tempSpanTB" Height="23" Margin="70,195,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120" LostFocus="tempSpanTB_LostFocus" KeyDown="tempSpanTB_KeyDown"/>
+		<Label Grid.Column="2" Content="Zero" HorizontalAlignment="Left" Margin="0,110,0,0" VerticalAlignment="Top" Foreground="Black"/>
+		<Label Grid.Column="2" Content="Span" HorizontalAlignment="Left" Margin="0,195,0,0" VerticalAlignment="Top" Foreground="Black"/>
+
+		<Button Grid.Column="3" Content="Send" HorizontalAlignment="Right" Margin="0,275,0,0" VerticalAlignment="Top" Width="120" Click="Button_Click" />
+
+    </Grid>
+</Window>

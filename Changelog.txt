@@ -231,5 +231,8 @@
 	- Gipsy6: lettura nuovi schedule con modalità mesi a 2 byte invece che 12 (inclusa retrocompatibilità)
 	- Esclusi file da 0 byte dalla lista file da convertire
 1.18.7 - Aggiunta regolazione potenza per prossimità
+1.18.8 - Ridenominazione Axy-Quattrok -> Axy-Trek HD
+	- Axy-Trek HD: aggiunta coefficienti calibrazione per sensore temperatura
+
 
 

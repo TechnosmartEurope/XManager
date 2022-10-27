@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{ACC5A131-75CD-4A30-A6A3-0E8A8D80E34A}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>X_Manager</RootNamespace>
     <AssemblyName>X Manager</AssemblyName>
@@ -318,8 +318,8 @@
     <Compile Include="ConfigurationWindows\GiPSy6\TimePanel.xaml.cs">
       <DependentUpon>TimePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ConfigurationWindows\QuattrokPressureCalibration.xaml.cs">
-      <DependentUpon>QuattrokPressureCalibration.xaml</DependentUpon>
+    <Compile Include="ConfigurationWindows\TrekHDPressureCalibration.xaml.cs">
+      <DependentUpon>TrekHDPressureCalibration.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConfigurationWindows\RemoteTab.xaml.cs">
       <DependentUpon>RemoteTab.xaml</DependentUpon>
@@ -385,7 +385,7 @@
     <Compile Include="Units\Axy5.cs" />
     <Compile Include="Units\AxyDepth_1.cs" />
     <Compile Include="Units\AxyDepth_2.cs" />
-    <Compile Include="Units\AxyQuattrok.cs" />
+    <Compile Include="Units\AxyTrekHD.cs" />
     <Compile Include="Units\AxyTrek.cs" />
     <Compile Include="ChartClasses\ChartWindowAGM.xaml.cs">
       <DependentUpon>ChartWindowAGM.xaml</DependentUpon>
@@ -467,7 +467,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ConfigurationWindows\QuattrokPressureCalibration.xaml">
+    <Page Include="ConfigurationWindows\TrekHDPressureCalibration.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

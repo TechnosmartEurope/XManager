@@ -19,11 +19,11 @@ using FT_HANDLE = System.UInt32;
 
 namespace X_Manager
 {
-	class AxyQuattrok : Units.Unit
+	class AxyTrekHD : Units.Unit
 	{
 		ushort[] coeffs = new ushort[7];
 		//double[] convCoeffs = new double[7];
-		double zero, span;
+		double pressZero, pressSpan, tempZero, tempSpan;
 		bool evitaSoglie = false;
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[6];
@@ -123,7 +123,7 @@ namespace X_Manager
 		DateTime nullDate = new DateTime(1970, 1, 1, 0, 0, 0);
 		DateTime recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
 
-		public AxyQuattrok(object p)
+		public AxyTrekHD(object p)
 			: base(p)
 		{
 			positionCanSend = true;
@@ -1214,7 +1214,7 @@ namespace X_Manager
 			{
 				try
 				{
-					ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+					ardFile = new BinaryReader(File.Open(fileName, FileMode.Open));
 					break;
 				}
 				catch (Exception fileError)
@@ -1252,29 +1252,29 @@ namespace X_Manager
 				sesAdd.Add(0);
 			}
 
-			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
 			BinaryWriter txt = BinaryWriter.Null;
 			BinaryWriter kml = BinaryWriter.Null;
 			BinaryWriter placeMark = BinaryWriter.Null;
 
 			if (makeTxt)
 			{
-				if ((System.IO.File.Exists(FileNametxt)) & (exten.Contains("ard"))) fDel(FileNametxt);
-				txt = new System.IO.BinaryWriter(File.OpenWrite(FileNametxt));
+				if ((File.Exists(FileNametxt)) & (exten.Contains("ard"))) fDel(FileNametxt);
+				txt = new BinaryWriter(File.OpenWrite(FileNametxt));
 			}
 			if (makeKml)
 			{
-				if ((System.IO.File.Exists(fileNameKml)) & (exten.Contains("ard"))) fDel(fileNameKml);
-				if ((System.IO.File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) fDel(fileNamePlaceMark);
-				kml = new System.IO.BinaryWriter(File.OpenWrite(fileNameKml));
-				placeMark = new System.IO.BinaryWriter(File.OpenWrite(fileNamePlaceMark));
+				if ((File.Exists(fileNameKml)) & (exten.Contains("ard"))) fDel(fileNameKml);
+				if ((File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) fDel(fileNamePlaceMark);
+				kml = new BinaryWriter(File.OpenWrite(fileNameKml));
+				placeMark = new BinaryWriter(File.OpenWrite(fileNamePlaceMark));
 				primaCoordinata = true;
 				contoCoord = 0;
 				//string
-				kml.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Folder_Path_Top));
-				kml.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
+				kml.Write(Encoding.ASCII.GetBytes(Properties.Resources.Folder_Path_Top));
+				kml.Write(Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
 				//placemark
-				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Final_Top_1 +
+				placeMark.Write(Encoding.ASCII.GetBytes(Properties.Resources.Final_Top_1 +
 					Path.GetFileNameWithoutExtension(fileName) + Properties.Resources.Final_Top_2));
 			}
 
@@ -1289,7 +1289,7 @@ namespace X_Manager
 			long infRemPosition;
 			ardFile.Close();
 
-			string logFile = System.IO.Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
+			string logFile = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
 			try
 			{
 				fDel(logFile);
@@ -1298,7 +1298,7 @@ namespace X_Manager
 
 			while (sesAdd.Count > 0)
 			{
-				ardFile = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
+				ardFile = new BinaryReader(File.Open(fileName, FileMode.Open));
 				long bufLen;
 				if (sesAdd.Count > 1)
 				{
@@ -1340,14 +1340,20 @@ namespace X_Manager
 				if ((adcTemp & 2) == 2) adcLog = true;
 
 				//Legge i parametri di calibrazione del sensore di pressione (zero e span) e calcola la soglia
-				zero = ard.ReadByte() * 256 + ard.ReadByte();
-				span = ard.ReadByte() * 256 + ard.ReadByte();
+				pressZero = ard.ReadByte() * 256 + ard.ReadByte();
+				pressSpan = ard.ReadByte() * 256 + ard.ReadByte();
+				pressZero -= 32500;
+				pressSpan /= 1000;
 
-				zero -= 32500;
-				//zero /= 1000;
-				span /= 1000;
+				//Legge i parametri di calibrazione del sensore di temperatura (zero e span)
+				tempZero = ard.ReadByte() * 256 + ard.ReadByte();
+				tempSpan = ard.ReadByte() * 256 + ard.ReadByte();
+				tempZero -= 32500;
+				tempSpan /= 1000;
 
-				ard.Position += 8;
+
+
+				ard.Position += 4;
 
 				//Legge i parametri di logging
 				pressureEnabled = ard.ReadByte();
@@ -1674,6 +1680,10 @@ namespace X_Manager
 					tsc.temperature /= 32768;
 					tsc.temperature /= 2;
 					tsc.temperature = ((((tsc.temperature + 0.9943) / 0.0014957) / 1000) - 1) / 0.00381;
+
+					tsc.temperature *= tempSpan;
+					tsc.temperature += tempZero;
+
 					ard.ReadByte();
 					tsc.press = ard.ReadByte() * 256 + ard.ReadByte();
 
@@ -1691,9 +1701,9 @@ namespace X_Manager
 					//double m = 10000 / ((zero + span) - zero);
 					//double q = -(m * zero);
 					//tsc.press = m * mVmis + q;
-					tsc.press = (((mVmis) / span) * 100000);
+					tsc.press = (((mVmis) / pressSpan) * 100000);
 					tsc.press += 890;
-					tsc.press += zero;
+					tsc.press += pressZero;
 				}
 			}
 

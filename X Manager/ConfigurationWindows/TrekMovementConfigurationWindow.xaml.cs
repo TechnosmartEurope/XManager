@@ -428,14 +428,14 @@ namespace X_Manager.ConfigurationWindows
 			latValueChanged();
 		}
 
-		private void cmdDown_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void cmdDown_Click(object sender, RoutedEventArgs e)
 		{
 			UInt16 i = UInt16.Parse(tempDepthLogginUD.Text);
 			if ((i != 1)) i--;
 			tempDepthLogginUD.Text = i.ToString();
 		}
 
-		private void cmdUp_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void cmdUp_Click(object sender, RoutedEventArgs e)
 		{
 			UInt16 i = UInt16.Parse(tempDepthLogginUD.Text);
 			if (i != 5) i++;
@@ -511,7 +511,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 				else if (e.Key == Key.C)
 				{
-					if (unitType != Units.Unit.model_axyQuattrok) return;
+					if (unitType != Unit.model_axyQuattrok) return;
 					ft.Write("TTTTTTTTTTTTTTTGGAg");
 					int[] coeffs = new int[12];
 
@@ -527,44 +527,61 @@ namespace X_Manager.ConfigurationWindows
 						return;
 					}
 
-					QuattrokPressureCalibration qp = new QuattrokPressureCalibration(coeffs);
+					TrekHDPressureCalibration qp = new TrekHDPressureCalibration(coeffs, firmTotA);
 					qp.ShowDialog();
 
 					if (qp.mustWrite)
 					{
-						qp.threshold = (((1500 - qp.zero) * qp.span) / 100000);// - qp.zero;
-						qp.threshold *= 55;
-						qp.threshold += 200;
-						qp.threshold /= 1000;
-						qp.threshold *= 32768;
-						qp.threshold /= 2.048;
+						qp.pressThreshold = (1500 - qp.pressZero) * qp.pressSpan / 100000;// - qp.zero;
+						qp.pressThreshold *= 55;
+						qp.pressThreshold += 200;
+						qp.pressThreshold /= 1000;
+						qp.pressThreshold *= 32768;
+						qp.pressThreshold /= 2.048;
 
-						qp.span *= 1000;
-						qp.zero += 32500;
+						qp.pressSpan *= 1000;
+						qp.pressZero += 32500;
 						//qp.zero += 1;
 						//qp.zero *= 1000;
 
 						ft.Write("TTTTTTTTTTTTTTTGGAb");
 						try
 						{
-							//Zero
+							//Zero-pressione
 							ft.ReadByte();
-							byte b = (byte)((UInt16)qp.zero >> 8);
+							byte b = (byte)((UInt16)qp.pressZero >> 8);
 							ft.Write(new byte[] { b }, 0, 1);
-							b = (byte)(qp.zero);
-							ft.Write(new byte[] { b }, 0, 1);
-
-							//Span
-							b = (byte)((UInt16)qp.span >> 8);
-							ft.Write(new byte[] { b }, 0, 1);
-							b = (byte)(qp.span);
+							b = (byte)qp.pressZero;
 							ft.Write(new byte[] { b }, 0, 1);
 
-							//Threshold
-							b = (byte)((UInt16)qp.threshold >> 8);
+							//Span-pressione
+							b = (byte)((UInt16)qp.pressSpan >> 8);
 							ft.Write(new byte[] { b }, 0, 1);
-							b = (byte)(qp.threshold);
+							b = (byte)qp.pressSpan;
 							ft.Write(new byte[] { b }, 0, 1);
+
+							//Threshold-pressione
+							b = (byte)((UInt16)qp.pressThreshold >> 8);
+							ft.Write(new byte[] { b }, 0, 1);
+							b = (byte)qp.pressThreshold;
+							ft.Write(new byte[] { b }, 0, 1);
+
+							if (firmTotA >= 3009000)
+							{
+								//Zero-temperatura
+								qp.tempZero += 32500;
+								b = (byte)((UInt16)qp.tempZero >> 8);
+								ft.Write(new byte[] { b }, 0, 1);
+								b = (byte)qp.tempZero;
+								ft.Write(new byte[] { b }, 0, 1);
+
+								//Span-temperatura
+								qp.tempSpan *= 1000;
+								b = (byte)((UInt16)qp.tempSpan >> 8);
+								ft.Write(new byte[] { b }, 0, 1);
+								b = (byte)qp.tempSpan;
+								ft.Write(new byte[] { b }, 0, 1);
+							}
 
 							ft.ReadByte();
 						}
@@ -572,10 +589,7 @@ namespace X_Manager.ConfigurationWindows
 						{
 							MessageBox.Show("Unit not ready.");
 						}
-
 					}
-
-
 				}
 			}
 

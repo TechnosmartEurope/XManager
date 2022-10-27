@@ -457,10 +457,14 @@ namespace X_Manager.Units
 					endS = "/";
 				}
 				Console.Write("\r" + testo + endS + " " + eta + "             ");
-				if (Console.KeyAvailable)
+				try
 				{
-					terminate(true);
+					if (Console.KeyAvailable)
+					{
+						terminate(true);
+					}
 				}
+				catch { }
 				//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(
 				//	() => parent.progress = intProgVal));
 				Thread.Sleep(100);
