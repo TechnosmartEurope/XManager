@@ -231,8 +231,14 @@
 	- Gipsy6: lettura nuovi schedule con modalità mesi a 2 byte invece che 12 (inclusa retrocompatibilità)
 	- Esclusi file da 0 byte dalla lista file da convertire
 1.18.7 - Aggiunta regolazione potenza per prossimità
-1.18.8 - Ridenominazione Axy-Quattrok -> Axy-Trek HD
-	- Axy-Trek HD: aggiunta coefficienti calibrazione per sensore temperatura
+1.18.8 - Axy-Trek HD: aggiunta coefficienti calibrazione per sensore temperatura	
+1.18.9 - Ridenominazione Axy-Quattrok -> Axy-Trek HD
+	- Aggiunta conversione REM da axytrekHD
+	- Aggiunto coefficiente di temperatura per calibrazione pressione su trekHD
+	- Aggiunto calcolo automatico coefficienti di calibrazione di temp. e pressione pre trekHD
+	- Aggiunto calcolo e invio soglie di pressione e temperatura per funzionamento sensore d'acqua virtuale nel trekHD
+
+
 
 
 

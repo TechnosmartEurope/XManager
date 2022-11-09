@@ -65,8 +65,8 @@ namespace X_Manager.Units
 		string ardFileName = "";
 		int magen;
 		int adcEn = 0;
-		double[] magData_A = new double[3];
-		double[] magData_B = new double[3];
+		//double[] magData_A = new double[3];
+		//double[] magData_B = new double[3];
 		ushort badPosition = 600;
 
 		public Axy4_2(object p) : base(p)

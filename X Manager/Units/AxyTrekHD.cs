@@ -23,7 +23,7 @@ namespace X_Manager
 	{
 		ushort[] coeffs = new ushort[7];
 		//double[] convCoeffs = new double[7];
-		double pressZero, pressSpan, tempZero, tempSpan;
+		double pressZero, pressSpan, tempZero, tempSpan, pressTcoeff;
 		bool evitaSoglie = false;
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[6];
@@ -128,7 +128,7 @@ namespace X_Manager
 		{
 			positionCanSend = true;
 			configurePositionButtonEnabled = true;
-			modelCode = model_axyQuattrok;
+			modelCode = model_axyTrekHD;
 			//modelName = "Axy-Quattrok";
 		}
 
@@ -288,6 +288,10 @@ namespace X_Manager
 				coeffs[4] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
 				coeffs[5] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
 				coeffs[6] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				if (firmTotA > 3009000)
+				{
+					ft.ReadByte(); ft.ReadByte();
+				}
 			}
 			catch
 			{
@@ -375,25 +379,25 @@ namespace X_Manager
 			{
 				throw new Exception(unitNotReady);
 			}
-			if (!evitaSoglie)
-			{
-				uint[] soglie = calcolaSoglieDepth();
-				ft.Write("TTTTTTTTTTGGAG");
-				try
-				{
-					ft.ReadByte();
-				}
-				catch
-				{
-					throw new Exception(unitNotReady);
-				}
-				for (int s = 0; s <= 16; s++)
-				{
-					ft.Write(new byte[] { (BitConverter.GetBytes(soglie[s])[2]) }, 0, 1);
-					ft.Write(new byte[] { (BitConverter.GetBytes(soglie[s])[1]) }, 0, 1);
-					ft.Write(new byte[] { (BitConverter.GetBytes(soglie[s])[0]) }, 0, 1);
-				}
-			}
+			//if (!evitaSoglie)
+			//{
+			//	uint[] soglie = calcolaSoglieDepth();
+			//	ft.Write("TTTTTTTTTTGGAG");
+			//	try
+			//	{
+			//		ft.ReadByte();
+			//	}
+			//	catch
+			//	{
+			//		throw new Exception(unitNotReady);
+			//	}
+			//	for (int s = 0; s <= 16; s++)
+			//	{
+			//		ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[2] }, 0, 1);
+			//		ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[1] }, 0, 1);
+			//		ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[0] }, 0, 1);
+			//	}
+			//}
 		}
 
 		public override bool getRemote()
@@ -1152,13 +1156,13 @@ namespace X_Manager
 
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
-			if ((Parent.getParameter("pressureRange") == "air")) isDepth = 0;
+			if (Parent.getParameter("pressureRange") == "air") isDepth = 0;
 
-			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
+			if (prefs[pref_fillEmpty] == "False") repeatEmptyValues = false;
 			if (addGpsTime) repeatEmptyValues = false;
 
 			dateSeparator = csvSeparator;
-			if ((prefs[pref_sameColumn] == "True"))
+			if (prefs[pref_sameColumn] == "True")
 			{
 				sameColumn = true;
 				dateSeparator = " ";
@@ -1339,21 +1343,54 @@ namespace X_Manager
 				//if ((adcTemp & 4) == 4) adcMagmin = true;
 				if ((adcTemp & 2) == 2) adcLog = true;
 
-				//Legge i parametri di calibrazione del sensore di pressione (zero e span) e calcola la soglia
+				//Inizializza i coefficienti nel caso siano inutilizzati (vecchi firmware)
+				tempZero = 0;
+				tempSpan = 1;
+				pressTcoeff = 0;
+
+				//Legge i parametri di conversione del sensore di pressione (zero e span)
 				pressZero = ard.ReadByte() * 256 + ard.ReadByte();
 				pressSpan = ard.ReadByte() * 256 + ard.ReadByte();
 				pressZero -= 32500;
 				pressSpan /= 1000;
+				ard.Position += 8;
 
-				//Legge i parametri di calibrazione del sensore di temperatura (zero e span)
-				tempZero = ard.ReadByte() * 256 + ard.ReadByte();
-				tempSpan = ard.ReadByte() * 256 + ard.ReadByte();
-				tempZero -= 32500;
-				tempSpan /= 1000;
+				if (firmTotA == 3009000)
+				{
+					//Legge i parametri di conversione del sensore di temperatura (zero e span)
+					ard.Position = 0x0f;
+					tempZero = ard.ReadByte() * 256 + ard.ReadByte();
+					tempSpan = ard.ReadByte() * 256 + ard.ReadByte();
+					tempZero -= 32500;
+					tempZero /= 1000;
+					tempSpan /= 1000;
+					ard.Position += 4;
+				}
 
+				//Legge i parametri di calibrazione della pressione con la temperatura
+				if (firmTotA > 3009000)
+				{
+					ard.Position = 0x0b;
+					tempSpan = ard.ReadByte() * 256 + ard.ReadByte();
+					tempZero = ard.ReadByte() * 256 + ard.ReadByte();
+					pressSpan = ard.ReadByte() * 256 + ard.ReadByte();
+					pressZero = ard.ReadByte() * 256 + ard.ReadByte();
+					pressTcoeff = ard.ReadByte() * 256 + ard.ReadByte();
 
-
-				ard.Position += 4;
+					//span temperatura: da 0 a 65,535
+					tempSpan /= 1000;
+					//zero temperatura: da -32,5 a 32,5
+					tempZero -= 32500;
+					tempZero /= 1000;
+					//span pressione: da 0 a 655,35
+					pressSpan /= 100;
+					//zero pressione: da -32500 a 32500
+					pressZero -= 32500;
+					//Tcoeff pressione:	da -325,00 a +325,00 
+					pressTcoeff -= 32500;
+					pressTcoeff /= 100;
+					ard.Position += 2;
+				}
 
 				//Legge i parametri di logging
 				pressureEnabled = ard.ReadByte();
@@ -1511,7 +1548,7 @@ namespace X_Manager
 								timeStampO.orario.Hour, timeStampO.orario.Minute, timeStampO.orario.Second);
 						}
 						groupConverter(ref timeStampO, lastGroup, shortFileName, ref sBuffer, ref infRemPosition);
-						csv.Write(System.Text.Encoding.ASCII.GetBytes(sBuffer));
+						csv.Write(Encoding.ASCII.GetBytes(sBuffer));
 						break;
 					}
 
@@ -1662,10 +1699,10 @@ namespace X_Manager
 			if ((tsc.tsType & 2) == 2)
 			{
 				tsc.slowData++;
-				if (temperatureEnabled == 2)        //Temperatura da sensore esterno
+				if (temperatureEnabled == 2)        //Temperatura da sensore interno
 				{
 					tsc.temperature = ard.ReadByte() + ard.ReadByte() * 256;
-					tsc.temperature = (uint)(tsc.temperature) >> 6;
+					tsc.temperature = (uint)tsc.temperature >> 6;
 					if (tsc.temperature > 511)
 					{
 						tsc.temperature -= 1024;
@@ -1679,7 +1716,7 @@ namespace X_Manager
 					tsc.temperature *= 2.048;
 					tsc.temperature /= 32768;
 					tsc.temperature /= 2;
-					tsc.temperature = ((((tsc.temperature + 0.9943) / 0.0014957) / 1000) - 1) / 0.00381;
+					tsc.temperature = (((tsc.temperature + 0.9943) / 0.0014957 / 1000) - 1) / 0.00381;
 
 					tsc.temperature *= tempSpan;
 					tsc.temperature += tempZero;
@@ -1694,16 +1731,11 @@ namespace X_Manager
 					mVmis -= 200.00;// 201.22;//vedere se c'è un piccolo offset dovuto alla scheda stessa//6174 198mV  6234 201.8mV 6242 202.2mV
 					mVmis /= 55.00000;
 
-					//zero = 0.500;
-					//span = 27.752;
-					//tsc.press = (mVmis - zero) / (span / 100000);
-
-					//double m = 10000 / ((zero + span) - zero);
-					//double q = -(m * zero);
-					//tsc.press = m * mVmis + q;
-					tsc.press = (((mVmis) / pressSpan) * 100000);
+					tsc.press = mVmis / pressSpan * 100000;
 					tsc.press += 890;
-					tsc.press += pressZero;
+
+					tsc.press = (tsc.press - pressZero) - (pressTcoeff * tsc.temperature);
+
 				}
 			}
 
@@ -1711,7 +1743,7 @@ namespace X_Manager
 			if ((tsc.tsType & 8) == 8)
 			{
 				tsc.slowData++;
-				tsc.batteryLevel = ((ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096);
+				tsc.batteryLevel = (ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096;
 			}
 
 			//Coordinata

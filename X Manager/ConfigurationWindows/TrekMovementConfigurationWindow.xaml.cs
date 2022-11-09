@@ -511,15 +511,21 @@ namespace X_Manager.ConfigurationWindows
 				}
 				else if (e.Key == Key.C)
 				{
-					if (unitType != Unit.model_axyQuattrok) return;
-					ft.Write("TTTTTTTTTTTTTTTGGAg");
-					int[] coeffs = new int[12];
+					if (unitType != Unit.model_axyTrekHD) return;
+					//ft.ReadExisting();
+					ft.Write("TTTTTTTTTTTTTTTGGAg");        //Importa i 14 byte da
+					int[] coeffs = new int[14];
 
 					try
 					{
 						for (int i = 0; i < 12; i++)
 						{
 							coeffs[i] = ft.ReadByte();
+						}
+						if (firmTotA > 3009000)
+						{
+							coeffs[12] = ft.ReadByte();
+							coeffs[13] = ft.ReadByte();
 						}
 					}
 					catch
@@ -532,55 +538,90 @@ namespace X_Manager.ConfigurationWindows
 
 					if (qp.mustWrite)
 					{
-						qp.pressThreshold = (1500 - qp.pressZero) * qp.pressSpan / 100000;// - qp.zero;
-						qp.pressThreshold *= 55;
-						qp.pressThreshold += 200;
-						qp.pressThreshold /= 1000;
-						qp.pressThreshold *= 32768;
-						qp.pressThreshold /= 2.048;
-
-						qp.pressSpan *= 1000;
-						qp.pressZero += 32500;
 						//qp.zero += 1;
 						//qp.zero *= 1000;
 
 						ft.Write("TTTTTTTTTTTTTTTGGAb");
 						try
 						{
-							//Zero-pressione
 							ft.ReadByte();
-							byte b = (byte)((UInt16)qp.pressZero >> 8);
-							ft.Write(new byte[] { b }, 0, 1);
-							b = (byte)qp.pressZero;
-							ft.Write(new byte[] { b }, 0, 1);
-
-							//Span-pressione
-							b = (byte)((UInt16)qp.pressSpan >> 8);
-							ft.Write(new byte[] { b }, 0, 1);
-							b = (byte)qp.pressSpan;
-							ft.Write(new byte[] { b }, 0, 1);
-
-							//Threshold-pressione
-							b = (byte)((UInt16)qp.pressThreshold >> 8);
-							ft.Write(new byte[] { b }, 0, 1);
-							b = (byte)qp.pressThreshold;
-							ft.Write(new byte[] { b }, 0, 1);
-
-							if (firmTotA >= 3009000)
+							if (firmTotA <= 3009000)
 							{
-								//Zero-temperatura
-								qp.tempZero += 32500;
-								b = (byte)((UInt16)qp.tempZero >> 8);
-								ft.Write(new byte[] { b }, 0, 1);
-								b = (byte)qp.tempZero;
-								ft.Write(new byte[] { b }, 0, 1);
 
+								qp.pressThreshold = (1500 - qp.pressZero) * qp.pressSpan / 100000;// - qp.zero;
+								qp.pressThreshold *= 55;
+								qp.pressThreshold += 200;
+								qp.pressThreshold /= 1000;
+								qp.pressThreshold *= 32768;
+								qp.pressThreshold /= 2.048;
+
+								qp.pressSpan *= 1000;
+								qp.pressZero += 32500;
+
+								//Zero-pressione
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressZero >> 8), (byte)qp.pressZero }, 0, 2);
+
+								//Span-pressione
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressSpan >> 8), (byte)qp.pressSpan }, 0, 2);
+
+								//Threshold-pressione
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressThreshold >> 8), (byte)qp.pressThreshold }, 0, 2);
+
+								if (firmTotA == 3009000)
+								{
+									//Zero-temperatura
+									qp.tempZero *= 1000;
+									qp.tempZero += 32500;
+									ft.Write(new byte[2] { (byte)((UInt16)qp.tempZero >> 8), (byte)qp.tempZero }, 0, 2);
+
+									//Span-temperatura
+									qp.tempSpan *= 1000;
+									ft.Write(new byte[2] { (byte)((UInt16)qp.tempSpan >> 8), (byte)qp.tempSpan }, 0, 2);
+								}
+							}
+							else
+							{
 								//Span-temperatura
 								qp.tempSpan *= 1000;
-								b = (byte)((UInt16)qp.tempSpan >> 8);
-								ft.Write(new byte[] { b }, 0, 1);
-								b = (byte)qp.tempSpan;
-								ft.Write(new byte[] { b }, 0, 1);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempSpan >> 8), (byte)qp.tempSpan }, 0, 2);
+
+								//Zero-temperatura
+								qp.tempZero *= 1000;
+								qp.tempZero += 32500;
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempZero >> 8), (byte)qp.tempZero }, 0, 2);
+
+								//Span-pressione
+								qp.pressSpan *= 100;
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressSpan >> 8), (byte)qp.pressSpan }, 0, 2);
+
+								//Zero-pressione
+								qp.pressZero += 32500;
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressZero >> 8), (byte)qp.pressZero }, 0, 2);
+
+								//Tcoeff-pressione
+								qp.pressTcoeff *= 100;
+								qp.pressTcoeff += 32500;
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressTcoeff >> 8), (byte)qp.pressTcoeff }, 0, 2);
+
+								//Soglie temperatura + 2 byte fill
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempOut[0] >> 8), (byte)qp.tempOut[0] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempOut[1] >> 8), (byte)qp.tempOut[1] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempOut[2] >> 8), (byte)qp.tempOut[2] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempOut[3] >> 8), (byte)qp.tempOut[3] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempOut[4] >> 8), (byte)qp.tempOut[4] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempOut[5] >> 8), (byte)qp.tempOut[5] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempOut[6] >> 8), (byte)qp.tempOut[6] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempOut[7] >> 8), (byte)qp.tempOut[7] }, 0, 2);
+
+								//Soglie pressione
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressOut[0] >> 8), (byte)qp.pressOut[0] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressOut[1] >> 8), (byte)qp.pressOut[1] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressOut[2] >> 8), (byte)qp.pressOut[2] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressOut[3] >> 8), (byte)qp.pressOut[3] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressOut[4] >> 8), (byte)qp.pressOut[4] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressOut[5] >> 8), (byte)qp.pressOut[5] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressOut[6] >> 8), (byte)qp.pressOut[6] }, 0, 2);
+								ft.Write(new byte[2] { (byte)((UInt16)qp.pressOut[7] >> 8), (byte)qp.pressOut[7] }, 0, 2);
 							}
 
 							ft.ReadByte();
@@ -623,23 +664,23 @@ namespace X_Manager.ConfigurationWindows
 			//	return;
 			//}
 
-			if ((rate50RB.IsChecked == true))
+			if (rate50RB.IsChecked == true)
 			{
 				axyConfOut[15] = 0;
 			}
-			else if ((rate25RB.IsChecked == true))
+			else if (rate25RB.IsChecked == true)
 			{
 				axyConfOut[15] = 1;
 			}
-			else if ((rate100RB.IsChecked == true))
+			else if (rate100RB.IsChecked == true)
 			{
 				axyConfOut[15] = 2;
 			}
-			else if ((rate10RB.IsChecked == true))
+			else if (rate10RB.IsChecked == true)
 			{
 				axyConfOut[15] = 3;
 			}
-			else if ((rate1RB.IsChecked == true))
+			else if (rate1RB.IsChecked == true)
 			{
 				axyConfOut[15] = 4;
 			}
@@ -799,3 +840,4 @@ namespace X_Manager.ConfigurationWindows
 
 	}
 }
+

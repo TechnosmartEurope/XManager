@@ -1533,7 +1533,7 @@ namespace X_Manager
 			{
 				confForm = new Axy5ConfigurationWindow(conf, accSchedule, oUnit.firmTotA);
 			}
-			else if (oUnit.modelCode == Unit.model_axyTrek | oUnit.modelCode == Unit.model_axyQuattrok)
+			else if (oUnit.modelCode == Unit.model_axyTrek | oUnit.modelCode == Unit.model_axyTrekHD)
 			{
 				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA);
 			}
@@ -2373,6 +2373,8 @@ namespace X_Manager
 					if (Path.GetExtension(fileName).Contains("rem"))
 					{
 						fileHeader = "REM ";
+						fileType = type_rem;
+
 					}
 					if (Path.GetExtension(fileName).Contains("gp6") || Path.GetExtension(fileName).Contains("bs6"))
 					{
@@ -2440,7 +2442,7 @@ namespace X_Manager
 			FileStream fs = File.OpenRead(fileName);
 			byte model;
 			byte fw = 0; //Controllare cosa succede in caso di ardfile=false alla riga 1555 e poi al caso successivo (Depth)
-			if (fileType == type_ard)
+			if (fileType == type_ard)           //nell'ard il tipo di unità è scritto nel primo byte
 			{
 				model = (byte)fs.ReadByte();
 			}
@@ -2453,6 +2455,12 @@ namespace X_Manager
 				}
 				fs.Position = fs.Length - 2;
 				model = (byte)fs.ReadByte();
+			}
+			else if (fileType == type_rem)      //nel rem bisogna saltare l'header con la posizione della lista sessioni per leggere il byte con tipo unità
+			{
+				fs.Position = 0x1000;
+				model = (byte)fs.ReadByte();
+				fs.Position = 0;
 			}
 			else
 			{
@@ -2506,7 +2514,7 @@ namespace X_Manager
 				case Unit.model_axyTrek:
 					cUnit = new AxyTrek(this);
 					break;
-				case Unit.model_axyQuattrok:
+				case Unit.model_axyTrekHD:
 					cUnit = new AxyTrekHD(this);
 					break;
 				case Unit.model_AGM1:
@@ -2545,44 +2553,44 @@ namespace X_Manager
 			conversionThread.Start();
 		}
 
-		private void findFirmware(string fn, byte unitType, ref uint fTotA, ref uint fTotB, ref byte[] uf)
-		{
-			var fileIn = new BinaryReader(System.IO.File.Open(fn, FileMode.Open));
-			fileIn.ReadByte();
+		//private void findFirmware(string fn, byte unitType, ref uint fTotA, ref uint fTotB, ref byte[] uf)
+		//{
+		//	var fileIn = new BinaryReader(System.IO.File.Open(fn, FileMode.Open));
+		//	fileIn.ReadByte();
 
-			switch (unitType)
-			{
-				case (byte)Unit.model_axyTrek:
-					fileIn.Read(uf, 0, 6);
-					fTotA = uf[0] * (uint)1000000 + uf[1] * (uint)1000 + uf[2];
-					fTotB = uf[3] * (uint)1000000 + uf[4] * (uint)1000 + uf[5];
-					uf[6] = 254;
-					break;
-				case Unit.model_axy3:
-					fileIn.Read(uf, 0, 2);
-					fTotA = uf[0] * (uint)1000 + uf[1];
-					uf[2] = 254;
-					break;
-				case Unit.model_axy4:
-				case Unit.model_axyDepth:
-					fileIn.Read(uf, 0, 2);
-					fTotA = uf[0] * (uint)1000 + uf[1];
-					uf[2] = 254;
-					if (fTotA > 2004)
-					{
-						uf[2] = fileIn.ReadByte();
-						fTotA = fTotA * (uint)1000 + uf[2];
-						uf[3] = 254;
-					}
-					break;
-				case Unit.model_AGM1:
-					fileIn.Read(uf, 0, 3);
-					fTotA = uf[0] * (uint)1000000 + uf[1] * (uint)1000 + uf[2];
-					uf[3] = 254;
-					break;
-			}
+		//	switch (unitType)
+		//	{
+		//		case (byte)Unit.model_axyTrek:
+		//			fileIn.Read(uf, 0, 6);
+		//			fTotA = uf[0] * (uint)1000000 + uf[1] * (uint)1000 + uf[2];
+		//			fTotB = uf[3] * (uint)1000000 + uf[4] * (uint)1000 + uf[5];
+		//			uf[6] = 254;
+		//			break;
+		//		case Unit.model_axy3:
+		//			fileIn.Read(uf, 0, 2);
+		//			fTotA = uf[0] * (uint)1000 + uf[1];
+		//			uf[2] = 254;
+		//			break;
+		//		case Unit.model_axy4:
+		//		case Unit.model_axyDepth:
+		//			fileIn.Read(uf, 0, 2);
+		//			fTotA = uf[0] * (uint)1000 + uf[1];
+		//			uf[2] = 254;
+		//			if (fTotA > 2004)
+		//			{
+		//				uf[2] = fileIn.ReadByte();
+		//				fTotA = fTotA * (uint)1000 + uf[2];
+		//				uf[3] = 254;
+		//			}
+		//			break;
+		//		case Unit.model_AGM1:
+		//			fileIn.Read(uf, 0, 3);
+		//			fTotA = uf[0] * (uint)1000000 + uf[1] * (uint)1000 + uf[2];
+		//			uf[3] = 254;
+		//			break;
+		//	}
 
-		}
+		//}
 
 		private byte[] findMdpModel(ref FileStream iFile)
 		{

@@ -318,6 +318,9 @@
     <Compile Include="ConfigurationWindows\GiPSy6\TimePanel.xaml.cs">
       <DependentUpon>TimePanel.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ConfigurationWindows\TrekHDCalibrationInputValues.xaml.cs">
+      <DependentUpon>TrekHDCalibrationInputValues.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConfigurationWindows\TrekHDPressureCalibration.xaml.cs">
       <DependentUpon>TrekHDPressureCalibration.xaml</DependentUpon>
     </Compile>
@@ -464,6 +467,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ConfigurationWindows\GiPSy6\TimePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ConfigurationWindows\TrekHDCalibrationInputValues.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
