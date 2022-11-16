@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows;
 using System.Text;
 using System.Threading.Tasks;
+using X_Manager.Units.AxyTreks;
 
 namespace X_Manager
 {
@@ -465,8 +466,8 @@ namespace X_Manager
 						cUnit = new AxyDepth_2(this);
 					}
 					break;
-				case Unit.model_axyTrek:
-					cUnit = new AxyTrek(this);
+				case Unit.model_axyTrekN:
+					cUnit = new AxyTrekN(this);
 					break;
 				case Unit.model_AGM1:
 					cUnit = new AGM(this);
@@ -478,7 +479,7 @@ namespace X_Manager
 					cUnit = new Gipsy6(this);
 					break;
 				default:
-					cUnit = new AxyTrek(this);
+					cUnit = new AxyTrekN(this);
 					break;
 			}
 

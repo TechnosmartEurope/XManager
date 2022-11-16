@@ -17,7 +17,7 @@ using FT_HANDLE = System.UInt64;
 
 namespace X_Manager.Units
 {
-	class Axy4_1 : Units.Unit
+	class Axy4_1 : Axy
 	{
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[2];

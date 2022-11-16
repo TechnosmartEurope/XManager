@@ -17,7 +17,7 @@ using FT_HANDLE = System.UInt64;
 
 namespace X_Manager.Units
 {
-	class Axy3 : Unit
+	class Axy3 : Axy
 	{
 
 		struct timeStamp

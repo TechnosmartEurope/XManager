@@ -25,7 +25,7 @@ using FT_HANDLE = System.UInt32;
 
 namespace X_Manager.Units
 {
-	class Axy5 : Units.Unit
+	class Axy5 : Axy
 	{
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[3];

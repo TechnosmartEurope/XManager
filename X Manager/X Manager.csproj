@@ -318,11 +318,11 @@
     <Compile Include="ConfigurationWindows\GiPSy6\TimePanel.xaml.cs">
       <DependentUpon>TimePanel.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ConfigurationWindows\TrekHDCalibrationInputValues.xaml.cs">
-      <DependentUpon>TrekHDCalibrationInputValues.xaml</DependentUpon>
+    <Compile Include="ConfigurationWindows\DepthFastTrekHDFTCalibrationInputValues.xaml.cs">
+      <DependentUpon>DepthFastTrekHDFTCalibrationInputValues.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ConfigurationWindows\TrekHDPressureCalibration.xaml.cs">
-      <DependentUpon>TrekHDPressureCalibration.xaml</DependentUpon>
+    <Compile Include="ConfigurationWindows\DepthFastTrekHDFTCalibration.xaml.cs">
+      <DependentUpon>DepthFastTrekHDFTCalibration.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConfigurationWindows\RemoteTab.xaml.cs">
       <DependentUpon>RemoteTab.xaml</DependentUpon>
@@ -382,14 +382,18 @@
       <DependentUpon>Remote_Main.xaml</DependentUpon>
     </Compile>
     <Compile Include="Units\AGM.cs" />
+    <Compile Include="Units\Axy.cs" />
     <Compile Include="Units\Axy3.cs" />
     <Compile Include="Units\Axy4-1.cs" />
     <Compile Include="Units\Axy4_2.cs" />
     <Compile Include="Units\Axy5.cs" />
+    <Compile Include="Units\AxyDepth.cs" />
     <Compile Include="Units\AxyDepth_1.cs" />
     <Compile Include="Units\AxyDepth_2.cs" />
-    <Compile Include="Units\AxyTrekHD.cs" />
     <Compile Include="Units\AxyTrek.cs" />
+    <Compile Include="Units\AxyTrekFT.cs" />
+    <Compile Include="Units\AxyTrekHD.cs" />
+    <Compile Include="Units\AxyTrekN.cs" />
     <Compile Include="ChartClasses\ChartWindowAGM.xaml.cs">
       <DependentUpon>ChartWindowAGM.xaml</DependentUpon>
     </Compile>
@@ -470,11 +474,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ConfigurationWindows\TrekHDCalibrationInputValues.xaml">
+    <Page Include="ConfigurationWindows\DepthFastTrekHDFTCalibrationInputValues.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ConfigurationWindows\TrekHDPressureCalibration.xaml">
+    <Page Include="ConfigurationWindows\DepthFastTrekHDFTCalibration.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

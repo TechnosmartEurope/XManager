@@ -397,7 +397,7 @@ namespace X_Manager.Units
 			}
 
 			fo.Write(firmwareArray, 0, 6);
-			fo.Write(new byte[] { model_axyTrek, (byte)254 }, 0, 2);
+			fo.Write(new byte[] { model_axyTrekN, (byte)254 }, 0, 2);
 
 			fo.Close();
 

@@ -1,4 +1,4 @@
-﻿<Window x:Class="X_Manager.ConfigurationWindows.TrekHDCalibrationInputValues"
+﻿<Window x:Class="X_Manager.ConfigurationWindows.DepthFastTrekHDFTCalibrationInputValues"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -26,12 +26,12 @@
 			<RowDefinition Height="60"/>
 			<RowDefinition Height="60"/>
 		</Grid.RowDefinitions>
-		<Label Grid.Row="1" Grid.Column="1" Content="Real Temp. 1" VerticalAlignment="Center" />
-		<Label Grid.Row="1" Grid.Column="3" Content="Real Temp. 2" VerticalAlignment="Center" />
-		<Label Grid.Row="4" Grid.Column="1" Content="Temperature 1" VerticalAlignment="Center" />
-		<Label Grid.Row="4" Grid.Column="3" Content="Temperature 2" VerticalAlignment="Center" />
-		<Label Grid.Row="7" Grid.Column="1" Content="Pressure 1" VerticalAlignment="Center" />
-		<Label Grid.Row="7" Grid.Column="3" Content="Pressure 2" VerticalAlignment="Center"/>
+		<Label Grid.Row="1" Grid.Column="1" Content="Act. Temp. 1" VerticalAlignment="Center" />
+		<Label Grid.Row="1" Grid.Column="3" Content="Act. Temp. 2" VerticalAlignment="Center" />
+		<Label Grid.Row="4" Grid.Column="1" Content="Meas. Temp. 1" VerticalAlignment="Center" />
+		<Label Grid.Row="4" Grid.Column="3" Content="Meas. Temp. 2" VerticalAlignment="Center" />
+		<Label Grid.Row="7" Grid.Column="1" Content="Pressure 1" VerticalAlignment="Center" x:Name="p1L" />
+		<Label Grid.Row="7" Grid.Column="3" Content="Pressure 2" VerticalAlignment="Center" x:Name="p2L" />
 
 		<TextBox Grid.Row="2" Grid.Column="1" x:Name="rt1TB" Margin="5" VerticalContentAlignment="Center" Text="1000" TabIndex="0" GotFocus="rt1TB_GotFocus"/>
 		<TextBox Grid.Row="2" Grid.Column="3" x:Name="rt2TB" Margin="5" VerticalContentAlignment="Center" Text="1000" TabIndex="0" GotFocus="rt1TB_GotFocus"/>

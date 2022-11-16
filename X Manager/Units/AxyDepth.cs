@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace X_Manager.Units.AxyTreks
+namespace X_Manager.Units
 {
-	public abstract class AxyTrek : Unit
-
+	public abstract class AxyDepth : Unit
 	{
-		protected AxyTrek(object p) : base(p)
+		protected AxyDepth(object p) : base(p)
 		{
 		}
 	}

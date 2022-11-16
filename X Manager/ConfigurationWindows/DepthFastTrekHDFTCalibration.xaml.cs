@@ -12,28 +12,30 @@ using System.Globalization;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Runtime.CompilerServices;
+using X_Manager.Units;
+using X_Manager.Units.AxyTreks;
 
 namespace X_Manager.ConfigurationWindows
 {
 	/// <summary>
 	/// Logica di interazione per QuattrokPressureCalibration.xaml
 	/// </summary>
-	public partial class TrekHDPressureCalibration : Window
+	public partial class DepthFastTrekHDFTCalibration : Window
 	{
 		int[] coeffs;
-		uint firmTotA;
 		public double pressZero, pressSpan, pressThreshold, tempZero, tempSpan, pressTcoeff;
 		//public double t1, t2, t3, t4, t5, t6, t7, p1, p2, p3, p4, p5, p6, p7, p8;
 		public double[] tempOut = new double[8];
 		public double[] pressOut = new double[8];
 		public bool mustWrite = false;
+		Unit unit;
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
-		public TrekHDPressureCalibration(int[] coeffs, uint firmIn)
+		public DepthFastTrekHDFTCalibration(int[] coeffs, Unit unit)
 		{
 			InitializeComponent();
 			this.coeffs = coeffs;
 			Loaded += loaded;
-			firmTotA = firmIn;
+			this.unit = unit;
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -44,7 +46,39 @@ namespace X_Manager.ConfigurationWindows
 			NeutralValuesB.IsEnabled = false;
 			NeutralValuesB.Visibility = Visibility.Hidden;
 
-			if (firmTotA < 3009001)
+			if (unit is AxyTrekFT || unit.modelCode == Unit.model_axyDepthFast)
+			{
+				tempSpan = coeffs[0] * 256 + coeffs[1];
+				tempZero = coeffs[2] * 256 + coeffs[3];
+				//span temperatura: da 0 a 65,535
+				tempSpan /= 1000;
+				//zero temperatura: da -32,5 a 32,5
+				tempZero -= 32500;
+				tempZero /= 1000;
+
+				foreach (FrameworkElement fe in mainGrid.Children)
+				{
+					if (Grid.GetColumn(fe) == 1)
+					{
+						fe.Visibility = Visibility.Hidden;
+					}
+					mainGrid.ColumnDefinitions[1].Width = new GridLength(0);
+					InputValuesB.IsEnabled = true;
+					InputValuesB.Visibility = Visibility.Visible;
+					NeutralValuesB.IsEnabled = true;
+					NeutralValuesB.Visibility = Visibility.Visible;
+
+					tempZeroTB.Text = tempZero.ToString();
+					tempSpanTB.Text = tempSpan.ToString();
+
+					NeutralValuesB.HorizontalAlignment = HorizontalAlignment.Center;
+					InputValuesB.HorizontalAlignment = HorizontalAlignment.Center;
+					sendB.HorizontalAlignment = HorizontalAlignment.Center;
+
+				}
+
+			}
+			else if (unit.firmTotA < 3009001)
 			{
 				pressZero = coeffs[0] * 256 + coeffs[1];
 				pressSpan = coeffs[2] * 256 + coeffs[3];
@@ -55,7 +89,7 @@ namespace X_Manager.ConfigurationWindows
 				pressZeroTB.Text = pressZero.ToString();
 				pressSpanTB.Text = pressSpan.ToString();
 
-				if (firmTotA < 3009000)
+				if (unit.firmTotA < 3009000)
 				{
 					foreach (FrameworkElement fe in mainGrid.Children)
 					{
@@ -336,20 +370,23 @@ namespace X_Manager.ConfigurationWindows
 			pressTcoeffTB.Text = pressTcoeff.ToString();
 
 		}
+
 		private void Values_Click(object sender, RoutedEventArgs e)
 		{
-			var iv = new TrekHDCalibrationInputValues();
+			var iv = new DepthFastTrekHDFTCalibrationInputValues(unit);
 			iv.ShowDialog();
 			if (iv.calculate)
 			{
 				tempSpan = Math.Round((iv.rt2 - iv.rt1) / (iv.t2 - iv.t1), 2);
 				tempZero = Math.Round(iv.rt1 - tempSpan * iv.t1, 2);
 
-				pressTcoeff = Math.Round((iv.p1 - iv.p2) / (iv.rt1 - iv.rt2), 2);
-				pressZero = Math.Round(iv.p1 - 1016 - (pressTcoeff * iv.rt1), 2);
-
 				tempSpanTB.Text = tempSpan.ToString();
 				tempZeroTB.Text = tempZero.ToString();
+
+				if (!(unit is AxyTrekHD)) return;
+
+				pressTcoeff = Math.Round((iv.p1 - iv.p2) / (iv.rt1 - iv.rt2), 2);
+				pressZero = Math.Round(iv.p1 - 1016 - (pressTcoeff * iv.rt1), 2);
 
 				pressZeroTB.Text = pressZero.ToString();
 				pressTcoeffTB.Text = pressTcoeff.ToString();

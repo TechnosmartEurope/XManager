@@ -21,7 +21,7 @@ using FT_HANDLE = System.UInt32;
 namespace X_Manager.Units
 {
 
-	class Axy4_2 : Unit
+	class Axy4_2 : Axy
 	{
 
 		//bool evitaSoglie = false;

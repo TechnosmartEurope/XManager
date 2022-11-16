@@ -1,4 +1,4 @@
-﻿<Window x:Class="X_Manager.ConfigurationWindows.TrekHDPressureCalibration"
+﻿<Window x:Class="X_Manager.ConfigurationWindows.DepthFastTrekHDFTCalibration"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -32,7 +32,7 @@
 
 		<Button Grid.Column="3" x:Name="NeutralValuesB" Content="Neutral Values" HorizontalAlignment="Right" Margin="0,146,44,0" VerticalAlignment="Top" Width="120" Click="NeutralValues_Click" Grid.ColumnSpan="2" IsEnabled="False" />
 		<Button Grid.Column="3" x:Name="InputValuesB" Content="Input Values" HorizontalAlignment="Right" Margin="0,110,44,0" VerticalAlignment="Top" Width="120" Click="Values_Click" Grid.ColumnSpan="2" IsEnabled="False" />
-		<Button Grid.Column="3" Content="Send" HorizontalAlignment="Right" Margin="0,276,44,0" VerticalAlignment="Top" Width="120" Click="Button_Click" Grid.ColumnSpan="2" />
+		<Button Grid.Column="3" x:Name="sendB" Content="Send" HorizontalAlignment="Right" Margin="0,276,44,0" VerticalAlignment="Top" Width="120" Click="Button_Click" Grid.ColumnSpan="2" />
 
 	</Grid>
 </Window>

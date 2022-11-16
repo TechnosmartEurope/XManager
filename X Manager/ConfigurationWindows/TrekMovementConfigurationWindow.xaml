@@ -100,17 +100,17 @@
                 </Grid.RowDefinitions>
 
                 <GroupBox Grid.Row="0" Name="TDgroupBox" Header="TEMPERATURE AND DEPTH LOGGING" Foreground="#FF00AADE" Margin="10,0,10,5">
-                    <Grid>
+                    <Grid Name="tdGrid">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="3*"/>
                             <RowDefinition Height="5*"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" x:Name="tdLoggingHeaderSP">
                             <Label Content="Temperature" FontSize="12" Margin="16,0,0,0"/>
                             <Label Content="Pressure" FontSize="12" Margin="44,0,0,0"/>
                         </StackPanel>
 
-                        <Grid Grid.Row="1" Margin="-10,0" HorizontalAlignment="Right" Width="395">
+                        <Grid Grid.Row="1" x:Name="gridNN" Margin="-10,0" HorizontalAlignment="Right" Width="395" >
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="1*"/>
                                 <ColumnDefinition Width="1*"/>
@@ -118,7 +118,7 @@
                             </Grid.ColumnDefinitions>
                             <CheckBox Name="temperatureCB" Grid.Column="0" Click="tempDepthCBChecked" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="24,0,0,0" />
                             <CheckBox Name="pressureCB" Grid.Column="1" Click="tempDepthCBChecked" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="12,0,0,0" />
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,-29,2">
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,-29,2" x:Name="tdPeriodSP">
                                 <StackPanel Name="logPeriodStackPanel" Orientation="Horizontal">
                                     <Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
                                     <TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="12"/>

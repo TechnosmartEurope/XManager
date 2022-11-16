@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using X_Manager.Units;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -20,7 +21,6 @@ namespace X_Manager.ConfigurationWindows
 		public UInt32[] soglie = new UInt32[18];
 		byte unitType;
 		UInt16[] c = new UInt16[7];
-		UInt32 firmTotA;
 		byte _mDebug = 0;
 		byte mDebug
 		{
@@ -41,53 +41,39 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 		}
+		Unit unit;
+		FTDI_Device ft;
 
-		public AxyConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
+		public AxyConfigurationWindow(byte[] axyconf, Unit unit)
 			: base()
 		{
 			InitializeComponent();
-			this.Loaded += loaded;
+			Loaded += loaded;
 			mustWrite = false;
 			axyConfOut = new byte[25];
 			unitType = axyconf[25];
-			firmTotA = unitFirm;
+			this.unit = unit;
+			ft = MainWindow.FTDI;
 
-			if ((unitType == Units.Unit.model_Co2Logger))
+			mainGrid.RowDefinitions[5].Height = new GridLength(0);
+			sendButton.Margin = new Thickness(25);
+			if (unit.firmTotA < 3000000)
 			{
-				mainGrid.RowDefinitions[2].Height = new GridLength(0);
-				mainGrid.RowDefinitions[3].Height = new GridLength(0);
-				mainGrid.RowDefinitions[4].Height = new GridLength(0);
-				mainGrid.RowDefinitions[5].Height = new GridLength(0);
-				accGrid.ColumnDefinitions[1].Width = new GridLength(0);
-				Height = 450;
-				sampleRateGB.Header = "SAMPLING PERIOD (s)";
-				((RadioButton)(rates.Children[0])).Content = "1";
-				((RadioButton)(rates.Children[1])).Content = "10";
-				((RadioButton)(rates.Children[2])).Content = "60";
-				((RadioButton)(rates.Children[3])).Visibility = Visibility.Hidden;
-				((RadioButton)(rates.Children[4])).Visibility = Visibility.Hidden;
+				magCB.Visibility = Visibility.Hidden;
+				magL.Visibility = Visibility.Hidden;
+				magGB.Visibility = Visibility.Hidden;
+				magCol.Width = new GridLength(0, GridUnitType.Pixel);
+			}
+			if (unit.firmTotA < 3002000)
+			{
+				adcCB.IsChecked = false;
+				adcCB.IsEnabled = false;
 			}
 			else
 			{
-				mainGrid.RowDefinitions[5].Height = new System.Windows.GridLength(0);
-				sendButton.Margin = new Thickness(25);
-				if (firmTotA < 3000000)
-				{
-					magCB.Visibility = Visibility.Hidden;
-					magL.Visibility = Visibility.Hidden;
-					magGB.Visibility = Visibility.Hidden;
-					magCol.Width = new GridLength(0, GridUnitType.Pixel);
-				}
-				if (firmTotA < 3002000)
-				{
-					adcCB.IsChecked = false;
-					adcCB.IsEnabled = false;
-				}
-				else
-				{
-					adcCB.IsChecked = axyconf[22] == 1 ? true : false;
-				}
+				adcCB.IsChecked = axyconf[22] == 1 ? true : false;
 			}
+
 
 			foreach (RadioButton c in rates.Children)
 			{
@@ -98,29 +84,10 @@ namespace X_Manager.ConfigurationWindows
 				catch { }
 			}
 
-			//if (unitType == Units.Unit.model_Co2Logger)
-			//{
-			//	switch (axyconf[24])
-			//	{
-			//		case 1:
-			//			rate1RB.IsChecked = true;
-			//			break;
-			//		case 2:
-			//			rate10RB.IsChecked = true;
-			//			break;
-			//		case 3:
-			//			rate25RB.IsChecked = true;
-			//			break;
-			//	}
-			//	sendButton.Content = "Send configuration";
-			//	mDebug = axyconf[22];
-			//	if ((axyconf[22] == 1))
-			//	{
-			//		sendButton.Content += " (d)";
-			//	}
-
-			//	return;
-			//}
+			if (unit is Axy)
+			{
+				TDgroupBox.Header = "TEMPERATURE LOGGING";
+			}
 
 			movThreshUd.Value = axyconf[20];
 			latencyThreshUd.Value = axyconf[21];
@@ -152,19 +119,14 @@ namespace X_Manager.ConfigurationWindows
 					break;
 			}
 
-			if (unitType == Units.Unit.model_axy4 || unitType == Units.Unit.model_axyDepth || unitType == Units.Unit.model_axyDepthFast)
+			if (axyconf[15] < 8)
 			{
-				//sendButton.Content = "Send configuration";
-				if (axyconf[15] < 8)
-				{
-					mDebug = 0;
-				}
-				else
-				{
-					sendButton.Content += " (d)";
-					mDebug = 1;
-				}
-
+				mDebug = 0;
+			}
+			else
+			{
+				sendButton.Content += " (d)";
+				mDebug = 1;
 			}
 
 			bits8RB.IsChecked = true;
@@ -182,7 +144,7 @@ namespace X_Manager.ConfigurationWindows
 				try
 				{
 					c.IsChecked = false;
-					if ((ccount == axyconf[16]))
+					if (ccount == axyconf[16])
 					{
 						c.IsChecked = true;
 					}
@@ -204,20 +166,17 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			tempDepthLogginUD.Text = "";
-			if (unitType != Units.Unit.model_axy3)
+			if (unit is AxyDepth | unit.firmTotA >= 3001000)
 			{
-				if (unitType != Units.Unit.model_axy4 | firmTotA >= 3001000)
-				{
-					tempDepthLogginUD.Text = axyconf[19].ToString();
-				}
+				tempDepthLogginUD.Text = axyconf[19].ToString();
 			}
 
-			if (firmTotA >= 3000000)
+			if (unit.firmTotA >= 3000000)
 			{
 				magCB.SelectedIndex = axyconf[21];
 			}
 
-			if (firmTotA >= 3005000)
+			if (unit.firmTotA >= 3005000)
 			{
 				startDelayGB.Visibility = Visibility.Visible;
 				mainGrid.RowDefinitions[6].Height = new GridLength(74);
@@ -242,38 +201,6 @@ namespace X_Manager.ConfigurationWindows
 				mainGrid.RowDefinitions[6].Height = new GridLength(20);
 			}
 
-			//	if (unitType == Units.Unit.model_axyTrek)
-			//	{
-			//		switch (axyconf[22])
-			//		{
-			//			case 0:
-			//				sendButton.Content = "Send configuration";
-			//				mDebug = 0;
-			//				break;
-			//			case 1:
-			//				sendButton.Content = "Send configuration (d)";
-			//				mDebug = 1;
-			//				break;
-			//		}
-			//		if ((firmTotA > 2000000))
-			//		{
-			//			switch (axyconf[23])
-			//			{
-			//				case 0:
-			//					WsDisabledRB.IsChecked = true;
-			//					break;
-			//				case 1:
-			//					WsEnabledRB.IsChecked = true;
-			//					break;
-			//				case 2:
-			//					WsHardwareRB.IsChecked = true;
-			//					break;
-			//				default:
-			//					WsDisabledRB.IsChecked = true;
-			//					break;
-			//			}
-			//		}
-			//	}
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -286,25 +213,22 @@ namespace X_Manager.ConfigurationWindows
 			latencyThreshUd.maxValue = 40;
 			latencyThreshUd.header.Content = "Latency time: ";
 			latencyThreshUd.roundDigits = 0;
-			if ((unitType == Units.Unit.model_axyDepth) || (unitType == Units.Unit.model_axy3) || (unitType == Units.Unit.model_axy4))
-			{
-				movThreshUd.IsEnabled = false;
-				movThreshUd.Value = 0;
-				latencyThreshUd.IsEnabled = false;
-				latencyThreshUd.Value = 0;
-			}
+			movThreshUd.IsEnabled = false;
+			movThreshUd.Value = 0;
+			latencyThreshUd.IsEnabled = false;
+			latencyThreshUd.Value = 0;
 
-			if (unitType == Units.Unit.model_axy3)
-			{
-				TDgroupBox.Header = "TEMPERATURE LOGGING";
-				logPeriodStackPanel.IsEnabled = false;
-			}
+			//if (unitType == Units.Unit.model_axy3)
+			//{
+			//	TDgroupBox.Header = "TEMPERATURE LOGGING";
+			//	logPeriodStackPanel.IsEnabled = false;
+			//}
 
-			if ((unitType == Units.Unit.model_axy4) & (firmTotA < 3001000))
-			{
-				TDgroupBox.Header = "TEMPERATURE LOGGING";
-				logPeriodStackPanel.IsEnabled = false;
-			}
+			//if ((unitType == Units.Unit.model_axy4) & (firmTotA < 3001000))
+			//{
+			//	TDgroupBox.Header = "TEMPERATURE LOGGING";
+			//	logPeriodStackPanel.IsEnabled = false;
+			//}
 
 			// setThresholdUds()
 		}
@@ -320,6 +244,7 @@ namespace X_Manager.ConfigurationWindows
 				startDelayDP.Visibility = Visibility.Hidden;
 			}
 		}
+
 		private void setThresholdUds()
 		{
 			if ((bool)rate1RB.IsChecked)
@@ -389,7 +314,7 @@ namespace X_Manager.ConfigurationWindows
 				rate = 50;
 			}
 
-			if ((firmTotA < 3002000))
+			if (unit.firmTotA < 3002000)
 			{
 				latThresholdLabel.Content = (Math.Round((1000
 								/ (rate * (25 * latencyThreshUd.Value)))).ToString() + " ms");
@@ -415,14 +340,14 @@ namespace X_Manager.ConfigurationWindows
 			latValueChanged();
 		}
 
-		private void cmdDown_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void cmdDown_Click(object sender, RoutedEventArgs e)
 		{
 			UInt16 i = UInt16.Parse(tempDepthLogginUD.Text);
 			if ((i != 1)) i--;
 			tempDepthLogginUD.Text = i.ToString();
 		}
 
-		private void cmdUp_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void cmdUp_Click(object sender, RoutedEventArgs e)
 		{
 			UInt16 i = UInt16.Parse(tempDepthLogginUD.Text);
 			if (i != 5) i++;
@@ -444,12 +369,12 @@ namespace X_Manager.ConfigurationWindows
 
 		private void ctrlManager(object sender, KeyEventArgs e)
 		{
-			if ((e.Key == Key.Return))
+			if (e.Key == Key.Return)
 			{
 				sendConfiguration();
 			}
 
-			if ((e.Key == Key.D))
+			if (e.Key == Key.D)
 			{
 				if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)))
 				{
@@ -473,6 +398,62 @@ namespace X_Manager.ConfigurationWindows
 				}
 
 			}
+			else if (e.Key == Key.C)
+			{
+				int[] coeffs = new int[14];
+				ft.ReadExisting();
+				if (unit.modelCode == Unit.model_axyDepthFast && unit.firmTotA > 3005000)
+				{
+					ft.Write("TTTTTTTTTTTTTTTGGAg");
+
+					try
+					{
+						for (int i = 0; i < 12; i++)
+						{
+							ft.ReadByte();
+						}
+						coeffs[0] = ft.ReadByte();
+						coeffs[1] = ft.ReadByte();
+						coeffs[2] = ft.ReadByte();
+						coeffs[3] = ft.ReadByte();
+					}
+					catch
+					{
+						return;
+					}
+				}
+				else
+				{
+					return;
+				}
+
+				DepthFastTrekHDFTCalibration qp = new DepthFastTrekHDFTCalibration(coeffs, unit);
+				qp.ShowDialog();
+
+				if (qp.mustWrite)
+				{
+					ft.Write("TTTTTTTTTTTTTTTGGAb");
+					try
+					{
+						ft.ReadByte();
+
+						//Span-temperatura
+						qp.tempSpan *= 1000;
+						ft.Write(new byte[2] { (byte)((UInt16)qp.tempSpan >> 8), (byte)qp.tempSpan }, 0, 2);
+
+						//Zero-temperatura
+						qp.tempZero *= 1000;
+						qp.tempZero += 32500;
+						ft.Write(new byte[2] { (byte)((UInt16)qp.tempZero >> 8), (byte)qp.tempZero }, 0, 2);
+
+						ft.ReadByte();
+					}
+					catch
+					{
+						MessageBox.Show("Unit not ready.");
+					}
+				}
+			}
 
 		}
 
@@ -483,56 +464,33 @@ namespace X_Manager.ConfigurationWindows
 
 		private void sendConfiguration()
 		{
-			//if (unitType == Units.Unit.model_Co2Logger)
-			//{
-			//	if ((bool)rate1RB.IsChecked)
-			//	{
-			//		axyConfOut[24] = 1;
-			//	}
-			//	else if ((bool)rate10RB.IsChecked)
-			//	{
-			//		axyConfOut[24] = 2;
-			//	}
-			//	else
-			//	{
-			//		axyConfOut[24] = 3;
-			//	}
 
-			//	axyConfOut[22] = mDebug;
-			//	mustWrite = true;
-			//	this.Close();
-			//	return;
-			//}
-
-			if ((rate50RB.IsChecked == true))
+			if (rate50RB.IsChecked == true)
 			{
 				axyConfOut[15] = 0;
 			}
-			else if ((rate25RB.IsChecked == true))
+			else if (rate25RB.IsChecked == true)
 			{
 				axyConfOut[15] = 1;
 			}
-			else if ((rate100RB.IsChecked == true))
+			else if (rate100RB.IsChecked == true)
 			{
 				axyConfOut[15] = 2;
 			}
-			else if ((rate10RB.IsChecked == true))
+			else if (rate10RB.IsChecked == true)
 			{
 				axyConfOut[15] = 3;
 			}
-			else if ((rate1RB.IsChecked == true))
+			else if (rate1RB.IsChecked == true)
 			{
 				axyConfOut[15] = 4;
 			}
 
-			if (unitType == Units.Unit.model_axy4 || unitType == Units.Unit.model_axyDepth || unitType == Units.Unit.model_axyDepthFast)
+			if (mDebug == 1)
 			{
-				if (mDebug == 1)
-				{
-					axyConfOut[15] += 8;
-				}
-
+				axyConfOut[15] += 8;
 			}
+
 
 			byte ccount = 0;
 			foreach (RadioButton c in ranges.Children)
@@ -549,31 +507,30 @@ namespace X_Manager.ConfigurationWindows
 				catch { }
 			}
 
-			if ((bits10RB.IsChecked == true)) ccount += 8;
+			if (bits10RB.IsChecked == true) ccount += 8;
 
 			axyConfOut[16] = ccount;
 			axyConfOut[17] = 0;
 			axyConfOut[18] = 0;
-			if ((tempDepthCB.IsChecked == true))
+			if (tempDepthCB.IsChecked == true)
 			{
 				axyConfOut[17] = 1;
 				axyConfOut[18] = 1;
 			}
 
-			//axyConfOut[19] = Convert.ToByte(double.Parse(tempDepthLogginUD.Text));
 			axyConfOut[19] = axyConfOut[20] = axyConfOut[21] = 0;
 			try
 			{
 				axyConfOut[19] = Convert.ToByte(tempDepthLogginUD.Text);
 			}
 			catch { }
-			if (firmTotA >= 3000000)
+			if (unit.firmTotA >= 3000000)
 			{
 				axyConfOut[21] = (byte)magCB.SelectedIndex;
 			}
-			if (firmTotA >= 3002000)
+			if (unit.firmTotA >= 3002000)
 			{
-				axyConfOut[22] = (bool)(adcCB.IsChecked) ? (byte)1 : (byte)0;
+				axyConfOut[22] = (bool)adcCB.IsChecked ? (byte)1 : (byte)0;
 			}
 
 

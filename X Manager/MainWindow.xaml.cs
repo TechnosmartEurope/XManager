@@ -17,8 +17,7 @@ using System.ComponentModel;
 using X_Manager.Units;
 using X_Manager.ConfigurationWindows;
 using X_Manager.Remote;
-
-
+using X_Manager.Units.AxyTreks;
 
 namespace X_Manager
 {
@@ -1349,9 +1348,6 @@ namespace X_Manager
 						string model = Unit.askModel();
 						switch (model)
 						{
-							case "Axy-Trek":
-								oUnit = new AxyTrek(this);
-								break;
 							case "Axy-4":
 							case "Axy-4.5":
 								oUnit = new Axy4_2(this);
@@ -1361,8 +1357,11 @@ namespace X_Manager
 								break;
 							case "Axy-Depth":
 							case "Axy-Depth.5":
+								oUnit = new AxyDepth_2(this);
+								break;
 							case "Axy-Depth/Fast.5":
 								oUnit = new AxyDepth_2(this);
+								oUnit.modelCode = Unit.model_axyDepthFast;
 								break;
 							case "AGM-1":
 								oUnit = new AGM(this);
@@ -1370,9 +1369,15 @@ namespace X_Manager
 							case "CO2 Logger":
 								oUnit = new CO2_Logger(this);
 								break;
+							case "Axy-Trek":
+								oUnit = new AxyTrekN(this);
+								break;
 							case "Axy-Quattrok":
 							case "Axy-Trek HD":
 								oUnit = new AxyTrekHD(this);
+								break;
+							case "Axy-Trek FT":
+								oUnit = new AxyTrekFT(this);
 								break;
 							case "GiPSy-6":
 								oUnit = new Gipsy6(this);   //Nel costruttore viene chiusa la porta seriale e riaperta mediante driver ftdi
@@ -1506,11 +1511,11 @@ namespace X_Manager
 				return;
 			}
 			//ConfigurationWindow confForm = new ConfigurationWindow();
-			if (oUnit.modelCode == Unit.model_AGM1)
+			if (oUnit is AGM)
 			{
 				confForm = new AgmConfigurationWindow(conf, oUnit.modelCode);
 			}
-			else if (oUnit.modelCode == Unit.model_Gipsy6)
+			else if (oUnit is Gipsy6)
 			{
 				if ((System.Windows.Forms.Control.ModifierKeys & System.Windows.Forms.Keys.Control) == System.Windows.Forms.Keys.Control)
 				{
@@ -1529,21 +1534,21 @@ namespace X_Manager
 				}
 				confForm = new GiPSy6ConfigurationMain(conf, oUnit);
 			}
-			else if (oUnit.modelCode == Unit.model_axy5)
+			else if (oUnit is Axy5)
 			{
 				confForm = new Axy5ConfigurationWindow(conf, accSchedule, oUnit.firmTotA);
 			}
-			else if (oUnit.modelCode == Unit.model_axyTrek | oUnit.modelCode == Unit.model_axyTrekHD)
+			else if (oUnit is AxyTrek)
 			{
-				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA);
+				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA, oUnit);
 			}
-			else if (oUnit.modelCode == Unit.model_drop_off)
+			else if (oUnit is Drop_Off)
 			{
 				confForm = new DropOffConfigurationWindow(conf, oUnit.firmTotA);
 			}
 			else
 			{
-				confForm = new AxyConfigurationWindow(conf, oUnit.firmTotA);
+				confForm = new AxyConfigurationWindow(conf, oUnit);
 			}
 
 			confForm.Owner = this;
@@ -1603,7 +1608,7 @@ namespace X_Manager
 			}
 			else
 			{
-				if ((oUnit is AxyTrek) | (oUnit is AxyTrekHD))
+				if (oUnit is AxyTrek)
 				{
 					type = 1;
 				}
@@ -2511,11 +2516,14 @@ namespace X_Manager
 					cUnit = new AxyDepth_2(this);
 					cUnit.modelCode = Unit.model_axyDepthFast;
 					break;
-				case Unit.model_axyTrek:
-					cUnit = new AxyTrek(this);
+				case Unit.model_axyTrekN:
+					cUnit = new AxyTrekN(this);
 					break;
 				case Unit.model_axyTrekHD:
 					cUnit = new AxyTrekHD(this);
+					break;
+				case Unit.model_axyTrekFT:
+					cUnit = new AxyTrekFT(this);
 					break;
 				case Unit.model_AGM1:
 					cUnit = new AGM(this);
@@ -2527,7 +2535,7 @@ namespace X_Manager
 					cUnit = new Gipsy6(this);
 					break;
 				default:
-					cUnit = new AxyTrek(this);
+					cUnit = new AxyTrekN(this);
 					break;
 			}
 

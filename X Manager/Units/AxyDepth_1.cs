@@ -13,7 +13,7 @@ using FT_HANDLE = System.UInt64;
 
 namespace X_Manager.Units
 {
-	class AxyDepth_1 : Units.Unit
+	class AxyDepth_1 : AxyDepth
 	{
 		ushort[] coeffs = new ushort[7];
 		double[] convCoeffs = new double[7];

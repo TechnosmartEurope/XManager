@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Runtime.InteropServices;
 using System.Globalization;
+using System.ComponentModel;
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -17,10 +18,11 @@ using FT_HANDLE = System.UInt64;
 
 namespace X_Manager.Units
 {
-	class AxyDepth_2 : Unit
+	class AxyDepth_2 : AxyDepth
 	{
 		ushort[] coeffs = new ushort[7];
 		double[] convCoeffs = new double[7];
+		double tempSpan, tempZero;
 		//bool evitaSoglie = false;
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[6];
@@ -37,7 +39,7 @@ namespace X_Manager.Units
 		}
 
 		byte dateFormat;
-		byte timeFormat;
+		//byte timeFormat;
 		bool sameColumn = false;
 		bool prefBattery = false;
 		bool repeatEmptyValues = true;
@@ -59,8 +61,8 @@ namespace X_Manager.Units
 		bool overrideTime;
 		int magen;
 		int adcEn = 0;
-		byte[] magData_A = new byte[6];
-		byte[] magData_B = new byte[6];
+		//byte[] magData_A = new byte[6];
+		//byte[] magData_B = new byte[6];
 
 		public override string modelName
 		{
@@ -88,7 +90,7 @@ namespace X_Manager.Units
 		public AxyDepth_2(object p)
 			: base(p)
 		{
-			base.positionCanSend = false;
+			positionCanSend = false;
 			configurePositionButtonEnabled = false;
 			modelCode = model_axyDepth;
 			//modelName = "Axy-Depth";
@@ -234,6 +236,10 @@ namespace X_Manager.Units
 				for (int i = 1; i <= 6; i++)
 				{
 					coeffs[i] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				}
+				if (modelCode == model_axyDepthFast && firmTotA > 3005000)
+				{
+					ft.ReadByte(); ft.ReadByte(); ft.ReadByte(); ft.ReadByte();
 				}
 			}
 			catch
@@ -385,110 +391,110 @@ namespace X_Manager.Units
 			ft.Write("TTTTTTTTTGGAO");
 		}
 
-		private uint[] calcolaSoglieDepth()
-		{
-			uint[] soglie = new uint[18];
-			double[] temps = new double[] { -15, -10, 0, 10, 20, 30, 40, 50 };
-			double[] tempsInt = new double[] { -18, -12, -5, 5, 15, 25, 35, 45, 55 };
+		//private uint[] calcolaSoglieDepth()
+		//{
+		//	uint[] soglie = new uint[18];
+		//	double[] temps = new double[] { -15, -10, 0, 10, 20, 30, 40, 50 };
+		//	double[] tempsInt = new double[] { -18, -12, -5, 5, 15, 25, 35, 45, 55 };
 
-			for (int i = 0; i <= 7; i++) soglie[i] = (uint)guessD2(temps[i]);
+		//	for (int i = 0; i <= 7; i++) soglie[i] = (uint)guessD2(temps[i]);
 
-			for (int i = 8; i <= 16; i++) soglie[i] = guessD1(guessD2(tempsInt[i - 8]), 1520);
+		//	for (int i = 8; i <= 16; i++) soglie[i] = guessD1(guessD2(tempsInt[i - 8]), 1520);
 
-			soglie[17] = 1;
-			return soglie;
-		}
+		//	soglie[17] = 1;
+		//	return soglie;
+		//}
 
-		private double guessD2(double t)
-		{
-			double max = 16777215;
-			double min = 0;
-			double d2 = (max - min) / 2;
-			double temp;
+		//private double guessD2(double t)
+		//{
+		//	double max = 16777215;
+		//	double min = 0;
+		//	double d2 = (max - min) / 2;
+		//	double temp;
 
-			while (Math.Abs(max - min) > 4)
-			{
-				temp = pTemp(d2);
-				if (temp > t) max = d2;
-				else min = d2;
-				d2 = ((max - min) / 2) + min;
-			}
-			return d2;
-		}
+		//	while (Math.Abs(max - min) > 4)
+		//	{
+		//		temp = pTemp(d2);
+		//		if (temp > t) max = d2;
+		//		else min = d2;
+		//		d2 = ((max - min) / 2) + min;
+		//	}
+		//	return d2;
+		//}
 
-		private uint guessD1(double d2, double p)
-		{
-			double max = 16777215;
-			double min = 0;
-			double d1 = (max - min) / 2;
-			double press;
+		//private uint guessD1(double d2, double p)
+		//{
+		//	double max = 16777215;
+		//	double min = 0;
+		//	double d1 = (max - min) / 2;
+		//	double press;
 
-			while (Math.Abs(max - min) > 4)
-			{
-				press = pDepth(d1, d2);
-				if (press > p) max = d1;
-				else min = d1;
-				d1 = ((max - min) / 2) + min;
-			}
-			return (uint)d1;
-		}
+		//	while (Math.Abs(max - min) > 4)
+		//	{
+		//		press = pDepth(d1, d2);
+		//		if (press > p) max = d1;
+		//		else min = d1;
+		//		d1 = ((max - min) / 2) + min;
+		//	}
+		//	return (uint)d1;
+		//}
 
-		private double pDepth(double d1, double d2)
-		{
-			double dT;
-			double off;
-			double sens;
-			double temp;
-			double[] c = new double[7];
+		//private double pDepth(double d1, double d2)
+		//{
+		//	double dT;
+		//	double off;
+		//	double sens;
+		//	double temp;
+		//	double[] c = new double[7];
 
-			for (int count = 1; count <= 6; count++)
-			{
-				c[count - 1] = coeffs[count];
-			}
-			dT = d2 - c[4] * 256;
-			temp = 2000 + (dT * c[5]) / 8388608;
-			off = c[1] * 65536 + (c[3] * dT) / 128;
-			sens = c[0] * 32768 + (c[2] * dT) / 256;
-			if (temp > 2000)
-			{
-				temp -= ((2 * Math.Pow(dT, 2)) / 137438953472);
-				off -= ((Math.Pow((temp - 2000), 2)) / 16);
-			}
-			else
-			{
-				off -= 3 * ((Math.Pow((temp - 2000), 2)) / 2);
-				sens -= 5 * ((Math.Pow((temp - 2000), 2)) / 8);
-				if (temp < -1500)
-				{
-					off -= 7 * Math.Pow((temp + 1500), 2);
-					sens -= 4 * Math.Pow((temp + 1500), 2);
-				}
-				temp -= (3 * (Math.Pow(dT, 2))) / 8589934592;
-			}
-			sens = d1 * sens / 2097152;
-			sens -= off;
-			sens /= 81920;
-			return sens;
-		}
+		//	for (int count = 1; count <= 6; count++)
+		//	{
+		//		c[count - 1] = coeffs[count];
+		//	}
+		//	dT = d2 - c[4] * 256;
+		//	temp = 2000 + (dT * c[5]) / 8388608;
+		//	off = c[1] * 65536 + (c[3] * dT) / 128;
+		//	sens = c[0] * 32768 + (c[2] * dT) / 256;
+		//	if (temp > 2000)
+		//	{
+		//		temp -= ((2 * Math.Pow(dT, 2)) / 137438953472);
+		//		off -= ((Math.Pow((temp - 2000), 2)) / 16);
+		//	}
+		//	else
+		//	{
+		//		off -= 3 * ((Math.Pow((temp - 2000), 2)) / 2);
+		//		sens -= 5 * ((Math.Pow((temp - 2000), 2)) / 8);
+		//		if (temp < -1500)
+		//		{
+		//			off -= 7 * Math.Pow((temp + 1500), 2);
+		//			sens -= 4 * Math.Pow((temp + 1500), 2);
+		//		}
+		//		temp -= (3 * (Math.Pow(dT, 2))) / 8589934592;
+		//	}
+		//	sens = d1 * sens / 2097152;
+		//	sens -= off;
+		//	sens /= 81920;
+		//	return sens;
+		//}
 
-		private double pTemp(double d2)
-		{
-			double ti;
-			double dt;
-			double temp;
-			double[] c = new double[7];
+		//private double pTemp(double d2)
+		//{
+		//	double ti;
+		//	double dt;
+		//	double temp;
+		//	double[] c = new double[7];
 
-			for (int count = 1; count <= 6; count++)
-			{
-				c[count] = coeffs[count];
-			}
-			dt = d2 - c[5] * 256;
-			temp = 2000 + ((dt * c[6]) / 8388608);
-			if ((temp / 100) < 20) ti = 3 * (Math.Pow(dt, 2)) / 8388608;
-			else ti = 2 * (Math.Pow(dt, 2)) / 137438953472;
-			temp = (temp - ti) / 100;
-			return temp;
-		}
+		//	for (int count = 1; count <= 6; count++)
+		//	{
+		//		c[count] = coeffs[count];
+		//	}
+		//	dt = d2 - c[5] * 256;
+		//	temp = 2000 + ((dt * c[6]) / 8388608);
+		//	if ((temp / 100) < 20) ti = 3 * (Math.Pow(dt, 2)) / 8388608;
+		//	else ti = 2 * (Math.Pow(dt, 2)) / 137438953472;
+		//	temp = (temp - ti) / 100;
+		//	return temp;
+		//}
 
 		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
@@ -782,8 +788,8 @@ namespace X_Manager.Units
 				addOn = ("_S" + exten.Remove(0, 4));
 			}
 			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-			BinaryReader ard = new BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
-			BinaryWriter csv = new BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+			BinaryReader ard = new BinaryReader(File.Open(fileName, FileMode.Open));
+			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
 
 			ard.BaseStream.Position = 1;
 			firmTotA = (uint)(ard.ReadByte() * 1000 + ard.ReadByte());
@@ -798,6 +804,21 @@ namespace X_Manager.Units
 			for (int i = 0; i < 6; i++)
 			{
 				convCoeffs[i] = ard.ReadByte() * 256 + ard.ReadByte();
+			}
+
+			//Se depthfast legge i coefficienti di calibrazione
+			if (modelCode == model_axyDepthFast && firmTotA > 3005000)
+			{
+				tempSpan = ard.ReadByte() * 256 + ard.ReadByte();
+				tempZero = ard.ReadByte() * 256 + ard.ReadByte();
+				tempSpan /= 1000;       //span temperatura: da 0 a 65,535
+				tempZero -= 32500;      //zero temperatura: da -32,5 a 32,5
+				tempZero /= 1000;
+			}
+			else
+			{
+				tempSpan = 1;
+				tempZero = 0;
 			}
 
 			//Imposta le preferenze di conversione
@@ -838,7 +859,7 @@ namespace X_Manager.Units
 
 			timeStampO.pressOffset = double.Parse(prefs[pref_millibars]);
 			dateFormat = byte.Parse(prefs[pref_dateFormat]);
-			timeFormat = byte.Parse(prefs[pref_timeFormat]);
+			//timeFormat = byte.Parse(prefs[pref_timeFormat]);
 			switch (dateFormat)
 			{
 				case 1:
@@ -1460,7 +1481,11 @@ namespace X_Manager.Units
 				tsc.fastTemp /= 32768;
 				tsc.fastTemp /= 2;
 				//tsc.fastTemp *= 64;
-				tsc.fastTemp = Math.Round((((tsc.fastTemp + 0.9943) / 0.0014957 / 1000) - 1) / 0.00381, 2);
+				tsc.fastTemp = (((tsc.fastTemp + 0.9943) / 0.0014957 / 1000) - 1) / 0.00381;
+				tsc.fastTemp *= tempSpan;
+				tsc.fastTemp += tempZero;
+
+				tsc.fastTemp = Math.Round(tsc.fastTemp, 2);
 			}
 
 			tsc.orario = tsc.orario.AddSeconds(1);

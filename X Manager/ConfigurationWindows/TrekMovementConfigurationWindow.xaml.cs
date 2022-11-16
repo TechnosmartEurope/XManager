@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-//using System.Windows.Forms;
+using System.Windows.Media;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -14,6 +14,7 @@ using System.IO.Ports;
 using X_Manager.Units;
 using X_Manager.ConfigurationWindows;
 using System.Windows.Shapes;
+using X_Manager.Units.AxyTreks;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -25,16 +26,12 @@ namespace X_Manager.ConfigurationWindows
 		}
 	}
 
-	/// <summary>
-	/// Interaction logic for TrekMovementConfigurationWindow.xaml
-	/// </summary>
 	public partial class TrekMovementConfigurationWindow : ConfigurationWindow
 	{
 
-		//public bool mustWrite = false;
 		public UInt32[] soglie = new UInt32[18];
 		byte mDebug = 0;
-		byte unitType;
+		//byte unitType;
 		UInt16[] c = new UInt16[7];
 		//byte[] unitFirmware;
 		UInt32 firmTotA;
@@ -44,15 +41,15 @@ namespace X_Manager.ConfigurationWindows
 		int burstPeriod;
 		Timer reshapeTimer = null;
 		FTDI_Device ft;
-
-		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm)
+		Unit unit;
+		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm, Unit unit)
 			: base()
 		{
 			InitializeComponent();
 			Loaded += loaded;
 			mustWrite = false;
 			axyConfOut = new byte[29];
-			unitType = axyconf[0];
+			this.unit = unit;
 			firmTotA = unitFirm;
 
 			//this.sp = sp;
@@ -62,51 +59,87 @@ namespace X_Manager.ConfigurationWindows
 			{
 				axyConfOut[i] = axyconf[i];
 			}
-
-			if ((firmTotA < 2000001))
+	
+			if (unit is AxyTrekFT)
 			{
-				externalGrid2.RowDefinitions[2].Height = new System.Windows.GridLength(0);
-				sendButton.Margin = new Thickness(25);
-			}
-			else if ((firmTotA < 3000000))
-			{
-				externalGrid2.RowDefinitions[2].Height = new System.Windows.GridLength(74);
+				externalGrid2.RowDefinitions[2].Height = new GridLength(74);
 				sendButton.Margin = new Thickness(10);
+				WSGrid.ColumnDefinitions[1].Width = new GridLength(0);
 				WsHardwareRB.Visibility = Visibility.Hidden;
 				WsHardwareRB.IsEnabled = false;
-				WSGrid.ColumnDefinitions[1].Width = new GridLength(0);
+				WsEnabledRB.Content = "Enabled";
 				WsDisabledRB.Margin = new Thickness(30, 0, 0, 0);
 				WsEnabledRB.Margin = new Thickness(30, 0, 0, 0);
+				TDgroupBox.Header = "DEPTH LOGGING";
+				tdLoggingHeaderSP.Visibility = Visibility.Hidden;
+				gridNN.Children.Remove(pressureCB);
+				gridNN.Children.Remove(tdPeriodSP);
+				TDgroupBox.Content = null;
+				TDgroupBox.Content = pressureCB;
+				TDgroupBox.Width = 198;
+				tdGrid.HorizontalAlignment = HorizontalAlignment.Left;
+				TDgroupBox.HorizontalAlignment = HorizontalAlignment.Left;
+				var tpgroupBox = new GroupBox();
+				tpgroupBox.Header = "T/D PERIOD";
+				tpgroupBox.Foreground = new SolidColorBrush(Color.FromArgb(255, 0x00, 0xaa, 0xde));
+				tpgroupBox.HorizontalAlignment = HorizontalAlignment.Right;
+				tpgroupBox.Margin = new Thickness(0, 0, 10, 5);
+				tpgroupBox.Width = 190;
+				Grid.SetRow(tpgroupBox, 0);
+				externalGrid2.Children.Add(tpgroupBox);
+				tpgroupBox.Content = tdPeriodSP;
+				tdPeriodSP.IsEnabled = true;
+				tdGrid.RowDefinitions[0].Height = new GridLength(0);
 			}
 			else
 			{
-				externalGrid2.RowDefinitions[2].Height = new System.Windows.GridLength(74);
-				sendButton.Margin = new Thickness(10);
-				if ((firmTotA < 3001000))
+
+				if (firmTotA < 2000001)
 				{
-					WsEnabledRB.Content = "Software";
-					WsHardwareRB.Content = "Hardware";
+					externalGrid2.RowDefinitions[2].Height = new GridLength(0);
+					sendButton.Margin = new Thickness(25);
 				}
-				else
+				else if (firmTotA < 3000000)
 				{
-					WSGrid.ColumnDefinitions[1].Width = new System.Windows.GridLength(0);
+					externalGrid2.RowDefinitions[2].Height = new GridLength(74);
+					sendButton.Margin = new Thickness(10);
 					WsHardwareRB.Visibility = Visibility.Hidden;
 					WsHardwareRB.IsEnabled = false;
-					WsEnabledRB.Content = "Enabled";
+					WSGrid.ColumnDefinitions[1].Width = new GridLength(0);
 					WsDisabledRB.Margin = new Thickness(30, 0, 0, 0);
 					WsEnabledRB.Margin = new Thickness(30, 0, 0, 0);
 				}
-			}
-			if (firmTotA < 3004000)
-			{
-				pressureCB.IsEnabled = false;
-			}
+				else
+				{
+					externalGrid2.RowDefinitions[2].Height = new GridLength(74);
+					sendButton.Margin = new Thickness(10);
+					if (firmTotA < 3001000)
+					{
+						WsEnabledRB.Content = "Software";
+						WsHardwareRB.Content = "Hardware";
+					}
+					else
+					{
+						WSGrid.ColumnDefinitions[1].Width = new GridLength(0);
+						WsHardwareRB.Visibility = Visibility.Hidden;
+						WsHardwareRB.IsEnabled = false;
+						WsEnabledRB.Content = "Enabled";
+						WsDisabledRB.Margin = new Thickness(30, 0, 0, 0);
+						WsEnabledRB.Margin = new Thickness(30, 0, 0, 0);
+					}
+				}
 
-			if (firmTotA < 3008000)
-			{
-				externalGrid1.Children.RemoveAt(3);
-				ghostRow.Height = new GridLength(0);
-				Height = 710;
+				if (firmTotA < 3004000)
+				{
+					pressureCB.IsEnabled = false;
+				}
+
+				if (firmTotA < 3008000)
+				{
+					externalGrid1.Children.RemoveAt(3);
+					ghostRow.Height = new GridLength(0);
+					Height = 710;
+				}
 			}
 
 			foreach (RadioButton c in rates.Children)
@@ -163,7 +196,7 @@ namespace X_Manager.ConfigurationWindows
 				try
 				{
 					c.IsChecked = false;
-					if ((ccount == axyconf[16]))
+					if (ccount == axyconf[16])
 					{
 						c.IsChecked = true;
 					}
@@ -182,7 +215,6 @@ namespace X_Manager.ConfigurationWindows
 			if (axyconf[17] == 1)
 			{
 				temperatureCB.IsChecked = true;
-				//tempDepthLogginUD.IsEnabled = true;
 			}
 			if (firmTotA < 3004000)
 			{
@@ -210,6 +242,13 @@ namespace X_Manager.ConfigurationWindows
 
 			tempDepthLogginUD.Text = "";
 			tempDepthLogginUD.Text = axyconf[19].ToString();
+
+			if (unit is AxyTrekFT)
+			{
+				tempDepthLogginUD.IsEnabled = true;
+				LogEndown.IsEnabled = true;
+				LogEnup.IsEnabled = true;
+			}
 
 			switch (axyconf[22])
 			{
@@ -244,10 +283,6 @@ namespace X_Manager.ConfigurationWindows
 			if (firmTotA >= 3008000)
 			{
 				contCB.IsChecked = false;
-				//burstpTB.Text = axyconf[26].ToString();
-				//burstlTB.Text = axyconf[25].ToString();
-				//burstLenght = axyconf[25];
-				//burstPeriod = axyconf[26];
 
 				burstBackUp = burstLenght = axyconf[25] * 256 + axyconf[26];
 				burstPeriod = axyconf[27] * 256 + axyconf[28];
@@ -274,27 +309,14 @@ namespace X_Manager.ConfigurationWindows
 			latencyThreshUd.maxValue = 40;
 			latencyThreshUd.header.Content = "Latency time: ";
 			latencyThreshUd.roundDigits = 0;
-			if ((unitType == Unit.model_axyDepth) || (unitType == Unit.model_axy3) || (unitType == Unit.model_axy4))
-			{
-				movThreshUd.IsEnabled = false;
-				movThreshUd.Value = 0;
-				latencyThreshUd.IsEnabled = false;
-				latencyThreshUd.Value = 0;
-			}
 
-			if ((unitType == Unit.model_axy3) || (unitType == Unit.model_axy4))
-			{
-				TDgroupBox.Header = "TEMPERATURE LOGGING";
-				logPeriodStackPanel.IsEnabled = false;
-			}
-
-			reshapeTimer = new System.Timers.Timer(100);
+			reshapeTimer = new Timer(100);
 			reshapeTimer.Elapsed += reshapeTimerElapsed;
 			LocationChanged += locationChanged;
 			reshape();
 		}
 
-		private void reshapeTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+		private void reshapeTimerElapsed(object sender, ElapsedEventArgs e)
 		{
 			Application.Current.Dispatcher.Invoke(() => reshape());
 		}
@@ -327,29 +349,6 @@ namespace X_Manager.ConfigurationWindows
 			reshapeTimer.Stop();
 			reshapeTimer.Start();
 		}
-
-		//private void reshape(Object source, System.Timers.ElapsedEventArgs e)
-		//{
-		//	System.Windows.Forms.Screen actScreen = ExtensionsForWPF.GetScreen(this);
-		//	System.Drawing.Rectangle r = actScreen.Bounds;
-
-		//	if (r.Height < 900)
-		//	{
-		//		Width = 800;
-		//		Height = 560;
-		//		generalSB.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
-		//		generalSB.HorizontalScrollBarVisibility = ScrollBarVisibility.Visible;
-		//		generalSP.Orientation = Orientation.Horizontal;
-		//	}
-		//	else
-		//	{
-		//		generalSP.Orientation = Orientation.Vertical;
-		//		Height = 790;
-		//		Width = 460;
-		//		generalSB.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
-		//		generalSB.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
-		//	}
-		//}
 
 		private void setThresholdUds()
 		{
@@ -444,6 +443,8 @@ namespace X_Manager.ConfigurationWindows
 
 		private void tempDepthCBChecked(object sender, RoutedEventArgs e)
 		{
+			if (unit is AxyTrekFT) return;
+
 			if (firmTotA < 3004000)
 			{
 				pressureCB.IsChecked = temperatureCB.IsChecked;
@@ -491,18 +492,16 @@ namespace X_Manager.ConfigurationWindows
 			{
 				if (e.Key == Key.D)
 				{
-					if ((unitType != Units.Unit.model_axy3))
+					if (!(unit is Axy3))
 					{
 						if ((mDebug == 0))
 						{
 							mDebug = 1;
-							// MessageBox.Show("mDebug enabled.")
 							sendButton.Content = "Send configuration (d)";
 						}
 						else
 						{
 							mDebug = 0;
-							// MessageBox.Show("mDebug disabled.")
 							sendButton.Content = "Send configuration";
 						}
 
@@ -511,41 +510,76 @@ namespace X_Manager.ConfigurationWindows
 				}
 				else if (e.Key == Key.C)
 				{
-					if (unitType != Unit.model_axyTrekHD) return;
-					//ft.ReadExisting();
-					ft.Write("TTTTTTTTTTTTTTTGGAg");        //Importa i 14 byte da
 					int[] coeffs = new int[14];
-
-					try
+					ft.ReadExisting();
+					if (unit is AxyTrekHD)
 					{
-						for (int i = 0; i < 12; i++)
+						ft.Write("TTTTTTTTTTTTTTTGGAg");        //Importa i 14 byte da
+
+						try
 						{
-							coeffs[i] = ft.ReadByte();
+							for (int i = 0; i < 12; i++)
+							{
+								coeffs[i] = ft.ReadByte();
+							}
+							if (firmTotA > 3009000)
+							{
+								coeffs[12] = ft.ReadByte();
+								coeffs[13] = ft.ReadByte();
+							}
 						}
-						if (firmTotA > 3009000)
+						catch
 						{
-							coeffs[12] = ft.ReadByte();
-							coeffs[13] = ft.ReadByte();
+							return;
 						}
 					}
-					catch
+					else if (unit is AxyTrekFT)
+					{
+						ft.Write("TTTTTTTTTTTTTTTGGAg");
+
+						try
+						{
+							for (int i = 0; i < 12; i++)
+							{
+								ft.ReadByte();
+							}
+							coeffs[0] = ft.ReadByte();
+							coeffs[1] = ft.ReadByte();
+							coeffs[2] = ft.ReadByte();
+							coeffs[3] = ft.ReadByte();
+						}
+						catch
+						{
+							return;
+						}
+					}
+					else
 					{
 						return;
 					}
 
-					TrekHDPressureCalibration qp = new TrekHDPressureCalibration(coeffs, firmTotA);
+					DepthFastTrekHDFTCalibration qp = new DepthFastTrekHDFTCalibration(coeffs, unit);
 					qp.ShowDialog();
 
 					if (qp.mustWrite)
 					{
-						//qp.zero += 1;
-						//qp.zero *= 1000;
-
 						ft.Write("TTTTTTTTTTTTTTTGGAb");
 						try
 						{
 							ft.ReadByte();
-							if (firmTotA <= 3009000)
+
+							if (unit is AxyTrekFT)
+							{
+								//Span-temperatura
+								qp.tempSpan *= 1000;
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempSpan >> 8), (byte)qp.tempSpan }, 0, 2);
+
+								//Zero-temperatura
+								qp.tempZero *= 1000;
+								qp.tempZero += 32500;
+								ft.Write(new byte[2] { (byte)((UInt16)qp.tempZero >> 8), (byte)qp.tempZero }, 0, 2);
+							}
+							else if (firmTotA <= 3009000)
 							{
 
 								qp.pressThreshold = (1500 - qp.pressZero) * qp.pressSpan / 100000;// - qp.zero;
@@ -643,26 +677,6 @@ namespace X_Manager.ConfigurationWindows
 
 		private void sendConfiguration()
 		{
-			//if (unitType == MainWindow.model_Co2Logger)
-			//{
-			//	if ((bool)rate1RB.IsChecked)
-			//	{
-			//		axyConfOut[24] = 1;
-			//	}
-			//	else if ((bool)rate10RB.IsChecked)
-			//	{
-			//		axyConfOut[24] = 2;
-			//	}
-			//	else
-			//	{
-			//		axyConfOut[24] = 3;
-			//	}
-
-			//	axyConfOut[22] = mDebug;
-			//	mustWrite = true;
-			//	this.Close();
-			//	return;
-			//}
 
 			if (rate50RB.IsChecked == true)
 			{
@@ -684,16 +698,6 @@ namespace X_Manager.ConfigurationWindows
 			{
 				axyConfOut[15] = 4;
 			}
-
-			//if ((unitType == MainWindow.model_axy4) || (unitType == MainWindow.model_axyDepth))
-			//{
-
-			//if ((mDebug == 1))
-			//{
-			//	axyConfOut[15] += 8;
-			//}
-
-			//}
 
 			byte ccount = 0;
 			foreach (RadioButton c in ranges.Children)

@@ -1,29 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-//using System.Threading.Tasks;
-using System.Windows;
+using System.Threading.Tasks;
 using System.Windows.Threading;
-using System.IO;
-//using FTD2XX_NET;
-using System.Runtime.InteropServices;
+using System.Windows;
 using System.Globalization;
-//using System.Diagnostics;
-#if X64
-using FT_HANDLE = System.UInt64;
-#else
-using FT_HANDLE = System.UInt32;
-#endif
 
 namespace X_Manager.Units.AxyTreks
 {
-	class AxyTrekHD : AxyTrek
+	internal class AxyTrekFT : AxyTrek
 	{
-		ushort[] coeffs = new ushort[7];
-		//double[] convCoeffs = new double[7];
-		double pressZero, pressSpan, tempZero, tempSpan, pressTcoeff;
+		ushort[] coeffs = new ushort[8];
+		double[] convCoeffs = new double[7];
+		bool evitaSoglie = false;
+		double tempSpan, tempZero;
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[6];
 		struct timeStamp
@@ -41,6 +34,7 @@ namespace X_Manager.Units.AxyTreks
 			public double temperature;
 			public double press;
 			public double pressOffset;
+			public double fastTemperature;
 			public int altL;
 			public int altH;
 			public int altSegno;
@@ -84,19 +78,14 @@ namespace X_Manager.Units.AxyTreks
 		bool adcLog = false;
 		bool adcStop = false;
 		ushort adcThreshold = 0;
-		//bool adcMagmin = false;
 		uint contoCoord;
-
 		bool addGpsTime;
-		//uint sogliaNeg;
-		//uint rendiNeg;
 		double gCoeff;
 		bool angloTime = false;
 		bool bits;
 		byte bitsDiv;
 		string dateFormatParameter;
 		byte dateFormat;
-		//byte timeFormat;
 		bool inMeters = false;
 		bool prefBattery = false;
 		bool repeatEmptyValues = true;
@@ -105,30 +94,24 @@ namespace X_Manager.Units.AxyTreks
 		ushort rate;
 		bool primaCoordinata;
 		bool sameColumn = false;
-		int temperatureEnabled;
 		int pressureEnabled;
 		ushort addMilli;
 		int debugStampId = 13;
 		int debugStampLenght = 15;
-		//byte cifreDec;
 		string cifreDecString;
-		//ushort groupCountOriginal = 0;
-		//uint fixSequenceNumber = 0;
-		//uint positionInFile = 0;
 		bool metadata;
 		bool oldUnitDebug = false;
 		int leapSeconds;
+		long infRemPosition;
 
 		DateTime nullDate = new DateTime(1970, 1, 1, 0, 0, 0);
 		DateTime recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
 
-		public AxyTrekHD(object p)
-			: base(p)
+		public AxyTrekFT(object p) : base(p)
 		{
 			positionCanSend = true;
 			configurePositionButtonEnabled = true;
-			modelCode = model_axyTrekHD;
-			//modelName = "Axy-Quattrok";
+			modelCode = model_axyTrekFT;
 		}
 
 		public override string askFirmware()
@@ -238,7 +221,6 @@ namespace X_Manager.Units.AxyTreks
 			mem_max_physical_address = m;
 			mem_min_physical_address = 0;
 			return new uint[] { mem_min_physical_address, mem_max_physical_address };
-
 		}
 
 		public override uint[] askMemory()
@@ -275,30 +257,53 @@ namespace X_Manager.Units.AxyTreks
 		}
 
 		public override void getCoeffs()
-		{}
+		{
+			coeffs[0] = 0;
+			ft.Write("TTTTTTTTTTTTTGGAg");
+			try
+			{
+				coeffs[1] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[2] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[3] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[4] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[5] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[6] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				tempSpan = ft.ReadByte() * 256 + ft.ReadByte();
+				tempZero = ft.ReadByte() * 256 + ft.ReadByte();
+			}
+			catch
+			{
+				throw new Exception(unitNotReady);
+			}
+
+			int sommaSoglie = coeffs[1] + coeffs[2] + coeffs[3];
+			if ((sommaSoglie == 0) | (sommaSoglie == 0x2fd))
+			{
+				evitaSoglie = true;
+			}
+		}
 
 		public override byte[] getConf()
 		{
-			byte[] conf = new byte[41];
-			conf[0] = modelCode;
+			byte[] conf = new byte[29];
+			conf[25] = modelCode;
 			ft.Write("TTTTTTTTGGAC");
 			try
 			{
 				for (int i = 2; i <= 4; i++)
 				{
-					conf[i] = (byte)ft.ReadByte();
+					conf[i] = ft.ReadByte();
 				}
 				for (int i = 15; i <= 21; i++)
 				{
-					conf[i] = (byte)ft.ReadByte();
+					conf[i] = ft.ReadByte();
 				}
-				conf[22] = (byte)ft.ReadByte();
-				conf[23] = (byte)ft.ReadByte();
+				conf[22] = ft.ReadByte();
+				conf[23] = ft.ReadByte();
 				for (int i = 25; i < 29; i++)
 				{
-					conf[i] = (byte)ft.ReadByte();
+					conf[i] = ft.ReadByte();
 				}
-
 			}
 			catch
 			{
@@ -322,6 +327,7 @@ namespace X_Manager.Units.AxyTreks
 			ft.Write(conf, 15, 7);
 			ft.Write(conf, 22, 1);
 			ft.Write(conf, 23, 1);
+
 			ft.Write(conf, 25, 4);
 			try
 			{
@@ -331,6 +337,25 @@ namespace X_Manager.Units.AxyTreks
 			catch
 			{
 				throw new Exception(unitNotReady);
+			}
+			if (!evitaSoglie)
+			{
+				uint[] soglie = calcolaSoglieDepth();
+				ft.Write("TTTTTTTTTTGGAG");
+				try
+				{
+					ft.ReadByte();
+				}
+				catch
+				{
+					throw new Exception(unitNotReady);
+				}
+				for (int s = 0; s <= 16; s++)
+				{
+					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[2] }, 0, 1);
+					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[1] }, 0, 1);
+					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[0] }, 0, 1);
+				}
 			}
 		}
 
@@ -374,16 +399,16 @@ namespace X_Manager.Units.AxyTreks
 			Thread.Sleep(200);
 			try
 			{
-				for (int i = 0; i <= 63; i++) { schedule[i] = (byte)ft.ReadByte(); }
+				for (int i = 0; i <= 63; i++) { schedule[i] = ft.ReadByte(); }
 				if (remote) ft.Write(new byte[] { 2 }, 0, 1);
 
-				for (int i = 64; i <= 127; i++) { schedule[i] = (byte)ft.ReadByte(); }
+				for (int i = 64; i <= 127; i++) { schedule[i] = ft.ReadByte(); }
 				if (remote) ft.Write(new byte[] { 2 }, 0, 1);
 
-				for (int i = 128; i <= 171; i++) { schedule[i] = (byte)ft.ReadByte(); }
+				for (int i = 128; i <= 171; i++) { schedule[i] = ft.ReadByte(); }
 				if (firmTotB > 3003999)
 				{
-					for (int i = 172; i <= 178; i++) { schedule[i] = (byte)ft.ReadByte(); }
+					for (int i = 172; i <= 178; i++) { schedule[i] = ft.ReadByte(); }
 				}
 			}
 			catch
@@ -509,27 +534,27 @@ namespace X_Manager.Units.AxyTreks
 
 			for (int count = 1; count <= 6; count++)
 			{
-				c[count - 1] = (double)coeffs[count];
+				c[count - 1] = coeffs[count];
 			}
 			dT = d2 - c[4] * 256;
-			temp = 2000 + (dT * c[5]) / 8388608;
-			off = c[1] * 65536 + (c[3] * dT) / 128;
-			sens = c[0] * 32768 + (c[2] * dT) / 256;
+			temp = 2000 + dT * c[5] / 8388608;
+			off = c[1] * 65536 + c[3] * dT / 128;
+			sens = c[0] * 32768 + c[2] * dT / 256;
 			if (temp > 2000)
 			{
-				temp -= ((2 * Math.Pow(dT, 2)) / 137438953472);
-				off -= ((Math.Pow((temp - 2000), 2)) / 16);
+				temp -= 2 * Math.Pow(dT, 2) / 137438953472;
+				off -= Math.Pow(temp - 2000, 2) / 16;
 			}
 			else
 			{
-				off -= 3 * ((Math.Pow((temp - 2000), 2)) / 2);
-				sens -= 5 * ((Math.Pow((temp - 2000), 2)) / 8);
+				off -= 3 * Math.Pow(temp - 2000, 2) / 2;
+				sens -= 5 * Math.Pow(temp - 2000, 2) / 8;
 				if (temp < -1500)
 				{
-					off -= 7 * Math.Pow((temp + 1500), 2);
-					sens -= 4 * Math.Pow((temp + 1500), 2);
+					off -= 7 * Math.Pow(temp + 1500, 2);
+					sens -= 4 * Math.Pow(temp + 1500, 2);
 				}
-				temp -= (3 * (Math.Pow(dT, 2))) / 8589934592;
+				temp -= 3 * Math.Pow(dT, 2) / 8589934592;
 			}
 			sens = d1 * sens / 2097152;
 			sens -= off;
@@ -546,12 +571,12 @@ namespace X_Manager.Units.AxyTreks
 
 			for (int count = 1; count <= 6; count++)
 			{
-				c[count] = (double)coeffs[count];
+				c[count] = coeffs[count];
 			}
 			dt = d2 - c[5] * 256;
-			temp = 2000 + ((dt * c[6]) / 8388608);
-			if ((temp / 100) < 20) ti = 3 * (Math.Pow(dt, 2)) / 8388608;
-			else ti = 2 * (Math.Pow(dt, 2)) / 137438953472;
+			temp = 2000 + (dt * c[6] / 8388608);
+			if ((temp / 100) < 20) ti = 3 * Math.Pow(dt, 2) / 8388608;
+			else ti = 2 * Math.Pow(dt, 2) / 137438953472;
 			temp = (temp - ti) / 100;
 			return temp;
 		}
@@ -560,7 +585,7 @@ namespace X_Manager.Units.AxyTreks
 		{
 			convertStop = false;
 			uint actMemory = fromMemory;
-			System.IO.FileMode fm = FileMode.Create;
+			FileMode fm = FileMode.Create;
 			if (fromMemory != 0) fm = FileMode.Append;
 			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
 			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
@@ -621,8 +646,7 @@ namespace X_Manager.Units.AxyTreks
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
 
-			//MainWindow.FT_STATUS FT_Status;
-			//FT_HANDLE FT_Handle = 0;
+
 			byte[] outBuffer = new byte[50];
 			byte[] inBuffer = new byte[4096];
 			byte[] tempBuffer = new byte[2048];
@@ -916,6 +940,7 @@ namespace X_Manager.Units.AxyTreks
 			outBuffer[0] = 88;
 			bytesToWrite = 1;
 			ft.Write(outBuffer, bytesToWrite);
+
 			Thread.Sleep(50);
 			ft.Write("+++");
 			Thread.Sleep(200);
@@ -949,7 +974,7 @@ namespace X_Manager.Units.AxyTreks
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
 		{
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusLabel.Content = "Creating Ard file(s)..."));
-			var mdp = new BinaryReader(System.IO.File.Open(fileNameMdp, FileMode.Open));
+			var mdp = new BinaryReader(File.Open(fileNameMdp, FileMode.Open));
 
 			BinaryWriter ard = BinaryWriter.Null;
 			//ushort packLength = 255;
@@ -976,7 +1001,7 @@ namespace X_Manager.Units.AxyTreks
 					}
 					counter++;
 					fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "_S" + counter.ToString() + ".ard";
-					if (System.IO.File.Exists(fileNameArd))
+					if (File.Exists(fileNameArd))
 					{
 						if (resp < 11)
 						{
@@ -992,10 +1017,10 @@ namespace X_Manager.Units.AxyTreks
 							do
 							{
 								fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileNameArd) + " (1)" + ".ard";
-							} while (System.IO.File.Exists(fileNameArd));
+							} while (File.Exists(fileNameArd));
 						}
 					}
-					ard = new System.IO.BinaryWriter(System.IO.File.Open(fileNameArd, FileMode.Create));
+					ard = new BinaryWriter(File.Open(fileNameArd, FileMode.Create));
 					ard.Write(new byte[] { modelCode }, 0, 1);
 					if (!connected)
 					{
@@ -1092,11 +1117,11 @@ namespace X_Manager.Units.AxyTreks
 			timeStampO.eventAr = ev;
 			if (Parent.getParameter("pressureRange") == "air") isDepth = 0;
 
-			if (prefs[pref_fillEmpty] == "False") repeatEmptyValues = false;
+			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
 			if (addGpsTime) repeatEmptyValues = false;
 
 			dateSeparator = csvSeparator;
-			if (prefs[pref_sameColumn] == "True")
+			if ((prefs[pref_sameColumn] == "True"))
 			{
 				sameColumn = true;
 				dateSeparator = " ";
@@ -1224,7 +1249,6 @@ namespace X_Manager.Units.AxyTreks
 
 			int sesMax = sesAdd.Count;
 			int sesCounter = 1;
-			long infRemPosition;
 			ardFile.Close();
 
 			string logFile = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
@@ -1266,70 +1290,33 @@ namespace X_Manager.Units.AxyTreks
 
 				byte[] uf = new byte[16];
 				ard.Position = 1;
-				firmTotA = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
-				firmTotB = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
+				firmTotA = (uint)ard.ReadByte() * 1000000 + (uint)ard.ReadByte() * 1000 + (uint)ard.ReadByte();
+				firmTotB = (uint)ard.ReadByte() * 1000000 + (uint)ard.ReadByte() * 1000 + (uint)ard.ReadByte();
 
-				//Importa el impostazioni del sensore Analogico
+				//importa el impostazioni del sensore Analogico
 				ard.ReadByte();
 				adcThreshold = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());
 				byte adcTemp = (byte)ard.ReadByte();
 				if ((adcTemp & 8) == 8) adcStop = true;
 				if ((adcTemp & 2) == 2) adcLog = true;
 
-				//Inizializza i coefficienti nel caso siano inutilizzati (vecchi firmware)
-				tempZero = 0;
-				tempSpan = 1;
-				pressTcoeff = 0;
-
-				//Legge i parametri di conversione del sensore di pressione (zero e span)
-				pressZero = ard.ReadByte() * 256 + ard.ReadByte();
-				pressSpan = ard.ReadByte() * 256 + ard.ReadByte();
-				pressZero -= 32500;
-				pressSpan /= 1000;
-				ard.Position += 8;
-
-				if (firmTotA == 3009000)
+				//Importa i coefficienti di calibrazione del sensore depth
+				convCoeffs = new double[] { 0, 0, 0, 0, 0, 0 };
+				for (int u = 0; u <= 5; u++)
 				{
-					//Legge i parametri di conversione del sensore di temperatura (zero e span)
-					ard.Position = 0x0f;
-					tempZero = ard.ReadByte() * 256 + ard.ReadByte();
-					tempSpan = ard.ReadByte() * 256 + ard.ReadByte();
-					tempZero -= 32500;
-					tempZero /= 1000;
-					tempSpan /= 1000;
-					ard.Position += 4;
+					convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
 				}
 
-				//Legge i parametri di calibrazione della pressione con la temperatura
-				if (firmTotA > 3009000)
-				{
-					ard.Position = 0x0b;
-					tempSpan = ard.ReadByte() * 256 + ard.ReadByte();
-					tempZero = ard.ReadByte() * 256 + ard.ReadByte();
-					pressSpan = ard.ReadByte() * 256 + ard.ReadByte();
-					pressZero = ard.ReadByte() * 256 + ard.ReadByte();
-					pressTcoeff = ard.ReadByte() * 256 + ard.ReadByte();
-
-					//span temperatura: da 0 a 65,535
-					tempSpan /= 1000;
-					//zero temperatura: da -32,5 a 32,5
-					tempZero -= 32500;
-					tempZero /= 1000;
-					//span pressione: da 0 a 655,35
-					pressSpan /= 100;
-					//zero pressione: da -32500 a 32500
-					pressZero -= 32500;
-					//Tcoeff pressione:	da -325,00 a +325,00 
-					pressTcoeff -= 32500;
-					pressTcoeff /= 100;
-					ard.Position += 2;
-				}
+				//Importa i coeddicienti di calibrazione del sensore fast temperature
+				tempSpan = ard.ReadByte() * 256 + ard.ReadByte();
+				tempZero = ard.ReadByte() * 256 + ard.ReadByte();
+				tempSpan /= 1000;       //span temperatura: da 0 a 65,535
+				tempZero -= 32500;      //zero temperatura: da -32,5 a 32,5
+				tempZero /= 1000;
 
 				//Legge i parametri di logging
 				pressureEnabled = ard.ReadByte();
-				temperatureEnabled = pressureEnabled;
 				pressureEnabled /= 16;
-				temperatureEnabled &= 15;
 
 				byte rrb = (byte)ard.ReadByte();
 				rate = findSamplingRate(rrb);
@@ -1337,14 +1324,13 @@ namespace X_Manager.Units.AxyTreks
 				bits = findBits(rrb);
 				bitsDiv = findBytesPerSample();
 				nOutputs = rate;
-				findDebugStampPar();
-				Array.Resize(ref lastGroup, ((rate * 3)));
+				debugStampId = 80;
+				debugStampLenght = 15;
+				Array.Resize(ref lastGroup, rate * 3);
 
-				//cifreDec = 3;
 				cifreDecString = "0.000";
 				if (bits)
 				{
-					//cifreDec = 4;
 					cifreDecString = "0.0000";
 				}
 
@@ -1380,12 +1366,7 @@ namespace X_Manager.Units.AxyTreks
 				}
 
 
-				//while (abCheck != 0xab) abCheck = (byte)ard.ReadByte();
-
-
 				long pos = ard.Position;
-				//ard.Close();
-				//timeStampO.orario = findStartTime(ref ard, ref prefs, pos);
 				//in caso di rem, se la sessione non contiene il fix gps viene tolta dal csv
 
 				DateTime startTime = findStartTime(ref ard, ref prefs, pos, exten.Contains("rem"));
@@ -1410,16 +1391,17 @@ namespace X_Manager.Units.AxyTreks
 
 				if (exten.Contains("rem") & !convertStop)
 				{
-					File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ": "
-						+ startTime.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: "
-						+ csv.BaseStream.Position.ToString("X4") + "\tREM Position: " + infRemPosition.ToString("X4"));
+					File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ":\tCSV Position: " + csv.BaseStream.Position.ToString("X4")
+						+ "\tREM Position: " + infRemPosition.ToString("X4") + "\r\n"
+					+ "START:  " + startTime.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss"));
+
 					if ((startTime == new DateTime(1, 1, 1, 1, 1, 1)) & removeNonGps)
 					{
 						File.AppendAllText(logFile, "\tGPS FIX MISSING: This session contains no gps fix and won't be included in the csv file.\r\n");
 
 						continue;
 					}
-					File.AppendAllText(logFile, "\r\n");
+					//File.AppendAllText(logFile, "\r\n");
 				}
 
 				timeStampO.orario = startTime;
@@ -1443,8 +1425,7 @@ namespace X_Manager.Units.AxyTreks
 				}
 
 				progMax = ard.Length - 1;
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-					new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = ard.Length - 1));
 				while (progressWorker.IsBusy) { };
 				progressWorker.RunWorkerAsync();
 
@@ -1521,8 +1502,7 @@ namespace X_Manager.Units.AxyTreks
 
 				if (exten.Contains("rem"))
 				{
-					File.AppendAllText(logFile, "        end: " + (sesCounter - 1).ToString() + ": "
-						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n\r\n");
+					File.AppendAllText(logFile, "\t\tSTOP: " + timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n\r\n");
 				}
 
 				if (makeTxt) txtWrite(ref timeStampO, ref txt);
@@ -1563,21 +1543,21 @@ namespace X_Manager.Units.AxyTreks
 				try
 				{
 					//Scrive il segnaposto di stop nel fime kml dei placemarks
-					placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
-					placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
-						(decoderKml(ref timeStampO)).cPlacemark + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
+					placeMark.Write(Encoding.ASCII.GetBytes(Properties.Resources.Folder_Bot));
+					placeMark.Write(Encoding.ASCII.GetBytes(Properties.Resources.Placemarks_Stop_Top +
+						decoderKml(ref timeStampO).cPlacemark + Properties.Resources.Placemarks_Stop_Bot));
 					kml.Close();
 					placeMark.Close();
 
 					//Scrive l'header finale nel file kml string
-					File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Path_Bot);
-					File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Folder_Bot);
+					File.AppendAllText(fileNameKml, Properties.Resources.Path_Bot);
+					File.AppendAllText(fileNameKml, Properties.Resources.Folder_Bot);
 
 					//Accorpa kml placemark e string
-					File.AppendAllText(fileNamePlaceMark, System.IO.File.ReadAllText(fileNameKml));
+					File.AppendAllText(fileNamePlaceMark, File.ReadAllText(fileNameKml));
 
 					//Chiude il kml placemark
-					File.AppendAllText(fileNamePlaceMark, X_Manager.Properties.Resources.Final_Bot);
+					File.AppendAllText(fileNamePlaceMark, Properties.Resources.Final_Bot);
 					//Elimina il kml string temporaneo
 					fDel(fileNameKml);
 				}
@@ -1606,7 +1586,6 @@ namespace X_Manager.Units.AxyTreks
 			tsc.stopEvent = 0;
 			ushort secondAmount = 1;
 			tsc.slowData = 0;
-			double mVmis;
 
 			tsc.tsType = ard.ReadByte();
 
@@ -1628,47 +1607,32 @@ namespace X_Manager.Units.AxyTreks
 				tsc.tsTypeExt1 = 0;
 			}
 
-			//Temperatura (eventualmente anche pressione)
+			//Fast temperature
 			if ((tsc.tsType & 2) == 2)
 			{
+				ard.ReadByte();
+				tsc.fastTemperature = ard.ReadByte() * 256 + ard.ReadByte();
+				tsc.fastTemperature *= 2.048;
+				tsc.fastTemperature /= 32768;
+				tsc.fastTemperature /= 2;
+				tsc.fastTemperature = (((tsc.fastTemperature + 0.9943) / 0.0014957 / 1000) - 1) / 0.00381;
+
+				tsc.fastTemperature *= tempSpan;
+				tsc.fastTemperature += tempZero;
+			}
+
+			//Temperatura e pressione sensore piccolo
+			if ((tsc.tsType & 4) == 4)
+			{
 				tsc.slowData++;
-				if (temperatureEnabled == 2)        //Temperatura da sensore interno
+				if (isDepth == 1)
 				{
-					tsc.temperature = ard.ReadByte() + ard.ReadByte() * 256;
-					tsc.temperature = (uint)tsc.temperature >> 6;
-					if (tsc.temperature > 511)
-					{
-						tsc.temperature -= 1024;
-					}
-					tsc.temperature = (tsc.temperature * 0.1221) + 22.5;
+					if (pressureDepth5837(ref ard, ref tsc)) return;
+
 				}
 				else
-				{                                   //Temperatura da sensore esterno, si suppone abilitata anche la pressione
-					ard.ReadByte();
-					tsc.temperature = ard.ReadByte() * 256 + ard.ReadByte();
-					tsc.temperature *= 2.048;
-					tsc.temperature /= 32768;
-					tsc.temperature /= 2;
-					tsc.temperature = (((tsc.temperature + 0.9943) / 0.0014957 / 1000) - 1) / 0.00381;
-
-					tsc.temperature *= tempSpan;
-					tsc.temperature += tempZero;
-
-					ard.ReadByte();
-					tsc.press = ard.ReadByte() * 256 + ard.ReadByte();
-
-					mVmis = tsc.press *= 2.04800;
-					mVmis /= 32768.00000;
-					mVmis *= 1000.0;
-
-					mVmis -= 200.00;// 201.22;//vedere se c'è un piccolo offset dovuto alla scheda stessa//6174 198mV  6234 201.8mV 6242 202.2mV
-					mVmis /= 55.00000;
-
-					tsc.press = mVmis / pressSpan * 100000;
-					tsc.press += 890;
-
-					tsc.press = (tsc.press - pressZero) - (pressTcoeff * tsc.temperature);
-
+				{
+					if (pressureAir(ref ard, ref tsc)) return;
 				}
 			}
 
@@ -1676,7 +1640,7 @@ namespace X_Manager.Units.AxyTreks
 			if ((tsc.tsType & 8) == 8)
 			{
 				tsc.slowData++;
-				tsc.batteryLevel = (ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096;
+				tsc.batteryLevel = ((ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096);
 			}
 
 			//Coordinata
@@ -1728,6 +1692,7 @@ namespace X_Manager.Units.AxyTreks
 					tsc.altH = b & 15;
 				}
 				tsc.gsvSum = (ard.ReadByte() * 256 + ard.ReadByte());
+
 			}
 
 
@@ -1788,14 +1753,13 @@ namespace X_Manager.Units.AxyTreks
 			}
 
 			tsc.orario = tsc.orario.AddSeconds(secondAmount);
-
 		}
 
 		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
 		{
-			byte[] group = new byte[2000];
+			List<byte> group = new List<byte>();
 			bool badGroup = false;
-			long position = 0;
+			//long position = 0;
 			byte dummy, dummyExt;
 			ushort badPosition = 1000;
 
@@ -1811,8 +1775,9 @@ namespace X_Manager.Units.AxyTreks
 
 					if (dummyExt == 0xab)
 					{
-						group[position] = (byte)0xab;
-						position += 1;
+						//group[position] = (byte)0xab;
+						group.Add(0xab);
+						//position += 1;
 						dummy = 0;
 					}
 					else
@@ -1826,12 +1791,15 @@ namespace X_Manager.Units.AxyTreks
 				}
 				else
 				{
-					if (position < badPosition)
+					//if (position < badPosition)
+					if (group.Count < badPosition)
 					{
-						group[position] = dummy;
-						position++;
+						//group[position] = dummy;
+						group.Add(dummy);
+						//position++;
 					}
-					else if ((position == badPosition) && (!badGroup))
+					//else if ((position == badPosition) && (!badGroup))
+					else if ((group.Count == badPosition) && (!badGroup))
 					{
 						badGroup = true;
 						//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
@@ -1839,48 +1807,31 @@ namespace X_Manager.Units.AxyTreks
 				}
 
 
-			} while ((dummy != (byte)0xab) && (ard.Position < ard.Length));
+			} while ((dummy != 0xab) && (ard.Position < ard.Length));
 
-			//Array.Resize(ref group, (int)position);
-			tsc.timeStampLength = (int)(position / bitsDiv);
+			tsc.timeStampLength = group.Count / bitsDiv;
 
 			int resultCode = 0;
-			if (position == 0)
+			if (group.Count == 0)
 			{
 				return new double[] { };
 			}
 
-			//IntPtr doubleResultArray = Marshal.AllocCoTaskMem(sizeof(double) * nOutputs * 3);
-
 			double[] doubleResult = new double[3 * nOutputs];
 			if (bits)
 			{
-				resultCode = resample4(group, tsc.timeStampLength, doubleResult, nOutputs);
+				resultCode = resample4(group.ToArray(), tsc.timeStampLength, doubleResult, nOutputs);
 			}
 			else
 			{
-				resultCode = resample3(group, tsc.timeStampLength, doubleResult, nOutputs);
+				resultCode = resample3(group.ToArray(), tsc.timeStampLength, doubleResult, nOutputs);
 			}
-			//doubleResult = new double[(nOutputs * 3)];
-			//Marshal.Copy(doubleResultArray, doubleResult, 0, nOutputs * 3);
-			//Marshal.FreeCoTaskMem(doubleResultArray);
 			return doubleResult;
-
-
-			//int resultCode = 0;
-			//double[] doubleOutArray;
-			//byte[] byteInputArray = new byte[] { 255, 255, 255 };
-			//IntPtr outArray = Marshal.AllocCoTaskMem(sizeof(double) * nOutputs * 3);
-
-			//resultCode = resample3(byteInputArray, nInputs, outArray, nOutputs);
-			//doubleOutArray = new double[nOutputs * 3];
-			//Marshal.Copy(outArray, doubleOutArray, 0, nOutputs * 3);
-			//Marshal.FreeCoTaskMem(outArray);
-
 		}
 
 		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref string textOut, ref long offset)
 		{
+			if (group == null) return;
 			short iend;
 			if (group.Length == 0)
 			{
@@ -1923,8 +1874,6 @@ namespace X_Manager.Units.AxyTreks
 				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
 			}
 			milli = 0;
-			//textOut = "";
-
 
 			textOut += unitName + csvSeparator + dateTimeS + ".000";
 			if (angloTime)
@@ -1962,10 +1911,9 @@ namespace X_Manager.Units.AxyTreks
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			additionalInfo = "";
-			//if (debugLevel > 2) additionalInfo += csvSeparator + tsLoc.timeStampLength.ToString();  //sviluppo
 			if (debugLevel > 2)
 			{
-				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X");
+				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X") + csvSeparator + tsLoc.timeStampLength.ToString();
 			}
 			contoTab += 1;
 			if ((tsLoc.tsType & 64) == 64) activityWater = "Active";
@@ -1975,20 +1923,24 @@ namespace X_Manager.Units.AxyTreks
 
 			additionalInfo += csvSeparator + activityWater;
 
+			contoTab += 1;
+			additionalInfo += csvSeparator;
+			if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.fastTemperature.ToString("0.0", nfi);
+
 			if (pressureEnabled > 0)
 			{
-				contoTab += 1;
-				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
-			}
-			if (temperatureEnabled > 0)
-			{
-				contoTab += 1;
-				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
+				contoTab += 2;
+				if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues)
+				{
+					additionalInfo += csvSeparator + tsLoc.press.ToString("0.00", nfi) + csvSeparator + tsLoc.temperature.ToString("0.00", nfi);
+				}
+				else
+				{
+					additionalInfo += csvSeparator + csvSeparator;
+				}
 			}
 
-			//Inserire la coordinata.
+			//Inserisce la coordinata.
 			contoTab += 7;
 			if (((tsLoc.tsType & 16) == 16) | repeatEmptyValues)
 			{
@@ -2129,11 +2081,6 @@ namespace X_Manager.Units.AxyTreks
 			byte timeStamp1 = 0;
 			uint secondiAdd = 0;
 			byte[] coordinate = new byte[22];
-			int noByteTemper = 3;
-			if (temperatureEnabled == 2)
-			{
-				noByteTemper = 2;
-			}
 
 
 			//br.BaseStream.Position = 7;
@@ -2159,14 +2106,14 @@ namespace X_Manager.Units.AxyTreks
 						double ppos = br.Position;
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ppos));
 						if ((timeStamp0 & 1) == 1) timeStamp1 = (byte)br.ReadByte();
-						if ((timeStamp0 & 2) == 2) br.Position += noByteTemper;
-						if ((timeStamp0 & 4) == 4) br.Position += 3;
+						if ((timeStamp0 & 2) == 2) br.Position += 4;    //Fast temp.
+						if ((timeStamp0 & 4) == 4) br.Position += 6;    //Press + temp sensore piccolo
 						if ((timeStamp0 & 8) == 8) br.Position += 2;
 						if ((timeStamp0 & 16) == 16)
 						{
 							br.Read(coordinate, 0, 22);
-							break;
-							//if (coordinate[8] != 80) break;
+							//break;
+							if (coordinate[8] != 80) break;
 						}
 						if ((timeStamp0 & 32) == 32)
 						{
@@ -2224,10 +2171,6 @@ namespace X_Manager.Units.AxyTreks
 			tsc.lonMinDecLL = (coordinate[7] & 15);
 			byte cCounter = 8;
 
-			//tsc.altSegno = true; tsc.ns = false; tsc.eo = false;
-			//if ((diffMask & 1) == 1) tsc.eo = true;
-			//if ((diffMask & 2) == 2) tsc.ns = true;
-			//if ((diffMask & 4) == 4) tsc.altSegno = true;
 			if ((diffMask & 8) == 8) { tsc.anno = coordinate[cCounter]; cCounter += 1; }
 			if ((diffMask & 0x10) == 0x10) { tsc.giorno = coordinate[cCounter]; cCounter += 1; }
 			if ((diffMask & 0x20) == 0x20) { tsc.DOP = coordinate[cCounter]; cCounter += 1; }
@@ -2367,16 +2310,6 @@ namespace X_Manager.Units.AxyTreks
 			return bitsDiv;
 		}
 
-		private void findDebugStampPar()
-		{
-			debugStampId = 80;
-			debugStampLenght = 15;
-			if (firmTotB < 003002000) debugStampId = 13;
-			if (firmTotB < 003001000) debugStampId = 200;
-			if (firmTotB < 003000000) debugStampId = 13;
-			if (firmTotB < 001000004) debugStampLenght = 7;
-		}
-
 		private void txtWrite(ref timeStamp tsc, ref BinaryWriter txtW)
 		{
 			string altSegno, eo, ns, coord;
@@ -2384,16 +2317,16 @@ namespace X_Manager.Units.AxyTreks
 			string dateS = tsc.orario.ToString(dateFormatParameter);
 			string dateTimeS = dateS + csvSeparator + tsc.orario.ToString("HH:mm:ss");
 
-			if ((((tsc.tsType & 32) == 32) && (debugLevel > 0)))
+			if (((tsc.tsType & 32) == 32) && (debugLevel > 0))
 			{
 				coord = (dateTimeS + '\t');
-				decodeEvent(ref coord, ref tsc);
-				if ((coord != ""))
+				string coord2 = "";
+				decodeEvent(ref coord2, ref tsc);
+				if (coord2 != "")
 				{
-					coord += "\r\n";
-					txtW.Write(System.Text.Encoding.ASCII.GetBytes(coord));
+					coord += coord2 + "\r\n";
+					txtW.Write(Encoding.ASCII.GetBytes(coord));
 				}
-
 			}
 
 			if ((tsc.tsType & 16) == 16)
@@ -2410,9 +2343,17 @@ namespace X_Manager.Units.AxyTreks
 				coord += "\t" + eo + lon.ToString("#00.00000", nfi);
 				coord += "\t" + altSegno + ((tsc.altH * 256 + tsc.altL) * 2).ToString() + "\t" + speed.ToString("0.0") + "\t";
 				coord += tsc.nSat.ToString() + "\t" + tsc.DOP.ToString() + "." + tsc.DOPdec.ToString();
-				coord += "\t" + tsc.gsvSum.ToString() + "\r\n";
-				txtW.Write(System.Text.Encoding.ASCII.GetBytes(coord));
+				coord += "\t" + tsc.gsvSum.ToString();
+				if (debugLevel > 2)
+				{
+					coord += " " + tsc.ore.ToString("00") + ":" + tsc.minuti.ToString("00") + ":" + tsc.secondi.ToString("00") + " " +
+									tsc.giorno.ToString("00") + "-" + tsc.mese.ToString("00") + "-20" + tsc.anno.ToString("00") +
+									"  --  " + tsc.ardPosition.ToString("X8");
+				}
+				coord += "\r\n";
+				txtW.Write(Encoding.ASCII.GetBytes(coord));
 			}
+
 
 		}
 
@@ -2426,11 +2367,11 @@ namespace X_Manager.Units.AxyTreks
 				if ((contoCoord == 10000))
 				{
 					//  se arrivato a 10000 coordinate apre un nuovo <coordinates>
-					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Path_Bot));
-					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Path_Top));
+					kmlW.Write(Encoding.ASCII.GetBytes(Properties.Resources.Path_Bot));
+					kmlW.Write(Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
 					contoCoord = 0;
 				}
-				kmlW.Write(System.Text.Encoding.ASCII.GetBytes("\t\t\t\t\t" + coordinataKml.cSstring + "\r\n"));
+				kmlW.Write(Encoding.ASCII.GetBytes("\t\t\t\t\t" + coordinataKml.cSstring + "\r\n"));
 				contoCoord++;
 
 				if (primaCoordinata)
@@ -2440,20 +2381,20 @@ namespace X_Manager.Units.AxyTreks
 					lookAtValues = coordinataKml.cPlacemark.Split(',');
 					lookAtValues[0] = lookAtValues[0].Remove(0, (lookAtValues[0].IndexOf(">") + 1));
 					lookAtValues[2] = lookAtValues[2].Remove(lookAtValues[2].IndexOf("<"), (lookAtValues[2].Length - lookAtValues[2].IndexOf("<")));
-					buffer = System.Text.Encoding.ASCII.GetBytes(
-						X_Manager.Properties.Resources.lookat1 + lookAtValues[0] + X_Manager.Properties.Resources.lookat2 + lookAtValues[1]
-						+ X_Manager.Properties.Resources.lookat3 + lookAtValues[2] + X_Manager.Properties.Resources.lookat4);
+					buffer = Encoding.ASCII.GetBytes(
+						Properties.Resources.lookat1 + lookAtValues[0] + Properties.Resources.lookat2 + lookAtValues[1]
+						+ Properties.Resources.lookat3 + lookAtValues[2] + Properties.Resources.lookat4);
 					placeMarkW.Write(buffer, 0, buffer.Length - 1);
-					buffer = System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Start_Top + coordinataKml.cPlacemark
-						+ X_Manager.Properties.Resources.Placemarks_Start_Bot);
+					buffer = Encoding.ASCII.GetBytes(Properties.Resources.Placemarks_Start_Top + coordinataKml.cPlacemark
+						+ Properties.Resources.Placemarks_Start_Bot);
 					placeMarkW.Write(buffer, 0, buffer.Length);
-					placeMarkW.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Generics_Top));
+					placeMarkW.Write(Encoding.ASCII.GetBytes(Properties.Resources.Folder_Generics_Top));
 				}
-				buffer = System.Text.Encoding.ASCII.GetBytes(
-					X_Manager.Properties.Resources.Placemarks_Generic_Top_1 + coordinataKml.cName + X_Manager.Properties.Resources.Placemarks_Generic_Top_2 + coordinataKml.cClass
-					+ X_Manager.Properties.Resources.Placemarks_Generic_Top_3 + ((tsc.altH * 256 + tsc.altL) * 2).ToString()
-					+ X_Manager.Properties.Resources.Placemarks_Generic_Top_4 + (tsc.vel * 3.704).ToString()
-					+ X_Manager.Properties.Resources.Placemarks_Generic_Top_5 + coordinataKml.cPlacemark + X_Manager.Properties.Resources.Placemarks_Generic_Bot);
+				buffer = Encoding.ASCII.GetBytes(
+					Properties.Resources.Placemarks_Generic_Top_1 + coordinataKml.cName + Properties.Resources.Placemarks_Generic_Top_2 + coordinataKml.cClass
+					+ Properties.Resources.Placemarks_Generic_Top_3 + ((tsc.altH * 256 + tsc.altL) * 2).ToString()
+					+ Properties.Resources.Placemarks_Generic_Top_4 + (tsc.vel * 3.704).ToString()
+					+ Properties.Resources.Placemarks_Generic_Top_5 + coordinataKml.cPlacemark + Properties.Resources.Placemarks_Generic_Bot);
 				placeMarkW.Write(buffer, 0, buffer.Length);
 			}
 		}
@@ -2598,20 +2539,140 @@ namespace X_Manager.Units.AxyTreks
 			}
 		}
 
+		private bool pressureAir(ref MemoryStream ard, ref timeStamp tsc)
+		{
+			double dT, off, sens, t2, off2, sens2;
+			double d1, d2;
+
+			try
+			{
+				d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+			}
+			catch
+			{
+				return true;
+			}
+
+			dT = d2 - convCoeffs[4] * 256;
+			tsc.temperature = 2000 + (dT * convCoeffs[5]) / 8388608;
+			off = convCoeffs[1] * 131072 + (convCoeffs[3] * dT) / 64;
+			sens = convCoeffs[0] * 65536 + (convCoeffs[2] * dT) / 128;
+			if (tsc.temperature > 2000)
+			{
+				t2 = 0;
+				off2 = 0;
+				sens2 = 0;
+			}
+			else
+			{
+				t2 = Math.Pow(dT, 2) / 2147483648;
+				off2 = 61 * Math.Pow((tsc.temperature - 2000), 2) / 16;
+				sens2 = 2 * Math.Pow((tsc.temperature - 2000), 2);
+				if (tsc.temperature < -1500)
+				{
+					off2 += 20 * Math.Pow((tsc.temperature + 1500), 2);
+					sens2 += 12 * Math.Pow((tsc.temperature + 1500), 2);
+				}
+			}
+			tsc.temperature -= t2;
+			off -= off2;
+			sens -= sens2;
+			tsc.temperature /= 100;
+			//tsc.temp = Math.Round(tsc.temp, 1);
+
+			if ((tsc.tsType & 4) == 4)
+			{
+				try
+				{
+					d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+				}
+				catch
+				{
+					return true;
+				}
+				tsc.press = ((d1 * sens / 2097152) - off) / 32768;
+				tsc.press /= 100;
+				//tsc.press = Math.Round(tsc.press, 2);
+			}
+			return false;
+		}
+
+		private bool pressureDepth5837(ref MemoryStream ard, ref timeStamp tsc)
+		{
+			double dT;
+			double off;
+			double sens;
+			double d1, d2;
+
+			try
+			{
+				d2 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+			}
+			catch
+			{
+				return true;
+			}
+
+			dT = d2 - convCoeffs[4] * 256;
+			tsc.temperature = 2000 + (dT * convCoeffs[5]) / 8_388_608;
+			off = convCoeffs[1] * 65_536 + (convCoeffs[3] * dT) / 128;
+			sens = convCoeffs[0] * 32_768 + (convCoeffs[2] * dT) / 256;
+			if (tsc.temperature > 2000)
+			{
+				tsc.temperature -= (2 * Math.Pow(dT, 2)) / 137_438_953_472;
+				off -= ((Math.Pow((tsc.temperature - 2000), 2)) / 16);
+			}
+			else
+			{
+				tsc.temperature -= 3 * (Math.Pow(dT, 2)) / 8_589_934_592;
+				off -= 3 * ((Math.Pow((tsc.temperature - 2000), 2)) / 2);
+				sens -= 5 * ((Math.Pow((tsc.temperature - 2000), 2)) / 8);
+				if (tsc.temperature < -1500)
+				{
+					off -= 7 * Math.Pow((tsc.temperature + 1500), 2);
+					sens -= 4 * Math.Pow((tsc.temperature + 1500), 2);
+				}
+			}
+			tsc.temperature /= 100;
+			if ((tsc.tsType & 4) == 4)
+			{
+				try
+				{
+					d1 = ard.ReadByte() * 65536 + ard.ReadByte() * 256 + ard.ReadByte();
+				}
+				catch
+				{
+					return true;
+				}
+				tsc.press = (((d1 * sens / 2_097_152) - off) / 81_920);
+				if (inMeters)
+				{
+					tsc.press -= tsc.pressOffset;
+					if (tsc.press <= 0) tsc.press = 0;
+					else
+					{
+						tsc.press = tsc.press / 98.1;
+					}
+				}
+			}
+			return false;
+		}
+
 		private void csvPlaceHeader(ref BinaryWriter csv)
 		{
 			string csvHeader = "TagID";
 			if (sameColumn)
 			{
-				csvHeader = csvHeader + csvSeparator + "Timestamp";
+				csvHeader += csvSeparator + "Timestamp";
 			}
 			else
 			{
-				csvHeader = csvHeader + csvSeparator + "Date" + csvSeparator + "Time";
+				csvHeader += csvSeparator + "Date" + csvSeparator + "Time";
 			}
 
-			csvHeader = csvHeader + csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
-			csvHeader = csvHeader + csvSeparator + "Activity";
+			csvHeader += csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
+			csvHeader += csvSeparator + "Activity";
+			csvHeader += csvSeparator + "FR-Temp. (°C)";
 			if (pressureEnabled > 0)
 			{
 				if (inMeters)
@@ -2630,9 +2691,6 @@ namespace X_Manager.Units.AxyTreks
 				{
 					csvHeader = csvHeader + csvSeparator + "Pressure";
 				}
-			}
-			if (temperatureEnabled > 0)
-			{
 				csvHeader += csvSeparator + "Temp. (°C)";
 			}
 
@@ -2645,7 +2703,7 @@ namespace X_Manager.Units.AxyTreks
 
 			csvHeader += "\r\n";
 
-			csv.Write(System.Text.Encoding.ASCII.GetBytes(csvHeader));
+			csv.Write(Encoding.ASCII.GetBytes(csvHeader));
 		}
 
 		private bool detectEof(ref MemoryStream ard)

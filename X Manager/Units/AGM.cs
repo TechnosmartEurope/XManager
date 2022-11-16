@@ -1605,18 +1605,6 @@ namespace X_Manager.Units
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 		public override void getCoeffs()
 		{
 			base.getCoeffs();

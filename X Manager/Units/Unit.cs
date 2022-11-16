@@ -18,7 +18,7 @@ using FT_HANDLE = System.UInt32;
 
 namespace X_Manager.Units
 {
-	abstract public class Unit : IDisposable
+	public abstract class Unit : IDisposable
 	{
 		//Tipi unità
 		bool disposed = false;
@@ -37,8 +37,9 @@ namespace X_Manager.Units
 		public const int model_Gipsy6 = 10;
 		public const int model_AGM1 = 9;
 		public const int model_axyTrekS = 7;
-		public const int model_axyTrek = 6;
+		public const int model_axyTrekN = 6;
 		public const int model_axyTrekHD = 4;
+		public const int model_axyTrekFT = 3;
 
 		//Maschere timestamp0
 		public const byte ts_ext1 = 0b_0000_0001;

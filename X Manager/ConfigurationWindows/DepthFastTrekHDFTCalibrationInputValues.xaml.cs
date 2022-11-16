@@ -12,16 +12,35 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using X_Manager.Units;
+using X_Manager.Units.AxyTreks;
 
 namespace X_Manager.ConfigurationWindows
 {
 	/// <summary>
 	/// Logica di interazione per TrekHDCalibrationInputValues.xaml
 	/// </summary>
-	public partial class TrekHDCalibrationInputValues : Window
+	public partial class DepthFastTrekHDFTCalibrationInputValues : Window
 	{
 
+		Unit unit;
 		public double rt1, rt2, t1, t2, p1, p2;
+		public bool calculate = false;
+
+		public DepthFastTrekHDFTCalibrationInputValues(Unit unit)
+		{
+			InitializeComponent();
+			this.unit = unit;
+			if (unit is AxyTrekFT || unit.modelCode == Unit.model_axyDepthFast)
+			{
+				p1L.Visibility = Visibility.Hidden;
+				p2L.Visibility = Visibility.Hidden;
+				p1TB.Visibility = Visibility.Hidden;
+				p2TB.Visibility = Visibility.Hidden;
+				p1TB.IsEnabled = false;
+				p2TB.IsEnabled = false;
+			}
+		}
 
 		private void rt1TB_GotFocus(object sender, RoutedEventArgs e)
 		{
@@ -29,7 +48,6 @@ namespace X_Manager.ConfigurationWindows
 			tb.Select(0, tb.Text.Length);
 		}
 
-		public bool calculate = false;
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
 			NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
@@ -44,15 +62,15 @@ namespace X_Manager.ConfigurationWindows
 			rt2 = double.Parse(rt2TB.Text, NumberStyles.Any, nfi);
 			t1 = double.Parse(t1TB.Text, NumberStyles.Any, nfi);
 			t2 = double.Parse(t2TB.Text, NumberStyles.Any, nfi);
-			p1 = double.Parse(p1TB.Text, NumberStyles.Any, nfi);
-			p2 = double.Parse(p2TB.Text, NumberStyles.Any, nfi);
+			if (unit is AxyTrekHD)
+			{
+				p1 = double.Parse(p1TB.Text, NumberStyles.Any, nfi);
+				p2 = double.Parse(p2TB.Text, NumberStyles.Any, nfi);
+			}
 			calculate = true;
 			Close();
 		}
 
-		public TrekHDCalibrationInputValues()
-		{
-			InitializeComponent();
-		}
+
 	}
 }
