@@ -391,6 +391,7 @@
     <Compile Include="Units\AxyDepth_1.cs" />
     <Compile Include="Units\AxyDepth_2.cs" />
     <Compile Include="Units\AxyTrek.cs" />
+    <Compile Include="Units\AxyTrekCO2.cs" />
     <Compile Include="Units\AxyTrekFT.cs" />
     <Compile Include="Units\AxyTrekHD.cs" />
     <Compile Include="Units\AxyTrekN.cs" />

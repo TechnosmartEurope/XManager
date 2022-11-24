@@ -1379,6 +1379,9 @@ namespace X_Manager
 							case "Axy-Trek FT":
 								oUnit = new AxyTrekFT(this);
 								break;
+							case "Axy-Trek CO2":
+								oUnit = new AxyTrekCO2(this);
+								break;
 							case "GiPSy-6":
 								oUnit = new Gipsy6(this);   //Nel costruttore viene chiusa la porta seriale e riaperta mediante driver ftdi
 								((Gipsy6)oUnit).remoteConnection = remoteConnection;
@@ -1540,7 +1543,7 @@ namespace X_Manager
 			}
 			else if (oUnit is AxyTrek)
 			{
-				confForm = new TrekMovementConfigurationWindow(conf, oUnit.firmTotA, oUnit);
+				confForm = new TrekMovementConfigurationWindow(conf, oUnit);
 			}
 			else if (oUnit is Drop_Off)
 			{
@@ -2524,6 +2527,9 @@ namespace X_Manager
 					break;
 				case Unit.model_axyTrekFT:
 					cUnit = new AxyTrekFT(this);
+					break;
+				case Unit.model_axyTrekCO2:
+					cUnit = new AxyTrekCO2(this);
 					break;
 				case Unit.model_AGM1:
 					cUnit = new AGM(this);

@@ -40,6 +40,7 @@ namespace X_Manager.Units
 		public const int model_axyTrekN = 6;
 		public const int model_axyTrekHD = 4;
 		public const int model_axyTrekFT = 3;
+		public const int model_axyTrekCO2 = 2;
 
 		//Maschere timestamp0
 		public const byte ts_ext1 = 0b_0000_0001;

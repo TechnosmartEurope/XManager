@@ -34,7 +34,6 @@ namespace X_Manager.ConfigurationWindows
 		//byte unitType;
 		UInt16[] c = new UInt16[7];
 		//byte[] unitFirmware;
-		UInt32 firmTotA;
 		//bool evitaSoglieDepth = false;
 		int burstLenght;
 		int burstBackUp;
@@ -42,7 +41,8 @@ namespace X_Manager.ConfigurationWindows
 		Timer reshapeTimer = null;
 		FTDI_Device ft;
 		Unit unit;
-		public TrekMovementConfigurationWindow(byte[] axyconf, UInt32 unitFirm, Unit unit)
+		ComboBox co2PeriodCB;
+		public TrekMovementConfigurationWindow(byte[] axyconf, Unit unit)
 			: base()
 		{
 			InitializeComponent();
@@ -50,7 +50,6 @@ namespace X_Manager.ConfigurationWindows
 			mustWrite = false;
 			axyConfOut = new byte[29];
 			this.unit = unit;
-			firmTotA = unitFirm;
 
 			//this.sp = sp;
 			ft = MainWindow.FTDI;
@@ -59,7 +58,7 @@ namespace X_Manager.ConfigurationWindows
 			{
 				axyConfOut[i] = axyconf[i];
 			}
-	
+
 			if (unit is AxyTrekFT)
 			{
 				externalGrid2.RowDefinitions[2].Height = new GridLength(74);
@@ -91,15 +90,54 @@ namespace X_Manager.ConfigurationWindows
 				tdPeriodSP.IsEnabled = true;
 				tdGrid.RowDefinitions[0].Height = new GridLength(0);
 			}
+			else if (unit is AxyTrekCO2)
+			{
+				externalGrid2.RowDefinitions[2].Height = new GridLength(74);
+				sendButton.Margin = new Thickness(10);
+				WSGrid.ColumnDefinitions[1].Width = new GridLength(0);
+				WsHardwareRB.Visibility = Visibility.Hidden;
+				WsHardwareRB.IsEnabled = false;
+				WsEnabledRB.Content = "Enabled";
+				WsDisabledRB.Margin = new Thickness(30, 0, 0, 0);
+				WsEnabledRB.Margin = new Thickness(30, 0, 0, 0);
+				TDgroupBox.Header = "CO2 PERIOD";
+				tdLoggingHeaderSP.Visibility = Visibility.Hidden;
+				gridNN.Children.Remove(pressureCB);
+				gridNN.Children.Remove(tdPeriodSP);
+				TDgroupBox.Content = null;
+				ComboBox co2PeriodCB = new ComboBox();
+				string[] pp = new string[] { "5sec", "30sec", "1min", "5min", "10min", "20min", "30min", "40min", "50min", "60min" };
+				co2PeriodCB.Height = 40;
+				co2PeriodCB.Width = 90;
+				co2PeriodCB.HorizontalAlignment = HorizontalAlignment.Left;
+				co2PeriodCB.ItemsSource = pp;
+				TDgroupBox.Content = co2PeriodCB;
+				this.co2PeriodCB = co2PeriodCB;
+				TDgroupBox.Width = 120;
+				tdGrid.HorizontalAlignment = HorizontalAlignment.Left;
+				TDgroupBox.HorizontalAlignment = HorizontalAlignment.Left;
+				var tpgroupBox = new GroupBox();
+				tpgroupBox.Header = "T/D PERIOD";
+				tpgroupBox.Foreground = new SolidColorBrush(Color.FromArgb(255, 0x00, 0xaa, 0xde));
+				tpgroupBox.HorizontalAlignment = HorizontalAlignment.Right;
+				tpgroupBox.Margin = new Thickness(0, 0, 10, 5);
+				tpgroupBox.Width = 260;
+				Grid.SetRow(tpgroupBox, 0);
+				externalGrid2.Children.Add(tpgroupBox);
+				tdPeriodSP.Children.Add(pressureCB);
+				tpgroupBox.Content = tdPeriodSP;
+				tdPeriodSP.IsEnabled = true;
+				tdGrid.RowDefinitions[0].Height = new GridLength(0);
+			}
 			else
 			{
 
-				if (firmTotA < 2000001)
+				if (unit.firmTotA < 2000001)
 				{
 					externalGrid2.RowDefinitions[2].Height = new GridLength(0);
 					sendButton.Margin = new Thickness(25);
 				}
-				else if (firmTotA < 3000000)
+				else if (unit.firmTotA < 3000000)
 				{
 					externalGrid2.RowDefinitions[2].Height = new GridLength(74);
 					sendButton.Margin = new Thickness(10);
@@ -113,7 +151,7 @@ namespace X_Manager.ConfigurationWindows
 				{
 					externalGrid2.RowDefinitions[2].Height = new GridLength(74);
 					sendButton.Margin = new Thickness(10);
-					if (firmTotA < 3001000)
+					if (unit.firmTotA < 3001000)
 					{
 						WsEnabledRB.Content = "Software";
 						WsHardwareRB.Content = "Hardware";
@@ -129,12 +167,12 @@ namespace X_Manager.ConfigurationWindows
 					}
 				}
 
-				if (firmTotA < 3004000)
+				if (unit.firmTotA < 3004000)
 				{
 					pressureCB.IsEnabled = false;
 				}
 
-				if (firmTotA < 3008000)
+				if (unit.firmTotA < 3008000)
 				{
 					externalGrid1.Children.RemoveAt(3);
 					ghostRow.Height = new GridLength(0);
@@ -216,7 +254,8 @@ namespace X_Manager.ConfigurationWindows
 			{
 				temperatureCB.IsChecked = true;
 			}
-			if (firmTotA < 3004000)
+
+			if (unit.firmTotA < 3004000)
 			{
 				pressureCB.IsChecked = temperatureCB.IsChecked;
 			}
@@ -249,6 +288,53 @@ namespace X_Manager.ConfigurationWindows
 				LogEndown.IsEnabled = true;
 				LogEnup.IsEnabled = true;
 			}
+			else if (unit is AxyTrekCO2)
+			{
+				int co2Period = axyconf[3] * 256 + axyconf[4];
+				int index = 1;
+				switch (co2Period)
+				{
+					case 5:
+						index = 0;
+						break;
+					case 30:
+						index = 1;
+						break;
+					case 60:
+						index = 2;
+						break;
+					case 300:
+						index = 3;
+						break;
+					case 600:
+						index = 4;
+						break;
+					case 1200:
+						index = 5;
+						break;
+					case 1800:
+						index = 6;
+						break;
+					case 2400:
+						index = 7;
+						break;
+					case 3000:
+						index = 8;
+						break;
+					case 3600:
+						index = 9;
+						break;
+				}
+				co2PeriodCB.SelectedIndex = index;
+				if (axyconf[18] == 1)
+				{
+					pressureCB.IsChecked = true;
+				}
+				else
+				{
+					pressureCB.IsChecked = false;
+				}
+			}
 
 			switch (axyconf[22])
 			{
@@ -261,7 +347,7 @@ namespace X_Manager.ConfigurationWindows
 					mDebug = 1;
 					break;
 			}
-			if (firmTotA > 2000000)
+			if (unit.firmTotA > 2000000)
 			{
 				switch (axyconf[23])
 				{
@@ -280,7 +366,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			if (firmTotA >= 3008000)
+			if (unit.firmTotA >= 3008000)
 			{
 				contCB.IsChecked = false;
 
@@ -401,7 +487,7 @@ namespace X_Manager.ConfigurationWindows
 				rate = 50;
 			}
 
-			if ((firmTotA < 3002000))
+			if ((unit.firmTotA < 3002000))
 			{
 				latThresholdLabel.Content = (Math.Round((1000
 								/ (rate * (25 * latencyThreshUd.Value)))).ToString() + " ms");
@@ -445,12 +531,22 @@ namespace X_Manager.ConfigurationWindows
 		{
 			if (unit is AxyTrekFT) return;
 
-			if (firmTotA < 3004000)
+			var c = (CheckBox)sender;
+
+			if (unit.firmTotA < 3004000)
 			{
 				pressureCB.IsChecked = temperatureCB.IsChecked;
 			}
 
-			var c = (CheckBox)sender;
+			if (unit is AxyTrekCO2 && c.Name == "pressureCB")
+			{
+				tempDepthLogginUD.IsEnabled = (bool)pressureCB.IsChecked;
+				LogEnup.IsEnabled = (bool)pressureCB.IsChecked;
+				LogEndown.IsEnabled = (bool)pressureCB.IsChecked;
+				return;
+			}
+
+
 			if (c.Name == "temperatureCB")
 			{
 				if (!(bool)temperatureCB.IsChecked)
@@ -522,7 +618,7 @@ namespace X_Manager.ConfigurationWindows
 							{
 								coeffs[i] = ft.ReadByte();
 							}
-							if (firmTotA > 3009000)
+							if (unit.firmTotA > 3009000)
 							{
 								coeffs[12] = ft.ReadByte();
 								coeffs[13] = ft.ReadByte();
@@ -579,7 +675,7 @@ namespace X_Manager.ConfigurationWindows
 								qp.tempZero += 32500;
 								ft.Write(new byte[2] { (byte)((UInt16)qp.tempZero >> 8), (byte)qp.tempZero }, 0, 2);
 							}
-							else if (firmTotA <= 3009000)
+							else if (unit.firmTotA <= 3009000)
 							{
 
 								qp.pressThreshold = (1500 - qp.pressZero) * qp.pressSpan / 100000;// - qp.zero;
@@ -601,7 +697,7 @@ namespace X_Manager.ConfigurationWindows
 								//Threshold-pressione
 								ft.Write(new byte[2] { (byte)((UInt16)qp.pressThreshold >> 8), (byte)qp.pressThreshold }, 0, 2);
 
-								if (firmTotA == 3009000)
+								if (unit.firmTotA == 3009000)
 								{
 									//Zero-temperatura
 									qp.tempZero *= 1000;
@@ -719,17 +815,18 @@ namespace X_Manager.ConfigurationWindows
 			axyConfOut[16] = ccount;
 			axyConfOut[17] = 0;
 			axyConfOut[18] = 0;
-			if ((temperatureCB.IsChecked == true))
+			if (temperatureCB.IsChecked == true)
 			{
-				axyConfOut[17] = 1;
+				if (!(unit is AxyTrekCO2) && !(unit is AxyTrekFT))
+				{
+					axyConfOut[17] = 1;
+				}
 			}
-			if ((pressureCB.IsChecked == true))
+			if (pressureCB.IsChecked == true)
 			{
 				axyConfOut[18] = 1;
 			}
 
-
-			//axyConfOut[19] = Convert.ToByte(double.Parse(tempDepthLogginUD.Text));
 			axyConfOut[19] = axyConfOut[20] = axyConfOut[21] = 0;
 			try
 			{
@@ -749,7 +846,7 @@ namespace X_Manager.ConfigurationWindows
 
 			axyConfOut[22] = mDebug;
 
-			if ((firmTotA > 2000000))
+			if ((unit.firmTotA > 2000000))
 			{
 				axyConfOut[23] = 0;
 				if ((bool)WsEnabledRB.IsChecked)
@@ -763,7 +860,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			if (firmTotA >= 3008000)
+			if (unit.firmTotA >= 3008000)
 			{
 				//axyConfOut[26] = (byte)burstPeriod;
 				//axyConfOut[25] = (byte)burstLenght;
@@ -777,6 +874,48 @@ namespace X_Manager.ConfigurationWindows
 
 				axyConfOut[27] = (byte)(burstPeriod >> 8);
 				axyConfOut[28] = (byte)(burstPeriod & 0xff);
+			}
+
+			if (unit is AxyTrekCO2)
+			{
+				int perCo2 = 1800;
+				switch (co2PeriodCB.SelectedIndex)
+				{
+					case 0:
+						perCo2 = 5;
+						break;
+					case 1:
+						perCo2 = 30;
+						break;
+					case 2:
+						perCo2 = 60;
+						break;
+					case 3:
+						perCo2 = 300;
+						break;
+					case 4:
+						perCo2 = 600;
+						break;
+					case 5:
+						perCo2 = 1200;
+						break;
+					case 6:
+						perCo2 = 1800;
+						break;
+					case 7:
+						perCo2 = 2400;
+						break;
+					case 8:
+						perCo2 = 3000;
+						break;
+					case 9:
+						perCo2 = 3600;
+						break;
+				}
+
+				axyConfOut[3] = (byte)(perCo2 >> 8);
+				axyConfOut[4] = (byte)(perCo2 & 0xff);
+
 			}
 
 			mustWrite = true;

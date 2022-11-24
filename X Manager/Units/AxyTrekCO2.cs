@@ -1,33 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-//using System.Threading.Tasks;
-using System.Windows;
+using System.Threading.Tasks;
 using System.Windows.Threading;
-using System.IO;
-//using FTD2XX_NET;
-using System.Runtime.InteropServices;
-using System.Globalization;
-using System.Runtime.Versioning;
-using System.Windows.Annotations;
-//using System.Diagnostics;
-#if X64
-using FT_HANDLE = System.UInt64;
-#else
-using FT_HANDLE = System.UInt32;
-#endif
+using System.Windows;
 
 namespace X_Manager.Units.AxyTreks
 {
-	class AxyTrekN : AxyTrek
+	class AxyTrekCO2 : AxyTrek
 	{
 		ushort[] coeffs = new ushort[7];
 		double[] convCoeffs = new double[7];
-		bool evitaSoglie = false;
 		bool disposed = false;
 		new byte[] firmwareArray = new byte[6];
+		bool evitaSoglie = false;
 		struct timeStamp
 		{
 			public int tsType;
@@ -43,6 +33,9 @@ namespace X_Manager.Units.AxyTreks
 			public double temperature;
 			public double press;
 			public double pressOffset;
+			public double co2co2;
+			public double co2temp;
+			public double co2hum;
 			public int altL;
 			public int altH;
 			public int altSegno;
@@ -103,7 +96,7 @@ namespace X_Manager.Units.AxyTreks
 		ushort rate;
 		bool primaCoordinata;
 		bool sameColumn = false;
-		int temperatureEnabled;
+		//int temperatureEnabled;
 		int pressureEnabled;
 		ushort addMilli;
 		int debugStampId = 13;
@@ -117,12 +110,12 @@ namespace X_Manager.Units.AxyTreks
 		DateTime nullDate = new DateTime(1970, 1, 1, 0, 0, 0);
 		DateTime recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
 
-		public AxyTrekN(object p)
+		public AxyTrekCO2(object p)
 			: base(p)
 		{
 			positionCanSend = true;
 			configurePositionButtonEnabled = true;
-			modelCode = model_axyTrekN;
+			modelCode = model_axyTrekCO2;
 		}
 
 		public override string askFirmware()
@@ -307,24 +300,17 @@ namespace X_Manager.Units.AxyTreks
 			{
 				for (int i = 2; i <= 4; i++)
 				{
-					conf[i] = (byte)ft.ReadByte();
+					conf[i] = ft.ReadByte();
 				}
 				for (int i = 15; i <= 21; i++)
 				{
-					conf[i] = (byte)ft.ReadByte();
+					conf[i] = ft.ReadByte();
 				}
-				conf[22] = (byte)ft.ReadByte();
-				if (firmTotA > 2000000)
+				conf[22] = ft.ReadByte();
+				conf[23] = ft.ReadByte();
+				for (int i = 25; i < 29; i++)
 				{
-					conf[23] = (byte)ft.ReadByte();
-				}
-				if (firmTotA >= 3008000)
-				{
-					for (int i = 25; i < 29; i++)
-					{
-						conf[i] = (byte)ft.ReadByte();
-					}
-
+					conf[i] = ft.ReadByte();
 				}
 			}
 			catch
@@ -345,17 +331,12 @@ namespace X_Manager.Units.AxyTreks
 			{
 				throw new Exception(unitNotReady);
 			}
+
 			ft.Write(conf, 2, 3);
 			ft.Write(conf, 15, 7);
-			ft.Write(conf, 22, 1);
-			if (firmTotA > 2000000)
-			{
-				ft.Write(conf, 23, 1);
-			}
-			if (firmTotA >= 3008000)
-			{
-				ft.Write(conf, 25, 4);
-			}
+			ft.Write(conf, 22, 2);
+			ft.Write(conf, 25, 4);
+
 			try
 			{
 				ft.ReadByte();
@@ -764,7 +745,7 @@ namespace X_Manager.Units.AxyTreks
 			}
 
 			fo.Write(firmwareArray, 0, 6);
-			fo.Write(new byte[] { model_axyTrekN, 254 }, 0, 2);
+			fo.Write(new byte[] { model_axyTrekCO2, 254 }, 0, 2);
 
 			fo.Close();
 
@@ -1047,7 +1028,7 @@ namespace X_Manager.Units.AxyTreks
 							} while (System.IO.File.Exists(fileNameArd));
 						}
 					}
-					ard = new System.IO.BinaryWriter(System.IO.File.Open(fileNameArd, FileMode.Create));
+					ard = new BinaryWriter(File.Open(fileNameArd, FileMode.Create));
 					ard.Write(new byte[] { modelCode }, 0, 1);
 					if (!connected)
 					{
@@ -1142,13 +1123,13 @@ namespace X_Manager.Units.AxyTreks
 
 			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
-			if ((Parent.getParameter("pressureRange") == "air")) isDepth = 0;
+			if (Parent.getParameter("pressureRange") == "air") isDepth = 0;
 
-			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
+			if (prefs[pref_fillEmpty] == "False") repeatEmptyValues = false;
 			if (addGpsTime) repeatEmptyValues = false;
 
 			dateSeparator = csvSeparator;
-			if ((prefs[pref_sameColumn] == "True"))
+			if (prefs[pref_sameColumn] == "True")
 			{
 				sameColumn = true;
 				dateSeparator = " ";
@@ -1191,7 +1172,7 @@ namespace X_Manager.Units.AxyTreks
 
 			string addOn = "";
 			string exten = Path.GetExtension(fileName);
-			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
+			if (exten.Length > 4) addOn = "_S" + exten.Remove(0, 4);
 
 			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
 			string FileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
@@ -1242,7 +1223,7 @@ namespace X_Manager.Units.AxyTreks
 				sesAdd.Add(0);
 			}
 
-			BinaryWriter csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
 			BinaryWriter txt = BinaryWriter.Null;
 			BinaryWriter kml = BinaryWriter.Null;
 			BinaryWriter placeMark = BinaryWriter.Null;
@@ -1264,7 +1245,7 @@ namespace X_Manager.Units.AxyTreks
 				kml.Write(Encoding.ASCII.GetBytes(Properties.Resources.Folder_Path_Top));
 				kml.Write(Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
 				//placemark
-				placeMark.Write(System.Text.Encoding.ASCII.GetBytes(Properties.Resources.Final_Top_1 +
+				placeMark.Write(Encoding.ASCII.GetBytes(Properties.Resources.Final_Top_1 +
 					Path.GetFileNameWithoutExtension(fileName) + Properties.Resources.Final_Top_2));
 			}
 
@@ -1317,8 +1298,8 @@ namespace X_Manager.Units.AxyTreks
 
 				byte[] uf = new byte[16];
 				ard.Position = 1;
-				firmTotA = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
-				firmTotB = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
+				firmTotA = (uint)ard.ReadByte() * 1000000 + (uint)ard.ReadByte() * 1000 + (uint)ard.ReadByte();
+				firmTotB = (uint)ard.ReadByte() * 1000000 + (uint)ard.ReadByte() * 1000 + (uint)ard.ReadByte();
 
 				byte[] coeffCheck = new byte[12];// = ard.ReadBytes(12);
 				ard.Read(coeffCheck, 0, 12);
@@ -1370,13 +1351,13 @@ namespace X_Manager.Units.AxyTreks
 				//Legge i coefficienti di profondità
 				//ard.BaseStream.Position = pos;
 				convCoeffs = new double[] { 0, 0, 0, 0, 0, 0 };
-				for (int u = 0; u <= 5; u++) convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
+				for (int u = 0; u <= 5; u++)
+				{
+					convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
+				}
 
 				//Legge i parametri di logging
-				pressureEnabled = ard.ReadByte();
-				temperatureEnabled = pressureEnabled;
-				pressureEnabled /= 16;
-				temperatureEnabled &= 15;
+				pressureEnabled = ard.ReadByte() >> 4;
 
 				byte rrb = (byte)ard.ReadByte();
 				rate = findSamplingRate(rrb);
@@ -1385,7 +1366,7 @@ namespace X_Manager.Units.AxyTreks
 				bitsDiv = findBytesPerSample();
 				nOutputs = rate;
 				findDebugStampPar();
-				Array.Resize(ref lastGroup, ((rate * 3)));
+				Array.Resize(ref lastGroup, rate * 3);
 
 				//cifreDec = 3;
 				cifreDecString = "0.000";
@@ -1674,37 +1655,28 @@ namespace X_Manager.Units.AxyTreks
 				tsc.tsTypeExt1 = 0;
 			}
 
-			//Temperatura (eventualmente anche pressione)
+			//Parametri CO2
 			if ((tsc.tsType & 2) == 2)
 			{
-				tsc.slowData++;
-				if (temperatureEnabled == 2)
+				tsc.co2co2 = ard.ReadByte() * 256 + ard.ReadByte();
+				tsc.co2temp = ard.ReadByte() * 256 + ard.ReadByte();
+				tsc.co2temp = -45 + 175 * tsc.co2temp / 65536.0;
+
+				tsc.co2hum = ard.ReadByte() * 256 + ard.ReadByte();
+				tsc.co2hum = 100 * tsc.co2hum / 65536;
+			}
+
+			//Pressione e temperatura sensore MS5837
+			if ((tsc.tsType & 4) == 4)
+			{
+
+				if (isDepth == 1)
 				{
-					tsc.temperature = ard.ReadByte() + ard.ReadByte() * 256;
-					tsc.temperature = (uint)(tsc.temperature) >> 6;
-					if (tsc.temperature > 511)
-					{
-						tsc.temperature -= 1024;
-					}
-					tsc.temperature = (tsc.temperature * 0.1221) + 22.5;
+					if (pressureDepth5837(ref ard, ref tsc)) return;
 				}
 				else
 				{
-					if (isDepth == 1)
-					{
-						if (fTotA > 2000000)
-						{
-							if (pressureDepth5837(ref ard, ref tsc)) return;
-						}
-						else
-						{
-							if (pressureDepth5803(ref ard, ref tsc)) return;
-						}
-					}
-					else
-					{
-						if (pressureAir(ref ard, ref tsc)) return;
-					}
+					if (pressureAir(ref ard, ref tsc)) return;
 				}
 			}
 
@@ -1999,16 +1971,30 @@ namespace X_Manager.Units.AxyTreks
 
 			if (pressureEnabled > 0)
 			{
-				contoTab += 1;
-				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
+				contoTab += 2;
+				if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues)
+				{
+					additionalInfo += csvSeparator + tsLoc.temperature.ToString("0.0", nfi);
+					additionalInfo += csvSeparator + tsLoc.press.ToString("0.00", nfi);
+				}
+				else
+				{
+					additionalInfo += csvSeparator + csvSeparator;
+				}
 			}
-			if (temperatureEnabled > 0)
+
+			contoTab += 3;
+			if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues)
 			{
-				contoTab += 1;
-				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
+				additionalInfo += csvSeparator + tsLoc.co2co2.ToString();
+				additionalInfo += csvSeparator + tsLoc.co2temp.ToString("0.00", nfi);
+				additionalInfo += csvSeparator + tsLoc.co2hum.ToString("0.00", nfi);
 			}
+			else
+			{
+				additionalInfo += csvSeparator + csvSeparator + csvSeparator;
+			}
+
 
 			//Inserire la coordinata.
 			contoTab += 7;
@@ -2151,12 +2137,6 @@ namespace X_Manager.Units.AxyTreks
 			byte timeStamp1 = 0;
 			uint secondiAdd = 0;
 			byte[] coordinate = new byte[22];
-			int noByteTemper = 3;
-			if (temperatureEnabled == 2)
-			{
-				noByteTemper = 2;
-			}
-
 
 			//br.BaseStream.Position = 7;
 			//if (br.ReadByte() == 0) br.BaseStream.Position = 25;
@@ -2181,8 +2161,8 @@ namespace X_Manager.Units.AxyTreks
 						double ppos = br.Position;
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ppos));
 						if ((timeStamp0 & 1) == 1) timeStamp1 = (byte)br.ReadByte();
-						if ((timeStamp0 & 2) == 2) br.Position += noByteTemper;
-						if ((timeStamp0 & 4) == 4) br.Position += 3;
+						if ((timeStamp0 & 2) == 2) br.Position += 6;
+						if ((timeStamp0 & 4) == 4) br.Position += 6;
 						if ((timeStamp0 & 8) == 8) br.Position += 2;
 						if ((timeStamp0 & 16) == 16)
 						{
@@ -2827,6 +2807,7 @@ namespace X_Manager.Units.AxyTreks
 			csvHeader = csvHeader + csvSeparator + "Activity";
 			if (pressureEnabled > 0)
 			{
+				csvHeader += csvSeparator + "Temp. (°C)";
 				if (inMeters)
 				{
 					if (isDepth == 1)
@@ -2844,10 +2825,8 @@ namespace X_Manager.Units.AxyTreks
 					csvHeader = csvHeader + csvSeparator + "Pressure";
 				}
 			}
-			if (temperatureEnabled > 0)
-			{
-				csvHeader += csvSeparator + "Temp. (°C)";
-			}
+
+			csvHeader = csvHeader + csvSeparator + "CO2" + csvSeparator + "Temp (°C) - CO2" + csvSeparator + "Humidity";
 
 			csvHeader += csvSeparator + "location-lat" + csvSeparator + "location-lon" + csvSeparator + "height-msl"
 				+ csvSeparator + "ground-speed" + csvSeparator + "satellites" + csvSeparator + "hdop" + csvSeparator + "signal-strength";

@@ -237,8 +237,7 @@
 	- Aggiunto coefficiente di temperatura per calibrazione pressione su trekHD
 	- Aggiunto calcolo automatico coefficienti di calibrazione di temp. e pressione pre trekHD
 	- Aggiunto calcolo e invio soglie di pressione e temperatura per funzionamento sensore d'acqua virtuale nel trekHD
-
-
-
-
-
+1.18.10 - Gestione unità Axy-Trek FT
+	- Aggiunta calibrazione AxyDepth-Fast
+	- Implementate classi astratte Axy e AxyTrek
+1.18.11 - Gestione unità Axy-Trek CO2

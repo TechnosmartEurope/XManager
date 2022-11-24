@@ -286,17 +286,17 @@ namespace X_Manager.Units.AxyTreks
 			{
 				for (int i = 2; i <= 4; i++)
 				{
-					conf[i] = (byte)ft.ReadByte();
+					conf[i] = ft.ReadByte();
 				}
 				for (int i = 15; i <= 21; i++)
 				{
-					conf[i] = (byte)ft.ReadByte();
+					conf[i] = ft.ReadByte();
 				}
-				conf[22] = (byte)ft.ReadByte();
-				conf[23] = (byte)ft.ReadByte();
+				conf[22] = ft.ReadByte();
+				conf[23] = ft.ReadByte();
 				for (int i = 25; i < 29; i++)
 				{
-					conf[i] = (byte)ft.ReadByte();
+					conf[i] = ft.ReadByte();
 				}
 
 			}
@@ -713,7 +713,7 @@ namespace X_Manager.Units.AxyTreks
 			}
 
 			fo.Write(firmwareArray, 0, 6);
-			fo.Write(new byte[] { model_axyTrekN, (byte)254 }, 0, 2);
+			fo.Write(new byte[] { model_axyTrekHD, 254 }, 0, 2);
 
 			fo.Close();
 

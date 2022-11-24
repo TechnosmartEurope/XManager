@@ -240,3 +240,4 @@
 1.18.10 - Gestione unità Axy-Trek FT
 	- Aggiunta calibrazione AxyDepth-Fast
 	- Implementate classi astratte Axy e AxyTrek
+1.18.11 - Gestione unità Axy-Trek CO2
