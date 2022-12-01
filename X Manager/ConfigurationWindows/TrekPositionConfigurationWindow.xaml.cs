@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using X_Manager.Units;
 using X_Manager.ConfigurationWindows;
 using X_Manager;
+using X_Manager.Units.AxyTreks;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -23,26 +24,36 @@ namespace X_Manager.ConfigurationWindows
 		//public bool failure = false;
 		//bool setIdle = false;
 		public bool unitConnected = false;
-		public UInt32 firmTotB = 0;
-		Unit unit;
-		public TrekPositionConfigurationWindow(ref Unit unitIn)
+		public UInt32 firmTotB_loc = 0;
+		public Unit unit;
+		public bool connected = false;
+		MainWindow mw;
+		public TrekPositionConfigurationWindow(MainWindow mw, Unit unitIn)
 		{
 			InitializeComponent();
-			this.Loaded += loaded;
-			this.Unloaded += unloaded;
-			unit = unitIn;
-
+			Loaded += loaded;
+			Unloaded += unloaded;
+			if (unitIn != null)
+			{
+				unit = unitIn;
+				connected = true;
+			}
+			else
+			{
+				unit = new AxyTrekN(mw);
+			}
+			this.mw = mw;
 			if (!(unit == null))
 			{
 				readButton.IsEnabled = true;
 				sendButton.IsEnabled = true;
 				//setIdle = true;
 				unitConnected = true;
-				firmTotB = unit.firmTotB;
+				firmTotB_loc = unit.firmTotB;
 				res = true;
 			}
 
-			for (UInt16 i = 1; (i <= 9); i++)
+			for (UInt16 i = 1; i <= 9; i++)
 			{
 				TabItem t = new TabItem();
 				// With...
@@ -78,11 +89,18 @@ namespace X_Manager.ConfigurationWindows
 				}
 				else
 				{
-					result = importSchedule(trekSchedFile);
-					if (!result) System.IO.File.Delete(trekSchedFile);
+					result = importSchedule(trekSchedFile, false);
+					if (!result)
+					{
+						try
+						{
+							System.IO.File.Delete(trekSchedFile);
+						}
+						catch { }
+					}
 				}
 			}
-			if ((unitConnected) && (firmTotB < 3004000))
+			if (unitConnected && (firmTotB_loc < 3004000))
 			{
 				((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
 			}
@@ -113,7 +131,7 @@ namespace X_Manager.ConfigurationWindows
 			((TabItem)ScheduleTab.Items.GetItemAt(0)).Header = "Every day";
 			if (unitConnected)
 			{
-				if (firmTotB < 3004000)
+				if (firmTotB_loc < 3004000)
 				{
 					((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
 				}
@@ -140,7 +158,7 @@ namespace X_Manager.ConfigurationWindows
 			((TabItem)ScheduleTab.Items.GetItemAt(0)).Header = "Day 1";
 			if (unitConnected)
 			{
-				if (firmTotB < 3004000)
+				if (firmTotB_loc < 3004000)
 				{
 					((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
 				}
@@ -159,7 +177,7 @@ namespace X_Manager.ConfigurationWindows
 			{
 				res = false;
 				MessageBox.Show(ex.Message);
-				this.Close();
+				Close();
 				return;
 			}
 
@@ -197,34 +215,46 @@ namespace X_Manager.ConfigurationWindows
 
 			st.dEnabled.IsChecked = false;
 			st.dDisabled.IsChecked = true;
-			if ((conf[138] == 1))
+			if (conf[138] == 1)
 			{
 				st.dDisabled.IsChecked = false;
 				st.dEnabled.IsChecked = true;
 			}
 
-			st.adcRecording.IsChecked = false;
-			if ((conf[139] == 1)) st.adcRecording.IsChecked = true;
+			if (unit is AxyTrekR)
+			{
 
-			st.magMinB.Content = "<";
-			if ((conf[160] & (byte)4) == 4) st.magMinB.Content = ">";
+				byte[] rOn = new byte[] { 0, 3, 5, 10, 15, 20, 25, 30 };
+				st.radarOnTimeCB.SelectedIndex = Array.IndexOf(rOn, conf[139]);
 
-			st.adcTrigger.IsChecked = false;
-			if ((conf[160] & (byte)8) == 8) st.adcTrigger.IsChecked = true;
+				int[] rPer = new int[] { 10, 20, 30, 60, 300, 600, 1800, 3600 };
+				st.radarPeriodCB.SelectedIndex = Array.IndexOf(rPer, conf[160] * 256 + conf[161]);
+			}
+			else
+			{
+				st.adcRecording.IsChecked = false;
+				if (conf[139] == 1) st.adcRecording.IsChecked = true;
 
-			st.ADCValueUD.Value = ((conf[160] & 3) * 256) + conf[161];
+				st.magMinB.Content = "<";
+				if ((conf[160] & 4) == 4) st.magMinB.Content = ">";
+
+				st.adcTrigger.IsChecked = false;
+				if ((conf[160] & 8) == 8) st.adcTrigger.IsChecked = true;
+
+				st.ADCValueUD.Value = ((conf[160] & 3) * 256) + conf[161];
+			}
 
 			st.startDelayNud.Value = (conf[140] * 256) + conf[141];
 
-			if ((firmTotB < 3002000))
+			if (firmTotB_loc < 3002000)
 			{
-				if ((st.startDelayNud.Value == 0)) st.setSdRb(0);
+				if (st.startDelayNud.Value == 0) st.setSdRb(0);
 				else st.setSdRb(1);
 			}
 			else
 			{
 				st.setSdRb(conf[142]);
-				st.setSdDate(new double[] { ((double)conf[143] + 2000), (double)conf[144], (double)conf[145] });
+				st.setSdDate(new double[] { (double)conf[143] + 2000, conf[144], conf[145] });
 			}
 
 			WeeklyCheck.IsChecked = true;
@@ -245,8 +275,8 @@ namespace X_Manager.ConfigurationWindows
 			manageSensorAppearance(ref st);
 			manageStartDelayAppearance(ref st);
 
-			TrekRemoteIntervals rtClone = (TrekRemoteIntervals)((TrekRemoteIntervals)(((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content)).Clone();
-			
+			TrekRemoteIntervals rtClone = (TrekRemoteIntervals)((TrekRemoteIntervals)((TabItem)ScheduleTab.Items.GetItemAt(8)).Content).Clone();
+
 			ScheduleTab.Items.RemoveAt(7);
 			try
 			{
@@ -269,7 +299,7 @@ namespace X_Manager.ConfigurationWindows
 
 
 			TrekRemoteIntervals rt = null;
-			if (firmTotB > 3003999)
+			if (firmTotB_loc > 3003999)
 			{
 				rt = new TrekRemoteIntervals(this);
 				double[] rem = new double[23];
@@ -277,7 +307,7 @@ namespace X_Manager.ConfigurationWindows
 				rt.import(rem);
 
 				//rt.impo
-				
+
 			}
 			else
 			{
@@ -295,7 +325,7 @@ namespace X_Manager.ConfigurationWindows
 
 			r.Content = rt;
 			ScheduleTab.Items.Add(r);
-			if (firmTotB < 3004000)
+			if (firmTotB_loc < 3004000)
 			{
 				((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
 			}
@@ -351,12 +381,26 @@ namespace X_Manager.ConfigurationWindows
 				catch { }
 			}
 			conf[138] = 0; if ((bool)st.dEnabled.IsChecked) conf[138] = 1;
-			conf[139] = 0; if ((bool)st.adcRecording.IsChecked) conf[139] = 1;
 
-			conf[160] = (byte)(((UInt16)st.ADCValueUD.Value) >> 8);
-			conf[161] = (byte)(((UInt16)st.ADCValueUD.Value) & 0xff);
-			if ((string)st.magMinB.Content == ">") conf[160] += 4;
-			if ((bool)st.adcTrigger.IsChecked) conf[160] += 8;
+			if (unit is AxyTrekR)
+			{
+				byte[] rOn = new byte[] { 0, 3, 5, 10, 15, 20, 25, 30 };
+				conf[139] = rOn[st.radarOnTimeCB.SelectedIndex];
+
+				int[] rPer = new int[] { 10, 20, 30, 60, 300, 600, 1800, 3600 };
+				int val = rPer[st.radarPeriodCB.SelectedIndex];
+				conf[160] = (byte)(val >> 8);
+				conf[161] = (byte)(val & 0xff);
+			}
+			else
+			{
+				conf[139] = 0; if ((bool)st.adcRecording.IsChecked) conf[139] = 1;
+
+				conf[160] = (byte)(((UInt16)st.ADCValueUD.Value) >> 8);
+				conf[161] = (byte)(((UInt16)st.ADCValueUD.Value) & 0xff);
+				if ((string)st.magMinB.Content == ">") conf[160] += 4;
+				if ((bool)st.adcTrigger.IsChecked) conf[160] += 8;
+			}
 
 			conf[140] = (byte)(((UInt16)st.startDelayNud.Value) >> 8);
 			conf[141] = (byte)(((UInt16)st.startDelayNud.Value) & 0xff);
@@ -364,7 +408,7 @@ namespace X_Manager.ConfigurationWindows
 			if ((bool)st.ByTimeRB.IsChecked) conf[142] = 1;
 			else if ((bool)st.ByDateRB.IsChecked) conf[142] = 2;
 
-			if (firmTotB < 3002000)
+			if (firmTotB_loc < 3002000)
 			{
 				if ((bool)st.OffRB.IsChecked)
 				{
@@ -401,7 +445,7 @@ namespace X_Manager.ConfigurationWindows
 			conf[171] = (byte)st.acq2Nud.Value;
 
 			//Finestre remoto
-			if (firmTotB > 3003999)
+			if (firmTotB_loc > 3003999)
 			{
 				double[] rem = ((TrekRemoteIntervals)((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content).export();
 				conf[172] = (byte)rem[0];
@@ -421,7 +465,7 @@ namespace X_Manager.ConfigurationWindows
 			{
 				res = false;
 				MessageBox.Show(ex.Message);
-				this.Close();
+				Close();
 				return;
 			}
 
@@ -461,7 +505,7 @@ namespace X_Manager.ConfigurationWindows
 			TrekSettingsTab tt = new TrekSettingsTab(this);
 			manageSensorAppearance(ref tt);
 			manageStartDelayAppearance(ref tt);
-			((TabItem)(ScheduleTab.Items.GetItemAt(7))).Content = tt;
+			((TabItem)ScheduleTab.Items.GetItemAt(7)).Content = tt;
 
 			TrekRemoteIntervals tr = new TrekRemoteIntervals(this);
 			tr.import(new double[23]);
@@ -536,14 +580,14 @@ namespace X_Manager.ConfigurationWindows
 			openSchedule.Filter = ("Schedule Files|*.sch");
 			if ((bool)openSchedule.ShowDialog())
 			{
-				importSchedule(openSchedule.FileName);
+				importSchedule(openSchedule.FileName, true);
 				X_Manager.Parent.updateParameter("trekScheduleOpenPath", System.IO.Path.GetDirectoryName(openSchedule.FileName));
 				//MainWindow.lastSettings[2] = System.IO.Path.GetDirectoryName(openSchedule.FileName);
 				//System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
 			}
 		}
 
-		private bool importSchedule(string fileName)
+		private bool importSchedule(string fileName, bool checkCompatibility)
 		{
 			System.IO.BinaryReader fi = new System.IO.BinaryReader(System.IO.File.Open(fileName, System.IO.FileMode.Open));
 			string header = "";
@@ -557,17 +601,51 @@ namespace X_Manager.ConfigurationWindows
 				return false;
 			}
 
-			if ((header != "TSM-TREK"))
+			if (!header.Contains("TSM-TREK"))
 			{
 				fi.Close();
 				return false;
 			}
 
+			Unit importUnit = null;
+			switch (header.Substring(8))
+			{
+				case "":
+				case "N":
+					importUnit = new AxyTrekN(mw);
+					break;
+				case "CO2":
+					importUnit = new AxyTrekCO2(mw);
+					break;
+				case "R":
+					importUnit = new AxyTrekR(mw);
+					break;
+				case "FT":
+					importUnit = new AxyTrekFT(mw);
+					break;
+				case "HD":
+					importUnit = new AxyTrekHD(mw);
+					break;
+			}
+
+			if (connected)
+			{
+				if (importUnit.modelCode != unit.modelCode)
+				{
+					if (checkCompatibility)
+					{
+						MessageBox.Show("WARNING: the selected configuration belongs to a different AxyTrek type.");
+					}
+					fi.Close();
+					return false;
+				}
+			}
+
 			double high = fi.ReadDouble();
 			double low = fi.ReadDouble();
-			if ((high < 3))
+			if (high < 3)
 			{
-				if ((low < 9))
+				if (low < 9)
 				{
 					fi.Close();
 					return false;
@@ -581,13 +659,13 @@ namespace X_Manager.ConfigurationWindows
 			{
 				for (int valCount = 0; (valCount <= 15); valCount++)
 				{
-					schS[valCount] = (sbyte)(fi.ReadDouble());
+					schS[valCount] = (sbyte)fi.ReadDouble();
 				}
 				((DayTab)((TabItem)ScheduleTab.Items.GetItemAt(dayCount)).Content).import(schS);
 			}
 
 			double[] setD = new double[23];
-			for (int valcount = 0; (valcount <= 7); valcount++)
+			for (int valcount = 0; valcount <= 7; valcount++)
 			{
 				setD[valcount] = fi.ReadDouble();
 			}
@@ -643,17 +721,26 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 
-			if ((dw == 1)) DailyCheck.IsChecked = true;
+			if (dw == 1) DailyCheck.IsChecked = true;
 			else WeeklyCheck.IsChecked = true;
 
-			var settingTab = ((TrekSettingsTab)((TabItem)(ScheduleTab.Items.GetItemAt(7))).Content);
+			((TabItem)ScheduleTab.Items.GetItemAt(7)).Content = null;
+			var settingTab = new TrekSettingsTab(this);
 			settingTab.import(setD);
+			//var settingTab = (TrekSettingsTab)((TabItem)ScheduleTab.Items.GetItemAt(7)).Content;
+			//settingTab.import(setD);
 			manageSensorAppearance(ref settingTab);
 			manageStartDelayAppearance(ref settingTab);
+			((TabItem)ScheduleTab.Items.GetItemAt(7)).Content = settingTab;
+			((TabItem)ScheduleTab.Items.GetItemAt(7)).Header = "Settings";
+			((TabItem)ScheduleTab.Items.GetItemAt(7)).Name = "Settings";
 
-			var remoteTab = ((TrekRemoteIntervals)((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content);
+			var remoteTab = (TrekRemoteIntervals)((TabItem)ScheduleTab.Items.GetItemAt(8)).Content;
 			remoteTab.import(setD);
 			fi.Close();
+
+			//unit = null;
+			importUnit = null;
 
 			return true;
 		}
@@ -663,6 +750,26 @@ namespace X_Manager.ConfigurationWindows
 			var fo = new System.IO.BinaryWriter(System.IO.File.Open(fileName, System.IO.FileMode.Create));
 
 			string header = "TSM-TREK";
+			if (unit is AxyTrekN)
+			{
+				header += "N";
+			}
+			else if (unit is AxyTrekCO2)
+			{
+				header += "CO2";
+			}
+			else if (unit is AxyTrekFT)
+			{
+				header += "FT";
+			}
+			else if (unit is AxyTrekHD)
+			{
+				header += "HD";
+			}
+			else if (unit is AxyTrekR)
+			{
+				header += "R";
+			}
 			fo.Write(header);
 			double dw = 2;
 			fo.Write(dw);
@@ -675,7 +782,7 @@ namespace X_Manager.ConfigurationWindows
 			double[] schedD = new double[16];
 			for (int ccount = 0; ccount <= 6; ccount++)
 			{
-				var dt = ((DayTab)((TabItem)(ScheduleTab.Items.GetItemAt(ccount))).Content);
+				var dt = (DayTab)((TabItem)ScheduleTab.Items.GetItemAt(ccount)).Content;
 				schedD = dt.export();
 				for (int dCount = 0; dCount <= 15; dCount++)
 				{
@@ -683,14 +790,14 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			var dt2 = ((TrekSettingsTab)((TabItem)(ScheduleTab.Items.GetItemAt(7))).Content);
+			var dt2 = (TrekSettingsTab)((TabItem)ScheduleTab.Items.GetItemAt(7)).Content;
 			double[] setD = dt2.export();
 			foreach (double value in setD)
 			{
 				fo.Write(value);
 			}
 
-			var dt3 = ((TrekRemoteIntervals)((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content);
+			var dt3 = (TrekRemoteIntervals)((TabItem)ScheduleTab.Items.GetItemAt(8)).Content;
 			double[] setR = dt3.export();
 			foreach (double value in setR)
 			{
@@ -704,10 +811,10 @@ namespace X_Manager.ConfigurationWindows
 		{
 			if (unitConnected)
 			{
-				if (firmTotB > 3000000) tt.switchToAdc();
+				if (firmTotB_loc > 3000000) tt.switchToAdc();
 				else
 				{
-					if (firmTotB > 2000000) tt.disableWaterControl();
+					if (firmTotB_loc > 2000000) tt.disableWaterControl();
 				}
 			}
 			else tt.switchToAdc();
@@ -717,7 +824,7 @@ namespace X_Manager.ConfigurationWindows
 		{
 			if (unitConnected)
 			{
-				if (firmTotB > 3002000) tt.SdByDateSP.Visibility = Visibility.Visible;
+				if (firmTotB_loc > 3002000) tt.SdByDateSP.Visibility = Visibility.Visible;
 				else
 				{
 					tt.SdByDateSP.Visibility = Visibility.Hidden;

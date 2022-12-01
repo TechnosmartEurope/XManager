@@ -11,7 +11,7 @@ using System.Windows;
 
 namespace X_Manager.Units.AxyTreks
 {
-	class AxyTrekCO2 : AxyTrek
+	internal class AxyTrekR : AxyTrek
 	{
 		struct timeStamp
 		{
@@ -23,9 +23,6 @@ namespace X_Manager.Units.AxyTreks
 			public double temperature;
 			public double press;
 			public double pressOffset;
-			public double co2co2;
-			public double co2temp;
-			public double co2hum;
 			public Coord coord;
 			public int timeStampLength;
 			public DateTime orario;
@@ -39,10 +36,10 @@ namespace X_Manager.Units.AxyTreks
 			public long ardPosition;
 		}
 
-		public AxyTrekCO2(object p)
+		public AxyTrekR(object p)
 			: base(p)
 		{
-			modelCode = model_axyTrekCO2;
+			modelCode = model_axyTrekR;
 		}
 
 		public override void getCoeffs()
@@ -92,10 +89,17 @@ namespace X_Manager.Units.AxyTreks
 					conf[i] = ft.ReadByte();
 				}
 				conf[22] = ft.ReadByte();
-				conf[23] = ft.ReadByte();
-				for (int i = 25; i < 29; i++)
+				if (firmTotA > 2000000)
 				{
-					conf[i] = ft.ReadByte();
+					conf[23] = (byte)ft.ReadByte();
+				}
+				if (firmTotA >= 3008000)
+				{
+					for (int i = 25; i < 29; i++)
+					{
+						conf[i] = ft.ReadByte();
+					}
+
 				}
 			}
 			catch
@@ -103,53 +107,6 @@ namespace X_Manager.Units.AxyTreks
 				throw new Exception(unitNotReady);
 			}
 			return conf;
-		}
-
-		public override void setConf(byte[] conf)
-		{
-			ft.Write("TTTTTTTTTGGAc");
-			try
-			{
-				ft.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-
-			ft.Write(conf, 2, 3);
-			ft.Write(conf, 15, 7);
-			ft.Write(conf, 22, 2);
-			ft.Write(conf, 25, 4);
-
-			try
-			{
-				ft.ReadByte();
-				ft.ReadExisting();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-			if (!evitaSoglie)
-			{
-				uint[] soglie = calcolaSoglieDepth();
-				ft.Write("TTTTTTTTTTGGAG");
-				try
-				{
-					ft.ReadByte();
-				}
-				catch
-				{
-					throw new Exception(unitNotReady);
-				}
-				for (int s = 0; s <= 16; s++)
-				{
-					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[2] }, 0, 1);
-					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[1] }, 0, 1);
-					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[0] }, 0, 1);
-				}
-			}
 		}
 
 		public override void convert(string fileName, string[] prefs)
@@ -187,7 +144,7 @@ namespace X_Manager.Units.AxyTreks
 			List<long> sesAdd = convertFillSessionList(exten, ardFile);
 			int sesMax = sesAdd.Count;
 			int sesCounter = 1;
-			
+
 			bool headerMissing = true;
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => barStatus = (string)parent.statusLabel.Content));
@@ -248,10 +205,7 @@ namespace X_Manager.Units.AxyTreks
 				//Legge i coefficienti di profondità
 				//ard.BaseStream.Position = pos;
 				convCoeffs = new double[] { 0, 0, 0, 0, 0, 0 };
-				for (int u = 0; u <= 5; u++)
-				{
-					convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
-				}
+				for (int u = 0; u <= 5; u++) convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
 
 				//Legge i parametri di logging
 				checkTdEn((byte)ard.ReadByte(), this, exten);
@@ -550,28 +504,37 @@ namespace X_Manager.Units.AxyTreks
 				tsc.tsTypeExt1 = 0;
 			}
 
-			//Parametri CO2
+			//Temperatura (eventualmente anche pressione)
 			if ((tsc.tsType & 2) == 2)
 			{
-				tsc.co2co2 = ard.ReadByte() * 256 + ard.ReadByte();
-				tsc.co2temp = ard.ReadByte() * 256 + ard.ReadByte();
-				tsc.co2temp = -45 + 175 * tsc.co2temp / 65536.0;
-
-				tsc.co2hum = ard.ReadByte() * 256 + ard.ReadByte();
-				tsc.co2hum = 100 * tsc.co2hum / 65536;
-			}
-
-			//Pressione e temperatura sensore MS5837
-			if ((tsc.tsType & 4) == 4)
-			{
-
-				if (isDepth == 1)
+				tsc.slowData++;
+				if (temperatureEnabled == 2)
 				{
-					if (pressureDepth5837(ref ard, ref tsc.temperature, ref tsc.press, tsc.pressOffset, ref tsc.tsType)) return;
+					tsc.temperature = ard.ReadByte() + ard.ReadByte() * 256;
+					tsc.temperature = (uint)tsc.temperature >> 6;
+					if (tsc.temperature > 511)
+					{
+						tsc.temperature -= 1024;
+					}
+					tsc.temperature = (tsc.temperature * 0.1221) + 22.5;
 				}
 				else
 				{
-					if (pressureAir(ref ard, ref tsc.temperature, ref tsc.press, tsc.pressOffset, ref tsc.tsType)) return;
+					if (isDepth == 1)
+					{
+						if (fTotA > 2000000)
+						{
+							if (pressureDepth5837(ref ard, ref tsc.temperature, ref tsc.press, tsc.pressOffset, ref tsc.tsType)) return;
+						}
+						else
+						{
+							if (pressureDepth5803(ref ard, ref tsc.temperature, ref tsc.press, tsc.pressOffset, ref tsc.tsType)) return;
+						}
+					}
+					else
+					{
+						if (pressureAir(ref ard, ref tsc.temperature, ref tsc.press, tsc.pressOffset, ref tsc.tsType)) return;
+					}
 				}
 			}
 
@@ -790,30 +753,16 @@ namespace X_Manager.Units.AxyTreks
 
 			if (pressureEnabled > 0)
 			{
-				contoTab += 2;
-				if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues)
-				{
-					additionalInfo += csvSeparator + tsLoc.temperature.ToString("0.0", nfi);
-					additionalInfo += csvSeparator + tsLoc.press.ToString("0.00", nfi);
-				}
-				else
-				{
-					additionalInfo += csvSeparator + csvSeparator;
-				}
+				contoTab += 1;
+				additionalInfo += csvSeparator;
+				if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
 			}
-
-			contoTab += 3;
-			if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues)
+			if (temperatureEnabled > 0)
 			{
-				additionalInfo += csvSeparator + tsLoc.co2co2.ToString();
-				additionalInfo += csvSeparator + tsLoc.co2temp.ToString("0.00", nfi);
-				additionalInfo += csvSeparator + tsLoc.co2hum.ToString("0.00", nfi);
+				contoTab += 1;
+				additionalInfo += csvSeparator;
+				if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
 			}
-			else
-			{
-				additionalInfo += csvSeparator + csvSeparator + csvSeparator;
-			}
-
 
 			//Inserire la coordinata.
 			contoTab += 7;
@@ -956,6 +905,12 @@ namespace X_Manager.Units.AxyTreks
 			byte timeStamp1 = 0;
 			uint secondiAdd = 0;
 			byte[] coordinate = new byte[22];
+			int noByteTemper = 3;
+			if (temperatureEnabled == 2)
+			{
+				noByteTemper = 2;
+			}
+
 
 			//br.BaseStream.Position = 7;
 			//if (br.ReadByte() == 0) br.BaseStream.Position = 25;
@@ -980,8 +935,8 @@ namespace X_Manager.Units.AxyTreks
 						double ppos = br.Position;
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ppos));
 						if ((timeStamp0 & 1) == 1) timeStamp1 = (byte)br.ReadByte();
-						if ((timeStamp0 & 2) == 2) br.Position += 6;
-						if ((timeStamp0 & 4) == 4) br.Position += 6;
+						if ((timeStamp0 & 2) == 2) br.Position += noByteTemper;
+						if ((timeStamp0 & 4) == 4) br.Position += 3;
 						if ((timeStamp0 & 8) == 8) br.Position += 2;
 						if ((timeStamp0 & 16) == 16)
 						{
@@ -1086,7 +1041,6 @@ namespace X_Manager.Units.AxyTreks
 
 			if (pressureEnabled > 0)
 			{
-				csvHeader += csvSeparator + "Temp. (°C)";
 				if (inMeters)
 				{
 					if (isDepth == 1)
@@ -1104,12 +1058,14 @@ namespace X_Manager.Units.AxyTreks
 					csvHeader = csvHeader + csvSeparator + "Pressure";
 				}
 			}
-
-			csvHeader = csvHeader + csvSeparator + "CO2" + csvSeparator + "Temp (°C) - CO2" + csvSeparator + "Humidity";
+			if (temperatureEnabled > 0)
+			{
+				csvHeader += csvSeparator + "Temp. (°C)";
+			}
 
 			csvHeader += csvSeparator + "location-lat" + csvSeparator + "location-lon" + csvSeparator + "height-msl"
 				+ csvSeparator + "ground-speed" + csvSeparator + "satellites" + csvSeparator + "hdop" + csvSeparator + "signal-strength";
-			if (adcLog) csvHeader += csvSeparator + "Sensor Raw";
+			if (adcLog) csvHeader += csvSeparator + "Radar Signal RAW";
 			if (adcStop) csvHeader += csvSeparator + "Sensor State";
 			if (prefBattery) csvHeader += csvSeparator + "Battery (V)";
 			if (metadata) csvHeader += csvSeparator + "Metadata";

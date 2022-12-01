@@ -1,70 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-//using System.Threading.Tasks;
-using System.Windows;
+using System.Threading.Tasks;
 using System.Windows.Threading;
-using System.IO;
-//using FTD2XX_NET;
-using System.Runtime.InteropServices;
-using System.Globalization;
-//using System.Diagnostics;
-#if X64
-using FT_HANDLE = System.UInt64;
-#else
-using FT_HANDLE = System.UInt32;
-#endif
+using System.Windows;
 
 namespace X_Manager.Units.AxyTreks
 {
 	class AxyTrekHD : AxyTrek
 	{
-		ushort[] coeffs = new ushort[7];
-		//double[] convCoeffs = new double[7];
 		double pressZero, pressSpan, tempZero, tempSpan, pressTcoeff;
-		bool disposed = false;
-		new byte[] firmwareArray = new byte[6];
 		struct timeStamp
 		{
 			public int tsType;
 			public int tsTypeExt1;
 			public int tsTypeExt2;
-			public int ore;
-			public int secondi;
-			public int minuti;
-			public int anno;
-			public int mese;
-			public int giorno;
+			public Data data;
 			public double batteryLevel;
 			public double temperature;
 			public double press;
 			public double pressOffset;
-			public int altL;
-			public int altH;
-			public int altSegno;
-			public int eo;
-			public int ns;
-			public int latGradi;
-			public int latMinuti;
-			public int latMinDecH;
-			public int latMinDecL;
-			public int latMinDecLL;
-			public int lonGradi;
-			public int lonMinuti;
-			public int lonMinDecH;
-			public int lonMinDecL;
-			public int lonMinDecLL;
-			public int DOP;
-			public int DOPdec;
-			public int nSat;
-			public int vel;
+			public Coord coord;
 			public int timeStampLength;
 			public DateTime orario;
 			public int gsvSum;
 			public byte[] eventAr;
-			//public bool isEvent;
 			public int stopEvent;
 			public int inWater;
 			public int inAdc;
@@ -73,209 +37,14 @@ namespace X_Manager.Units.AxyTreks
 			public long ardPosition;
 		}
 
-		public struct coordKml
-		{
-			public string cSstring;
-			public string cPlacemark;
-			public string cName;
-			public string cClass;
-		}
-
-		bool adcLog = false;
-		bool adcStop = false;
-		ushort adcThreshold = 0;
-		//bool adcMagmin = false;
-		uint contoCoord;
-
-		bool addGpsTime;
-		//uint sogliaNeg;
-		//uint rendiNeg;
-		double gCoeff;
-		bool angloTime = false;
-		bool bits;
-		byte bitsDiv;
-		string dateFormatParameter;
-		byte dateFormat;
-		//byte timeFormat;
-		bool inMeters = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
-		int isDepth = 1;
-		byte range;
-		ushort rate;
-		bool primaCoordinata;
-		bool sameColumn = false;
-		int temperatureEnabled;
-		int pressureEnabled;
-		ushort addMilli;
-		int debugStampId = 13;
-		int debugStampLenght = 15;
-		//byte cifreDec;
-		string cifreDecString;
-		//ushort groupCountOriginal = 0;
-		//uint fixSequenceNumber = 0;
-		//uint positionInFile = 0;
-		bool metadata;
-		bool oldUnitDebug = false;
-		int leapSeconds;
-
-		DateTime nullDate = new DateTime(1970, 1, 1, 0, 0, 0);
-		DateTime recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
-
 		public AxyTrekHD(object p)
-			: base(p)
+					: base(p)
 		{
-			positionCanSend = true;
-			configurePositionButtonEnabled = true;
 			modelCode = model_axyTrekHD;
-			//modelName = "Axy-Quattrok";
-		}
-
-		public override string askFirmware()
-		{
-			byte[] f = new byte[6];
-			bool firmValid = false;
-			int tentativi = 0;
-			string firmware = "";
-			uint oldTimeOut = ft.ReadTimeout;
-
-			ft.ReadTimeout = 50;
-			while ((!firmValid) && (tentativi < 5))
-			{
-				ft.ReadExisting();
-				ft.Write("TTTTTTTGGAF");
-				ft.ReadTimeout = 400;
-				Thread.Sleep(600);
-				f[0] = f[1] = f[2] = f[3] = f[4] = f[5] = 0xff;
-				try
-				{
-					for (int i = 0; i < 6; i++)
-					{
-						f[i] = (byte)ft.ReadByte();
-					}
-				}
-				catch { Thread.Sleep(1200); }
-				tentativi += 1;
-				firmValid = true;
-				foreach (byte b in f)
-				{
-					if (b == 0xff)
-					{
-						firmValid = false;
-						Thread.Sleep(400);
-						break;
-					}
-				}
-			}
-
-			if (firmValid)
-			{
-				firmTotA = f[0] * (uint)1000000 + f[1] * (uint)1000 + f[2];
-				firmTotB = f[3] * (uint)1000000 + f[4] * (uint)1000 + f[5];
-				firmware = "a" + f[0].ToString() + "." + f[1].ToString() + "." + f[2].ToString();
-				firmware += "b" + f[3].ToString() + "." + f[4].ToString() + "." + f[5].ToString();
-				firmwareArray = f;
-			}
-			else
-			{
-				throw new Exception(unitNotReady);
-			}
-			ft.ReadTimeout = oldTimeOut;
-			return firmware;
-		}
-
-		public override string askBattery()
-		{
-			string battery = "";
-			double battLevel;
-			ft.Write("TTTTGGAB");
-			try
-			{
-				battLevel = ft.ReadByte(); battLevel *= 256;
-				battLevel += ft.ReadByte();
-				battLevel *= 6;
-				battLevel /= 4096;
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-			battery = battLevel.ToString("0.00") + "V";
-			return battery;
-		}
-
-		public override string askName()
-		{
-			string unitNameBack;
-			try
-			{
-				ft.Write("TTTTTTTGGAN");
-				unitNameBack = ft.ReadLine();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-			name = formatName(unitNameBack);
-			return name;
-		}
-
-		public override uint[] askMaxMemory()
-		{
-			UInt32 m;
-			ft.Write("TTTTTTTGGAm");
-			try
-			{
-				m = ft.ReadByte(); m *= 256;
-				m += ft.ReadByte(); m *= 256;
-				m += ft.ReadByte(); m *= 256;
-				m += ft.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-			mem_max_physical_address = m;
-			mem_min_physical_address = 0;
-			return new uint[] { mem_min_physical_address, mem_max_physical_address };
-
-		}
-
-		public override uint[] askMemory()
-		{
-			UInt32 m;
-			ft.Write("TTTTTTTGGAM");
-			try
-			{
-				m = ft.ReadByte(); m *= 256;
-				m += ft.ReadByte(); m *= 256;
-				m += ft.ReadByte(); m *= 256;
-				m += ft.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-			mem_address = m;
-			mem_max_logical_address = 0;
-			return new uint[] { mem_max_logical_address, mem_address };
-		}
-
-		public override void eraseMemory()
-		{
-			ft.Write("TTTTTTTTGGAE");
-			try
-			{
-				ft.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
 		}
 
 		public override void getCoeffs()
-		{}
+		{ }
 
 		public override byte[] getConf()
 		{
@@ -334,944 +103,55 @@ namespace X_Manager.Units.AxyTreks
 			}
 		}
 
-		public override bool getRemote()
-		{
-			if (firmTotA > 3001000)
-			{
-				ft.Write("TTTTTTTTTTGGAl");
-				try
-				{
-					if (ft.ReadByte() == 1) remote = true;
-				}
-				catch { throw new Exception(unitNotReady); }
-			}
-			return remote;
-		}
-
-		public override bool isSolar()
-		{
-			if (firmTotA >= 3008001)
-			{
-				ft.Write("TTTTTTTTTTGGAi");
-				try
-				{
-					if (ft.ReadByte() == 1) solar = true;
-				}
-				catch { throw new Exception(unitNotReady); }
-			}
-			return remote;
-		}
-
-		public override void abortConf()
-		{
-
-		}
-
-		public override byte[] getGpsSchedule()
-		{
-			byte[] schedule = new byte[200];
-			ft.Write("TTTTTTTTTTTTTGGAS");
-			Thread.Sleep(200);
-			try
-			{
-				for (int i = 0; i <= 63; i++) { schedule[i] = (byte)ft.ReadByte(); }
-				if (remote) ft.Write(new byte[] { 2 }, 0, 1);
-
-				for (int i = 64; i <= 127; i++) { schedule[i] = (byte)ft.ReadByte(); }
-				if (remote) ft.Write(new byte[] { 2 }, 0, 1);
-
-				for (int i = 128; i <= 171; i++) { schedule[i] = (byte)ft.ReadByte(); }
-				if (firmTotB > 3003999)
-				{
-					for (int i = 172; i <= 178; i++) { schedule[i] = (byte)ft.ReadByte(); }
-				}
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-			return schedule;
-
-		}
-
-		public override void setGpsSchedule(byte[] schedule)
-		{
-			ft.Write("TTTTTTTTTTTTTGGAs");
-			Thread.Sleep(200);
-			try
-			{
-				ft.ReadByte();
-				ft.Write(schedule, 0, 64);
-				if (remote) ft.ReadByte();
-				ft.Write(schedule, 64, 64);
-				if (remote) ft.ReadByte();
-				if (firmTotB < 3004000)
-				{
-					ft.Write(schedule, 128, 44);
-				}
-				else
-				{
-					ft.Write(schedule, 128, 51);
-				}
-
-				Thread.Sleep(200);
-				ft.ReadByte();
-			}
-			catch
-			{
-				throw new Exception(unitNotReady);
-			}
-		}
-
-		public override void setName(string newName)
-		{
-			if (newName.Length < 10)
-			{
-				for (int i = newName.Length; i < 10; i++) newName += " ";
-				ft.Write("TTTTTTTGGAn");
-				try
-				{
-					ft.ReadByte();
-				}
-				catch
-				{
-					throw new Exception(unitNotReady);
-				}
-				ft.WriteLine(newName);
-			}
-		}
-
-		public override void disconnect()
-		{
-			base.disconnect();
-			if (!(bool)ft.IsOpen)
-			{
-				ft.Open();
-			}
-			ft.Write("TTTTTTTGGAO");
-		}
-
-		private uint[] calcolaSoglieDepth()
-		{
-			uint[] soglie = new uint[18];
-			double[] temps = new double[] { -15, -10, 0, 10, 20, 30, 40, 50 };
-			double[] tempsInt = new double[] { -18, -12, -5, 5, 15, 25, 35, 45, 55 };
-
-			for (int i = 0; i <= 7; i++) soglie[i] = (uint)guessD2(temps[i]);
-
-			for (int i = 8; i <= 16; i++) soglie[i] = guessD1(guessD2(tempsInt[i - 8]), 1520);
-
-			soglie[17] = 1;
-			return soglie;
-		}
-
-		private double guessD2(double t)
-		{
-			double max = 16777215;
-			double min = 0;
-			double d2 = (max - min) / 2;
-			double temp;
-
-			while (Math.Abs(max - min) > 4)
-			{
-				temp = pTemp(d2);
-				if (temp > t) max = d2;
-				else min = d2;
-				d2 = ((max - min) / 2) + min;
-			}
-			return d2;
-		}
-
-		private uint guessD1(double d2, double p)
-		{
-			double max = 16777215;
-			double min = 0;
-			double d1 = (max - min) / 2;
-			double press;
-
-			while (Math.Abs(max - min) > 4)
-			{
-				press = pDepth(d1, d2);
-				if (press > p) max = d1;
-				else min = d1;
-				d1 = ((max - min) / 2) + min;
-			}
-			return (uint)d1;
-		}
-
-		private double pDepth(double d1, double d2)
-		{
-			double dT;
-			double off;
-			double sens;
-			double temp;
-			double[] c = new double[7];
-
-			for (int count = 1; count <= 6; count++)
-			{
-				c[count - 1] = (double)coeffs[count];
-			}
-			dT = d2 - c[4] * 256;
-			temp = 2000 + (dT * c[5]) / 8388608;
-			off = c[1] * 65536 + (c[3] * dT) / 128;
-			sens = c[0] * 32768 + (c[2] * dT) / 256;
-			if (temp > 2000)
-			{
-				temp -= ((2 * Math.Pow(dT, 2)) / 137438953472);
-				off -= ((Math.Pow((temp - 2000), 2)) / 16);
-			}
-			else
-			{
-				off -= 3 * ((Math.Pow((temp - 2000), 2)) / 2);
-				sens -= 5 * ((Math.Pow((temp - 2000), 2)) / 8);
-				if (temp < -1500)
-				{
-					off -= 7 * Math.Pow((temp + 1500), 2);
-					sens -= 4 * Math.Pow((temp + 1500), 2);
-				}
-				temp -= (3 * (Math.Pow(dT, 2))) / 8589934592;
-			}
-			sens = d1 * sens / 2097152;
-			sens -= off;
-			sens /= 81920;
-			return sens;
-		}
-
-		private double pTemp(double d2)
-		{
-			double ti;
-			double dt;
-			double temp;
-			double[] c = new double[7];
-
-			for (int count = 1; count <= 6; count++)
-			{
-				c[count] = (double)coeffs[count];
-			}
-			dt = d2 - c[5] * 256;
-			temp = 2000 + ((dt * c[6]) / 8388608);
-			if ((temp / 100) < 20) ti = 3 * (Math.Pow(dt, 2)) / 8388608;
-			else ti = 2 * (Math.Pow(dt, 2)) / 137438953472;
-			temp = (temp - ti) / 100;
-			return temp;
-		}
-
-		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
-		{
-			convertStop = false;
-			uint actMemory = fromMemory;
-			System.IO.FileMode fm = FileMode.Create;
-			if (fromMemory != 0) fm = FileMode.Append;
-			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
-			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
-
-			string command = "e";
-			if (firmTotA < 1000007) command = "D";
-
-			ft.Write("TTTTTTTTTTTTGGA" + command);
-			try
-			{
-				ft.ReadByte();
-			}
-			catch
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
-
-			Thread.Sleep(50);
-			if (command == "D") ft.BaudRate = MainWindow.Baudrate_3M;
-			else
-			{
-				byte b = (byte)(baudrate / 1000000);
-				ft.Write(new byte[] { b }, 0, 1);
-				Thread.Sleep(100);
-				ft.BaudRate = (uint)baudrate;
-				Thread.Sleep(100);
-			}
-
-			Thread.Sleep(200);
-			ft.Write("S");
-			Thread.Sleep(1000);
-			int dieCount = ft.ReadByte();
-			if (dieCount == 0x53) dieCount = 2;     //S
-			if (dieCount == 0x73) dieCount = 1;     //s
-			if ((dieCount != 1) & (dieCount != 2))
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
-
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
-
-			//MainWindow.FT_STATUS FT_Status;
-			//FT_HANDLE FT_Handle = 0;
-			byte[] outBuffer = new byte[50];
-			byte[] inBuffer = new byte[4096];
-			byte[] tempBuffer = new byte[2048];
-			byte[] address = new byte[8];
-
-			uint bytesToWrite = 0;
-			int bytesReturned = 0;
-
-			ft.BaudRate = (uint)baudrate;
-			bool firstLoop = true;
-			bool mem4 = false;
-			if (firmTotA > 2999999) mem4 = true;
-			bool success = true;
-			while (actMemory < toMemory)
-			{
-				if (((actMemory % 0x2000000) == 0) | (firstLoop))
-				{
-					address = BitConverter.GetBytes(actMemory);
-					Array.Reverse(address);
-					Array.Copy(address, 0, outBuffer, 1, 3);
-					outBuffer[0] = 65;  //A
-					bytesToWrite = 4;
-					firstLoop = false;
-				}
-				else
-				{
-					outBuffer[0] = 79;
-					bytesToWrite = 1;
-				}
-				ft.Write(outBuffer, bytesToWrite);
-				bytesReturned = ft.Read(inBuffer, 4096);
-				if (bytesReturned < 0)
-				{
-					success = false;
-					break;
-				}
-				else if (bytesReturned < 4096)
-				{
-					firstLoop = true;
-				}
-				else
-				{
-					actMemory += 4096;
-					if (mem4 && ((actMemory % 0x20000) == 0))
-					{
-
-						if (dieCount == 2)
-						{
-							actMemory -= 4096;
-							for (int i = 0; i < 2; i++)
-							{
-								address = BitConverter.GetBytes(actMemory);
-								Array.Reverse(address);
-								Array.Copy(address, 0, outBuffer, 1, 3);
-								outBuffer[0] = 97;
-								bytesToWrite = 4;
-								ft.Write(outBuffer, bytesToWrite);
-								if (ft.Read(inBuffer, 2048) < 0)
-								{
-									success = false;
-									break;
-								}
-								fo.Write(inBuffer, 0, 2048);
-								actMemory += 2048;
-							}
-							if (success == false) break;
-							firstLoop = true;
-						}
-						else
-						{
-							fo.Write(inBuffer, 0, 4096);
-							if ((actMemory % 0x40000) == 0)
-							{
-								firstLoop = true;
-							}
-						}
-
-					}
-					else
-					{
-						fo.Write(inBuffer, 0, 4096);
-					}
-				}
-
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
-
-				if (convertStop) actMemory = toMemory;
-			}
-
-			fo.Write(firmwareArray, 0, 6);
-			fo.Write(new byte[] { model_axyTrekHD, 254 }, 0, 2);
-
-			fo.Close();
-
-			if (!success)
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
-
-			outBuffer[0] = 88;
-			bytesToWrite = 1;
-			ft.Write(outBuffer, bytesToWrite);
-			ft.BaudRate = 115200;
-			if (!convertStop) extractArds(fileNameMdp, fileName, true);
-			else
-			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
-				{
-					try
-					{
-						fDel(fileNameMdp);
-					}
-					catch { }
-				}
-			}
-			Thread.Sleep(300);
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
-		}
-
-		public unsafe override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
-		{
-			convertStop = false;
-			uint actMemory = fromMemory;
-			FileMode fm = FileMode.Create;
-			if (fromMemory != 0) fm = FileMode.Append;
-			string fileNameMdp = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".mdp";
-			var fo = new BinaryWriter(File.Open(fileNameMdp, fm));
-
-			byte mdrSpeed = 9;
-			mdrSpeed = 8;
-			string br = "D";
-			if (mdrSpeed == 9) br = "H";
-			ft.Write("TTTTTTTTTTTTTTGGA" + br);
-			int dieCount = 0;
-			try
-			{
-				ft.ReadByte();
-				Thread.Sleep(100);
-				ft.Write("+++");
-				Thread.Sleep(200);
-				ft.Write(new byte[] { 0x41, 0x54, 0x42, 0x52, mdrSpeed }, 0, 5);
-				Thread.Sleep(200);
-				if (mdrSpeed == 9) ft.BaudRate = 2000000;
-				else ft.BaudRate = 1500000;
-				Thread.Sleep(300);
-				ft.Write("ATX");
-				Thread.Sleep(900);
-				ft.Write("R");
-				//Thread.Sleep(100);
-				dieCount = ft.ReadByte();
-				ft.ReadExisting();
-				if (dieCount == 0x52) dieCount = 2;
-				if (dieCount == 0x72) dieCount = 1;
-				if ((dieCount != 1) & (dieCount != 2))
-				{
-					throw new Exception(unitNotReady);
-				}
-			}
-			catch
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					ft.ReadByte();
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
-
-
-			Thread.Sleep(50);
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButton.IsEnabled = true));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.progressBarStopButtonColumn.Width = new GridLength(80)));
-
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Minimum = 0));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Maximum = toMemory));
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = fromMemory));
-
-			byte[] outBuffer = new byte[50];
-			byte[] inBuffer = new byte[4096];
-			byte[] tempBuffer = new byte[2048];
-			byte[] address = new byte[8];
-
-			uint bytesToWrite = 0;
-			int bytesReturned = 0;
-
-			bool firstLoop = true;
-			bool mem4 = false;
-			bool success = true;
-			if (firmTotA > 2999999) mem4 = true;
-
-			while (actMemory < toMemory)
-			{
-				if (((actMemory % 0x2000000) == 0) | (firstLoop))
-				{
-					address = BitConverter.GetBytes(actMemory);
-					Array.Reverse(address);
-					Array.Copy(address, 0, outBuffer, 1, 3);
-					outBuffer[0] = 65;
-					bytesToWrite = 4;
-					firstLoop = false;
-				}
-				else
-				{
-					outBuffer[0] = 79;
-					bytesToWrite = 1;
-				}
-				ft.Write(outBuffer, bytesToWrite);
-				bytesReturned = ft.Read(inBuffer, 4096);
-
-				if (bytesReturned < 0)
-				{
-					success = false;
-					break;
-				}
-				else if (bytesReturned < 4096)
-				{
-					firstLoop = true;
-				}
-				else
-				{
-					actMemory += 4096;
-					if (mem4 && ((actMemory % 0x20000) == 0))
-					{
-						if (dieCount == 2)
-						{
-							actMemory -= 4096;
-							for (int i = 0; i < 2; i++)
-							{
-								address = BitConverter.GetBytes(actMemory);
-								Array.Reverse(address);
-								Array.Copy(address, 0, outBuffer, 1, 3);
-								outBuffer[0] = 97;
-								bytesToWrite = 4;
-								ft.Write(outBuffer, bytesToWrite);
-								if (ft.Read(inBuffer, 2048) < 2048)
-								{
-									success = false;
-									break;
-								}
-								fo.Write(inBuffer, 0, 2048);
-								actMemory += 2048;
-							}
-							if (!success) break;
-							firstLoop = true;
-						}
-						else
-						{
-							fo.Write(inBuffer, 0, 4096);
-							if ((actMemory % 0x40000) == 0)
-							{
-								firstLoop = true;
-							}
-						}
-					}
-					else
-					{
-						fo.Write(inBuffer, 0, 4096);
-					}
-				}
-
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = actMemory));
-
-				if (convertStop) actMemory = toMemory;
-			}
-
-			fo.Write(firmwareArray, 0, 6);
-			fo.Write(new byte[] { model_axyTrekN, (byte)254 }, 0, 2);
-			fo.Close();
-
-			if (!success)
-			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-				try
-				{
-					fo.Close();
-				}
-				catch { }
-				return;
-			}
-
-			outBuffer[0] = 88;
-			bytesToWrite = 1;
-			ft.Write(outBuffer, bytesToWrite);
-			Thread.Sleep(50);
-			ft.Write("+++");
-			Thread.Sleep(200);
-			ft.Write(new byte[] { 0x41, 0x54, 0x42, 0x52, 3 }, 0, 5);
-			ft.BaudRate = 115200;
-			Thread.Sleep(100);
-			ft.Write("ATX");
-
-			ft.BaudRate = 115200;
-
-			if (!convertStop)
-			{
-				extractArds(fileNameMdp, fileName, true);
-			}
-			else
-			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
-				{
-					try
-					{
-						fDel(fileNameMdp);
-					}
-					catch { }
-				}
-			}
-
-			Thread.Sleep(600);
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFinished()));
-		}
-
-		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
-		{
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusLabel.Content = "Creating Ard file(s)..."));
-			var mdp = new BinaryReader(System.IO.File.Open(fileNameMdp, FileMode.Open));
-
-			BinaryWriter ard = BinaryWriter.Null;
-			//ushort packLength = 255;
-			//ushort firstPackLength = 254;
-			string fileNameArd = "";
-			byte testByte, testByte2;
-			const int yes = 1;
-			const int no = 2;
-			const int yes_alaways = 11;
-			int resp = no;
-			ushort counter = 0;
-
-			while (mdp.BaseStream.Position < mdp.BaseStream.Length)
-			{
-
-				testByte = mdp.ReadByte();
-
-				if (testByte == 0xcf)
-				{
-					testByte2 = mdp.ReadByte();
-					if (ard != BinaryWriter.Null)
-					{
-						ard.Close();
-					}
-					counter++;
-					fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "_S" + counter.ToString() + ".ard";
-					if (System.IO.File.Exists(fileNameArd))
-					{
-						if (resp < 11)
-						{
-							var yn = new YesNo(fileNameArd + " already exists. Do you want to overwrite it?", "FILE EXISTING", "Remeber my choice");
-							resp = yn.ShowDialog();
-						}
-						if ((resp == yes) | (resp == yes_alaways))
-						{
-							fDel(fileNameArd);
-						}
-						else
-						{
-							do
-							{
-								fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileNameArd) + " (1)" + ".ard";
-							} while (System.IO.File.Exists(fileNameArd));
-						}
-					}
-					ard = new System.IO.BinaryWriter(System.IO.File.Open(fileNameArd, FileMode.Create));
-					ard.Write(new byte[] { modelCode }, 0, 1);
-					if (!connected)
-					{
-						var oldPosition = mdp.BaseStream.Position;
-						mdp.BaseStream.Position = mdp.BaseStream.Length - 1;
-						if (mdp.ReadByte() == 254)
-						{
-							mdp.BaseStream.Position -= 8;
-							firmwareArray = mdp.ReadBytes(6);
-						}
-						mdp.BaseStream.Position = oldPosition;
-					}
-					ard.Write(firmwareArray, 0, 6);
-					ard.Write(mdp.ReadBytes(254));
-
-				}
-
-				else if (testByte == 0x55)
-				{
-					ard.Write(mdp.ReadBytes(255));
-				}
-
-				else if (testByte == 0xff)
-				{
-					try
-					{
-						mdp.ReadBytes(255);
-						if (mdp.ReadByte() == 0xcf)
-						{
-							mdp.BaseStream.Position--;
-						}
-						else
-						{
-							break;
-						}
-
-					}
-					catch
-					{
-						break;
-					}
-				}
-				else
-				{
-#if DEBUG
-					//MessageBox.Show(testByte.ToString("X2") + "  " + mdp.BaseStream.Position.ToString("X"));
-					ard.Write(mdp.ReadBytes(255));
-#endif
-
-
-				}
-			}
-			try
-			{
-				mdp.Close();
-				ard.Close();
-			}
-			catch { }
-
-			try
-			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
-				{
-					fDel(fileNameMdp);
-				}
-				else
-				{
-					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
-					{
-						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						if (System.IO.File.Exists(newFileNameMdp)) fDel(newFileNameMdp);
-						//string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						System.IO.File.Move(fileNameMdp, newFileNameMdp);
-					}
-				}
-			}
-			catch { }
-			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
-		}
-
 		public override void convert(string fileName, string[] prefs)
 		{
-			bool makeTxt = false;
-			bool makeKml = false;
+			convertInit(prefs);
+
+			string[] names = convertPrepareOutputFiles(fileName);
+			string fileNameCsv = names[0];
+			string FileNametxt = names[1];
+			string fileNameKml = names[2];
+			string fileNamePlaceMark = names[3];
+			string exten = names[4];
+			string logFile = names[5];
+			string shortFileName;
+			BinaryReader ardFile = convertOpenArdFile(fileName);
+			if (ardFile is null)
+			{
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+				return;
+			}
+			BinaryWriter[] bws = convertCreateOutputFiles(names, fileName);
+			BinaryWriter csv = bws[0];
+			BinaryWriter txt = bws[1];
+			BinaryWriter kml = bws[2];
+			BinaryWriter placeMark = bws[3];
+
 			timeStamp timeStampO = new timeStamp();
 			byte[] ev = new byte[5];
 			string barStatus = "";
-			debugLevel = parent.stDebugLevel;
-			oldUnitDebug = parent.stOldUnitDebug;
-			addGpsTime = parent.addGpsTime;
-			bool removeNonGps = false;
-
-			//Imposta le preferenze di conversione
 			timeStampO.eventAr = ev;
-			if (Parent.getParameter("pressureRange") == "air") isDepth = 0;
-
-			if (prefs[pref_fillEmpty] == "False") repeatEmptyValues = false;
-			if (addGpsTime) repeatEmptyValues = false;
-
-			dateSeparator = csvSeparator;
-			if (prefs[pref_sameColumn] == "True")
-			{
-				sameColumn = true;
-				dateSeparator = " ";
-			}
-			if (addGpsTime) sameColumn = true;
-
-			if (prefs[pref_txt] == "True") makeTxt = true;
-			if (prefs[pref_kml] == "True") makeKml = true;
-			if (prefs[pref_battery] == "True") prefBattery = true;
-			if (prefs[pref_pressMetri] == "meters") inMeters = true;
-			if (prefs[pref_timeFormat] == "2") angloTime = true;
-
 			timeStampO.pressOffset = double.Parse(prefs[pref_millibars]);
-			dateFormat = byte.Parse(prefs[pref_dateFormat]);
-			//timeFormat = byte.Parse(prefs[pref_timeFormat]);
-			switch (dateFormat)
-			{
-				case 1:
-					dateFormatParameter = "dd/MM/yyyy";
-					break;
-				case 2:
-					dateFormatParameter = "MM/dd/yyyy";
-					break;
-				case 3:
-					dateFormatParameter = "yyyy/MM/dd";
-					break;
-				case 4:
-					dateFormatParameter = "yyyy/dd/MM";
-					break;
-			}
-			metadata = false;
-			if (prefs[pref_metadata] == "True") metadata = true;
-			leapSeconds = int.Parse(prefs[pref_leapSeconds]);
-			removeNonGps = bool.Parse(prefs[pref_removeNonGps]);
-
 			timeStampO.inAdc = 0;
 			timeStampO.inWater = 0;
 
-			string shortFileName;
-
-			string addOn = "";
-			string exten = Path.GetExtension(fileName);
-			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
-
-			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-			string FileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
-			string fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
-			string fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
-
-			BinaryReader ardFile = null;
-
-			for (int i = 0; i < 3; i++)
-			{
-				try
-				{
-					ardFile = new BinaryReader(File.Open(fileName, FileMode.Open));
-					break;
-				}
-				catch (Exception fileError)
-				{
-					if (i == 2)
-					{
-						MessageBox.Show(fileError.Message);
-						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-										new Action(() => parent.nextFile()));
-						return;
-					}
-					Thread.Sleep(1000);
-				}
-			}
-
-			var sesAdd = new List<long>();
-
-			if (exten.Contains("rem"))
-			{
-				ardFile.BaseStream.Position = 0x10;
-				long sesAddPointer = ardFile.ReadByte() + ardFile.ReadByte() * 0x100 + ardFile.ReadByte() * 0x10000 + ardFile.ReadByte() * 0x1000000;
-				ardFile.BaseStream.Position = sesAddPointer + 0x10;
-				long newAdd = 0;
-				do
-				{
-					newAdd = BitConverter.ToInt64(ardFile.ReadBytes(8), 0);
-					ardFile.ReadBytes(8);
-					sesAdd.Add(newAdd);
-				} while ((newAdd != 0) & (ardFile.BaseStream.Position < ardFile.BaseStream.Length));
-				sesAdd.RemoveAt(sesAdd.Count - 1);
-			}
-			else
-			{
-				removeNonGps = false;
-				sesAdd.Add(0);
-			}
-
-			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
-			BinaryWriter txt = BinaryWriter.Null;
-			BinaryWriter kml = BinaryWriter.Null;
-			BinaryWriter placeMark = BinaryWriter.Null;
-
-			if (makeTxt)
-			{
-				if ((File.Exists(FileNametxt)) & (exten.Contains("ard"))) fDel(FileNametxt);
-				txt = new BinaryWriter(File.OpenWrite(FileNametxt));
-			}
-			if (makeKml)
-			{
-				if ((File.Exists(fileNameKml)) & (exten.Contains("ard"))) fDel(fileNameKml);
-				if ((File.Exists(fileNamePlaceMark)) & (exten.Contains("ard"))) fDel(fileNamePlaceMark);
-				kml = new BinaryWriter(File.OpenWrite(fileNameKml));
-				placeMark = new BinaryWriter(File.OpenWrite(fileNamePlaceMark));
-				primaCoordinata = true;
-				contoCoord = 0;
-				//string
-				kml.Write(Encoding.ASCII.GetBytes(Properties.Resources.Folder_Path_Top));
-				kml.Write(Encoding.ASCII.GetBytes(Properties.Resources.Path_Top));
-				//placemark
-				placeMark.Write(Encoding.ASCII.GetBytes(Properties.Resources.Final_Top_1 +
-					Path.GetFileNameWithoutExtension(fileName) + Properties.Resources.Final_Top_2));
-			}
-
-			byte[] ardBuffer;// = new byte[ardFile.BaseStream.Length];
+			List<long> sesAdd = convertFillSessionList(exten, ardFile);
+			int sesMax = sesAdd.Count;
+			int sesCounter = 1;
+			
 			bool headerMissing = true;
-
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => barStatus = (string)parent.statusLabel.Content));
 
-			int sesMax = sesAdd.Count;
-			int sesCounter = 1;
-			long infRemPosition;
-			ardFile.Close();
-
-			string logFile = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileName(fileName) + ".log";
-			try
-			{
-				fDel(logFile);
-			}
-			catch { }
-
 			while (sesAdd.Count > 0)
 			{
-				ardFile = new BinaryReader(File.Open(fileName, FileMode.Open));
-				long bufLen;
-				if (sesAdd.Count > 1)
-				{
-					bufLen = sesAdd[1] - sesAdd[0];
-				}
-				else
-				{
-					bufLen = ardFile.BaseStream.Length - sesAdd[0];
-				}
 
-				ardFile.BaseStream.Position = sesAdd[0];
-				infRemPosition = sesAdd[0];
-				sesAdd.RemoveAt(0);
-				ardBuffer = new byte[bufLen];
-				ardFile.Read(ardBuffer, 0, (int)bufLen);
-
-				ardFile.Close();
-
-				MemoryStream ard = new MemoryStream(ardBuffer);
-
-				if (debugLevel > 0)
-				{
-					txt.Write(Encoding.ASCII.GetBytes("\r\n********************************* SESSION #" + sesCounter.ToString() + " (0x" +
-					(ard.Position + infRemPosition).ToString("X4") + ")\r\n"));
-				}
-				//Encoding.ASCII.GetBytes(coord)
-
-				byte[] uf = new byte[16];
-				ard.Position = 1;
-				firmTotA = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
-				firmTotB = (uint)ard.ReadByte() * (uint)1000000 + (uint)ard.ReadByte() * (uint)1000 + (uint)ard.ReadByte();
+				MemoryStream ard = convertExtractSession(fileName, sesAdd, txt, sesCounter);
 
 				//Importa el impostazioni del sensore Analogico
 				ard.ReadByte();
-				adcThreshold = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());
+				//adcThreshold = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());
+				ard.ReadByte(); ard.ReadByte();
 				byte adcTemp = (byte)ard.ReadByte();
 				if ((adcTemp & 8) == 8) adcStop = true;
 				if ((adcTemp & 2) == 2) adcLog = true;
@@ -1326,19 +206,11 @@ namespace X_Manager.Units.AxyTreks
 				}
 
 				//Legge i parametri di logging
-				pressureEnabled = ard.ReadByte();
-				temperatureEnabled = pressureEnabled;
-				pressureEnabled /= 16;
-				temperatureEnabled &= 15;
+				checkTdEn((byte)ard.ReadByte(), this, exten);
+				checkAccParam((byte)ard.ReadByte());
 
-				byte rrb = (byte)ard.ReadByte();
-				rate = findSamplingRate(rrb);
-				range = findRange(rrb);
-				bits = findBits(rrb);
-				bitsDiv = findBytesPerSample();
-				nOutputs = rate;
 				findDebugStampPar();
-				Array.Resize(ref lastGroup, ((rate * 3)));
+				Array.Resize(ref lastGroup, rate * 3);
 
 				//cifreDec = 3;
 				cifreDecString = "0.000";
@@ -1380,12 +252,7 @@ namespace X_Manager.Units.AxyTreks
 				}
 
 
-				//while (abCheck != 0xab) abCheck = (byte)ard.ReadByte();
-
-
 				long pos = ard.Position;
-				//ard.Close();
-				//timeStampO.orario = findStartTime(ref ard, ref prefs, pos);
 				//in caso di rem, se la sessione non contiene il fix gps viene tolta dal csv
 
 				DateTime startTime = findStartTime(ref ard, ref prefs, pos, exten.Contains("rem"));
@@ -1408,7 +275,7 @@ namespace X_Manager.Units.AxyTreks
 
 				ard.Position = pos;
 
-				if (exten.Contains("rem") & !convertStop)
+				if (exten.Contains("rem") && !convertStop)
 				{
 					File.AppendAllText(logFile, "Session no. " + sesCounter.ToString() + ": "
 						+ startTime.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\tCSV Position: "
@@ -1487,7 +354,7 @@ namespace X_Manager.Units.AxyTreks
 
 					try
 					{
-						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName, ref sBuffer, ref infRemPosition);
+						groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO.timeStampLength), shortFileName, ref sBuffer, ref infRemPosition);
 
 						if (sBuffer.Length > 0x400)
 						{
@@ -1505,11 +372,16 @@ namespace X_Manager.Units.AxyTreks
 
 					if (((timeStampO.tsType & 32) == 32) | ((timeStampO.tsType & 16) == 16))
 					{
-						if (makeTxt) txtWrite(ref timeStampO, ref txt);
+						if (makeTxt)
+						{
+
+							txtWrite(ref timeStampO.tsType, ref timeStampO.coord, ref timeStampO.orario, ref timeStampO.data, ref timeStampO.gsvSum,
+									ref timeStampO.ardPosition, ref timeStampO.eventAr, ref txt);
+						}
 					}
 					if ((timeStampO.tsType & 16) == 16)
 					{
-						if (makeKml) kmlWrite(ref timeStampO, ref kml, ref placeMark);
+						if (makeKml) kmlWrite(ref timeStampO.coord, ref timeStampO.orario, ref kml, ref placeMark);
 					}
 				}
 
@@ -1525,7 +397,10 @@ namespace X_Manager.Units.AxyTreks
 						+ timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n\r\n");
 				}
 
-				if (makeTxt) txtWrite(ref timeStampO, ref txt);
+				if (makeTxt) {
+					txtWrite(ref timeStampO.tsType, ref timeStampO.coord, ref timeStampO.orario, ref timeStampO.data, ref timeStampO.gsvSum,
+									ref timeStampO.ardPosition, ref timeStampO.eventAr, ref txt);
+				}
 				sesCounter++;
 				//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				//	new Action(() => parent.statusProgressBar.Value = ard.Position));
@@ -1563,22 +438,22 @@ namespace X_Manager.Units.AxyTreks
 				try
 				{
 					//Scrive il segnaposto di stop nel fime kml dei placemarks
-					placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
-					placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
-						(decoderKml(ref timeStampO)).cPlacemark + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
-					kml.Close();
+						placeMark.Write(Encoding.ASCII.GetBytes(Properties.Resources.Folder_Bot));
+						placeMark.Write(Encoding.ASCII.GetBytes(Properties.Resources.Placemarks_Stop_Top +
+							decoderKml(ref timeStampO.coord, ref timeStampO.orario).cPlacemark + Properties.Resources.Placemarks_Stop_Bot));
+						kml.Close();
 					placeMark.Close();
 
 					//Scrive l'header finale nel file kml string
-					File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Path_Bot);
-					File.AppendAllText(fileNameKml, X_Manager.Properties.Resources.Folder_Bot);
+						File.AppendAllText(fileNameKml, Properties.Resources.Path_Bot);
+						File.AppendAllText(fileNameKml, Properties.Resources.Folder_Bot);
 
-					//Accorpa kml placemark e string
-					File.AppendAllText(fileNamePlaceMark, System.IO.File.ReadAllText(fileNameKml));
+						//Accorpa kml placemark e string
+						File.AppendAllText(fileNamePlaceMark, File.ReadAllText(fileNameKml));
 
-					//Chiude il kml placemark
-					File.AppendAllText(fileNamePlaceMark, X_Manager.Properties.Resources.Final_Bot);
-					//Elimina il kml string temporaneo
+						//Chiude il kml placemark
+						File.AppendAllText(fileNamePlaceMark, Properties.Resources.Final_Bot);
+						//Elimina il kml string temporaneo
 					fDel(fileNameKml);
 				}
 				catch { }
@@ -1676,7 +551,7 @@ namespace X_Manager.Units.AxyTreks
 			if ((tsc.tsType & 8) == 8)
 			{
 				tsc.slowData++;
-				tsc.batteryLevel = (ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096;
+				tsc.batteryLevel = ((ard.ReadByte() * 256 + ard.ReadByte()) * 6.0 / 4096);
 			}
 
 			//Coordinata
@@ -1687,47 +562,48 @@ namespace X_Manager.Units.AxyTreks
 				byte[] fissi = new byte[6];//= ard.ReadBytes(6);                                    //Legge i dati fissi
 				ard.Read(fissi, 0, 6);
 
-				tsc.secondi = unchecked(fissi[0] >> 2);
+				tsc.data.secondi = unchecked(fissi[0] >> 2);
 
-				tsc.latMinDecL = unchecked((fissi[0] & 3) << 5);
-				tsc.latMinDecL += unchecked(fissi[1] >> 3);
-				tsc.lonMinDecL = unchecked((fissi[1] & 7) << 4);
-				tsc.lonMinDecL += unchecked(fissi[2] >> 4);
+				tsc.coord.latMinDecL = unchecked((fissi[0] & 3) << 5);
+				tsc.coord.latMinDecL += unchecked(fissi[1] >> 3);
+				tsc.coord.lonMinDecL = unchecked((fissi[1] & 7) << 4);
+				tsc.coord.lonMinDecL += unchecked(fissi[2] >> 4);
 
-				tsc.DOPdec = unchecked((fissi[2] & 15) >> 1);
+				tsc.coord.DOPdec = unchecked((fissi[2] & 15) >> 1);
 
-				tsc.vel = unchecked((fissi[2] & 1) << 5);
-				tsc.vel += unchecked(fissi[3] >> 3);
+				tsc.coord.vel = unchecked((fissi[2] & 1) << 5);
+				tsc.coord.vel += unchecked(fissi[3] >> 3);
 				//tsc.vel *= 2;
 
-				tsc.nSat = (fissi[3] & 7);
-				tsc.altL = fissi[4];
+				tsc.coord.nSat = (fissi[3] & 7);
+				tsc.coord.altL = fissi[4];
 
-				tsc.latMinDecLL = unchecked(fissi[5] >> 4);
-				tsc.lonMinDecLL = (fissi[5] & 15);
+				tsc.coord.latMinDecLL = unchecked(fissi[5] >> 4);
+				tsc.coord.lonMinDecLL = (fissi[5] & 15);
 
-				tsc.altSegno = 0; tsc.ns = 0; tsc.eo = 0;
-				if ((diffMask & 1) == 1) tsc.eo = 1;
-				if ((diffMask & 2) == 2) tsc.ns = 1;
-				if ((diffMask & 4) == 4) tsc.altSegno = 1;
-				if ((diffMask & 8) == 8) tsc.anno = ard.ReadByte();
-				if ((diffMask & 0x10) == 0x10) tsc.giorno = ard.ReadByte();
-				if ((diffMask & 0x20) == 0x20) tsc.DOP = ard.ReadByte();
-				if ((diffMask & 0x40) == 0x40) tsc.lonMinDecH = (byte)ard.ReadByte();
-				if ((diffMask & 0x80) == 0x80) tsc.lonMinuti = (byte)ard.ReadByte();
-				if ((diffMask & 0x100) == 0x100) tsc.lonGradi = (byte)ard.ReadByte();
-				if ((diffMask & 0x200) == 0x200) tsc.latMinDecH = ard.ReadByte();
-				if ((diffMask & 0x400) == 0x400) tsc.latMinuti = ard.ReadByte();
-				if ((diffMask & 0x800) == 0x800) tsc.latGradi = ard.ReadByte();
-				if ((diffMask & 0x1000) == 0x1000) tsc.minuti = ard.ReadByte();
-				if ((diffMask & 0x2000) == 0x2000) tsc.ore = ard.ReadByte();
+				tsc.coord.altSegno = 0; tsc.coord.ns = 0; tsc.coord.eo = 0;
+				if ((diffMask & 1) == 1) tsc.coord.eo = 1;
+				if ((diffMask & 2) == 2) tsc.coord.ns = 1;
+				if ((diffMask & 4) == 4) tsc.coord.altSegno = 1;
+				if ((diffMask & 8) == 8) tsc.data.anno = ard.ReadByte();
+				if ((diffMask & 0x10) == 0x10) tsc.data.giorno = ard.ReadByte();
+				if ((diffMask & 0x20) == 0x20) tsc.coord.DOP = ard.ReadByte();
+				if ((diffMask & 0x40) == 0x40) tsc.coord.lonMinDecH = (byte)ard.ReadByte();
+				if ((diffMask & 0x80) == 0x80) tsc.coord.lonMinuti = (byte)ard.ReadByte();
+				if ((diffMask & 0x100) == 0x100) tsc.coord.lonGradi = (byte)ard.ReadByte();
+				if ((diffMask & 0x200) == 0x200) tsc.coord.latMinDecH = ard.ReadByte();
+				if ((diffMask & 0x400) == 0x400) tsc.coord.latMinuti = ard.ReadByte();
+				if ((diffMask & 0x800) == 0x800) tsc.coord.latGradi = ard.ReadByte();
+				if ((diffMask & 0x1000) == 0x1000) tsc.data.minuti = ard.ReadByte();
+				if ((diffMask & 0x2000) == 0x2000) tsc.data.ore = ard.ReadByte();
 				if ((diffMask & 0x4000) == 0x4000)
 				{
 					int b = ard.ReadByte();
-					tsc.mese = unchecked(b >> 4);
-					tsc.altH = b & 15;
+					tsc.data.mese = unchecked(b >> 4);
+					tsc.coord.altH = b & 15;
 				}
-				tsc.gsvSum = (ard.ReadByte() * 256 + ard.ReadByte());
+				tsc.gsvSum = ard.ReadByte() * 256 + ard.ReadByte();
+
 			}
 
 
@@ -1791,7 +667,7 @@ namespace X_Manager.Units.AxyTreks
 
 		}
 
-		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
+		protected override double[] extractGroup(ref MemoryStream ard, ref int timeStampLength)
 		{
 			byte[] group = new byte[2000];
 			bool badGroup = false;
@@ -1839,10 +715,10 @@ namespace X_Manager.Units.AxyTreks
 				}
 
 
-			} while ((dummy != (byte)0xab) && (ard.Position < ard.Length));
+			} while ((dummy != 0xab) && (ard.Position < ard.Length));
 
 			//Array.Resize(ref group, (int)position);
-			tsc.timeStampLength = (int)(position / bitsDiv);
+			timeStampLength = (int)(position / bitsDiv);
 
 			int resultCode = 0;
 			if (position == 0)
@@ -1855,11 +731,11 @@ namespace X_Manager.Units.AxyTreks
 			double[] doubleResult = new double[3 * nOutputs];
 			if (bits)
 			{
-				resultCode = resample4(group, tsc.timeStampLength, doubleResult, nOutputs);
+				resultCode = resample4(group, timeStampLength, doubleResult, nOutputs);
 			}
 			else
 			{
-				resultCode = resample3(group, tsc.timeStampLength, doubleResult, nOutputs);
+				resultCode = resample3(group, timeStampLength, doubleResult, nOutputs);
 			}
 			//doubleResult = new double[(nOutputs * 3)];
 			//Marshal.Copy(doubleResultArray, doubleResult, 0, nOutputs * 3);
@@ -1923,8 +799,6 @@ namespace X_Manager.Units.AxyTreks
 				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
 			}
 			milli = 0;
-			//textOut = "";
-
 
 			textOut += unitName + csvSeparator + dateTimeS + ".000";
 			if (angloTime)
@@ -1935,12 +809,12 @@ namespace X_Manager.Units.AxyTreks
 			{
 				if ((tsLoc.tsType & 16) == 16)
 				{
-					textOut += " (GPS: " + tsLoc.ore.ToString("00") + ":" + tsLoc.minuti.ToString("00") + ":" + tsLoc.secondi.ToString("00") + ") ";
+					textOut += " (GPS: " + tsLoc.data.ore.ToString("00") + ":" + tsLoc.data.minuti.ToString("00") + ":" + tsLoc.data.secondi.ToString("00") + ") ";
 					DateTime dtDiff;
 					try
 					{
 						dtDiff = new DateTime(tsLoc.orario.Year, tsLoc.orario.Month, tsLoc.orario.Day,
-						tsLoc.ore, tsLoc.minuti, tsLoc.secondi);
+						tsLoc.data.ore, tsLoc.data.minuti, tsLoc.data.secondi);
 						double ts = (dtDiff - tsLoc.orario).TotalSeconds;
 						textOut += ts.ToString();
 						if (Math.Abs(ts) > 5)
@@ -1994,21 +868,21 @@ namespace X_Manager.Units.AxyTreks
 			{
 				string altSegno, eo, ns;
 				altSegno = eo = ns = "-";
-				if (tsLoc.altSegno == 0) altSegno = "";
-				if (tsLoc.eo == 1) eo = "";
-				if (tsLoc.ns == 1) ns = "";
-				double speed = tsLoc.vel * 3.704;
+				if (tsLoc.coord.altSegno == 0) altSegno = "";
+				if (tsLoc.coord.eo == 1) eo = "";
+				if (tsLoc.coord.ns == 1) ns = "";
+				double speed = tsLoc.coord.vel * 3.704;
 				double lon, lat = 0;
 
-				lon = ((tsLoc.lonMinuti + (tsLoc.lonMinDecH / 100.0) + (tsLoc.lonMinDecL / 10000.0) + (tsLoc.lonMinDecLL / 100000.0)) / 60) + tsLoc.lonGradi;
-				lat = ((tsLoc.latMinuti + (tsLoc.latMinDecH / 100.0) + (tsLoc.latMinDecL / 10000.0) + (tsLoc.latMinDecLL / 100000.0)) / 60) + tsLoc.latGradi;
+				lon = ((tsLoc.coord.lonMinuti + (tsLoc.coord.lonMinDecH / 100.0) + (tsLoc.coord.lonMinDecL / 10000.0) + (tsLoc.coord.lonMinDecLL / 100000.0)) / 60) + tsLoc.coord.lonGradi;
+				lat = ((tsLoc.coord.latMinuti + (tsLoc.coord.latMinDecH / 100.0) + (tsLoc.coord.latMinDecL / 10000.0) + (tsLoc.coord.latMinDecLL / 100000.0)) / 60) + tsLoc.coord.latGradi;
 
 				additionalInfo += csvSeparator + ns + lat.ToString("#00.00000", nfi);
 				additionalInfo += csvSeparator + eo + lon.ToString("#00.00000", nfi);
-				additionalInfo += csvSeparator + altSegno + ((tsLoc.altH * 256 + tsLoc.altL) * 2).ToString();
+				additionalInfo += csvSeparator + altSegno + ((tsLoc.coord.altH * 256 + tsLoc.coord.altL) * 2).ToString();
 				additionalInfo += csvSeparator + speed.ToString("0.0", nfi);
-				additionalInfo += csvSeparator + tsLoc.nSat.ToString();
-				additionalInfo += csvSeparator + tsLoc.DOP.ToString() + "." + tsLoc.DOPdec.ToString();
+				additionalInfo += csvSeparator + tsLoc.coord.nSat.ToString();
+				additionalInfo += csvSeparator + tsLoc.coord.DOP.ToString() + "." + tsLoc.coord.DOPdec.ToString();
 				additionalInfo += csvSeparator + tsLoc.gsvSum.ToString();
 			}
 			else
@@ -2202,54 +1076,54 @@ namespace X_Manager.Units.AxyTreks
 			}
 
 			// Valori di sicurezza
-			tsc.anno = 14;
-			tsc.giorno = 19;
-			tsc.mese = 11;
-			tsc.ore = 12;
-			tsc.minuti = 51;
+			tsc.data.anno = 14;
+			tsc.data.giorno = 19;
+			tsc.data.mese = 11;
+			tsc.data.ore = 12;
+			tsc.data.minuti = 51;
 			ushort diffMask = (ushort)(coordinate[0] * 256 + coordinate[1]);
 
-			tsc.secondi = unchecked(coordinate[2] >> 2);
-			tsc.latMinDecL = unchecked((coordinate[2] & 3) << 5);
-			tsc.latMinDecL += unchecked(coordinate[3] >> 3);
-			tsc.lonMinDecL = unchecked((coordinate[3] & 7) << 4);
-			tsc.lonMinDecL += unchecked((coordinate[4] >> 4));
-			tsc.DOPdec = unchecked((coordinate[4] & 15) >> 1);
-			tsc.vel = unchecked((coordinate[4] & 1) << 5);
-			tsc.vel += unchecked((coordinate[5] >> 3));
-			tsc.vel *= 2;
-			tsc.nSat = (coordinate[5] & 7);
-			tsc.altL = coordinate[6];
-			tsc.latMinDecLL += unchecked(coordinate[7] >> 4);
-			tsc.lonMinDecLL = (coordinate[7] & 15);
+			tsc.data.secondi = unchecked(coordinate[2] >> 2);
+			tsc.coord.latMinDecL = unchecked((coordinate[2] & 3) << 5);
+			tsc.coord.latMinDecL += unchecked(coordinate[3] >> 3);
+			tsc.coord.lonMinDecL = unchecked((coordinate[3] & 7) << 4);
+			tsc.coord.lonMinDecL += unchecked((coordinate[4] >> 4));
+			tsc.coord.DOPdec = unchecked((coordinate[4] & 15) >> 1);
+			tsc.coord.vel = unchecked((coordinate[4] & 1) << 5);
+			tsc.coord.vel += unchecked((coordinate[5] >> 3));
+			tsc.coord.vel *= 2;
+			tsc.coord.nSat = (coordinate[5] & 7);
+			tsc.coord.altL = coordinate[6];
+			tsc.coord.latMinDecLL += unchecked(coordinate[7] >> 4);
+			tsc.coord.lonMinDecLL = (coordinate[7] & 15);
 			byte cCounter = 8;
 
 			//tsc.altSegno = true; tsc.ns = false; tsc.eo = false;
 			//if ((diffMask & 1) == 1) tsc.eo = true;
 			//if ((diffMask & 2) == 2) tsc.ns = true;
 			//if ((diffMask & 4) == 4) tsc.altSegno = true;
-			if ((diffMask & 8) == 8) { tsc.anno = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x10) == 0x10) { tsc.giorno = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x20) == 0x20) { tsc.DOP = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x40) == 0x40) { tsc.lonMinDecH = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x80) == 0x80) { tsc.lonMinuti = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x100) == 0x100) { tsc.lonGradi = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x200) == 0x200) { tsc.latMinDecH = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x400) == 0x400) { tsc.latMinuti = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x800) == 0x800) { tsc.latGradi = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x1000) == 0x1000) { tsc.minuti = coordinate[cCounter]; cCounter += 1; }
-			if ((diffMask & 0x2000) == 0x2000) { tsc.ore = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 8) == 8) { tsc.data.anno = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x10) == 0x10) { tsc.data.giorno = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x20) == 0x20) { tsc.coord.DOP = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x40) == 0x40) { tsc.coord.lonMinDecH = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x80) == 0x80) { tsc.coord.lonMinuti = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x100) == 0x100) { tsc.coord.lonGradi = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x200) == 0x200) { tsc.coord.latMinDecH = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x400) == 0x400) { tsc.coord.latMinuti = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x800) == 0x800) { tsc.coord.latGradi = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x1000) == 0x1000) { tsc.data.minuti = coordinate[cCounter]; cCounter += 1; }
+			if ((diffMask & 0x2000) == 0x2000) { tsc.data.ore = coordinate[cCounter]; cCounter += 1; }
 			if ((diffMask & 0x4000) == 0x4000)
 			{
-				tsc.mese = unchecked(coordinate[cCounter] >> 4);
-				tsc.altH = (coordinate[cCounter] & 15);
+				tsc.data.mese = unchecked(coordinate[cCounter] >> 4);
+				tsc.coord.altH = (coordinate[cCounter] & 15);
 			}
 			//br.Close();
 			secondiAdd += 1;    //Questo secondo sottratto in più viene reinserito al decoding del primo timestamp
 
 			try
 			{
-				dt = new DateTime(2000 + tsc.anno, tsc.mese, tsc.giorno, tsc.ore, tsc.minuti, tsc.secondi);
+				dt = new DateTime(2000 + tsc.data.anno, tsc.data.mese, tsc.data.giorno, tsc.data.ore, tsc.data.minuti, tsc.data.secondi);
 				dt = dt.AddSeconds(-secondiAdd);
 				dt = dt.AddSeconds(leapSeconds * -1);
 			}
@@ -2258,360 +1132,11 @@ namespace X_Manager.Units.AxyTreks
 			return dt;
 		}
 
-		private ushort findSamplingRate(byte rateIn)
+		protected override void csvPlaceHeader(ref BinaryWriter csv)
 		{
-			byte rateOut;
-			rateIn = unchecked((byte)(rateIn >> 4));
-			switch (rateIn)
-			{
-				case 0:
-					rateOut = 50;
-					break;
-				case 1:
-					rateOut = 25;
-					break;
-				case 2:
-					rateOut = 100;
-					break;
-				case 3:
-					rateOut = 10;
-					break;
-				case 4:
-					rateOut = 1;
-					break;
-				default:
-					rateOut = 50;
-					break;
-			}
-			if ((rateOut == 1)) addMilli = 0;
-			else addMilli = (ushort)((1.0 / rateOut) * 1000);
+			base.csvPlaceHeader(ref csv);
+			string csvHeader = "";			
 
-			return rateOut;
-
-		}
-
-		private byte findRange(byte rangeIn)
-		{
-			rangeIn = unchecked((byte)(rangeIn & 15));
-			if ((rangeIn > 7))
-			{
-				rangeIn -= 8;
-			}
-
-			switch (rangeIn)
-			{
-				case 0:
-					return 2;
-				case 1:
-					return 4;
-				case 2:
-					return 8;
-				case 3:
-					return 16;
-				default:
-					return 2;
-			}
-		}
-
-		private bool findBits(byte bitsIn)
-		{
-			bitsIn = unchecked((byte)(bitsIn & 15));
-			//sogliaNeg = 127;
-			//rendiNeg = 256;
-			if (bitsIn < 8)
-			{
-				switch (range)
-				{
-					case 2:
-						gCoeff = 15.63;
-						break;
-					case 4:
-						gCoeff = 31.26;
-						break;
-					case 8:
-						gCoeff = 62.52;
-						break;
-					case 16:
-						gCoeff = 187.58;
-						break;
-				}
-				gCoeff /= 1000;
-				return false;
-			}
-			else
-			{
-				switch (range)
-				{
-					case 2:
-						gCoeff = 3.9;
-						break;
-					case 4:
-						gCoeff = 7.82;
-						break;
-					case 8:
-						gCoeff = 15.63;
-						break;
-					case 16:
-						gCoeff = 46.9;
-						break;
-				}
-				gCoeff /= 1000;
-				return true;
-			}
-		}
-
-		private byte findBytesPerSample()
-		{
-			byte bitsDiv = 3;
-			if (bits) bitsDiv = 4;
-			return bitsDiv;
-		}
-
-		private void findDebugStampPar()
-		{
-			debugStampId = 80;
-			debugStampLenght = 15;
-			if (firmTotB < 003002000) debugStampId = 13;
-			if (firmTotB < 003001000) debugStampId = 200;
-			if (firmTotB < 003000000) debugStampId = 13;
-			if (firmTotB < 001000004) debugStampLenght = 7;
-		}
-
-		private void txtWrite(ref timeStamp tsc, ref BinaryWriter txtW)
-		{
-			string altSegno, eo, ns, coord;
-			var nfi = new CultureInfo("en-US", false).NumberFormat;
-			string dateS = tsc.orario.ToString(dateFormatParameter);
-			string dateTimeS = dateS + csvSeparator + tsc.orario.ToString("HH:mm:ss");
-
-			if ((((tsc.tsType & 32) == 32) && (debugLevel > 0)))
-			{
-				coord = (dateTimeS + '\t');
-				decodeEvent(ref coord, ref tsc);
-				if ((coord != ""))
-				{
-					coord += "\r\n";
-					txtW.Write(System.Text.Encoding.ASCII.GetBytes(coord));
-				}
-
-			}
-
-			if ((tsc.tsType & 16) == 16)
-			{
-				altSegno = "-"; if (tsc.altSegno == 0) altSegno = "";
-				eo = "-"; if (tsc.eo == 1) eo = "";
-				ns = "-"; if (tsc.ns == 1) ns = "";
-				double speed = tsc.vel * 3.704;
-				double lat, lon; lat = lon = 0;
-				lon = ((tsc.lonMinuti + (tsc.lonMinDecH / (double)100) + (tsc.lonMinDecL / (double)10000) + (tsc.lonMinDecLL / (double)100000)) / 60) + tsc.lonGradi;
-				lat = ((tsc.latMinuti + (tsc.latMinDecH / (double)100) + (tsc.latMinDecL / (double)10000) + (tsc.latMinDecLL / (double)100000)) / 60) + tsc.latGradi;
-				coord = dateTimeS;
-				coord += "\t" + ns + lat.ToString("#00.00000", nfi);
-				coord += "\t" + eo + lon.ToString("#00.00000", nfi);
-				coord += "\t" + altSegno + ((tsc.altH * 256 + tsc.altL) * 2).ToString() + "\t" + speed.ToString("0.0") + "\t";
-				coord += tsc.nSat.ToString() + "\t" + tsc.DOP.ToString() + "." + tsc.DOPdec.ToString();
-				coord += "\t" + tsc.gsvSum.ToString() + "\r\n";
-				txtW.Write(System.Text.Encoding.ASCII.GetBytes(coord));
-			}
-
-		}
-
-		private void kmlWrite(ref timeStamp tsc, ref BinaryWriter kmlW, ref BinaryWriter placeMarkW)
-		{
-			coordKml coordinataKml = new coordKml();
-			byte[] buffer;
-			if (tsc.nSat > 0)
-			{
-				coordinataKml = decoderKml(ref tsc);
-				if ((contoCoord == 10000))
-				{
-					//  se arrivato a 10000 coordinate apre un nuovo <coordinates>
-					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Path_Bot));
-					kmlW.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Path_Top));
-					contoCoord = 0;
-				}
-				kmlW.Write(System.Text.Encoding.ASCII.GetBytes("\t\t\t\t\t" + coordinataKml.cSstring + "\r\n"));
-				contoCoord++;
-
-				if (primaCoordinata)
-				{
-					primaCoordinata = false;
-					string[] lookAtValues = new string[3];
-					lookAtValues = coordinataKml.cPlacemark.Split(',');
-					lookAtValues[0] = lookAtValues[0].Remove(0, (lookAtValues[0].IndexOf(">") + 1));
-					lookAtValues[2] = lookAtValues[2].Remove(lookAtValues[2].IndexOf("<"), (lookAtValues[2].Length - lookAtValues[2].IndexOf("<")));
-					buffer = System.Text.Encoding.ASCII.GetBytes(
-						X_Manager.Properties.Resources.lookat1 + lookAtValues[0] + X_Manager.Properties.Resources.lookat2 + lookAtValues[1]
-						+ X_Manager.Properties.Resources.lookat3 + lookAtValues[2] + X_Manager.Properties.Resources.lookat4);
-					placeMarkW.Write(buffer, 0, buffer.Length - 1);
-					buffer = System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Start_Top + coordinataKml.cPlacemark
-						+ X_Manager.Properties.Resources.Placemarks_Start_Bot);
-					placeMarkW.Write(buffer, 0, buffer.Length);
-					placeMarkW.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Generics_Top));
-				}
-				buffer = System.Text.Encoding.ASCII.GetBytes(
-					X_Manager.Properties.Resources.Placemarks_Generic_Top_1 + coordinataKml.cName + X_Manager.Properties.Resources.Placemarks_Generic_Top_2 + coordinataKml.cClass
-					+ X_Manager.Properties.Resources.Placemarks_Generic_Top_3 + ((tsc.altH * 256 + tsc.altL) * 2).ToString()
-					+ X_Manager.Properties.Resources.Placemarks_Generic_Top_4 + (tsc.vel * 3.704).ToString()
-					+ X_Manager.Properties.Resources.Placemarks_Generic_Top_5 + coordinataKml.cPlacemark + X_Manager.Properties.Resources.Placemarks_Generic_Bot);
-				placeMarkW.Write(buffer, 0, buffer.Length);
-			}
-		}
-
-		private coordKml decoderKml(ref timeStamp tsc)
-		{
-			double LATgradi, LATminuti, LONgradi, LONminuti;
-			char[] Kmlarr;
-			coordKml strOut = new coordKml();
-
-			LATminuti = tsc.latMinDecLL + (tsc.latMinDecL * 10) + (tsc.latMinDecH * 1000);
-			LONminuti = tsc.lonMinDecLL + (tsc.lonMinDecL * 10) + (tsc.lonMinDecH * 1000);
-			LATminuti = (((LATminuti / 100000) + tsc.latMinuti) / 60);
-			LATgradi = (tsc.latGradi + LATminuti);
-			LONminuti = (((LONminuti / 100000) + tsc.lonMinuti) / 60);
-			LONgradi = (tsc.lonGradi + LONminuti);
-
-			strOut.cSstring = "";
-
-			if (tsc.eo == 0) strOut.cSstring += "-";
-			strOut.cSstring += LONgradi.ToString("00.000000") + ",";
-
-			if (tsc.ns == 0) strOut.cSstring += "-";
-			strOut.cSstring += LATgradi.ToString("00.000000") + ",";
-
-			if (tsc.altSegno == 1) strOut.cSstring += "-";
-			strOut.cSstring += ((tsc.altH * 256) + tsc.altL).ToString("0000.0");
-			strOut.cSstring = strOut.cSstring.Replace('.', ',');
-			Kmlarr = strOut.cSstring.ToCharArray();
-			byte contoVirgole = 0;
-			for (byte i = 0; i < Kmlarr.Length; i++)
-			{
-				if (Kmlarr[i] == ',')
-				{
-					contoVirgole++;
-					if ((contoVirgole % 2) != 0) Kmlarr[i] = ('.');
-				}
-			}
-			strOut.cSstring = new string(Kmlarr);
-			strOut.cPlacemark = "\r\n\t\t\t\t\t+<coordinates>" + strOut.cSstring + "</coordinates>\r\n";
-			strOut.cName = tsc.orario.ToString("dd/MM/yyyy") + " " + tsc.orario.ToString("HH:mm:ss");
-			double nVel = tsc.vel * 3.6;
-			if (nVel < 10) strOut.cClass = "1";
-			else if (nVel < 20) strOut.cClass = "2";
-			else if (nVel < 30) strOut.cClass = "3";
-			else if (nVel < 40) strOut.cClass = "4";
-			else if (nVel < 50) strOut.cClass = "5";
-			else if (nVel < 60) strOut.cClass = "6";
-			else if (nVel < 70) strOut.cClass = "7";
-			else if (nVel < 80) strOut.cClass = "8";
-			else strOut.cClass = "9";
-
-			return strOut;
-		}
-
-		private void decodeEvent(ref string s, ref timeStamp t)
-		{
-			switch (t.eventAr[0])
-			{
-				case 0:
-					s += "Start searching for satellites...";
-					break;
-				case 1:
-					s += "Signal obtained. Starting schedule...";
-					break;
-				case 2:
-					s += "No visible satellite. Going to sleep...";
-					break;
-				case 3:
-					s += "Start Pre-fix Start Delay for ";
-					s = s + ((t.eventAr[1] * 256) + t.eventAr[2]).ToString() + " minutes.";
-					break;
-				case 4:
-					s += "End of start delay. Start searching for satellites...";
-					break;
-				case 5:
-					s += "Signal lost -> ACQ ON";
-					s = s + "   GSV Sum: " + ((t.eventAr[1] * 256) + t.eventAr[2]).ToString();
-					break;
-				case 6:
-					s += "Signal lost -> ACQ OFF";
-					s = s + "   GSV Sum: " + ((t.eventAr[1] * 256) + t.eventAr[2]).ToString();
-					break;
-				case 7:
-					s = s + "Schedule: " + t.eventAr[1].ToString() + " " + t.eventAr[2].ToString() + " " + t.eventAr[3].ToString();
-					break;
-				case 8:
-					if ((debugLevel > 1)) s += "ACTIVITY = ACT_RUN";
-					else s = "";
-					break;
-				case 9:
-					if ((debugLevel > 1)) s += "ACTIVITY = ACT_LASTONE";
-					else s = "";
-					break;
-				case 10:
-					if ((debugLevel > 1)) s += "ACTIVITY = ACT_STOP";
-					else s = "";
-					break;
-				case 11:
-					s += "Low battery: turning off.";
-					break;
-				case 12:
-					s += "Power off command received: turning off.";
-					break;
-				case 13:
-					s += "Memory full, turning off.";
-					break;
-				case 14:
-					s += "Remote connection.";
-					break;
-				case 15:
-					s += "Maintenance reset. New data on next session...";
-					break;
-				case 16:
-					if ((debugLevel > 1)) s += "MAX7 found OFF during CONT or ALT_ON. Restarted.";
-					else s = "";
-					break;
-				case 17:
-					s += "Post-fix Start Delay";
-					break;
-				case 18:
-					s += "Got Time and Position.";
-					break;
-				case 80:
-					if (debugLevel > 2)
-					{
-						s += "Debug. Fase: " + t.eventAr[1].ToString();
-						s += " OnOff: " + (t.eventAr[2] & 1).ToString();
-						s += " InWater: " + ((t.eventAr[2] & 2) >> 1).ToString();
-						s += " InAdc: " + ((t.eventAr[2] & 4) >> 2).ToString();
-						s += " MinutiRtcc: " + t.eventAr[3].ToString();
-						s += " SecRtcc: " + t.eventAr[7].ToString();
-						s += " N_Ora: " + t.eventAr[9].ToString();
-						s += " SecReg: " + t.eventAr[8].ToString();
-						s += " ContoNoSignal: " + t.eventAr[10].ToString();
-						s += " ContoFixAcq: " + (t.eventAr[11] * 256 + t.eventAr[12]).ToString();
-						s += " ContoDop: " + t.eventAr[14].ToString();
-						s += " Activity: " + t.eventAr[13].ToString();
-					}
-					else s = "";
-					break;
-			}
-		}
-
-		private void csvPlaceHeader(ref BinaryWriter csv)
-		{
-			string csvHeader = "TagID";
-			if (sameColumn)
-			{
-				csvHeader = csvHeader + csvSeparator + "Timestamp";
-			}
-			else
-			{
-				csvHeader = csvHeader + csvSeparator + "Date" + csvSeparator + "Time";
-			}
-
-			csvHeader = csvHeader + csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
-			csvHeader = csvHeader + csvSeparator + "Activity";
 			if (pressureEnabled > 0)
 			{
 				if (inMeters)
@@ -2645,28 +1170,7 @@ namespace X_Manager.Units.AxyTreks
 
 			csvHeader += "\r\n";
 
-			csv.Write(System.Text.Encoding.ASCII.GetBytes(csvHeader));
-		}
-
-		private bool detectEof(ref MemoryStream ard)
-		{
-			if (ard.Position >= ard.Length) return true;
-			else return false;
-		}
-
-		protected override void Dispose(bool disposing)
-		{
-			if (!disposed)
-			{
-				if (disposing)
-				{
-					//Release managed resources.
-				}
-				// Release unmanaged resources.
-				// Set large fields to null.
-				disposed = true;
-			}
-			base.Dispose(disposing);
+			csv.Write(Encoding.ASCII.GetBytes(csvHeader));
 		}
 
 	}

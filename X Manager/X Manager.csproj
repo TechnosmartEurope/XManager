@@ -401,6 +401,7 @@
     <Compile Include="ConversionPreferences.xaml.cs">
       <DependentUpon>ConversionPreferences.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Units\AxyTrekR.cs" />
     <Compile Include="Units\CO2_Logger.cs" />
     <Compile Include="Units\Drop-Off.cs" />
     <Compile Include="Units\Gipsy6.cs" />

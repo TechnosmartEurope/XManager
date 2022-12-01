@@ -241,3 +241,6 @@
 	- Aggiunta calibrazione AxyDepth-Fast
 	- Implementate classi astratte Axy e AxyTrek
 1.18.11 - Gestione unità Axy-Trek CO2
+1.18.11 - Riorganizzazione classi AxyTrek
+	- Correzione colonne rem in caso contenga sessioni con impostazioni differenti
+	- Supporto per Axy-Trek R

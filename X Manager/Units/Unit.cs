@@ -36,7 +36,7 @@ namespace X_Manager.Units
 		public const int model_AGM1_calib = 10;
 		public const int model_Gipsy6 = 10;
 		public const int model_AGM1 = 9;
-		public const int model_axyTrekS = 7;
+		public const int model_axyTrekR = 7;
 		public const int model_axyTrekN = 6;
 		public const int model_axyTrekHD = 4;
 		public const int model_axyTrekFT = 3;

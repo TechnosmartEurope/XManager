@@ -36,20 +36,6 @@ namespace X_Manager
 		public const int Baudrate_2M = 2000000;
 		public const int Baudrate_3M = 3000000;
 
-		//public const uint model_axy1 = 255;
-		//public const uint model_axyDepth = 127;
-		//public const uint model_axy2 = 126;
-		//public const uint model_axy3 = 125;
-		//public const uint model_axy4 = 124;
-		//public const uint model_Co2Logger = 123;
-		//public const uint model_axy5 = 122;
-		//public const uint model_AGM1_calib = 10;
-		//public const uint model_Gipsy6 = 10;
-		//public const uint model_AGM1 = 9;
-		//public const uint model_axyTrekS = 7;
-		//public const uint model_axyTrek = 6;
-		//public const uint model_axyQuattrok = 4;
-
 		public bool realTimeStatus = false;
 		public bool convertStop = false;
 		public bool unitConnected = false;
@@ -1382,6 +1368,9 @@ namespace X_Manager
 							case "Axy-Trek CO2":
 								oUnit = new AxyTrekCO2(this);
 								break;
+							case "Axy-Trek R":
+								oUnit = new AxyTrekR(this);
+								break;
 							case "GiPSy-6":
 								oUnit = new Gipsy6(this);   //Nel costruttore viene chiusa la porta seriale e riaperta mediante driver ftdi
 								((Gipsy6)oUnit).remoteConnection = remoteConnection;
@@ -1627,7 +1616,7 @@ namespace X_Manager
 			}
 			else if (type == 1)
 			{
-				conf = new TrekPositionConfigurationWindow(ref oUnit);
+				conf = new TrekPositionConfigurationWindow(this, oUnit);
 			}
 			else
 			{
@@ -2531,6 +2520,9 @@ namespace X_Manager
 				case Unit.model_axyTrekCO2:
 					cUnit = new AxyTrekCO2(this);
 					break;
+				case Unit.model_axyTrekR:
+					cUnit = new AxyTrekR(this);
+					break;
 				case Unit.model_AGM1:
 					cUnit = new AGM(this);
 					break;
@@ -2566,45 +2558,6 @@ namespace X_Manager
 			conversionThread.SetApartmentState(ApartmentState.STA);
 			conversionThread.Start();
 		}
-
-		//private void findFirmware(string fn, byte unitType, ref uint fTotA, ref uint fTotB, ref byte[] uf)
-		//{
-		//	var fileIn = new BinaryReader(System.IO.File.Open(fn, FileMode.Open));
-		//	fileIn.ReadByte();
-
-		//	switch (unitType)
-		//	{
-		//		case (byte)Unit.model_axyTrek:
-		//			fileIn.Read(uf, 0, 6);
-		//			fTotA = uf[0] * (uint)1000000 + uf[1] * (uint)1000 + uf[2];
-		//			fTotB = uf[3] * (uint)1000000 + uf[4] * (uint)1000 + uf[5];
-		//			uf[6] = 254;
-		//			break;
-		//		case Unit.model_axy3:
-		//			fileIn.Read(uf, 0, 2);
-		//			fTotA = uf[0] * (uint)1000 + uf[1];
-		//			uf[2] = 254;
-		//			break;
-		//		case Unit.model_axy4:
-		//		case Unit.model_axyDepth:
-		//			fileIn.Read(uf, 0, 2);
-		//			fTotA = uf[0] * (uint)1000 + uf[1];
-		//			uf[2] = 254;
-		//			if (fTotA > 2004)
-		//			{
-		//				uf[2] = fileIn.ReadByte();
-		//				fTotA = fTotA * (uint)1000 + uf[2];
-		//				uf[3] = 254;
-		//			}
-		//			break;
-		//		case Unit.model_AGM1:
-		//			fileIn.Read(uf, 0, 3);
-		//			fTotA = uf[0] * (uint)1000000 + uf[1] * (uint)1000 + uf[2];
-		//			uf[3] = 254;
-		//			break;
-		//	}
-
-		//}
 
 		private byte[] findMdpModel(ref FileStream iFile)
 		{
