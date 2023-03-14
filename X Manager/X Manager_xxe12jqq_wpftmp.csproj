@@ -216,58 +216,8 @@
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Device" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Management">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Windows.Controls.DataVisualization.Toolkit, Version=3.5.40128.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\System.Windows.Controls.DataVisualization.Toolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Windows.Controls.Input.Toolkit, Version=3.5.40128.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\System.Windows.Controls.Input.Toolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Windows.Controls.Layout.Toolkit, Version=3.5.40128.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\System.Windows.Controls.Layout.Toolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Windows.Forms.DataVisualization">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="WindowsFormsIntegration" />
-    <Reference Include="WPFToolkit, Version=3.5.40128.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\WPFToolkit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Xceed.Wpf.Toolkit, Version=2.6.16057.0, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Xceed.Wpf.Toolkit.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Compile Include="About.xaml.cs">
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
@@ -414,106 +364,6 @@
     <Compile Include="YesNo.xaml.cs">
       <DependentUpon>YesNo.xaml</DependentUpon>
     </Compile>
-    <Page Include="About.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Bootloader\Bootloader_Gipsy6.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\AccDayIntervals.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\AgmConfigurationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ChartClasses\ChartWindowAGM.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\Axy5ConfigurationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\AxyConfigurationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\DayTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\DropOffConfigurationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GiPSy6\BasicsConfiguration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GiPSy6\BatteryConfiguration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GiPSy6\GeofencigConfiguration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GiPSy6\HourBar.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GiPSy6\ScheduleConfiguration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\GiPSy6\TimePanel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\DepthFastTrekHDFTCalibrationInputValues.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\DepthFastTrekHDFTCalibration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\RemoteTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\TrekMovementConfigurationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\TrekRemoteIntervals.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConfigurationWindows\TrekSettingsTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ConversionPreferences.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="DownloadRangeInput.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -522,91 +372,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="MessaggioDebug.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="NumericUpDown.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Ok.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\BS_Main.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\BS_ListViewElement.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\BS_NewUnitName.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\MS_Configurator_1.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\MS_Connector.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\MS_Main.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\MS_Supervisor_DateTime_1.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\RemoteUeserSelection.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Remote\Remote_Main.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Themes\MetroDark\MetroDark.MSControls.Core.Implicit.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Page>
-    <Page Include="Themes\MetroDark\MetroDark.MSControls.Toolkit.Implicit.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Page>
-    <Page Include="Themes\MetroDark\Styles.Shared.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Page>
-    <Page Include="Themes\MetroDark\Styles.WPF.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Page>
-    <Page Include="Themes\MetroDark\Theme.Colors.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Page>
-    <Page Include="ConfigurationWindows\TrekPositionConfigurationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Warning.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="YesNo.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -636,124 +401,84 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\ACC OFF.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\ACC ON.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\alert2.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\bad.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\CheckedSymbol.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\COMP OFF.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\COMP ON.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\GYRO OFF.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\GYRO ON.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\ok.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\PLAY BUTTON.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\question.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\STOP BUTTON.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\technosmartLogo.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\technosmartLogoBlurred.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Final_Bot.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Final_Top_1.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Final_Top_2.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Folder_Bot.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Folder_Generics_Top.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Folder_Path_Top.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Folder_Waypoints_Top.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\lookat1.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\lookat2.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\lookat3.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\lookat4.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Movebank_Top.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Path_Bot.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Path_Top.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Generic_Bot.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Generic_Top_1.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Generic_Top_2.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Generic_Top_3.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Generic_Top_4.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Generic_Top_5.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Generic_Top_6.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Start_Bot.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Start_Top.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Stop_Bot.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Placemarks_Stop_Top.txt" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -773,7 +498,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Icona.ico" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
@@ -796,16 +520,13 @@
     <None Include="Resources\tile_background_offline.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\refresh.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Changelog.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\ImportICO.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\ExportICO.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -815,4 +536,75 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Microsoft.CSharp.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Microsoft.VisualBasic.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\mscorlib.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\PresentationCore.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\PresentationFramework.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Core.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Data.DataSetExtensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Data.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Device.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Drawing.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Management.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Net.Http.dll" />
+    <ReferencePath Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\System.Windows.Controls.DataVisualization.Toolkit.dll" />
+    <ReferencePath Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\System.Windows.Controls.Input.Toolkit.dll" />
+    <ReferencePath Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\System.Windows.Controls.Layout.Toolkit.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Windows.Forms.DataVisualization.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Windows.Forms.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Xaml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Xml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Xml.Linq.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\WindowsBase.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\WindowsFormsIntegration.dll" />
+    <ReferencePath Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\WPFToolkit.dll" />
+    <ReferencePath Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\Xceed.Wpf.Toolkit.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\App.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\About.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Bootloader\Bootloader_Gipsy6.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\AccDayIntervals.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\AgmConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ChartClasses\ChartWindowAGM.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\Axy5ConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\AxyConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\DayTab.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\DropOffConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\BasicsConfiguration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\BatteryConfiguration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\GeofencigConfiguration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\HourBar.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\ScheduleConfiguration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\TimePanel.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\DepthFastTrekHDFTCalibrationInputValues.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\DepthFastTrekHDFTCalibration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\RemoteTab.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\TrekMovementConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\TrekRemoteIntervals.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\TrekSettingsTab.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConversionPreferences.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\DownloadRangeInput.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\MainWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\MessaggioDebug.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\NumericUpDown.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Ok.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\BS_Main.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\BS_ListViewElement.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\BS_NewUnitName.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\MS_Configurator_1.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\MS_Connector.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\MS_Main.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\MS_Supervisor_DateTime_1.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\RemoteUeserSelection.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\Remote_Main.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\TrekPositionConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Warning.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\YesNo.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\GeneratedInternalTypeHelper.g.cs" />
+  </ItemGroup>
 </Project>

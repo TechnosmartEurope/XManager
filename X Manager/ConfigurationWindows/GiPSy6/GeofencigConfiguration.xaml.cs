@@ -558,8 +558,8 @@ namespace X_Manager.ConfigurationWindows
 			public double Y2;
 		}
 		public Square[] squareAr;
-
-		public GeofencigConfiguration(byte[] conf, int index, GiPSy6ConfigurationMain parent)
+		Units.Unit unit;
+		public GeofencigConfiguration(byte[] conf, int index, GiPSy6ConfigurationMain parent, Units.Unit unit)
 		{
 			InitializeComponent();
 
@@ -569,6 +569,7 @@ namespace X_Manager.ConfigurationWindows
 			bitnameAr = parent.bitnameAr;
 			conn = parent.conn;
 			this.index = index;
+			this.unit = unit;
 			spAr = new StackPanel[10] { sp0, sp1, sp2, sp3, sp4, sp5, sp6, sp7, sp8, sp9 };
 			cbAr = new CheckBox[10] { cb0, cb1, cb2, cb3, cb4, cb5, cb6, cb7, cb8, cb9 };
 			ocCbAr = new CheckBox[10] { ocCB0, ocCB1, ocCB2, ocCB3, ocCB4, ocCB5, ocCB6, ocCB7, ocCB8, ocCB9 };
@@ -594,8 +595,18 @@ namespace X_Manager.ConfigurationWindows
 			ts = new ThunderTileServer();
 
 			squareAr = new Square[10];
-			int squareOffset = 128;
-			int scheduleOffset = 288;
+			int squareOffset;
+			int scheduleOffset;
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				squareOffset = 128;
+				scheduleOffset = 288;
+			}
+			else
+			{
+				squareOffset = 116;
+				scheduleOffset = 276;
+			}
 			string sA = "E:";
 			string sB = "F:";
 			if (index == 2)
@@ -605,8 +616,16 @@ namespace X_Manager.ConfigurationWindows
 				schAL.Text = "Schedule G:";
 				schBL.Text = "Schedule H:";
 				titleL.Text = "Geofencing 2";
-				squareOffset += 192;
-				scheduleOffset += 192;
+				if (unit is Units.Gipsy6.Gipsy6N)
+				{
+					squareOffset = 320;
+					scheduleOffset += 480;
+				}
+				else
+				{
+					squareOffset = 304;
+					scheduleOffset += 464;
+				}
 				allAsB.Content = "ALL AS G/H";
 			}
 			sch[0] = (((uint)conf[scheduleOffset + 1]) << 8) + conf[scheduleOffset];
@@ -1814,24 +1833,6 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		//private void enableChecked(object sender, RoutedEventArgs e)
-		//{
-		//	bool atLeast = false;
-		//	foreach (TimePanel t in timePanelAr)
-		//	{
-		//		if (t.isChecked)
-		//		{
-		//			atLeast = true;
-		//			break;
-		//		}
-		//	}
-		//	if (!atLeast)
-		//	{
-		//		MessageBox.Show("WARNING: when Geofencing is enabled, at least one time interval must be enabled.");
-		//		timePanelAr[0].isChecked = true;
-		//	}
-		//}
-
 		private void toggleRecs(bool enabled)
 		{
 			for (int i = 0; i < 10; i++)
@@ -1868,55 +1869,37 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 		}
-		//public void saveCache()
-		//{
-		//	if (!conn) return;
-
-		//	foreach (string file in Directory.GetFiles(appDataPath, "*.png"))
-		//	{
-		//		if (!bitnameAr.Contains(System.IO.Path.GetFileName(file)))
-		//		{
-		//			try
-		//			{
-		//				File.Delete(file);
-		//			}
-		//			catch (Exception ex)
-		//			{
-		//				sviluppo
-		//				var b = ex;
-		//				/ sviluppo
-		//			}
-		//		}
-		//	}
-
-		//	for (int i = 0; i < sbitmapAr.Count; i++)
-		//	{
-		//		if (!File.Exists(appDataPath + bitnameAr[i]))
-		//		{
-		//			sbitmapAr[i].bitmap.Save(appDataPath + bitnameAr[i]);
-		//		}
-		//	}
-		//}
 
 		public override void copyValues()
 		{
 
-			int c = 512 + index - 1; //Punta al byte 512 se Geofencing1 o 513 se Geofencing2
-									 //conf[c] = 0;
-									 //if (mainEnableCB.IsChecked == true)
-									 //{
-									 //	conf[c] = 1;
-									 //}
+			//int offset = 492;
+			//if (unit is Units.Gipsy6.Gipsy6N) offset = 512;
+			//int c = offset + index - 1; 
+			//conf[c] = 0;
+			//if (mainEnableCB.IsChecked == true)
+			//{
+			//	conf[c] = 1;
+			//}
 			if (!loaded)
 			{
 				return;
 			}
 
-
 			double co;
 			GeoSquare m;
-			c = 128;
-			if (index == 2) c += 192;
+
+			int offset;
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				offset = 128;
+				if (index == 2) offset = 320;
+			}
+			else
+			{
+				offset = 116;
+				if (index == 2) offset = 304;
+			}
 
 			for (int i = 0; i < 10; i++)
 			{
@@ -1937,9 +1920,9 @@ namespace X_Manager.ConfigurationWindows
 				{
 					for (int j = 0; j < 16; j++)
 					{
-						conf[c + j] = 0;
+						conf[offset + j] = 0;
 					}
-					conf[c + 3] = 0x80;
+					conf[offset + 3] = 0x80;
 				}
 				else
 				{
@@ -1949,42 +1932,42 @@ namespace X_Manager.ConfigurationWindows
 						co += 0x100000000;
 					}
 
-					conf[c] = (byte)co;
-					conf[c + 1] = (byte)((uint)co >> 8);
-					conf[c + 2] = (byte)((uint)co >> 16);
-					conf[c + 3] = (byte)((uint)co >> 24);
+					conf[offset] = (byte)co;
+					conf[offset + 1] = (byte)((uint)co >> 8);
+					conf[offset + 2] = (byte)((uint)co >> 16);
+					conf[offset + 3] = (byte)((uint)co >> 24);
 
 					co = m.A.Y * 10000000;
 					if (co < 0)
 					{
 						co += 0x100000000;
 					}
-					conf[c + 4] = (byte)co;
-					conf[c + 5] = (byte)((uint)co >> 8);
-					conf[c + 6] = (byte)((uint)co >> 16);
-					conf[c + 7] = (byte)((uint)co >> 24);
+					conf[offset + 4] = (byte)co;
+					conf[offset + 5] = (byte)((uint)co >> 8);
+					conf[offset + 6] = (byte)((uint)co >> 16);
+					conf[offset + 7] = (byte)((uint)co >> 24);
 
 					co = m.B.X * 10000000;
 					if (co < 0)
 					{
 						co += 0x100000000;
 					}
-					conf[c + 8] = (byte)co;
-					conf[c + 9] = (byte)((uint)co >> 8);
-					conf[c + 10] = (byte)((uint)co >> 16);
-					conf[c + 11] = (byte)((uint)co >> 24);
+					conf[offset + 8] = (byte)co;
+					conf[offset + 9] = (byte)((uint)co >> 8);
+					conf[offset + 10] = (byte)((uint)co >> 16);
+					conf[offset + 11] = (byte)((uint)co >> 24);
 
 					co = m.B.Y * 10000000;
 					if (co < 0)
 					{
 						co += 0x100000000;
 					}
-					conf[c + 12] = (byte)co;
-					conf[c + 13] = (byte)((uint)co >> 8);
-					conf[c + 14] = (byte)((uint)co >> 16);
-					conf[c + 15] = (byte)((uint)co >> 24);
+					conf[offset + 12] = (byte)co;
+					conf[offset + 13] = (byte)((uint)co >> 8);
+					conf[offset + 14] = (byte)((uint)co >> 16);
+					conf[offset + 15] = (byte)((uint)co >> 24);
 				}
-				c += 16;
+				offset += 16;
 			}
 
 			sch[0] = uint.Parse(valAr[0].Text);
@@ -1992,18 +1975,25 @@ namespace X_Manager.ConfigurationWindows
 			sch[1] = uint.Parse(valAr[1].Text);
 			sch[1] += (uint)(unitAr[1].SelectedIndex) << 8;
 
-			conf[c] = (byte)sch[0];
-			conf[c + 1] = (byte)(sch[0] >> 8);
-			conf[c + 2] = (byte)sch[1];
-			conf[c + 3] = (byte)(sch[1] >> 8);
+			conf[offset] = (byte)sch[0];
+			conf[offset + 1] = (byte)(sch[0] >> 8);
+			conf[offset + 2] = (byte)sch[1];
+			conf[offset + 3] = (byte)(sch[1] >> 8);
 
-			c += 8;
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				offset += 8;
+			}
+			else
+			{
+				offset += 4;
+			}
 			for (int i = 0; i < 24; i++)
 			{
-				conf[c + i] = 0;
+				conf[offset + i] = 0;
 				if (timePanelAr[i].isChecked)
 				{
-					conf[c + i] = (byte)(timePanelAr[i].sel + 1);
+					conf[offset + i] = (byte)(timePanelAr[i].sel + 1);
 				}
 			}
 		}

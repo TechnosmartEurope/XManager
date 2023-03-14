@@ -25,7 +25,7 @@
                   IsChecked="True" VerticalAlignment="Top"/>
         <TextBlock Grid.Row="3" x:Name="statusTB" Margin="20,5,0,5" Foreground="#FFBABABA" Width="330" HorizontalAlignment="Left" FontSize="10" VerticalAlignment="Bottom" Height="60"/>
         <Button Grid.Row="3" x:Name="connectB" Content="CONNECT" Width="200" HorizontalAlignment="Right" Margin="0,5,20,5" Height="50" FontSize="30" VerticalAlignment="Top" Click="connectB_Click"/>
-        <Button Grid.Row="3" x:Name="exportB" Content="EXPORT" Width="200" HorizontalAlignment="Right" Margin="0,5,20,5" Height="50" FontSize="30" VerticalAlignment="Bottom"/>
+        <Button Grid.Row="3" x:Name="exportB" Content="EXPORT" Width="200" HorizontalAlignment="Right" Margin="0,5,20,5" Height="50" FontSize="30" VerticalAlignment="Bottom" Click="exportB_Click"/>
         <Button Grid.Row="4" x:Name="flashB" Content="FLASH" Foreground="Red" HorizontalAlignment="Right" Width="200" Margin="0,5,20,15" FontSize="40" Click="flashB_Click" />
         <Label Grid.Row="4" x:Name="statusL" Content="CONNECTED" Foreground="#FF00AADE" FontSize="25" Margin="20,30,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="300"/>
         <!--<Border Grid.Row="4" BorderThickness="2" BorderBrush="#FFBABABA" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="20,0,0,20" Width="100" Height="20">

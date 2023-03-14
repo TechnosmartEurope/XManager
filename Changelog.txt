@@ -241,6 +241,13 @@
 	- Aggiunta calibrazione AxyDepth-Fast
 	- Implementate classi astratte Axy e AxyTrek
 1.18.11 - Gestione unità Axy-Trek CO2
-1.18.11 - Riorganizzazione classi AxyTrek
+1.18.12 - Riorganizzazione classi AxyTrek
 	- Correzione colonne rem in caso contenga sessioni con impostazioni differenti
 	- Supporto per Axy-Trek R
+1.19.0 - Suppport per Gipsy6-XS
+	- Bugfix - Dumpview: il baudrate partiva con l'ultimo utilizzato dall'interfaccia FTDI e non da quello indicato nella combobox 
+	- Gipsy6: possibilità di scaricare l'immagine della flash da utility bootloader
+	- Gipsy6: aggiunta possibilità di impostare la prossimità a 1 secondo
+	- Axy5: Supporto per firmware 2.0.0
+	- Axy5: Correzione coefficiente di conversione accelerometro in modalità 16g/12bit
+	- AxyTrek: Ripristinata possibilità di ignorare l'orario gps usando quello indicato nelle preferenze di conversione

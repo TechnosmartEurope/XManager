@@ -10,6 +10,7 @@ using System.Windows;
 using System.Text;
 using System.Threading.Tasks;
 using X_Manager.Units.AxyTreks;
+using X_Manager.Units.Gipsy6;
 
 namespace X_Manager
 {
@@ -475,8 +476,8 @@ namespace X_Manager
 				case Unit.model_Co2Logger:
 					cUnit = new CO2_Logger(this);
 					break;
-				case Unit.model_Gipsy6:
-					cUnit = new Gipsy6(this);
+				case Unit.model_Gipsy6N:
+					cUnit = new Gipsy6N(this);
 					break;
 				default:
 					cUnit = new AxyTrekN(this);

@@ -24,6 +24,7 @@ namespace X_Manager.Units.AxyTreks
 
 		protected int temperatureEnabled;
 		protected int pressureEnabled;
+		protected double pressOffset;
 		protected byte range;
 		protected ushort rate;
 		protected bool bits;
@@ -41,6 +42,7 @@ namespace X_Manager.Units.AxyTreks
 		protected bool angloTime = false;
 		protected string dateFormatParameter;
 		protected byte dateFormat;
+		protected bool overrideTime = false;
 		protected bool inMeters = false;
 		protected bool prefBattery = false;
 		protected bool repeatEmptyValues = true;
@@ -940,6 +942,9 @@ namespace X_Manager.Units.AxyTreks
 
 		protected void convertInit(string[] prefs)
 		{
+			if (prefs[pref_pressMetri] == "meters") inMeters = true;
+			pressOffset = double.Parse(prefs[pref_millibars]);
+
 			debugLevel = parent.stDebugLevel;
 			addGpsTime = parent.addGpsTime;
 			if (Parent.getParameter("pressureRange") == "air")
@@ -964,7 +969,7 @@ namespace X_Manager.Units.AxyTreks
 			if (prefs[pref_txt] == "True") makeTxt = true;
 			if (prefs[pref_kml] == "True") makeKml = true;
 			if (prefs[pref_battery] == "True") prefBattery = true;
-			if (prefs[pref_pressMetri] == "meters") inMeters = true;
+			
 			if (prefs[pref_timeFormat] == "2") angloTime = true;
 
 			dateFormat = byte.Parse(prefs[pref_dateFormat]);
@@ -984,6 +989,8 @@ namespace X_Manager.Units.AxyTreks
 					dateFormatParameter = "yyyy/dd/MM";
 					break;
 			}
+			overrideTime = false;
+			if (prefs[pref_override_time] == "True") overrideTime = true;
 			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
 			leapSeconds = int.Parse(prefs[pref_leapSeconds]);
@@ -1848,7 +1855,7 @@ namespace X_Manager.Units.AxyTreks
 					s += "Maintenance reset. New data on next session...";
 					break;
 				case 16:
-					if ((debugLevel > 1)) s += "MAX7 found OFF during CONT or ALT_ON. Restarted.";
+					if (debugLevel > 1) s += "MAX7 found OFF during CONT or ALT_ON. Restarted.";
 					else s = "";
 					break;
 				case 17:

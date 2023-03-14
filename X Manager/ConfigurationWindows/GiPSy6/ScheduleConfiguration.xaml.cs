@@ -18,7 +18,8 @@ namespace X_Manager.ConfigurationWindows
 	public partial class ScheduleConfiguration : PageCopy
 	{
 		byte[] conf;
-		uint firmware;
+		//uint firmware;
+		Units.Unit unit;
 		//TextBlockQ[] tbArr = new TextBlockQ[24];
 		TimePanel[] timePanelArAB = new TimePanel[24];
 		TimePanel[] timePanelArCD = new TimePanel[24];
@@ -29,14 +30,14 @@ namespace X_Manager.ConfigurationWindows
 		CheckBox[] mAr_sx;
 		CheckBox[] mAr_dx;
 		//int[] oldCbVal = new int[4];
-		public ScheduleConfiguration(byte[] conf, uint fw)
+		public ScheduleConfiguration(byte[] conf, Units.Unit unit)
 		{
 			InitializeComponent();
 			warningTB.Text = "";
 			this.conf = conf;
 			int riga = 0;
 			int colonna = 0;
-			firmware = fw;
+			this.unit = unit;
 			quantityArr = new ComboBox[] { aValCB, bValCB, cValCB, dValCB };
 			unitArr = new ComboBox[4] { aTimeUnitCB, bTimeUnitCB, cTimeUnitCB, dTimeUnitCB };
 			mAr_sx = new CheckBox[12] { m1_sx, m2_sx, m3_sx, m4_sx, m5_sx, m6_sx, m7_sx, m8_sx, m9_sx, m10_sx, m11_sx, m12_sx };
@@ -71,10 +72,18 @@ namespace X_Manager.ConfigurationWindows
 
 			}
 
-			sch[0] = BitConverter.ToUInt16(conf, 52);   //52-53
-			sch[1] = BitConverter.ToUInt16(conf, 54);   //54-55
-			sch[2] = BitConverter.ToUInt16(conf, 84);   //84-85
-			sch[3] = BitConverter.ToUInt16(conf, 86);   //86-87
+			sch[0] = BitConverter.ToUInt16(conf, 52);
+			sch[1] = BitConverter.ToUInt16(conf, 54);
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				sch[2] = BitConverter.ToUInt16(conf, 84);
+				sch[3] = BitConverter.ToUInt16(conf, 86);
+			}
+			else
+			{
+				sch[2] = BitConverter.ToUInt16(conf, 82);
+				sch[3] = BitConverter.ToUInt16(conf, 84);
+			}
 
 		}
 
@@ -83,23 +92,31 @@ namespace X_Manager.ConfigurationWindows
 			bool bChecked = false;
 			bool dChecked = false;
 			//Caselle orari A/B e C/D
+			int offset1 = 58;
+			int offset2 = 90;
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				offset1 = 60;
+				offset2 = 92;
+			}
+
 			for (int i = 0; i < 24; i++)
 			{
-				if (conf[60 + i] == 0)
+				if (conf[offset1 + i] == 0)
 				{
 					timePanelArAB[i].isChecked = false;
 				}
-				else if (conf[60 + i] == 2)
+				else if (conf[offset1 + i] == 2)
 				{
 					bChecked = true;
 					timePanelArAB[i].setAB();
 					timePanelArAB[i].sel = 1;
 				}
-				if (conf[92 + i] == 0)
+				if (conf[offset2 + i] == 0)
 				{
 					timePanelArCD[i].isChecked = false;
 				}
-				else if (conf[92 + i] == 2)
+				else if (conf[offset2 + i] == 2)
 				{
 					dChecked = true;
 					timePanelArCD[i].setAB();
@@ -108,18 +125,24 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			//Mesi ABCD
-			if (conf[116] < 0x80)
+			offset1 = 114;
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				offset1 = 116;
+			}
+
+			if (conf[offset1] < 0x80)
 			{
 				for (int i = 0; i < 12; i++)
 				{
-					mAr_sx[i].IsChecked = conf[i + 116] == 0 ? true : false;
-					mAr_dx[i].IsChecked = conf[i + 116] == 1 ? true : false;
+					mAr_sx[i].IsChecked = conf[i + offset1] == 0 ? true : false;
+					mAr_dx[i].IsChecked = conf[i + offset1] == 1 ? true : false;
 
 				}
 			}
 			else
 			{
-				UInt16 monthSched = (UInt16)((conf[116] << 8) + conf[117]);
+				UInt16 monthSched = (UInt16)((conf[offset1] << 8) + conf[offset1 + 1]);
 				for (int i = 0; i < 12; i++)
 				{
 					mAr_sx[i].IsChecked = ((monthSched >> i) & 1) == 0 ? true : false;
@@ -187,35 +210,46 @@ namespace X_Manager.ConfigurationWindows
 				//sch[i] *= (uint)Math.Pow(60, unitArr[i].SelectedIndex);
 			}
 
+			int offset = 82;
+			if (unit is Units.Gipsy6.Gipsy6N) offset = 84;
+
 			conf[52] = (byte)(sch[0] & 0xff);
 			conf[53] = (byte)(sch[0] >> 8);
 
 			conf[54] = (byte)(sch[1] & 0xff);
 			conf[55] = (byte)(sch[1] >> 8);
 
-			conf[84] = (byte)(sch[2] & 0xff);
-			conf[85] = (byte)(sch[2] >> 8);
+			conf[offset] = (byte)(sch[2] & 0xff);
+			conf[offset + 1] = (byte)(sch[2] >> 8);
 
-			conf[86] = (byte)(sch[3] & 0xff);
-			conf[87] = (byte)(sch[3] >> 8);
+			conf[offset + 2] = (byte)(sch[3] & 0xff);
+			conf[offset + 3] = (byte)(sch[3] >> 8);
+
+			offset = 58;
+			int offset2 = 92;
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				offset = 60;
+				offset2 = 92;
+			}
 
 			for (int i = 0; i < 24; i++)
 			{
-				conf[i + 60] = 0;
+				conf[i + offset] = 0;
 				if (timePanelArAB[i].isChecked)
 				{
-					conf[i + 60] = (byte)(timePanelArAB[i].sel + 1);
+					conf[i + offset] = (byte)(timePanelArAB[i].sel + 1);
 				}
 
-				conf[i + 92] = 0;
+				conf[i + offset2] = 0;
 				if (timePanelArCD[i].isChecked)
 				{
-					conf[i + 92] = (byte)(timePanelArCD[i].sel + 1);
+					conf[i + offset2] = (byte)(timePanelArCD[i].sel + 1);
 				}
 			}
 
 			//Mesi validità schedule C/D
-			if (firmware > 1005000)
+			if (unit.firmTotA > 1005000)
 			{
 				UInt16 monthSched = 0;
 				for (int i = 0; i < 12; i++)
@@ -226,8 +260,14 @@ namespace X_Manager.ConfigurationWindows
 					}
 				}
 				monthSched += 0b1000_0000_0000_0000;
-				conf[116]=(byte)(monthSched>> 8);
-				conf[117] = (byte)(monthSched & 0xff);
+				offset = 114;
+				if (unit is Units.Gipsy6.Gipsy6N)
+				{
+					offset = 116;
+				}
+				conf[offset] = (byte)(monthSched >> 8);
+				conf[offset + 1] = (byte)(monthSched & 0xff);
+
 			}
 			else
 			{

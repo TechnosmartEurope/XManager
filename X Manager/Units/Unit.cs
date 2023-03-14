@@ -32,9 +32,10 @@ namespace X_Manager.Units
 		public const int model_axy4 = 124;                  //0x7c
 		public const int model_Co2Logger = 123;             //0x7b
 		public const int model_axy5 = 122;                  //0x7a
+		public const int model_Gipsy6XS = 12;
 		public const int model_drop_off = 11;
 		public const int model_AGM1_calib = 10;
-		public const int model_Gipsy6 = 10;
+		public const int model_Gipsy6N = 10;
 		public const int model_AGM1 = 9;
 		public const int model_axyTrekR = 7;
 		public const int model_axyTrekN = 6;
@@ -199,9 +200,6 @@ namespace X_Manager.Units
 				case "AGM-1":
 				case "AMG-1":
 					unitModelString = "AGM-1";
-					break;
-				case "Co2Logger":
-					unitModelString = "CO2 Logger";
 					break;
 				default:
 					//mode 0;

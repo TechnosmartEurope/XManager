@@ -24,7 +24,7 @@ namespace X_Manager.ConfigurationWindows
 		uint sdTime, sddDate;
 		List<TextBox> ctrAr;
 		static readonly int[] maxs = new int[7] { 65000, 65000, 65000, 8, 200, 0x7ffffff, 60 };
-		static readonly int[] mins = new int[7] { 10, 2, 2, 0, 5, 0, 2 };
+		static readonly int[] mins = new int[7] { 10, 2, 2, 0, 5, 0, 1 };
 
 		//CheckBox[] remSchAr = new CheckBox[24];
 		byte[] conf;
@@ -32,10 +32,9 @@ namespace X_Manager.ConfigurationWindows
 		string[] oldAdd;
 		bool isRemote = false;
 		bool _lockRfAddress = false;
-		uint firmware;
+		Units.Unit unit;
 		FrameworkElement[] remoteControls;
 		FrameworkElement[] proximityControls;
-
 		public bool lockRfAddress
 		{
 			get
@@ -49,7 +48,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 		}
 
-		public BasicsConfiguration(byte[] conf, uint fw)
+		public BasicsConfiguration(byte[] conf, Units.Unit unit)
 					: base()
 		{
 			InitializeComponent();
@@ -58,7 +57,7 @@ namespace X_Manager.ConfigurationWindows
 			proximityHB.oneAtLeast = false;
 			oldAdd = new string[3];
 
-			firmware = fw;
+			this.unit = unit;
 
 			ctrAr = new List<TextBox> { acqOnTB, acqOffTB, altOnTB, nsatTB, gsvTB, startDelayTimeTB, pxIntervalTB };
 
@@ -67,21 +66,30 @@ namespace X_Manager.ConfigurationWindows
 			proximityControls = new FrameworkElement[] { proximityTB, proximityHB, pxIntervalLabel, pxIntervalTB, rfAddressesSP };
 			this.conf = conf;
 
-			if (conf[58] == 0)
+			//Secondi enhanced accuracy (indirizzo 57 gipsy6xs, 58 gipsy6n)
+			byte enAccPointer = 57;
+			if (unit is Units.Gipsy6.Gipsy6N)
 			{
-				conf[58] = 15;
+				enAccPointer++;
 			}
+			//Controllo di sicurezza per valore non impostato
+			if (conf[enAccPointer] == 0)
+			{
+				conf[enAccPointer] = 15;
+			}
+			//Riempimento combobox enhanced accuracy con valori possibili
 			for (int i = 15; i <= 60; i += 5)
 			{
 				enAccSelCB.Items.Add(i.ToString());
 			}
-			enAccSelCB.SelectedItem = conf[58].ToString();
-			if (firmware < 1004007)
+			//Selezione valore in memoria unità connessa
+			enAccSelCB.SelectedItem = conf[enAccPointer].ToString();
+			if (unit.firmTotA < 1004007)        //Per firmware precedenti la funzionalità viene disabilitata
 			{
 				enAccSelCB.IsEnabled = false;
 				enAccSelCB.Visibility = Visibility.Hidden;
 			}
-
+			//Parametri di navigazione gps
 			acqOn = BitConverter.ToInt16(conf, 32);     //32-33
 			acqOff = BitConverter.ToInt16(conf, 34);    //34-35
 			altOn = BitConverter.ToInt16(conf, 36);     //36-37
@@ -89,36 +97,39 @@ namespace X_Manager.ConfigurationWindows
 			gsv = conf[39];                             //39
 			sdTime = BitConverter.ToUInt32(conf, 40);    //40-43
 			sddDate = BitConverter.ToUInt32(conf, 44);    //44-47
-			remoteAddress = (conf[541] << 16) + (conf[542] << 8) + (conf[543]);
-			pxInterval = conf[523];
-			pxFirst = (conf[524] << 16) + (conf[525] << 8) + (conf[526]);
-			pxLast = (conf[527] << 16) + (conf[528] << 8) + (conf[529]);
-
 			earlyStopCB.IsChecked = (conf[38] & 0x80) == 0x80;
 			enhancedAccuracyCB.IsChecked = (conf[38] & 0x40) == 0x40;
-
 			acqOnTB.Text = acqOn.ToString();
 			acqOffTB.Text = acqOff.ToString();
 			altOnTB.Text = altOn.ToString();
 			nsatTB.Text = nSat.ToString();
 			gsvTB.Text = gsv.ToString();
-			pxIntervalTB.Text = pxInterval.ToString();
-			remoteAddressTB.Text = remoteAddress.ToString();
-			remoteAddressTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
-			remoteAddressTB.TextChanged += rfAddressTB_TextChanged;
-			pxFirstTB.Text = pxFirst.ToString();
-			pxFirstTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
-			pxFirstTB.TextChanged += rfAddressTB_TextChanged;
-			pxLastTB.Text = pxLast.ToString();
-			pxLastTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
-			pxLastTB.TextChanged += rfAddressTB_TextChanged;
 
-			oldAdd[0] = remoteAddressTB.Text;
-			oldAdd[1] = pxFirstTB.Text;
-			oldAdd[2] = pxLastTB.Text;
+			//Per unità gipsy6n carica indirizzo remoto e parametri di prossimità
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				remoteAddress = (conf[541] << 16) + (conf[542] << 8) + (conf[543]);
+				pxInterval = conf[523];
+				pxFirst = (conf[524] << 16) + (conf[525] << 8) + conf[526];
+				pxLast = (conf[527] << 16) + (conf[528] << 8) + conf[529];
+				pxIntervalTB.Text = pxInterval.ToString();
+				remoteAddressTB.Text = remoteAddress.ToString();
+				remoteAddressTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
+				remoteAddressTB.TextChanged += rfAddressTB_TextChanged;
+				pxFirstTB.Text = pxFirst.ToString();
+				pxFirstTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
+				pxFirstTB.TextChanged += rfAddressTB_TextChanged;
+				pxLastTB.Text = pxLast.ToString();
+				pxLastTB.PreviewKeyDown += rfAddressTB_PreviewKeyDown;
+				pxLastTB.TextChanged += rfAddressTB_TextChanged;
+				oldAdd[0] = remoteAddressTB.Text;
+				oldAdd[1] = pxFirstTB.Text;
+				oldAdd[2] = pxLastTB.Text;
+			}
 
 			KeyDown += ctrlManager;
 
+			//Imposta le caselle di sart delay
 			if (sdTime > 0x7ffffff)
 			{
 				sdtCB.IsChecked = false;
@@ -153,13 +164,11 @@ namespace X_Manager.ConfigurationWindows
 			sdDate = new DateTime(anno, mese, giorno);
 			startDelayDateDP.SelectedDate = sdDate;
 
-			if (conf[540] == 1)
+			if (unit is Units.Gipsy6.Gipsy6N && conf[540] == 1)
 			{
 				isRemote = true;
-				if (firmware < 1005000)
+				if (unit.firmTotA < 1005000)
 				{
-					//proximityTB.Visibility = Visibility.Hidden;
-					//proximityHB.Visibility = Visibility.Hidden;
 					foreach (FrameworkElement fe in proximityControls)
 					{
 						fe.Visibility = Visibility.Hidden;
@@ -173,58 +182,57 @@ namespace X_Manager.ConfigurationWindows
 				{
 					fe.Visibility = Visibility.Hidden;
 				}
-				//remoteScheduleTitleTB.Visibility = Visibility.Hidden;
-				//remoteAddressTitleTB.Visibility = Visibility.Hidden;
-				//remoteAddressTB.Visibility = Visibility.Hidden;
-				//remoteScheduleTB.Visibility = Visibility.Hidden;
-				//remoteHB.Visibility = Visibility.Hidden;
-				//proximityTB.Visibility = Visibility.Hidden;
-				//proximityHB.Visibility = Visibility.Hidden;
 			}
 
-			if (isRemote)
+			if (unit is Units.Gipsy6.Gipsy6N)
 			{
-				if (conf[516] == 0xff)
+				if (isRemote)
 				{
-					byte[] rSch = conf.Skip(517).Take(3).ToArray();
-					byte[] pSch = conf.Skip(520).Take(3).ToArray();
-					remoteHB.setStatus(rSch);
-					proximityHB.setStatus(pSch);
+					if (conf[516] == 0xff)
+					{
+						byte[] rSch = conf.Skip(517).Take(3).ToArray();
+						byte[] pSch = conf.Skip(520).Take(3).ToArray();
+						remoteHB.setStatus(rSch);
+						proximityHB.setStatus(pSch);
+					}
+					else
+					{
+						remoteHB.setStatus(conf.Skip(516).Take(24).ToArray());
+						proximityHB.setStatus(new byte[24]);
+					}
+					//proximityPowerCB.SelectedIndex = conf[59];
+					var sb = (sbyte)conf[59];
+					string sbs = sb.ToString() + "dBm";
+					int ind = 0;
+					foreach (ComboBoxItem it in proximityPowerCB.Items)
+					{
+						if (it.Content.Equals(sbs))
+						{
+							break;
+						}
+						ind++;
+					}
+					proximityPowerCB.SelectedIndex = ind;
+
 				}
 				else
 				{
-					remoteHB.setStatus(conf.Skip(516).Take(24).ToArray());
-					proximityHB.setStatus(new byte[24]);
-				}
-				//proximityPowerCB.SelectedIndex = conf[59];
-				var sb = (sbyte)conf[59];
-				string sbs = sb.ToString() + "dBm";
-				int ind = 0;
-				foreach (ComboBoxItem it in proximityPowerCB.Items)
-				{
-					if (it.Content.Equals(sbs))
+
+					byte schMode = conf[516];
+					for (int i = 516; i < 540; i++)
 					{
-						break;
+						conf[i] = 0;
 					}
-					ind++;
-				}
-				proximityPowerCB.SelectedIndex = ind;
+					if (schMode == 0xff)
+					{
+						conf[516] = 0xff;
+					}
 
-			}
-			else
-			{
-				byte schMode = conf[516];
-				for (int i = 516; i < 540; i++)
-				{
-					conf[i] = 0;
-				}
-				if (schMode == 0xff)
-				{
-					conf[516] = 0xff;
 				}
 			}
-
-			if (conf[57] == 0)
+			//Spostamento puntatore al flug degli eventi di debug
+			enAccPointer--;
+			if (conf[enAccPointer] == 0)
 			{
 				debugEventsL.Text = "";
 			}
@@ -263,35 +271,41 @@ namespace X_Manager.ConfigurationWindows
 						if (e.Key == Key.L)
 						{
 							isRemote = false;
-							//remoteScheduleTitleTB.Visibility = Visibility.Hidden;
-							//remoteAddressTitleTB.Visibility = Visibility.Hidden;
-							//remoteAddressTB.Visibility = Visibility.Hidden;
-							//remoteScheduleTB.Visibility = Visibility.Hidden;
-							//proximityTB.Visibility = Visibility.Hidden;
-							//remoteHB.Visibility = Visibility.Hidden;
-							//proximityHB.Visibility = Visibility.Hidden;
 							foreach (FrameworkElement fe in remoteControls)
 							{
 								fe.Visibility = Visibility.Hidden;
 							}
-							byte schMode = conf[516];
-							for (int i = 516; i < 540; i++)
+							if (unit is Units.Gipsy6.Gipsy6N)
 							{
-								conf[i] = 0;
+								byte schMode = conf[516];
+								for (int i = 516; i < 540; i++)
+								{
+									conf[i] = 0;
+								}
+								if (schMode == 0xff)
+								{
+									conf[516] = 0xff;
+								}
+								conf[544] = 0x11; conf[545] = 0x09;
+								conf[546] = 0xcd; conf[547] = 0x08;
+								conf[548] = 0xab; conf[549] = 0x0a;
+								conf[550] = 0x00; conf[551] = 0x08;
+								conf[552] = 0x00; conf[553] = 0x08;
+								MessageBox.Show("The unit will be set as local.");
 							}
-							if (schMode == 0xff)
+							else
 							{
-								conf[516] = 0xff;
+								MessageBox.Show("Gipsy6 XS can be only local.");
 							}
-							conf[544] = 0x11; conf[545] = 0x09;
-							conf[546] = 0xcd; conf[547] = 0x08;
-							conf[548] = 0x44; conf[549] = 0x0a;
-							conf[550] = 0x11; conf[551] = 0x09;
-							conf[552] = 0x77; conf[553] = 0x09;
-							MessageBox.Show("The unit will be set as local.");
+
 						}
 						else if (e.Key == Key.R)
 						{
+							if (unit is Units.Gipsy6.Gipsy6XS)
+							{
+								MessageBox.Show("Gipsy6 XS can be only local.");
+								return;
+							}
 							isRemote = true;
 							foreach (FrameworkElement fe in remoteControls)
 							{
@@ -302,7 +316,7 @@ namespace X_Manager.ConfigurationWindows
 							//remoteAddressTB.Visibility = Visibility.Visible;
 							//remoteScheduleTB.Visibility = Visibility.Visible;
 							//remoteHB.Visibility = Visibility.Visible;
-							if (firmware < 1005000)
+							if (unit.firmTotA < 1005000)
 							{
 								foreach (FrameworkElement fe in proximityControls)
 								{
@@ -323,7 +337,7 @@ namespace X_Manager.ConfigurationWindows
 						}
 						else if (e.Key == Key.B)
 						{
-							var bc = new GiPSy6.BatteryConfiguration(conf);
+							var bc = new GiPSy6.BatteryConfiguration(conf, unit);
 							bc.ShowDialog();
 						}
 						e.Handled = true;
@@ -332,14 +346,19 @@ namespace X_Manager.ConfigurationWindows
 				}
 				else if (e.Key == Key.D)
 				{
-					if (conf[57] == 0)
+					byte debugEventsPointer = 56;
+					if (unit is Units.Gipsy6.Gipsy6N)
 					{
-						conf[57] = 1;
+						debugEventsPointer++;
+					}
+					if (conf[debugEventsPointer] == 0)
+					{
+						conf[debugEventsPointer] = 1;
 						debugEventsL.Text = "(Debug Events ON)";
 					}
 					else
 					{
-						conf[57] = 0;
+						conf[debugEventsPointer] = 0;
 						debugEventsL.Text = "";
 					}
 					e.Handled = true;
@@ -567,9 +586,24 @@ namespace X_Manager.ConfigurationWindows
 					}
 					else
 					{
-						while (60 % pxInterval != 0)
+						bool valueValid = false;
+						int units = pxLast - pxFirst + 1;
+						int tempPxInterval = pxInterval;
+						while (!valueValid)
 						{
-							pxInterval--;
+							while (60 % tempPxInterval != 0)
+							{
+								tempPxInterval--;
+							}
+							if (units * 2 >= tempPxInterval * 60)
+							{
+								pxInterval++;
+								tempPxInterval = pxInterval;
+							}
+							else
+							{
+								valueValid = true;
+							}
 						}
 					}
 					pxIntervalTB.Text = pxInterval.ToString();
@@ -614,10 +648,22 @@ namespace X_Manager.ConfigurationWindows
 			conf[46] = (byte)(ddate >> 16);
 			conf[47] = (byte)(ddate >> 24);
 
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				copyValues_N();
+			}
+			else
+			{
+				copyValues_XS();
+			}
+		}
+
+		private void copyValues_N()
+		{
 			conf[58] = byte.Parse(enAccSelCB.SelectedItem as string);
 			conf[59] = (byte)sbyte.Parse(proximityPowerCB.Text.Substring(0, proximityPowerCB.Text.Length - 3));
 
-			if (firmware >= 1005000)
+			if (unit.firmTotA >= 1005000)
 			{
 				conf[516] = 0xff;
 				Array.Copy(remoteHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 517, 3);
@@ -662,6 +708,11 @@ namespace X_Manager.ConfigurationWindows
 			conf[541] = (byte)(remoteAddress >> 16);
 			conf[542] = (byte)(remoteAddress >> 8);
 			conf[543] = (byte)(remoteAddress & 0xff);
+		}
+
+		private void copyValues_XS()
+		{
+			conf[57] = byte.Parse(enAccSelCB.SelectedItem as string);
 		}
 
 	}

@@ -29,6 +29,7 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 		bool? solar = null;
 		bool? remote = null;
 		bool batterySelected = false;
+		Units.Unit unit;
 		Button[] battAr;
 		SolidColorBrush ciano;
 		//SolidColorBrush nero;
@@ -68,7 +69,7 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 											new Double[] { 3.60, 3.35, 3.85, 3.35, 3.3, 3.3 },	//400-650mAH
 											new Double[] { 3.55, 3.30, 3.85, 3.35, 3.3, 3.3 } };  //1200+mAH
 
-		public BatteryConfiguration(byte[] conf)
+		public BatteryConfiguration(byte[] conf, Units.Unit unit)
 		{
 			InitializeComponent();
 
@@ -82,27 +83,60 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 			battAr = new Button[] { b1, b2, b3, b4, b5, b6, b7 };
 			handled = false;
 			update = false;
-			for (int i = 0; i < tbAr.Length; i++)
-			{
-				if (i == tbAr.Length - 1)
-				{
-					vAr[i] = conf[118] + conf[119] * 256;
-				}
-				else
-				{
-					vAr[i] = conf[544 + i * 2] + conf[545 + i * 2] * 256;
-				}
-				vAr[i] = Math.Round(vAr[i] * 6.0 / 4096, 2);
-				tbAr[i].Text = vAr[i].ToString("0.00", CultureInfo.InvariantCulture);
-				tbAr[i].LostFocus += BatteryConfiguration_LostFocus;
-			}
+			this.unit = unit;
 
 			clearButtons();
 
-			chargingCurrent = (conf[56] * 80000 / 128) + 70;
-			chargingCurrent = 1000000 / chargingCurrent;
-			currentTB.Text = Math.Round(chargingCurrent, 2).ToString();
-			currentTB.LostFocus += currentTB_LostFocus;
+			if (unit is Units.Gipsy6.Gipsy6N)
+			{
+				for (int i = 0; i < tbAr.Length; i++)
+				{
+					if (i == tbAr.Length - 1)
+					{
+						vAr[i] = conf[118] + conf[119] * 256;
+					}
+					else
+					{
+						vAr[i] = conf[544 + i * 2] + conf[545 + i * 2] * 256;
+					}
+					vAr[i] = Math.Round(vAr[i] * 6.0 / 4096, 2);
+					tbAr[i].Text = vAr[i].ToString("0.00", CultureInfo.InvariantCulture);
+					tbAr[i].LostFocus += BatteryConfiguration_LostFocus;
+				}
+				chargingCurrent = (conf[56] * 80000 / 128) + 70;
+				chargingCurrent = 1000000 / chargingCurrent;
+				currentTB.Text = Math.Round(chargingCurrent, 2).ToString();
+				currentTB.LostFocus += currentTB_LostFocus;
+			}
+			else
+			{
+				localB.Visibility = Visibility.Hidden;
+				remoteB.Visibility = Visibility.Hidden;
+				l4.Visibility = Visibility.Hidden;
+				l5.Visibility = Visibility.Hidden;
+				l6.Visibility = Visibility.Hidden;
+				l7.Visibility = Visibility.Hidden;
+				v4.Visibility = Visibility.Hidden;
+				v5.Visibility = Visibility.Hidden;
+				v6.Visibility = Visibility.Hidden;
+				v7.Visibility = Visibility.Hidden;
+				lowRfStart.Visibility = Visibility.Hidden;
+				lowRfLogging.Visibility = Visibility.Hidden;
+				lowRfRefuse.Visibility = Visibility.Hidden;
+				currentTB.Visibility = Visibility.Hidden;
+				remote = false;
+				for (int i = 0; i < 3; i++)
+				{
+
+					vAr[i] = conf[496 + i * 2] + conf[497 + i * 2] * 256;
+					vAr[i] = Math.Round(vAr[i] * 6.0 / 4096, 2);
+					tbAr[i].Text = vAr[i].ToString("0.00", CultureInfo.InvariantCulture);
+					tbAr[i].LostFocus += BatteryConfiguration_LostFocus;
+				}
+			}
+
+
+
 		}
 
 		private void clearButtons()
@@ -152,6 +186,7 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 				fillVolts();
 			}
 		}
+
 		private void remoteClick(object sender, RoutedEventArgs e)
 		{
 			remoteB.Foreground = ciano;
@@ -163,6 +198,7 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 				fillVolts();
 			}
 		}
+
 		private void panelNoClick(object sender, RoutedEventArgs e)
 		{
 			panelNoB.Foreground = ciano;
@@ -186,6 +222,7 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 				fillVolts();
 			}
 		}
+
 		private void fillVolts()
 		{
 			var arrss = new List<Double[][]>() { thRP, thRN, thLP, thLN };
@@ -217,7 +254,6 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 			}
 
 		}
-
 
 		private void BatteryConfiguration_LostFocus(object sender, RoutedEventArgs e)
 		{
@@ -264,8 +300,6 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 			tbAr[index].Text = vAr[index].ToString("0.00", CultureInfo.InvariantCulture);
 		}
 
-
-
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
 			update = true;
@@ -277,29 +311,44 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 			if (!update) return;
 
 			UInt16 val;
-			for (int i = 0; i < vAr.Length ; i++)
+			if (unit is Units.Gipsy6.Gipsy6N)
 			{
-				vAr[i] *= 4096;
-				vAr[i] /= 6;
-				vAr[i] = Math.Round(vAr[i], 0);
-				val = (UInt16)vAr[i];
-				if (i == tbAr.Length - 1)
+				for (int i = 0; i < vAr.Length; i++)
 				{
-					conf[118] = (byte)(val & 0xff);
-					conf[119] = (byte)(val >> 8);
+					vAr[i] *= 4096;
+					vAr[i] /= 6;
+					vAr[i] = Math.Round(vAr[i], 0);
+					val = (UInt16)vAr[i];
+					if (i == tbAr.Length - 1)
+					{
+						conf[118] = (byte)(val & 0xff);
+						conf[119] = (byte)(val >> 8);
+					}
+					else
+					{
+						conf[544 + i * 2] = (byte)(val & 0xff);
+						conf[545 + i * 2] = (byte)(val >> 8);
+					}
 				}
-				else
+				double curr = double.Parse(currentTB.Text);
+				curr = 1000000 / curr;
+				curr -= 70;
+				curr /= 625;
+				curr = Math.Round(curr, 0);
+				conf[56] = (byte)curr;
+			}
+			else
+			{
+				for (int i = 0; i < 3; i++)
 				{
-					conf[544 + i * 2] = (byte)(val & 0xff);
-					conf[545 + i * 2] = (byte)(val >> 8);
+					vAr[i] *= 4096;
+					vAr[i] /= 6;
+					vAr[i] = Math.Round(vAr[i], 0);
+					val = (UInt16)vAr[i];
+					conf[496 + i * 2] = (byte)(val & 0xff);
+					conf[497 + i * 2] = (byte)(val >> 8);
 				}
 			}
-			double curr = double.Parse(currentTB.Text);
-			curr = 1000000 / curr;
-			curr -= 70;
-			curr /= 625;
-			curr = Math.Round(curr, 0);
-			conf[56] = (byte)curr;
 		}
 
 		private void currentTB_LostFocus(object sender, RoutedEventArgs e)

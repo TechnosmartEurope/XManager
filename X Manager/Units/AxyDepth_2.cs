@@ -1002,7 +1002,7 @@ namespace X_Manager.Units
 
 					if (dummyExt == 0xab)
 					{
-						group[position] = (byte)0xab;
+						group[position] = 0xab;
 						position += 1;
 						dummy = 0;
 					}
@@ -1041,7 +1041,7 @@ namespace X_Manager.Units
 						ard.BaseStream.Position -= 1;
 						if (badGroup)
 						{
-							System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+							File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
 						}
 					}
 				}

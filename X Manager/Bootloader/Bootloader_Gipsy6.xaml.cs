@@ -26,14 +26,35 @@ namespace X_Manager.Bootloader
 		bool unitConnected = false;
 		public bool success = false;
 		string firmwareFile;
+		string exportFile;
 		readonly byte[] COMMAND_PING = { 0x03, 0x20, 0x20 };
 		readonly byte[] COMMAND_GET_CHIP_ID = { 0x03, 0x28, 0x28 };
 		readonly uint bootloaderBaudRate = 1000000;
 		FTDI_Device ft;
 		string device;
+		const int NVS_PAGE_SIZE_CC1352 = 0x2000;
+		const int NVS_PAGE_SIZE_CC2640R2 = 0x1000;
+		const int NVS_DATA_START_CC1352 = 0x20000;
+		const int NVS_DATA_START_CC2640R2 = 0xC000;
+		const int NVS_DATA_STOP_CC1352 = 0x52000;
+		const int NVS_DATA_STOP_CC2640R2 = 0x1D000;
+		const int NVS_CONF_CC1352 = 0x52000;
+		const int NVS_CONF_CC2640R2 = 0x1D000;
+		const int NVS_POINTERS_CC1352 = 0x54000;
+		const int NVS_POINTERS_CC2640R2 = 0x1E000;
+		const int NVS_CCFG_CC1352 = 0x56000;
+		const int NVS_CCFG_CC2640R2 = 0x1F000;
+		const int NVS_FLASH_SIZE_CC1352 = 0x58000;
+		const int NVS_FLASH_SIZE_CC2640R2 = 0x20000;
 
 		BackgroundWorker bgw;
-
+		int NVS_pageSize = NVS_PAGE_SIZE_CC1352;
+		int NVS_dataStart = NVS_DATA_START_CC1352;
+		int NVS_dataStop = NVS_DATA_STOP_CC1352;
+		int NVS_conf = NVS_CONF_CC1352;
+		int NVS_pointers = NVS_POINTERS_CC1352;
+		int NVS_ccfg = NVS_CCFG_CC1352;
+		int NVS_flashSize = NVS_FLASH_SIZE_CC1352;
 
 		public Bootloader_Gipsy6(bool unitConnected, string device)
 		{
@@ -291,6 +312,13 @@ namespace X_Manager.Bootloader
 					break;
 				case 4:
 					PKG = "WCSP (YFV)";
+					NVS_pageSize = NVS_PAGE_SIZE_CC2640R2;
+					NVS_dataStart = NVS_DATA_START_CC2640R2;
+					NVS_dataStop = NVS_DATA_STOP_CC2640R2;
+					NVS_conf = NVS_CONF_CC2640R2;
+					NVS_pointers = NVS_POINTERS_CC2640R2;
+					NVS_ccfg = NVS_CCFG_CC2640R2;
+					NVS_flashSize = NVS_FLASH_SIZE_CC2640R2;
 					break;
 				case 5:
 					PKG = "7x7mm QFN package with Wettable Flanks";
@@ -342,12 +370,12 @@ namespace X_Manager.Bootloader
 			byte[] file = File.ReadAllBytes(firmwareFile);
 			pages = new List<fPage>();
 
-			for (int i = 0; i < (file.Length / 0x02000); i++)
+			for (int i = 0; i < (file.Length / NVS_pageSize); i++)
 			{
 				fPage fp = new fPage();
-				fp.address = i * 0x2000;
-				fp.data = new byte[0x2000];
-				Array.Copy(file, i * 0x2000, fp.data, 0, 0x2000);
+				fp.address = i * NVS_pageSize;
+				fp.data = new byte[NVS_pageSize];
+				Array.Copy(file, i * NVS_pageSize, fp.data, 0, NVS_pageSize);
 				uint sum = 0;
 				foreach (byte b in fp.data)
 				{
@@ -361,6 +389,8 @@ namespace X_Manager.Bootloader
 				pages.Add(fp);
 			}
 
+			statusPB.Maximum = (NVS_ccfg / NVS_pageSize) - 1;
+
 			bool[] settings = new bool[2];
 			settings[0] = (bool)wipeDataCB.IsChecked;
 			settings[1] = (bool)wipeSettingsCB.IsChecked;
@@ -370,6 +400,150 @@ namespace X_Manager.Bootloader
 			bgw.DoWork += flashWork;
 			bgw.ProgressChanged += flashProgressChanged;
 			bgw.RunWorkerAsync(argument: settings);
+		}
+
+		private void exportB_Click(object sender, RoutedEventArgs e)
+		{
+			exportFile = "";
+			var save = new System.Windows.Forms.SaveFileDialog();
+			save.Filter = "BIN flash image|*.bin";
+			try
+			{
+				save.InitialDirectory = System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile"));
+			}
+			catch { }
+			if ((save.ShowDialog() == System.Windows.Forms.DialogResult.OK) & (save.FileName != ""))
+			{
+				exportFile = save.FileName;
+				X_Manager.Parent.updateParameter("gipsy6FirmwareFile", exportFile);
+			}
+			else
+			{
+				return;
+			}
+
+			statusL.Content = "Reading flash...";
+			statusPB.Maximum = (NVS_flashSize / 128) - 1;
+
+			bgw = new BackgroundWorker();
+			bgw.WorkerReportsProgress = true;
+			bgw.WorkerSupportsCancellation = true;
+			bgw.DoWork += exportWork;
+			bgw.ProgressChanged += exportProgressChanged;
+			bgw.RunWorkerAsync();
+		}
+
+		void exportWork(object sender, DoWorkEventArgs e)
+		{
+			var bw = new BinaryWriter(new FileStream(exportFile, FileMode.Create));
+
+			bool firmwareGood = false;
+			int address = 0;
+			int noPages = (NVS_ccfg + NVS_pageSize) / NVS_pageSize;
+			for (int i = 0; i < noPages; i++)
+			{
+				int j = 0;
+				while (j < NVS_pageSize / 128)
+				{
+					byte[] comm = new byte[9];
+					comm[0] = 9;
+					comm[2] = 0x2a;
+					byte[] adArr = BitConverter.GetBytes(address);
+					Array.Reverse(adArr);
+					Array.Copy(adArr, 0, comm, 3, 4);
+					comm[7] = 0;
+					comm[8] = 128;
+					crc(comm);
+					ft.Write(comm, 0, comm[0]);
+					ackRes();
+
+					int rxSize = 0;
+					while (rxSize == 0)
+					{
+						rxSize = ft.ReadByte();
+					}
+					rxSize -= 2;
+					byte checkSum = ft.ReadByte();
+					byte[] buff = new byte[rxSize];
+					for (int k = 0; k < rxSize; k++)
+					{
+						buff[k] = ft.ReadByte();
+					}
+					if (checkSum == crcRx(buff))
+					{
+						if (address == 0)
+						{
+							int somma = 0;
+							foreach (byte b in buff)
+							{
+								somma += b;
+							}
+							if (somma != 0x7F80)
+							{
+								firmwareGood = true;
+							}
+						}
+						if ((j == (NVS_pageSize / 128) - 1) && (i == noPages - 1))
+						{
+							buff[0x6c] = 0;
+							buff[0x6d] = 0;
+							buff[0x6e] = 0;
+							buff[0x6f] = 0;
+						}
+						address += 128;
+						j++;
+						bw.Write(buff);
+						bgw.ReportProgress(i);
+					}
+					ft.Write(new byte[] { 0x00, 0xcc }, 2);
+				}
+			}
+			bw.Close();
+			bgw.ReportProgress(-1);
+
+			if (firmwareGood)
+			{
+				byte[] comm = new byte[11];
+				comm[0] = 11;
+				comm[2] = 0x2d;
+				comm[3] = 0;
+				comm[4] = 0;
+				comm[5] = 0;
+				comm[6] = 1;
+				comm[7] = 0;
+				comm[8] = 0;
+				comm[9] = 0;
+				comm[10] = 0;
+				crc(comm);
+				ft.Write(comm, 0, comm[0]);
+				ackRes();
+
+				comm = new byte[3];
+				comm[0] = 3;
+				comm[2] = 0x25;
+				crc(comm);
+				ft.Write(comm, 0, comm[0]);
+				ackRes();
+			}
+			bgw.ReportProgress(-2);
+		}
+
+		void exportProgressChanged(object sender, ProgressChangedEventArgs e)
+		{
+			if (e.ProgressPercentage == -1)
+			{
+				statusL.Content = "Done.";
+				statusPB.Value = 0;
+			}
+			else if (e.ProgressPercentage == -2)
+			{
+				Thread.Sleep(500);
+				Close();
+			}
+			else
+			{
+				statusPB.Value++;
+			}
 		}
 
 		void flashWork(object sender, DoWorkEventArgs e)
@@ -383,24 +557,25 @@ namespace X_Manager.Bootloader
 			ft.ReadTimeout = 300;
 			bgw.ReportProgress(-1);
 			uint address = 0;
-			for (int i = 0; i < 0x2b; i++)
+			//Cancella le pagine interessate
+			for (int i = 0; i < NVS_ccfg / NVS_pageSize; i++)
 			{
-				address = (uint)(i * 0x2000);
-				if (address >= 0x20000 & address < 0x52000)
+				address = (uint)(i * NVS_pageSize);
+				if (address >= NVS_dataStart & address < NVS_dataStop)
 				{
 					if (wipeData)
 					{
 						sectorErase(address);
 					}
 				}
-				else if (address == 0x52000)
+				else if (address == NVS_conf)
 				{
 					if (wipeSettings)
 					{
 						sectorErase(address);
 					}
 				}
-				else if (address == 0x54000)
+				else if (address == NVS_pointers)
 				{
 					if (wipeData)
 					{
@@ -417,10 +592,11 @@ namespace X_Manager.Bootloader
 			bgw.ReportProgress(-2);
 			bgw.ReportProgress(0);
 			ft.ReadTimeout = 300;
+			//Scrive le pagine non vuote
 			foreach (fPage fp in pages)
 			{
 				{
-					if ((fp.address >= 0x20000) & (fp.address < 0x52000))
+					if ((fp.address >= NVS_dataStart) & (fp.address < NVS_dataStop))
 					{
 						if (wipeData)
 						{
@@ -430,7 +606,7 @@ namespace X_Manager.Bootloader
 							}
 						}
 					}
-					else if (fp.address == 0x52000)
+					else if (fp.address == NVS_conf)
 					{
 						if (wipeSettings)
 						{
@@ -440,7 +616,7 @@ namespace X_Manager.Bootloader
 							}
 						}
 					}
-					else if (fp.address == 0x54000)
+					else if (fp.address == NVS_pointers)
 					{
 						if (wipeData)
 						{
@@ -450,7 +626,7 @@ namespace X_Manager.Bootloader
 							}
 						}
 					}
-					else if (fp.address == 0x56000)
+					else if (fp.address == NVS_ccfg)
 					{
 						break;
 					}
@@ -461,14 +637,14 @@ namespace X_Manager.Bootloader
 							pageProgram(fp);
 						}
 					}
-					bgw.ReportProgress(fp.address / 0x2000);
+					bgw.ReportProgress(fp.address / NVS_pageSize);
 				}
 			}
 
-			bgw.ReportProgress(0x56000 / 0x2000);
+			bgw.ReportProgress(NVS_dataStop / NVS_dataStart);
 
 			bgw.ReportProgress(-3);
-			sectorErase(0x56000);
+			sectorErase((uint)NVS_ccfg);
 			pageProgram(pages[pages.Count - 1]);
 			//Thread.Sleep(200);
 			bgw.ReportProgress(-4);
@@ -528,7 +704,7 @@ namespace X_Manager.Bootloader
 
 		void pageProgram(fPage page)
 		{
-			byte[] buff = new byte[256];
+			//byte[] buff = new byte[256];
 			int status = 0;
 			while (status != 0x40)
 			{
@@ -539,7 +715,7 @@ namespace X_Manager.Bootloader
 				Array.Reverse(adArr);
 				Array.Copy(adArr, 0, comm, 3, 4);
 				comm[10] = 0x00;
-				comm[9] = 0x20;
+				comm[9] = (byte)(NVS_pageSize >> 8);
 				crc(comm);
 				ft.Write(comm, 0, comm[0]);
 				ackRes();
@@ -549,7 +725,7 @@ namespace X_Manager.Bootloader
 			byte[] data = new byte[131];
 			data[0] = 131;
 			data[2] = 0x24;
-			for (int i = 0; i < 64; i++)
+			for (int i = 0; i < (NVS_pageSize / 128); i++)
 			{
 				Array.Copy(page.data, i * 128, data, 3, 128);
 				crc(data);
@@ -572,6 +748,17 @@ namespace X_Manager.Bootloader
 			}
 			crc &= 0xff;
 			dataIn[1] = (byte)(crc & 0xff);
+		}
+
+		byte crcRx(byte[] dataIn)
+		{
+			int crc = 0;
+			foreach (byte b in dataIn)
+			{
+				crc += b;
+			}
+			crc &= 0xff;
+			return (byte)crc;
 		}
 
 		bool ackRes()

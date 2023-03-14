@@ -23,7 +23,6 @@ namespace X_Manager.Units.AxyTreks
 			public double batteryLevel;
 			public double temperature;
 			public double press;
-			public double pressOffset;
 			public Coord coord;
 			public int timeStampLength;
 			public DateTime orario;
@@ -131,7 +130,6 @@ namespace X_Manager.Units.AxyTreks
 			byte[] ev = new byte[5];
 			string barStatus = "";
 			timeStampO.eventAr = ev;
-			timeStampO.pressOffset = double.Parse(prefs[pref_millibars]);
 			timeStampO.inAdc = 0;
 			timeStampO.inWater = 0;
 
@@ -987,17 +985,17 @@ namespace X_Manager.Units.AxyTreks
 			const int pref_date_month = 13;
 			const int pref_date_day = 14;
 
-			timeStamp tsc = new timeStamp();
-			pos -= 1;
-
-			//long fileLength = br.Length;
-
 			DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
 				int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]));
 			if (isRem)
 			{
 				dt = new DateTime(1, 1, 1, 1, 1, 1);
 			}
+
+			if (overrideTime) return dt;
+
+			timeStamp tsc = new timeStamp();
+			pos -= 1;
 
 			byte timeStamp0 = 0;
 			byte timeStamp1 = 0;

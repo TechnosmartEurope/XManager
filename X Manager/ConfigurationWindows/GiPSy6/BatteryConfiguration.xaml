@@ -28,10 +28,10 @@
 			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="185" Grid.Row="1" Foreground="#FFBABABA"><Run Language="it-it" Text="Start Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
 			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="185" Grid.Row="2" Foreground="#FFBABABA"><Run Language="it-it" Text="Pause Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
 			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="3" Foreground="#FFBABABA"><Run Language="it-it" Text="Resume Logging Threshold:"/><LineBreak/><Run Language="it-it"/></TextBlock>
-			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="185" Grid.Row="4" Foreground="#FFBABABA"><Run Language="it-it" Text="Radio Threshold (start):"/><LineBreak/><Run Language="it-it"/></TextBlock>
-			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="5" Foreground="#FFBABABA"><Run Language="it-it" Text="Radio Threshold (logging):"/><LineBreak/><Run Language="it-it"/></TextBlock>
-			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="6" Foreground="#FFBABABA"><Run Language="it-it" Text="Radio Refuse Downloading:"/><LineBreak/><Run Language="it-it"/></TextBlock>
-			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="7" Foreground="#FFBABABA"><Run Language="it-it" Text="Charging current:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="185" Grid.Row="4" Foreground="#FFBABABA" x:Name="l4"><Run Language="it-it" Text="Radio Threshold (start):"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="5" Foreground="#FFBABABA" x:Name="l5"><Run Language="it-it" Text="Radio Threshold (logging):"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="6" Foreground="#FFBABABA" x:Name="l6"><Run Language="it-it" Text="Radio Refuse Downloading:"/><LineBreak/><Run Language="it-it"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="204" Grid.Row="7" Foreground="#FFBABABA" x:Name="l7"><Run Language="it-it" Text="Charging current:"/><LineBreak/><Run Language="it-it"/></TextBlock>
 		</Grid>
 
 		<Grid Grid.Column="1">
@@ -59,10 +59,10 @@
 			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="1" ><Run Language="it-it" Text="V"/></TextBlock>
 			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="2"><Run Language="it-it" Text="V"/></TextBlock>
 			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="3"><Run Language="it-it" Text="V"/></TextBlock>
-			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="4"><Run Language="it-it" Text="V"/></TextBlock>
-			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="5"><Run Language="it-it" Text="V"/></TextBlock>
-			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="6"><Run Language="it-it" Text="V"/></TextBlock>
-			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="27" Margin="80,0,0,0" Grid.Row="7"><Run Language="it-it" Text="mA"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="4" x:Name="v4"><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="5" x:Name="v5"><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="17" Margin="80,0,0,0" Grid.Row="6" x:Name="v6"><Run Language="it-it" Text="V"/></TextBlock>
+			<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="16" Height="25" Width="27" Margin="80,0,0,0" Grid.Row="7" x:Name="v7"><Run Language="it-it" Text="mA"/></TextBlock>
 
 
 

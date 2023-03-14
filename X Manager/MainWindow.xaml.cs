@@ -18,6 +18,7 @@ using X_Manager.Units;
 using X_Manager.ConfigurationWindows;
 using X_Manager.Remote;
 using X_Manager.Units.AxyTreks;
+using X_Manager.Units.Gipsy6;
 
 namespace X_Manager
 {
@@ -313,6 +314,9 @@ namespace X_Manager
 
 		private void windowMovingEnded(object sender, EventArgs e)
 		{
+
+			var scr = System.Windows.Forms.Screen.AllScreens;
+
 			windowMovingTimer.Stop();
 			var wih = new WindowInteropHelper(this);
 			var screen = System.Windows.Forms.Screen.FromHandle(wih.Handle);
@@ -336,14 +340,14 @@ namespace X_Manager
 
 			}
 			ExternalGrid.LayoutTransform = new ScaleTransform(scale, scale);
-			if (Left < screen.Bounds.X)
-			{
-				Left = screen.Bounds.X + 5;
-			}
-			if (Top < screen.Bounds.Y)
-			{
-				Top = screen.Bounds.Y + 5;
-			}
+			//if (Left < screen.Bounds.X)
+			//{
+			//	Left = screen.Bounds.X + 5;
+			//}
+			//if (Top < screen.Bounds.Y)
+			//{
+			//	Top = screen.Bounds.Y + 5;
+			//}
 
 			//MessageBox.Show(screen.DeviceName + "  scale: " + scale.ToString() + "\r\nWidth: " + Width.ToString() + " Height: " + Height.ToString() +
 			//	"\r\nScale Transform: " + st.ToString());
@@ -490,7 +494,8 @@ namespace X_Manager
 				case Unit.model_AGM1:
 					configureMovementButton.Content = "Movement configuration";
 					break;
-				case Unit.model_Gipsy6:
+				case Unit.model_Gipsy6N:
+				case Unit.model_Gipsy6XS:
 					unitNameTextBox.MaxLength = 27;
 					configureMovementButton.IsEnabled = true;
 					configurePositionButton.IsEnabled = true;
@@ -764,6 +769,11 @@ namespace X_Manager
 				dumpClearB.Visibility = Visibility.Visible;
 
 				startUpMonitor.Text = "";
+
+				string baudrate = "";
+				baudrate = ((ComboBoxItem)dumpBaudrateCB.SelectedItem).Content as string;
+				baudrate = baudrate.Split(' ')[0];
+				FTDI.BaudRate = uint.Parse(baudrate);
 
 				startUpMonitorBW = new BackgroundWorker();
 				startUpMonitorBW.WorkerReportsProgress = false;
@@ -1372,12 +1382,16 @@ namespace X_Manager
 								oUnit = new AxyTrekR(this);
 								break;
 							case "GiPSy-6":
-								oUnit = new Gipsy6(this);   //Nel costruttore viene chiusa la porta seriale e riaperta mediante driver ftdi
-								((Gipsy6)oUnit).remoteConnection = remoteConnection;
+							case "GiPSy-6 N":
+								oUnit = new Gipsy6N(this);
+								((Gipsy6N)oUnit).remoteConnection = remoteConnection;
 								if (sender is MainWindow)
 								{
 									oUnit.msBaudrate();
 								}
+								break;
+							case "GiPSy-6 XS":
+								oUnit = new Gipsy6XS(this);
 								break;
 							case "Drop-Off":
 								oUnit = new Drop_Off(this);
@@ -1494,6 +1508,7 @@ namespace X_Manager
 			try
 			{
 				conf = oUnit.getConf();
+				Thread.Sleep(200);
 				accSchedule = oUnit.getAccSchedule();
 			}
 			catch (Exception ex)
@@ -1518,11 +1533,13 @@ namespace X_Manager
 					}
 					catch { }
 					conf = new byte[600];
-					Array.Copy(Gipsy6.defConf, conf, conf.Length);
-					conf[541] = 0x00;
-					conf[542] = 0x02;
-					conf[543] = 0x2b;
-
+					Array.Copy(Gipsy6N.defConf, conf, Gipsy6N.defConf.Length);
+					if (oUnit is Gipsy6N)
+					{
+						conf[541] = 0x00;
+						conf[542] = 0x02;
+						conf[543] = 0x2b;
+					}
 				}
 				confForm = new GiPSy6ConfigurationMain(conf, oUnit);
 			}
@@ -1556,9 +1573,12 @@ namespace X_Manager
 						if (confForm.mustWrite)
 						{
 							oUnit.setConf(confForm.axyConfOut);
+							Thread.Sleep(200);
 							oUnit.setAccSchedule(confForm.axyScheduleOut);
 
 							Ok okf = new Ok("Movement configuration succesfully updated.");
+							okf.Top = Top + (Height / 3);
+							okf.Left = Left + (Width / 3);
 							okf.ShowDialog();
 						}
 						else
@@ -1587,7 +1607,7 @@ namespace X_Manager
 		}
 
 		//CONFIGURATION (position/bootloader)
-		private void configurePoistionClick(object sender, RoutedEventArgs e)
+		private void configurePositionClick(object sender, RoutedEventArgs e)
 		{
 
 			ConfigurationWindow conf = null;
@@ -1598,7 +1618,7 @@ namespace X_Manager
 				var tg = new YesNo("No unit connected. Please select the schedule type you want to configure.", "UNIT TYPE", "", "TREK Family", "GIPSY family");
 				type = tg.ShowDialog();
 			}
-			else
+			else    //Qui bisogna implementare dei menù a tendina per il sottotipo di unità (axytrek r-n-hs ecc, gipsy6 n-xs) Per ora solo unità n
 			{
 				if (oUnit is AxyTrek)
 				{
@@ -1622,8 +1642,8 @@ namespace X_Manager
 			{
 				if (oUnit == null)
 				{
-					byte[] axyconf = new byte[Gipsy6.defConf.Length];
-					Array.Copy(Gipsy6.defConf, axyconf, Gipsy6.defConf.Length);
+					byte[] axyconf = new byte[Gipsy6N.defConf.Length];
+					Array.Copy(Gipsy6N.defConf, axyconf, Gipsy6N.defConf.Length);
 					conf = new GiPSy6ConfigurationMain(axyconf, null);
 					conf.lastForthContent = "CLOSE";
 				}
@@ -1779,7 +1799,7 @@ namespace X_Manager
 				else
 				{
 					dr.startAddress = 0;
-					dr.finalAddress = ((memoryLogical[0] / 4096) * 4096) + 4096;
+					dr.finalAddress = ((memoryLogical[0] / 4096) * 4096) + 0x1000;
 				}
 
 				if (!(bool)dr.ShowDialog())
@@ -1829,9 +1849,9 @@ namespace X_Manager
 			// /sviluppo
 			mainGrid.IsEnabled = false;
 			Thread downloadThread = new Thread(() => oUnit.download(saveRaw.FileName, fromMemory, toMemory, baudrate));
-			if (oUnit is Gipsy6)
+			if (oUnit is Gipsy6N)
 			{
-				if (((Gipsy6)oUnit).remoteConnection)
+				if (((Gipsy6N)oUnit).remoteConnection)
 				{
 					downloadThread = new Thread(() => oUnit.downloadRemote(saveRaw.FileName, fromMemory, toMemory, baudrate));
 				}
@@ -1896,7 +1916,7 @@ namespace X_Manager
 			mainGrid.IsEnabled = false;
 			convFileTot = (ushort)convFiles.Count;
 			convFile = 0;
-			if ((convFileTot != 0))
+			if (convFileTot != 0)
 			{
 				nextFile();
 			}
@@ -1953,7 +1973,7 @@ namespace X_Manager
 			Baudrate_base = baudRate;
 			remoteConnection = true;
 			connectClick(this, new RoutedEventArgs());
-			if (unitConnected && oUnit is Gipsy6)       //In caso di gipsy6 remoto disabilita il pulsante per l'upload del firmware
+			if (unitConnected && oUnit is Gipsy6N)       //In caso di gipsy6 remoto disabilita il pulsante per l'upload del firmware
 			{
 				keepAliveTimer = new System.Timers.Timer();
 				keepAliveTimer.Elapsed += keepAliveTimerElapsed;
@@ -2438,7 +2458,7 @@ namespace X_Manager
 			convFiles.RemoveAt(0);
 			FileStream fs = File.OpenRead(fileName);
 			byte model;
-			byte fw = 0; //Controllare cosa succede in caso di ardfile=false alla riga 1555 e poi al caso successivo (Depth)
+			uint fw = 0; //Controllare cosa succede in caso di ardfile=false alla riga 1555 e poi al caso successivo (Depth)
 			if (fileType == type_ard)           //nell'ard il tipo di unità è scritto nel primo byte
 			{
 				model = (byte)fs.ReadByte();
@@ -2463,8 +2483,9 @@ namespace X_Manager
 			{
 				try
 				{
-					model = findMdpModel(ref fs)[0]; //Implementare
-					fw = findMdpModel(ref fs)[1];  //Implementare
+					uint[] par = findMdpModel(ref fs);
+					model = (byte)par[0];
+					fw = par[1];  //Implementare
 				}
 				catch (Exception ex)
 				{
@@ -2494,6 +2515,7 @@ namespace X_Manager
 					break;
 				case Unit.model_axy5:
 					cUnit = new Axy5(this);
+					cUnit.firmTotA = fw;
 					break;
 				case Unit.model_axyDepth:
 					if (fileType == type_ard) fw = (byte)fs.ReadByte();
@@ -2529,8 +2551,11 @@ namespace X_Manager
 				case Unit.model_Co2Logger:
 					cUnit = new CO2_Logger(this);
 					break;
-				case Unit.model_Gipsy6:
-					cUnit = new Gipsy6(this);
+				case Unit.model_Gipsy6N:
+					cUnit = new Gipsy6N(this);
+					break;
+				case Unit.model_Gipsy6XS:
+					cUnit = new Gipsy6XS(this);
 					break;
 				default:
 					cUnit = new AxyTrekN(this);
@@ -2559,17 +2584,17 @@ namespace X_Manager
 			conversionThread.Start();
 		}
 
-		private byte[] findMdpModel(ref FileStream iFile)
+		private uint[] findMdpModel(ref FileStream iFile)
 		{
 			long pos = iFile.Position;
-			byte[] outt = new byte[2];
+			uint[] outt = new uint[2];
 			iFile.Position = iFile.Length - 1;
 			if (iFile.ReadByte() == 254)
 			{
 				iFile.Position = iFile.Length - 2;
-				outt[0] = (byte)iFile.ReadByte();
+				outt[0] = (uint)iFile.ReadByte();
 				iFile.Position = iFile.Length - 5;
-				outt[1] = (byte)iFile.ReadByte();
+				outt[1] = (uint)(iFile.ReadByte() * 1000000 + iFile.ReadByte() * 1000 + iFile.ReadByte());
 			}
 			else
 			{

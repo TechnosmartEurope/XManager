@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using X_Manager.Units.Gipsy6;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -38,7 +39,8 @@ namespace X_Manager.ConfigurationWindows
 		//bool expertMode;
 		int lastIndex;
 		int firstIndex;
-		uint firmware;
+		//uint firmware;
+		Units.Unit unit;
 		public bool lockRfAddress
 		{
 			get
@@ -57,27 +59,28 @@ namespace X_Manager.ConfigurationWindows
 		{
 
 			InitializeComponent();
-
+			
+			this.unit = unit;
 			if (unit is null)
 			{
-				firmware = 999999999;
-			}
-			else
-			{
-				firmware = unit.firmTotA;
-			}
-			if (conf[58] < 15 || conf[58] > 60)
-			{
-				conf[58] = 15;
-			}
-			if (firmware < 1004007)
-			{
-				conf[58] = 15;
+				unit = new Gipsy6N(this);
+				unit.firmTotA = 999999999;
 			}
 
-			if (conf[541] == 0x00 && conf[542] == 0x02 && conf[543] == 0x2b)
+			if (unit is Gipsy6N)
 			{
-				Title += " (d.c.)";
+				if (conf[58] < 15 || conf[58] > 60)
+				{
+					conf[58] = 15;
+				}
+				if (unit.firmTotA < 1004007)
+				{
+					conf[58] = 15;
+				}
+				if (conf[541] == 0x00 && conf[542] == 0x02 && conf[543] == 0x2b)
+				{
+					Title += " (d.c.)";
+				}
 			}
 
 			expertCB.IsChecked = bool.Parse(X_Manager.Parent.getParameter("gipsy6ConfigurationExpertMode", "false"));
@@ -123,10 +126,10 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			basicsConf = new BasicsConfiguration(axyConfOut, firmware);
-			schedConf = new ScheduleConfiguration(axyConfOut, firmware);
-			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
-			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
+			basicsConf = new BasicsConfiguration(axyConfOut, unit);
+			schedConf = new ScheduleConfiguration(axyConfOut, unit);
+			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this, unit);
+			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this, unit);
 			backB.IsEnabled = false;
 			pages = new PageCopy[] { schedConf, basicsConf, geoConf1, geoConf2 };
 			pagesEnabled = new bool[] { true, false, false, false };
@@ -405,15 +408,15 @@ namespace X_Manager.ConfigurationWindows
 				Array.Copy(oldRfAddress, 0, axyConfOut, 541, 3); 
 			}
 
-			if (firmware < 1004007)
+			if (unit.firmTotA < 1004007)
 			{
 				axyConfOut[58] = 15;
 			}
 
-			basicsConf = new BasicsConfiguration(axyConfOut, firmware);
-			schedConf = new ScheduleConfiguration(axyConfOut, firmware);
-			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this);
-			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this);
+			basicsConf = new BasicsConfiguration(axyConfOut, unit);
+			schedConf = new ScheduleConfiguration(axyConfOut, unit);
+			geoConf1 = new GeofencigConfiguration(axyConfOut, 1, this, unit);
+			geoConf2 = new GeofencigConfiguration(axyConfOut, 2, this, unit);
 			lockRfAddress = oldLockRfAddress;
 			pages = new PageCopy[] { schedConf, basicsConf, geoConf1, geoConf2 };
 			pagesEnabled = new bool[] { true, false, false, false };

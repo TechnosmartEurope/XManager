@@ -456,7 +456,7 @@ namespace X_Manager.ConfigurationWindows
 			axyScheduleOut = scheduleC.exportSchedule();
 
 			mustWrite = true;
-			this.Close();
+			Close();
 		}
 
 		private void remoteHourClicked(object sender, RoutedEventArgs e)

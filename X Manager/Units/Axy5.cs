@@ -350,9 +350,10 @@ namespace X_Manager.Units
 		{
 			ft.ReadExisting();
 			ft.Write("TTTTTTTTTTTTGGAc");
+			byte byteIn = 0;
 			try
 			{
-				ft.ReadByte();
+				byteIn = ft.ReadByte();
 				if (firmTotA < 001000002)
 				{
 					ft.Write(conf, 15, 2);
@@ -366,7 +367,10 @@ namespace X_Manager.Units
 				{
 					ft.Write(conf, 26, 3);
 				}
-				ft.ReadByte();
+				byteIn = ft.ReadByte();
+				int g = 0;
+				g++;
+				g--;
 			}
 			catch
 			{
@@ -568,7 +572,7 @@ namespace X_Manager.Units
 			ft.BaudRate = (uint)baudrate;
 
 			int firstLoop = 1;
-			int pageCounter = 0;
+			int memCounter = 0;
 
 			if (dieCount == 1)
 			{
@@ -581,7 +585,7 @@ namespace X_Manager.Units
 
 		_loopSingleDie:
 
-			while (pageCounter < toBeDownloaded)
+			while (memCounter < toBeDownloaded)
 			{
 				//COSTRUZIONE COMANDO
 				if (firstLoop > 0)        //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)
@@ -608,7 +612,31 @@ namespace X_Manager.Units
 
 				//INVIO COMANDO
 				ft.Write(outBuffer, bytesToWrite);
-				bytesReturned = ft.Read(inBuffer, 0x1000);
+
+				//Se è stato inviato un comando con il puntatore ad un nuovo blocco (A o B), il firmware restituisce l'indirizzo effettivo del primo
+				//blocco non difettoso successivo al blocco puntato dal comando (di solito coincidono)
+				if (outBuffer[0] == 'A' || outBuffer[0] == 'B')
+				{
+					if (firmTotA >= 2000000)
+					{
+						char res = 'g';
+						do
+						{
+							res = (char)ft.ReadByte();
+							if (res == 'b')
+							{
+								actMemory += 0x_0004_0000;
+								memCounter += 0x_0004_0000;
+								if (actMemory == 0x_2000_0000)  //Effetto Pacman
+								{
+									actMemory = 0;
+								}
+							}
+						} while (res == 'b');
+
+					}
+				}
+				bytesReturned = ft.Read(inBuffer, (uint)position, 0x1000);
 				if (bytesReturned < 0)
 				{
 					//ANOMALIA SERIALE
@@ -622,7 +650,7 @@ namespace X_Manager.Units
 					continue;
 				}
 				//BUFFER ARRIVATO OK
-				pageCounter += 0x1000;
+				memCounter += 0x1000;
 				actMemory += 0x1000;
 				if (actMemory == 0x_2000_0000)    //Effetto Pacman
 				{
@@ -630,19 +658,19 @@ namespace X_Manager.Units
 				}
 				position += 0x1000;
 
-				if ((actMemory % 0x_0004_0000) == 0)
+				if ((actMemory % 0x_0004_0000) == 0)    //Nuovo blocco
 				{
 					firstLoop = 1;
 				}
 
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = pageCounter)); //Aggiornamento progress bar
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = memCounter)); //Aggiornamento progress bar
 				if (convertStop) break;   //Premuto il tasto stop
 			}
 
 			goto _endLoop;
 
 		_loopDualDie:
-			while (pageCounter < toBeDownloaded)
+			while (memCounter < toBeDownloaded)
 			{
 				if (firstLoop > 0)     // A
 				{
@@ -666,7 +694,7 @@ namespace X_Manager.Units
 					bytesToWrite = 1;
 				}
 				ft.Write(outBuffer, bytesToWrite);
-				bytesReturned = ft.Read(inBuffer, 0x1000);
+				bytesReturned = ft.Read(inBuffer, (uint)position, 0x1000);
 
 
 				if (bytesReturned < 0)
@@ -682,7 +710,7 @@ namespace X_Manager.Units
 
 				actMemory += 4096;
 				position += 4096;
-				pageCounter += 4096;
+				memCounter += 4096;
 				if (((actMemory + 4096) % 0x20000) == 0)         //a
 				{
 					for (int i = 1; i < 3; i++)
@@ -693,7 +721,7 @@ namespace X_Manager.Units
 						outBuffer[0] = (byte)'a';
 						bytesToWrite = 4;
 						ft.Write(outBuffer, bytesToWrite);
-						bytesReturned = ft.Read(inBuffer, 0x800);
+						bytesReturned = ft.Read(inBuffer, (uint)position, 0x800);
 						if (bytesReturned < 0)
 						{
 							Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
@@ -715,7 +743,7 @@ namespace X_Manager.Units
 					firstLoop = 1;
 				}
 
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = pageCounter));
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = memCounter));
 
 				if (convertStop) break;// actMemory = toMemory;
 			}
@@ -957,7 +985,7 @@ namespace X_Manager.Units
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
 		{
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusLabel.Content = "Creating Ard file(s)..."));
-			var mdp = new BinaryReader(System.IO.File.Open(fileNameMdp, FileMode.Open));
+			var mdp = new BinaryReader(File.Open(fileNameMdp, FileMode.Open));
 
 			long sessionLength = 0;
 
@@ -971,6 +999,11 @@ namespace X_Manager.Units
 			const int yes_alaways = 11;
 			int resp = no;
 			ushort counter = 0;
+			int sectorLength = 1023;
+			if (firmTotA < 2000000)
+			{
+				sectorLength = 255;
+			}
 
 			fileName = Path.GetFileNameWithoutExtension(fileNameMdp);
 
@@ -1010,25 +1043,20 @@ namespace X_Manager.Units
 						sessionLength = mdp.BaseStream.Position - 2;
 						ard = new BinaryWriter(File.Open(fileNameArd, FileMode.Create));
 						ard.Write(new byte[] { modelCode }, 0, 1);
-						if (!connected)
-						{
-							var oldPosition = mdp.BaseStream.Position;
-							mdp.BaseStream.Position = mdp.BaseStream.Length - 1;
-							if (mdp.ReadByte() == 254)
-							{
-								mdp.BaseStream.Position -= 5;
-								firmwareArray = mdp.ReadBytes(3);
-							}
-							if (firmwareArray[2] == 0xff) Array.Resize(ref firmwareArray, 2);
-							mdp.BaseStream.Position = oldPosition;
-						}
-						ard.Write(firmwareArray, 0, firmwareArray.Length);
-						ard.Write(mdp.ReadBytes(254));
+						uint ftemp = firmTotA;
+						byte[] fwAr = new byte[3];
+						fwAr[0] = (byte)(ftemp / 1000000);
+						ftemp -= (uint)fwAr[0] * 1000000;
+						fwAr[1] = (byte)(ftemp / 1000);
+						ftemp -= (uint)fwAr[1] * 1000;
+						fwAr[2] = (byte)ftemp;
+						ard.Write(fwAr, 0, 3);
+						ard.Write(mdp.ReadBytes(sectorLength - 1));
 					}
 					else
 					{
 						ard.Write(new byte[] { 0xab, 0x80 });
-						ard.Write(mdp.ReadBytes(254));
+						ard.Write(mdp.ReadBytes(sectorLength - 1));
 					}
 				}
 				else if (testByte == 0xff)
@@ -1040,7 +1068,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					ard.Write(mdp.ReadBytes(255));
+					ard.Write(mdp.ReadBytes(sectorLength));
 				}
 			}
 
@@ -1713,7 +1741,12 @@ namespace X_Manager.Units
 				{
 					try
 					{
-						if (firmTotA > 1004000)
+						if (firmTotA >= 2000000)
+						{
+							tsc.temperature = ard.ReadByte();
+							ard.ReadByte();
+						}
+						else if (firmTotA > 1004000)
 						{
 							tsc.temperature = ard.ReadByte() * 256 + ard.ReadByte();
 						}
@@ -1792,6 +1825,14 @@ namespace X_Manager.Units
 				range = ard.ReadByte();
 				bit = ard.ReadByte();
 				ard.ReadByte(); ard.ReadByte(); //Salta i due byte del microschedule perché ancora non implementato
+												//sviluppo
+				if (rate > 5)
+				{
+					rate >>= 4;
+					range &= 15;
+					int g = 0;
+				}
+				///sviluppo
 
 				schedTs = true;
 				switch (rate)
@@ -1859,25 +1900,35 @@ namespace X_Manager.Units
 			//ORARIO
 			if (((tsc.tsTypeExt1 & ts_time) == ts_time) && (!overrideTime))
 			{
-				int anno = ard.ReadByte();
+				int anno, mese, giorno, ore, minuti, secondi;
+				byte[] dateArr = new byte[8];
+
+				if (firmTotA < 2000000)
+				{
+					ard.Read(dateArr, 0, 8);
+					anno = dateArr[0];
+					mese = dateArr[3];
+					giorno = dateArr[2];
+					ore = dateArr[4];
+					minuti = dateArr[7];
+					secondi = dateArr[6];
+				}
+				else
+				{
+					ard.Read(dateArr, 0, 6);
+					giorno = dateArr[0];
+					mese = dateArr[1];
+					anno = dateArr[2];
+					ore = dateArr[3];
+					minuti = dateArr[4];
+					secondi = dateArr[5];
+				}
 				anno = ((anno >> 4) * 10) + (anno & 15) + 2000;
-				ard.ReadByte();
-
-				int giorno = ard.ReadByte();
-				giorno = ((giorno >> 4) * 10) + (giorno & 15);
-
-				int mese = ard.ReadByte();
 				mese = ((mese >> 4) * 10) + (mese & 15);
-
-				int ore = ard.ReadByte();
+				giorno = ((giorno >> 4) * 10) + (giorno & 15);
 				ore = ((ore >> 4) * 10) + (ore & 15);
-				ard.ReadByte();
-
-				int secondi = ard.ReadByte();
-				secondi = ((secondi >> 4) * 10) + (secondi & 15);
-
-				int minuti = ard.ReadByte();
 				minuti = ((minuti >> 4) * 10) + (minuti & 15);
+				secondi = ((secondi >> 4) * 10) + (secondi & 15);
 
 				try
 				{
@@ -2112,6 +2163,7 @@ namespace X_Manager.Units
 			}
 
 		}
+
 		private void csvPlaceHeader(ref StreamWriter csv, string[] prefs)
 		{
 
@@ -2379,8 +2431,8 @@ namespace X_Manager.Units
 							gCoeff = 62.52;
 							break;
 						case 3:
-							//gCoeff = 187.58;
-							gCoeff = 125;
+							gCoeff = 187.58;
+							//gCoeff = 125;
 							break;
 					}
 					break;
@@ -2388,17 +2440,17 @@ namespace X_Manager.Units
 					switch (range)
 					{
 						case 0:
-							gCoeff = 3.9;
+							gCoeff = 3.90625;
 							break;
 						case 1:
-							gCoeff = 7.82;
+							gCoeff = 7.8125;
 							break;
 						case 2:
-							gCoeff = 15.63;
+							gCoeff = 15.625;
 							break;
 						case 3:
-							//gCoeff = 46.9;
-							gCoeff = 31.25;
+							gCoeff = 46.9;
+							//gCoeff = 31.25;
 							break;
 					}
 					break;
@@ -2406,16 +2458,17 @@ namespace X_Manager.Units
 					switch (range)
 					{
 						case 0:
-							gCoeff = 0.98;
+							gCoeff = 0.9765625;
 							break;
 						case 1:
-							gCoeff = 1.95;
+							gCoeff = 1.953125;
 							break;
 						case 2:
-							gCoeff = 3.9;
+							gCoeff = 3.90625;
 							break;
 						case 3:
 							gCoeff = 11.72;
+							//gCoeff = 7.8125;
 							break;
 					}
 					break;

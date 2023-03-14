@@ -46,7 +46,7 @@ namespace X_Manager
             versionLabel.Content += " (64 bit)";
 #endif
 
-            infoLabel.Content += "TechnoSmArt Europe S.r.l.\r\nvia Antonio Signorini, 20\r\n00134 Roma (RM)\r\nItaly";
+            infoLabel.Content += "TechnoSmArt Europe S.r.l.\r\nvia di Novella, 1\r\n00199 Roma (RM)\r\nItaly";
         }
 
         private ImageSource ImageSourceForBitmap(Bitmap bmp)

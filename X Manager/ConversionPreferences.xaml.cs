@@ -30,6 +30,7 @@ namespace X_Manager
 		public byte debugLevel = 0;
 		public bool addGpsTime = false;
 		public bool isRem = false;
+		public bool overrideTime = false;
 		bool am;
 		//bool removeNonGps = false;
 
@@ -198,11 +199,7 @@ namespace X_Manager
 			leapSecondsUD.Value = int.Parse(lastPrefs[pref_leapSeconds]);
 
 			removeNonGps.IsChecked = bool.Parse(lastPrefs[pref_nonGps]);
-			//removeNonGps.IsChecked = false;
-			//if (lastPrefs[pref_nonGps] == "True")
-			//{
-			//	removeNonGps.IsChecked = true;
-			//}
+
 		}
 
 		private void ctrlManager(object sender, KeyEventArgs e)
@@ -274,7 +271,7 @@ namespace X_Manager
 			if (e.Key == Key.Return)
 			{
 				goOn = true;
-				this.Close();
+				Close();
 			}
 		}
 
@@ -313,6 +310,7 @@ namespace X_Manager
 			lastPrefs[pref_battery] = battery.IsChecked.ToString();
 			lastPrefs[pref_txt] = txt.IsChecked.ToString();
 			lastPrefs[pref_kml] = kml.IsChecked.ToString();
+			overrideTime = (bool)OverrideTime.IsChecked;
 
 			double p = hUd.Value;
 			if ((bool)time2.IsChecked)
@@ -412,6 +410,7 @@ namespace X_Manager
 			amLabel.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0xde));
 			pmLabel.Foreground = new SolidColorBrush(Color.FromArgb(255, 40, 40, 40));
 		}
+
 		private void switchToPm()
 		{
 			am = false;

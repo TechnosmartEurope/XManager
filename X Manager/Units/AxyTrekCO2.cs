@@ -22,7 +22,6 @@ namespace X_Manager.Units.AxyTreks
 			public double batteryLevel;
 			public double temperature;
 			public double press;
-			public double pressOffset;
 			public double co2co2;
 			public double co2temp;
 			public double co2hum;
@@ -180,7 +179,6 @@ namespace X_Manager.Units.AxyTreks
 			byte[] ev = new byte[5];
 			string barStatus = "";
 			timeStampO.eventAr = ev;
-			timeStampO.pressOffset = double.Parse(prefs[pref_millibars]);
 			timeStampO.inAdc = 0;
 			timeStampO.inWater = 0;
 
@@ -567,11 +565,11 @@ namespace X_Manager.Units.AxyTreks
 
 				if (isDepth == 1)
 				{
-					if (pressureDepth5837(ref ard, ref tsc.temperature, ref tsc.press, tsc.pressOffset, ref tsc.tsType)) return;
+					if (pressureDepth5837(ref ard, ref tsc.temperature, ref tsc.press, pressOffset, ref tsc.tsType)) return;
 				}
 				else
 				{
-					if (pressureAir(ref ard, ref tsc.temperature, ref tsc.press, tsc.pressOffset, ref tsc.tsType)) return;
+					if (pressureAir(ref ard, ref tsc.temperature, ref tsc.press, pressOffset, ref tsc.tsType)) return;
 				}
 			}
 
@@ -940,9 +938,6 @@ namespace X_Manager.Units.AxyTreks
 			const int pref_date_month = 13;
 			const int pref_date_day = 14;
 
-			timeStamp tsc = new timeStamp();
-			pos -= 1;
-
 			//long fileLength = br.Length;
 
 			DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
@@ -951,6 +946,11 @@ namespace X_Manager.Units.AxyTreks
 			{
 				dt = new DateTime(1, 1, 1, 1, 1, 1);
 			}
+
+			if (overrideTime) return dt;
+
+			timeStamp tsc = new timeStamp();
+			pos -= 1;
 
 			byte timeStamp0 = 0;
 			byte timeStamp1 = 0;

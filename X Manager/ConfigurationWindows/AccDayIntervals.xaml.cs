@@ -239,14 +239,14 @@ namespace X_Manager.ConfigurationWindows
 
 			for (int i = 0; i < 5; i++)
 			{
-				var v = (Grid)(mainGrid.Children[i + 2]);
-				int b = byte.Parse(((TextBox)(v.Children[1])).Text);
-				schedule[i * 6] = (byte)(((b / 10) * 16) + (b % 10));
-				schedule[(i * 6) + 1] = ((byte)((ComboBox)(v.Children[2])).SelectedIndex);
-				schedule[(i * 6) + 2] = ((byte)((ComboBox)(v.Children[3])).SelectedIndex);
-				schedule[(i * 6) + 3] = ((byte)((ComboBox)(v.Children[4])).SelectedIndex);
-				schedule[(i * 6) + 4] = ((byte)((ComboBox)(v.Children[5])).SelectedIndex);
-				schedule[(i * 6) + 5] = ((byte)((ComboBox)(v.Children[6])).SelectedIndex);
+				var v = (Grid)mainGrid.Children[i + 2];
+				int b = byte.Parse(((TextBox)v.Children[1]).Text);
+				schedule[i * 6] = (byte)((b / 10 * 16) + (b % 10));
+				schedule[(i * 6) + 1] = (byte)((ComboBox)v.Children[2]).SelectedIndex;
+				schedule[(i * 6) + 2] = (byte)((ComboBox)v.Children[3]).SelectedIndex;
+				schedule[(i * 6) + 3] = (byte)((ComboBox)v.Children[4]).SelectedIndex;
+				schedule[(i * 6) + 4] = (byte)((ComboBox)v.Children[5]).SelectedIndex;
+				schedule[(i * 6) + 5] = (byte)((ComboBox)v.Children[6]).SelectedIndex;
 			}
 			return schedule;
 		}

@@ -1206,7 +1206,7 @@ namespace X_Manager.Remote
 			}
 			else
 			{
-				Array.Copy(Units.Gipsy6.defConf, conf, 600);
+				Array.Copy(Units.Gipsy6.Gipsy6N.defConf, conf, 600);
 			}
 			conf[541] = (byte)((channelLV.SelectedItem as BS_listViewElement).Address >> 16);
 			conf[542] = (byte)((channelLV.SelectedItem as BS_listViewElement).Address >> 8);
