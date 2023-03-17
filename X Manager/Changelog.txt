@@ -251,3 +251,5 @@
 	- Axy5: Supporto per firmware 2.0.0
 	- Axy5: Correzione coefficiente di conversione accelerometro in modalità 16g/12bit
 	- AxyTrek: Ripristinata possibilità di ignorare l'orario gps usando quello indicato nelle preferenze di conversione
+1.20.0 - Bugfix: ripristinata funuzione Export su schedule gipsy6
+	- Inseriti codici di errore in avvio BaseManager

@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Net;
 using Microsoft.VisualBasic;
+using Microsoft.SqlServer.Server;
 
 namespace X_Manager.Remote
 {
@@ -90,6 +91,8 @@ namespace X_Manager.Remote
 		private readonly Object scheduleLock = new Object();
 		FTDI_Device ft;
 
+		int errorCode = 0;
+
 		public BS_Main()
 		{
 			InitializeComponent();
@@ -100,63 +103,78 @@ namespace X_Manager.Remote
 			//Crea un elenco di controlli da rendere visibili o invisibile a seconda che l'unità selezionata sia o meno una basestation
 			visArr = new Control[] { channelListGB, scheduleGB, plusB, minusB, plusPlusB, undoB, allOnB, allOffB, confGB, saveB, bootloaderB, sendTimeB };
 
-			Loaded += loaded;
-			SizeChanged += sizeChanged;
-			Closing += closing;
-			historyList = new List<BS_listViewElement[]>();
-			currentSelectedDrive = null;
-
-			//Imposta il timer per il salvataggio della unit list a seguito di modifiche
-			saveAddressTimer = new System.Timers.Timer();
-			saveAddressTimer.Interval = 1000;
-			saveAddressTimer.Elapsed += saveAddressTimerElapsed;
-
-			//Imposta i timer per il salvataggio dello schedule a seguito di modifiche
-			saveScheduleTimer = new System.Timers.Timer();
-			saveScheduleTimer.Interval = 1100;
-			saveScheduleTimer.Elapsed += saveScheduleTimerElapsed;
-
-			//Imposta il timer per il refresh periodico della lista unità
-			listDriveTimer = new System.Timers.Timer();
-			listDriveTimer.Interval = 500;
-			listDriveTimer.AutoReset = false;
-			listDriveTimer.Elapsed += listDriveTimerElapsed;
-
-			//Imposta il timer per il controllo periodico intergrità driver selezionato
-			validateDriveTimer = new System.Timers.Timer();
-			validateDriveTimer.Interval = 500;
-			validateDriveTimer.AutoReset = false;
-			validateDriveTimer.Elapsed += validateDriveTimerElapsed;
-
-			//Aggiunge le 24 checkbox per lo schedule
-			Thickness thickness = new Thickness(5, 20, 0, 0);
-			scheduleCBArr = new List<CheckBox>();
-			for (int i = 0; i < 24; i++)
+			try
 			{
-				if ((i == 8) || (i == 16))
+
+				Loaded += loaded;
+				SizeChanged += sizeChanged;
+				Closing += closing;
+				historyList = new List<BS_listViewElement[]>();
+				currentSelectedDrive = null;
+
+				errorCode++;
+
+				//Imposta il timer per il salvataggio della unit list a seguito di modifiche
+				saveAddressTimer = new System.Timers.Timer();
+				saveAddressTimer.Interval = 1000;
+				saveAddressTimer.Elapsed += saveAddressTimerElapsed;
+
+				//Imposta i timer per il salvataggio dello schedule a seguito di modifiche
+				saveScheduleTimer = new System.Timers.Timer();
+				saveScheduleTimer.Interval = 1100;
+				saveScheduleTimer.Elapsed += saveScheduleTimerElapsed;
+
+				//Imposta il timer per il refresh periodico della lista unità
+				listDriveTimer = new System.Timers.Timer();
+				listDriveTimer.Interval = 500;
+				listDriveTimer.AutoReset = false;
+				listDriveTimer.Elapsed += listDriveTimerElapsed;
+
+				//Imposta il timer per il controllo periodico intergrità driver selezionato
+				validateDriveTimer = new System.Timers.Timer();
+				validateDriveTimer.Interval = 500;
+				validateDriveTimer.AutoReset = false;
+				validateDriveTimer.Elapsed += validateDriveTimerElapsed;
+
+				errorCode++;
+
+				//Aggiunge le 24 checkbox per lo schedule
+				Thickness thickness = new Thickness(5, 20, 0, 0);
+				scheduleCBArr = new List<CheckBox>();
+				for (int i = 0; i < 24; i++)
 				{
-					thickness.Left += 55;
-					thickness.Top = 20;
+					if ((i == 8) || (i == 16))
+					{
+						thickness.Left += 55;
+						thickness.Top = 20;
+					}
+
+					var chb = new CheckBox();
+					chb.Name = "N" + i.ToString();
+					chb.VerticalAlignment = VerticalAlignment.Top;
+					chb.HorizontalAlignment = HorizontalAlignment.Left;
+					chb.Margin = thickness;
+					chb.Content = i.ToString();
+					chb.HorizontalContentAlignment = HorizontalAlignment.Left;
+					chb.Padding = new Thickness(0);
+					chb.FontSize = 10;
+					chb.Checked += scheduleCBchanged;
+					chb.Unchecked += scheduleCBchanged;
+					scheduleG.Children.Add(chb);
+					scheduleCBArr.Add(chb);
+					thickness.Top += 40;
 				}
 
-				var chb = new CheckBox();
-				chb.Name = "N" + i.ToString();
-				chb.VerticalAlignment = VerticalAlignment.Top;
-				chb.HorizontalAlignment = HorizontalAlignment.Left;
-				chb.Margin = thickness;
-				chb.Content = i.ToString();
-				chb.HorizontalContentAlignment = HorizontalAlignment.Left;
-				chb.Padding = new Thickness(0);
-				chb.FontSize = 10;
-				chb.Checked += scheduleCBchanged;
-				chb.Unchecked += scheduleCBchanged;
-				scheduleG.Children.Add(chb);
-				scheduleCBArr.Add(chb);
-				thickness.Top += 40;
-			}
+				//Invalida l'indirizzo di ricezzione
+				bsAddress = -1;
 
-			//Invalida l'indirizzo di ricezzione
-			bsAddress = -1;
+				errorCode++;
+
+			}
+			catch
+			{
+				MessageBox.Show("Error Code: 0x" + errorCode.ToString("x4"));
+			}
 
 		}
 
@@ -165,52 +183,80 @@ namespace X_Manager.Remote
 		private void loaded(Object sender, RoutedEventArgs e)
 		{
 
-			//Nasconde tutti i controlli relativi allo schedule perché in avvio non è stata selezionata alcuna basestation
-			selectedDriveAspect(DriveStatus.NOT_SELECTED);
-
-			int pos = listDrive();        //Elenca i drive connessi al pc nella listview dei drive
-										  //Imposta le funzioni per gli eventi di finestra
-
-			//Se almeno uno dei drive è una basestation la seleziona			
-			if (pos != -1)
+			try
 			{
-				try
+
+
+				//Nasconde tutti i controlli relativi allo schedule perché in avvio non è stata selezionata alcuna basestation
+				selectedDriveAspect(DriveStatus.NOT_SELECTED);
+
+				errorCode++;
+
+				int pos = listDrive();        //Elenca i drive connessi al pc nella listview dei drive
+											  //Imposta le funzioni per gli eventi di finestra
+
+				errorCode++;
+
+				if (pos != -1)
 				{
-					driveLV.SelectedIndex = pos;
-					lock (addressLock)
+					try
 					{
-						lock (scheduleLock)
+						driveLV.SelectedIndex = pos;
+						lock (addressLock)
 						{
-							driveLvItemClicked();
+							lock (scheduleLock)
+							{
+								driveLvItemClicked();
+							}
 						}
 					}
+					catch { }
 				}
-				catch { }
-			}
-			for (int i = 0; i < driveLV.Items.Count; i++)
-			{
-				if (validateDrive(((BS_listViewElement)driveLV.Items[i]).Drive))
+
+
+
+				//Se almeno uno dei drive è una basestation la seleziona			
+
+				for (int i = 0; i < driveLV.Items.Count; i++)
 				{
-					driveLV.SelectedIndex = i;
-					lock (addressLock)
+					if (validateDrive(((BS_listViewElement)driveLV.Items[i]).Drive))
 					{
-						lock (scheduleLock)
+						driveLV.SelectedIndex = i;
+						lock (addressLock)
 						{
-							driveLvItemClicked();
+							lock (scheduleLock)
+							{
+								driveLvItemClicked();
+							}
 						}
+						break;
 					}
-					break;
 				}
+
+				errorCode++;
+
+
+
+				//Fa partire il timer per il controllo periodico delle unità connesse
+				listDriveTimer.Start();
+
+				errorCode++;
+
+				//Fa partire il timer per il controllo periodico dell'integrità dell'unità selezionata
+				validateDriveTimer.Start();
+
+				errorCode++;
+
+				string sopww = (HTTP.cOut(HTTP.COMMAND_GET_VERSION));
+
+				errorCode++;
+				//MessageBox.Show(sopww);
+
 			}
-
-			//Fa partire il timer per il controllo periodico delle unità connesse
-			listDriveTimer.Start();
-
-			//Fa partire il timer per il controllo periodico dell'integrità dell'unità selezionata
-			validateDriveTimer.Start();
-
-			string sopww = (HTTP.cOut(HTTP.COMMAND_GET_VERSION));
-			//MessageBox.Show(sopww);
+			catch
+			{
+				MessageBox.Show("Error Code: 0x" + errorCode.ToString("x4"));
+			}
 		}
 
 		private void sizeChanged(object sender, SizeChangedEventArgs e)
@@ -1006,7 +1052,7 @@ namespace X_Manager.Remote
 			tb.Width = ((BS_listViewElement)channelLV.SelectedItem).ActualWidth;
 			tb.Height = ((BS_listViewElement)channelLV.SelectedItem).ActualHeight;
 			tb.Text = tempBsLvElement.Address.ToString();                   //Si inserisce il testo originale dell'elemento da modificare
-			oldAddress = tempBsLvElement.Address;							//Salva l'indirizzo che sarà modificato
+			oldAddress = tempBsLvElement.Address;                           //Salva l'indirizzo che sarà modificato
 			oldConf = null;
 			if (tempBsLvElement.NewConf != null)                            //Salva l'eventuale nuovo schedule per associarlo al nuovo indirizzo
 			{

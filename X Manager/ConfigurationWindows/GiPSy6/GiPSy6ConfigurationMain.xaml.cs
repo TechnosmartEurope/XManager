@@ -449,7 +449,7 @@ namespace X_Manager.ConfigurationWindows
 			var cf = Gipsy6ConfigurationBrowser.Content as PageCopy;
 			cf.copyValues();
 
-			byte[] newConf = new byte[0x610];
+			byte[] newConf = new byte[0x4096];
 			Array.Copy(Encoding.ASCII.GetBytes("--gipsy6Config--"), newConf, 16);
 			Array.Copy(axyConfOut, 0, newConf, 16, axyConfOut.Length);
 
