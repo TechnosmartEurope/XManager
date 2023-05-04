@@ -231,10 +231,10 @@ namespace X_Manager.ConfigurationWindows
 				mustWrite = true;
 				if (axyConfOut[540] == 0)
 				{
-					for (int i = 488; i < 488 + 24; i++)
-					{
-						axyConfOut[i] = 0;
-					}
+					//for (int i = 488; i < 488 + 24; i++)
+					//{
+					//	axyConfOut[i] = 0;
+					//}
 					axyConfOut[541] = 0xff;
 					axyConfOut[542] = 0xff;
 					axyConfOut[543] = 0xff;

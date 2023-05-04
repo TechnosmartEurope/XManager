@@ -619,12 +619,12 @@ namespace X_Manager.ConfigurationWindows
 				if (unit is Units.Gipsy6.Gipsy6N)
 				{
 					squareOffset = 320;
-					scheduleOffset += 480;
+					scheduleOffset = 480;
 				}
 				else
 				{
 					squareOffset = 304;
-					scheduleOffset += 464;
+					scheduleOffset = 464;
 				}
 				allAsB.Content = "ALL AS G/H";
 			}

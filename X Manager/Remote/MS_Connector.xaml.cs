@@ -112,8 +112,8 @@ namespace X_Manager.Remote
 			}
 			catch
 			{
-
-			}
+				ft.BaudRate = 115200;
+			}			
 			parent.msModel = masterStationType;
 			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 			firmwareL.Content = "Current Firmware Version: " + firmware[0].ToString() + "." + firmware[1].ToString() + "." + firmware[2].ToString();

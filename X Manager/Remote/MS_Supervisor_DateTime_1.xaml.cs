@@ -32,6 +32,7 @@ namespace X_Manager.Remote
 			ft.ReadTimeout = 800;
 			parent = (MS_Main)p;
 			var c = new Thread(clock);
+			//msModel = parent.msModel;
 			c.Start();
 		}
 

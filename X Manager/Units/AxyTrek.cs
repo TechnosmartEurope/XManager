@@ -856,10 +856,10 @@ namespace X_Manager.Units.AxyTreks
 							do
 							{
 								fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileNameArd) + " (1)" + ".ard";
-							} while (System.IO.File.Exists(fileNameArd));
+							} while (File.Exists(fileNameArd));
 						}
 					}
-					ard = new System.IO.BinaryWriter(System.IO.File.Open(fileNameArd, FileMode.Create));
+					ard = new BinaryWriter(File.Open(fileNameArd, FileMode.Create));
 					ard.Write(new byte[] { modelCode }, 0, 1);
 					if (!connected)
 					{
@@ -930,9 +930,9 @@ namespace X_Manager.Units.AxyTreks
 					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
 					{
 						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						if (System.IO.File.Exists(newFileNameMdp)) fDel(newFileNameMdp);
+						if (File.Exists(newFileNameMdp)) fDel(newFileNameMdp);
 						//string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						System.IO.File.Move(fileNameMdp, newFileNameMdp);
+						File.Move(fileNameMdp, newFileNameMdp);
 					}
 				}
 			}

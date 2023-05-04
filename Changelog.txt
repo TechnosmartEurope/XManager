@@ -253,3 +253,5 @@
 	- AxyTrek: Ripristinata possibilità di ignorare l'orario gps usando quello indicato nelle preferenze di conversione
 1.20.0 - Bugfix: ripristinata funuzione Export su schedule gipsy6
 	- Inseriti codici di errore in avvio BaseManager
+1.20.1 - Bugfix: ripristinate funzionalità Supervisor Station AxyTrek
+	- Bugfix - Gipsy6: ripristinato geofencing2
