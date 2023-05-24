@@ -343,19 +343,30 @@ namespace X_Manager.Bootloader
 			open.Filter = "BIN flash image|*.bin";
 			try
 			{
-				open.InitialDirectory = System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile"));
+				open.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile")));
 			}
 			catch { }
-			if ((open.ShowDialog() == System.Windows.Forms.DialogResult.OK) & (open.FileName != ""))
+			for (int i = 0; i < 2; i++)
 			{
-				firmwareFile = open.FileName;
-				X_Manager.Parent.updateParameter("gipsy6FirmwareFile", firmwareFile);
-				fileTB.Text = firmwareFile;
-				filePropertiesTB.Text = "Firmware date: " + File.GetLastWriteTime(firmwareFile);
-			}
-			else
-			{
-				return;
+				try
+				{
+					if ((open.ShowDialog() == System.Windows.Forms.DialogResult.OK) & (open.FileName != ""))
+					{
+						firmwareFile = open.FileName;
+						X_Manager.Parent.updateParameter("gipsy6FirmwareFile", firmwareFile);
+						fileTB.Text = firmwareFile;
+						filePropertiesTB.Text = "Firmware date: " + File.GetLastWriteTime(firmwareFile);
+					}
+					else
+					{
+						return;
+					}
+					break;
+				}
+				catch
+				{
+					open.InitialDirectory = "C:\\";
+				}
 			}
 		}
 
@@ -409,17 +420,28 @@ namespace X_Manager.Bootloader
 			save.Filter = "BIN flash image|*.bin";
 			try
 			{
-				save.InitialDirectory = System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile"));
+				save.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile")));
 			}
 			catch { }
-			if ((save.ShowDialog() == System.Windows.Forms.DialogResult.OK) & (save.FileName != ""))
+			for (int i = 0; i < 2; i++)
 			{
-				exportFile = save.FileName;
-				X_Manager.Parent.updateParameter("gipsy6FirmwareFile", exportFile);
-			}
-			else
-			{
-				return;
+				try
+				{
+					if ((save.ShowDialog() == System.Windows.Forms.DialogResult.OK) & (save.FileName != ""))
+					{
+						exportFile = save.FileName;
+						X_Manager.Parent.updateParameter("gipsy6FirmwareFile", exportFile);
+					}
+					else
+					{
+						return;
+					}
+					break;
+				}
+				catch
+				{
+					save.InitialDirectory = "C:\\";
+				}
 			}
 
 			statusL.Content = "Reading flash...";

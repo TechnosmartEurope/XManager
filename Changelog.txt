@@ -251,7 +251,14 @@
 	- Axy5: Supporto per firmware 2.0.0
 	- Axy5: Correzione coefficiente di conversione accelerometro in modalità 16g/12bit
 	- AxyTrek: Ripristinata possibilità di ignorare l'orario gps usando quello indicato nelle preferenze di conversione
-1.20.0 - Bugfix: ripristinata funuzione Export su schedule gipsy6
+1.20.0 - Bugfix: ripristinata funzione Export su schedule gipsy6
+	- Bugfix - BaseManager. Crashava all'avvio se non c'era connettività  internet
 	- Inseriti codici di errore in avvio BaseManager
 1.20.1 - Bugfix: ripristinate funzionalità Supervisor Station AxyTrek
 	- Bugfix - Gipsy6: ripristinato geofencing2
+1.20.2 - Bugfix - Axy5: aggiustata formattazione csv
+	- Bugfix: Le finestre di dialogo FileOpen e FileSave crashano per alcuni clienti per via di qualche anomalia nel percorso dell'InitialDirectory.
+	- Bugfix: il download via cavo non funzionava se l'indirizzo di partenza era diverso da zero (perchè dati cancellati da basestation)
+	- Bugfix-Basestation: ripristinata funzionalità "Change unit schedule"
+	- Gipsy6: inserito evento "Schedule: OFF" e evento "B_EVENT" (bad event)
+	- Masterstation: alla pressione pulsante "Wake" il driver FTDI viene chiuso e riaperto, per prevenire "Masterstation Bloccata"

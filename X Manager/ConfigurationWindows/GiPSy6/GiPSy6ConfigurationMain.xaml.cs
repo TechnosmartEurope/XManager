@@ -55,7 +55,7 @@ namespace X_Manager.ConfigurationWindows
 
 		DispatcherTimer windowMovingTimer = new DispatcherTimer();
 
-		public GiPSy6ConfigurationMain(byte[] conf, Units.Unit unit)
+		public GiPSy6ConfigurationMain(byte[] conf, Units.Unit unit, MainWindow mw)
 		{
 
 			InitializeComponent();
@@ -63,7 +63,7 @@ namespace X_Manager.ConfigurationWindows
 			this.unit = unit;
 			if (unit is null)
 			{
-				unit = new Gipsy6N(this);
+				unit = new Gipsy6N(mw);
 				unit.firmTotA = 999999999;
 			}
 
@@ -379,12 +379,23 @@ namespace X_Manager.ConfigurationWindows
 			byte[] oldRfAddress = axyConfOut.Skip(541).Take(3).ToArray();
 
 			var fopen = new System.Windows.Forms.OpenFileDialog();
-			fopen.InitialDirectory = X_Manager.Parent.getParameter("gipsy6ConfigurationsFolder", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+			fopen.InitialDirectory = X_Manager.Parent.getParameter("gipsy6ConfigurationsFolder", System.IO.Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
 			fopen.Filter = "Gipsy6 Configuration File | *.cfg";
-			var res = fopen.ShowDialog();
-			if ((res == System.Windows.Forms.DialogResult.No) || (res == System.Windows.Forms.DialogResult.None) || (res == System.Windows.Forms.DialogResult.Cancel))
+			for (int i = 0; i < 2; i++)
 			{
-				return;
+				try
+				{
+					var res = fopen.ShowDialog();
+					if ((res == System.Windows.Forms.DialogResult.No) || (res == System.Windows.Forms.DialogResult.None) || (res == System.Windows.Forms.DialogResult.Cancel))
+					{
+						return;
+					}
+					break;
+				}
+				catch
+				{
+					fopen.InitialDirectory = "C:\\";
+				}
 			}
 
 			var fp = fopen.FileName;
@@ -438,12 +449,24 @@ namespace X_Manager.ConfigurationWindows
 		private void exportB_Click(object sender, RoutedEventArgs e)
 		{
 			var fsave = new System.Windows.Forms.SaveFileDialog();
-			fsave.InitialDirectory = MainWindow.getParameter("gipsy6ConfigurationsFolder", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+			fsave.InitialDirectory = System.IO.Path.GetFullPath(MainWindow.getParameter("gipsy6ConfigurationsFolder", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
 			fsave.Filter = "Gipsy6 Configuration File | *.cfg";
-			var res = fsave.ShowDialog();
-			if ((res == System.Windows.Forms.DialogResult.No) || (res == System.Windows.Forms.DialogResult.None) || (res == System.Windows.Forms.DialogResult.Cancel))
+
+			for (int i = 0; i < 2; i++)
 			{
-				return;
+				try
+				{
+					var res = fsave.ShowDialog();
+					if ((res == System.Windows.Forms.DialogResult.No) || (res == System.Windows.Forms.DialogResult.None) || (res == System.Windows.Forms.DialogResult.Cancel))
+					{
+						return;
+					}
+					break;
+				}
+				catch
+				{
+					fsave.InitialDirectory = "C:\\";
+				}
 			}
 
 			var cf = Gipsy6ConfigurationBrowser.Content as PageCopy;

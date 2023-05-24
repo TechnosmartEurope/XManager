@@ -471,6 +471,7 @@ namespace X_Manager.Units.Gipsy6
 		{
 			name = "";
 			int retryMax = 1;
+			byte[] nameAr = new byte[28];
 			if (remoteConnection) retryMax = RETRY_MAX;
 			for (int retry = 0; retry < retryMax; retry++)
 			{
@@ -480,14 +481,36 @@ namespace X_Manager.Units.Gipsy6
 				}
 				try
 				{
-					byte nIn = 255;
+					//byte nIn = 255;
 					for (int i = 0; i < 28; i++)
 					{
-						nIn = ft.ReadByte();
-						if (nIn != 0)
+						nameAr[i] = (byte)ft.ReadByte();
+					}
+					for (int i = 0; i < 28; i++)
+					{
+						if (nameAr[i] != 0)
 						{
-							name += Convert.ToChar(nIn).ToString();
+							name += Convert.ToChar(nameAr[i]).ToString();
 						}
+						else
+						{
+							if (i == 0)
+							{
+								name = "[name empty]";
+							}
+							break;
+						}
+						//nIn = ft.ReadByte();
+						//if (nIn != 0)
+						//{
+						//	name += Convert.ToChar(nIn).ToString();
+						//}
+						//else
+						//{
+						//	Thread.Sleep(100);
+						//	int p = ft.ReadExisting();
+						//	break;
+						//}
 					}
 					break;
 				}
@@ -1187,8 +1210,8 @@ namespace X_Manager.Units.Gipsy6
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = buffPointer));
 
 			address = BitConverter.GetBytes(mem_max_logical_address);
-			Array.Reverse(address);
-			Array.Copy(address, 0, outBuffer, 1, 3);
+			//Array.Reverse(address);
+			Array.Copy(address, 1, outBuffer, 1, 3);
 			outBuffer[0] = 0x65;        //load address
 			ft.Write(outBuffer, 4);
 			try
@@ -2239,7 +2262,8 @@ namespace X_Manager.Units.Gipsy6
 				{
 					byte[] nomeArr = new byte[28];
 					Array.Copy(t.infoAr, 6, nomeArr, 0, 28);
-					unitNameTxt = Encoding.ASCII.GetString(nomeArr).TrimEnd((Char)0);
+					unitNameTxt = Encoding.ASCII.GetString(nomeArr);//
+					unitNameTxt = (unitNameTxt.Split('\0'))[0];
 				}
 				else
 				{
@@ -2320,8 +2344,23 @@ namespace X_Manager.Units.Gipsy6
 			{
 				case eventType.E_SCHEDULE:
 
-					outs = String.Format(events[ts.eventAr[1]], ts.eventAr[3], scheduleEventTimings[ts.eventAr[2]]);
-					if (ts.eventAr[0] == 3)
+					if (ts.eventAr[2] == 3)
+					{
+						outs = "GPS Schedule: OFF";
+					}
+					else
+					{
+						try
+						{
+							outs = String.Format(events[ts.eventAr[1]], ts.eventAr[3], scheduleEventTimings[ts.eventAr[2]]);
+						}
+						catch
+						{
+							outs = "B_EVENT";
+							break;
+						}
+					}
+					if ((ts.eventAr[2] != 3) && (ts.eventAr[0] == 3))
 					{
 						outs += " / Geofencing " + ts.eventAr[4].ToString();
 					}

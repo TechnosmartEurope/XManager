@@ -547,18 +547,29 @@ namespace X_Manager.ConfigurationWindows
 			//MainWindow.lastSettings = System.IO.File.ReadAllLines(iniFile);
 			var saveSchedule = new Microsoft.Win32.SaveFileDialog();
 
-			if (X_Manager.Parent.getParameter("trekScheduleSavePath") != null) saveSchedule.InitialDirectory = X_Manager.Parent.getParameter("trekScheduleSavePath");
-			else saveSchedule.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			if (X_Manager.Parent.getParameter("trekScheduleSavePath") != null) saveSchedule.InitialDirectory = System.IO.Path.GetFullPath(X_Manager.Parent.getParameter("trekScheduleSavePath"));
+			else saveSchedule.InitialDirectory = System.IO.Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
 
 			saveSchedule.DefaultExt = ("Schedule Files|*.sch");
 			saveSchedule.Filter = ("Schedule Files|*.sch");
 			saveSchedule.OverwritePrompt = true;
-			if ((bool)saveSchedule.ShowDialog())
+			for (int i = 0; i < 2; i++)
 			{
-				exportSchedule(saveSchedule.FileName);
-				X_Manager.Parent.updateParameter("trekScheduleSavePath", System.IO.Path.GetDirectoryName(saveSchedule.FileName));
-				//MainWindow.lastSettings[1] = System.IO.Path.GetDirectoryName(saveSchedule.FileName);
-				//System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
+				try
+				{
+					if ((bool)saveSchedule.ShowDialog())
+					{
+						exportSchedule(saveSchedule.FileName);
+						X_Manager.Parent.updateParameter("trekScheduleSavePath", System.IO.Path.GetDirectoryName(saveSchedule.FileName));
+						//MainWindow.lastSettings[1] = System.IO.Path.GetDirectoryName(saveSchedule.FileName);
+						//System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
+					}
+					break;
+				}
+				catch
+				{
+					saveSchedule.InitialDirectory = "C:\\";
+				}
 			}
 
 		}
@@ -567,23 +578,35 @@ namespace X_Manager.ConfigurationWindows
 		{
 			//MainWindow.lastSettings = System.IO.File.ReadAllLines(iniFile);
 			var openSchedule = new Microsoft.Win32.OpenFileDialog();
-			if (X_Manager.Parent.getParameter("trekScheduleOpenPath") != "null")
+			if (System.IO.Path.GetFullPath(X_Manager.Parent.getParameter("trekScheduleOpenPath")) != "null")
 			{
-				openSchedule.InitialDirectory = X_Manager.Parent.getParameter("trekScheduleOpenPath");
+				openSchedule.InitialDirectory = System.IO.Path.GetFullPath(X_Manager.Parent.getParameter("trekScheduleOpenPath"));
 			}
 			else
 			{
-				openSchedule.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+				openSchedule.InitialDirectory = System.IO.Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
 			}
 
 			openSchedule.DefaultExt = ("Schedule Files|*.sch");
 			openSchedule.Filter = ("Schedule Files|*.sch");
-			if ((bool)openSchedule.ShowDialog())
+
+			for (int i = 0; i < 2; i++)
 			{
-				importSchedule(openSchedule.FileName, true);
-				X_Manager.Parent.updateParameter("trekScheduleOpenPath", System.IO.Path.GetDirectoryName(openSchedule.FileName));
-				//MainWindow.lastSettings[2] = System.IO.Path.GetDirectoryName(openSchedule.FileName);
-				//System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
+				try
+				{
+					if ((bool)openSchedule.ShowDialog())
+					{
+						importSchedule(openSchedule.FileName, true);
+						X_Manager.Parent.updateParameter("trekScheduleOpenPath", System.IO.Path.GetDirectoryName(openSchedule.FileName));
+						//MainWindow.lastSettings[2] = System.IO.Path.GetDirectoryName(openSchedule.FileName);
+						//System.IO.File.WriteAllLines(iniFile, MainWindow.lastSettings);
+					}
+					break;
+				}
+				catch
+				{
+					openSchedule.InitialDirectory = "C:\\";
+				}
 			}
 		}
 

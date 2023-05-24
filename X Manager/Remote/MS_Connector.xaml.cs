@@ -113,7 +113,7 @@ namespace X_Manager.Remote
 			catch
 			{
 				ft.BaudRate = 115200;
-			}			
+			}
 			parent.msModel = masterStationType;
 			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 			firmwareL.Content = "Current Firmware Version: " + firmware[0].ToString() + "." + firmware[1].ToString() + "." + firmware[2].ToString();
@@ -143,28 +143,33 @@ namespace X_Manager.Remote
 			}
 
 			stop = 0;
-
+			ft.Close();
+			for (int i = 0; i < 5; i++)
+			{
+				if (ft.Open()) break;
+				Thread.Sleep(500);
+			}
 			ft.BaudRate = 2000000;
 			ft.Write(new byte[] { 52 }, 0, 1);
 			ft.ReadTimeout = 200;
 			Thread.Sleep(50);
-			ft.Write("+++");
-			try
-			{
-				Thread.Sleep(10);
-				ft.ReadExisting();
-				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
-				ft.ReadByte();
-				ft.ReadByte();
-				Thread.Sleep(10);
-				ft.Write("ATX");
+			//ft.Write("+++");
+			//try
+			//{
+			//	Thread.Sleep(10);
+			//	ft.ReadExisting();
+			//	ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
+			//	ft.ReadByte();
+			//	ft.ReadByte();
+			//	Thread.Sleep(10);
+			//	ft.Write("ATX");
 
-				Thread.Sleep(100);
-			}
-			catch
-			{
+			//	Thread.Sleep(100);
+			//}
+			//catch
+			//{
 
-			}
+			//}
 
 			if (masterStationType == 0)
 			{
@@ -321,13 +326,21 @@ namespace X_Manager.Remote
 			byte status = 0;
 			byte connCount = 0;
 			byte connCountMax = 15;
+			byte connFailed = 0;
 			if (masterStationType == 1) connCountMax = 6;
 			while (stop == 0)
 			{
 				try
 				{
+
 					status = ft.ReadByte();
-					//sw.Start();
+					//sviluppo
+					if (connFailed > 0)
+					{
+						connFailed = 0;
+						Console.Beep();
+					}
+					///sviluppo
 					if (status < 3)
 					{
 						connCount++;
@@ -339,18 +352,43 @@ namespace X_Manager.Remote
 				}
 				catch
 				{
-					stop = 102;
-					var w = new Warning("Master Station not ready.");
-					w.picUri = "pack://application:,,,/Resources/alert2.png";
-					w.ShowDialog();
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.channelListCB.IsEnabled = true));
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.wakeB.IsEnabled = true));
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => this.finalize(0, masteSTationType)));
-					status = 255;
-					return;
+					connFailed++;
+					status = 0;
+					if (connFailed == 3)
+					{
+						stop = 102;
+						var w = new Warning("Master Station not ready (" + connCount.ToString() + ").");
+						w.picUri = "pack://application:,,,/Resources/alert2.png";
+						w.ShowDialog();
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => channelListCB.IsEnabled = true));
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => wakeB.IsEnabled = true));
+						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => finalize(0, masteSTationType)));
+						status = 255;
+						return;
+					}
 				}
 				if (status == 0)
 				{
+					//ft.ReadTimeout = 50;
+					//try
+					//{
+					//	status = ft.ReadByte();
+					//	ft.ReadTimeout = 3000;
+					//}
+					//catch
+					//{
+					//	stop = 102;
+					//	ft.ReadTimeout = 3000;
+					//	var w = new Warning("Master Station not ready (b).");
+					//	w.picUri = "pack://application:,,,/Resources/alert2.png";
+					//	w.ShowDialog();
+					//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => channelListCB.IsEnabled = true));
+					//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => wakeB.IsEnabled = true));
+					//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => finalize(0, masteSTationType)));
+					//	status = 255;
+					//	return;
+					//	//}
+					//}
 					if (stop == 0)
 					{
 						if (masterStationType == 0)
@@ -359,8 +397,8 @@ namespace X_Manager.Remote
 						}
 						else
 						{
-							ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W',0,0,1,
-				(byte)((address >> 16) & 0xff), (byte)((address >> 8) & 0xff), (byte)(address & 0xff) }, 0, 10);
+							ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'A', (byte)'W', 0, 0, 1, (byte)((address >> 16) & 0xff),
+													(byte)((address >> 8) & 0xff), (byte)(address & 0xff) }, 0, 10);
 						}
 					}
 					else
@@ -583,14 +621,25 @@ namespace X_Manager.Remote
 				var fl = new System.Windows.Forms.OpenFileDialog();
 				if (!string.IsNullOrEmpty(lastListPath))
 				{
-					fl.InitialDirectory = lastListPath;
+					fl.InitialDirectory = System.IO.Path.GetFullPath(lastListPath);
 				}
 				fl.Filter = "Channel List Files (*.chn)|*.chn";
-				if (!(fl.ShowDialog() == System.Windows.Forms.DialogResult.OK))
+				for (int i = 0; i < 2; i++)
 				{
-					return;
+					try
+					{
+						if (!(fl.ShowDialog() == System.Windows.Forms.DialogResult.OK))
+						{
+							return;
+						}
+						fileName = fl.FileName;
+						break;
+					}
+					catch
+					{
+						fl.InitialDirectory = "C:\\";
+					}
 				}
-				fileName = fl.FileName;
 			}
 
 			string[] newAddresses = System.IO.File.ReadAllLines(fileName);

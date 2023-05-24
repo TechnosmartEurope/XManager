@@ -932,15 +932,25 @@ namespace X_Manager
 			var openPicture = new Microsoft.Win32.OpenFileDialog();
 			openPicture.DefaultExt = ("JPG Files|*.jpg");
 			openPicture.Filter = ("JPG Files|*.jpg|PNG Files|*.png|BMP Files|*.bmp");
-			if (File.Exists(Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH))))
+			if (File.Exists(Path.GetFullPath(Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH)))))
 			{
-				openPicture.InitialDirectory = Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH));
+				openPicture.InitialDirectory = Path.GetFullPath(Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH)));
 			}
 
-
-			if (!(bool)openPicture.ShowDialog(this)) //Se si preme Annulla, termina la procedura
+			for (int i = 0; i < 2; i++)
 			{
-				return;
+				try
+				{
+					if (!(bool)openPicture.ShowDialog(this)) //Se si preme Annulla, termina la procedura
+					{
+						return;
+					}
+					break;
+				}
+				catch
+				{
+					openPicture.InitialDirectory = "C:\\";
+				}
 			}
 			updateParameter(INI_BACKGROUND_IMAGE_PATH, openPicture.FileName);
 			//lastSettings[0] = openPicture.FileName;
@@ -1541,7 +1551,7 @@ namespace X_Manager
 						conf[543] = 0x2b;
 					}
 				}
-				confForm = new GiPSy6ConfigurationMain(conf, oUnit);
+				confForm = new GiPSy6ConfigurationMain(conf, oUnit, this);
 			}
 			else if (oUnit is Axy5)
 			{
@@ -1644,7 +1654,9 @@ namespace X_Manager
 				{
 					byte[] axyconf = new byte[Gipsy6N.defConf.Length];
 					Array.Copy(Gipsy6N.defConf, axyconf, Gipsy6N.defConf.Length);
-					conf = new GiPSy6ConfigurationMain(axyconf, null);
+					var unit = new Gipsy6N(this);
+					unit.firmTotA = 999999999;
+					conf = new GiPSy6ConfigurationMain(axyconf, unit, this);
 					conf.lastForthContent = "CLOSE";
 				}
 				else
@@ -1718,6 +1730,7 @@ namespace X_Manager
 				}
 			}
 			Microsoft.Win32.SaveFileDialog saveRaw = new Microsoft.Win32.SaveFileDialog();
+			saveRaw.RestoreDirectory = false;
 			saveRaw.OverwritePrompt = true;
 			saveRaw.AddExtension = true;
 			saveRaw.FileName = unitNameTextBox.Text;
@@ -1730,12 +1743,31 @@ namespace X_Manager
 				saveRaw.OverwritePrompt = false;
 			}
 
-			if (Directory.Exists(getParameter(INI_DATA_SAVE_PATH)))
+
+			if (Directory.Exists(Path.GetFullPath(getParameter(INI_DATA_SAVE_PATH))))
 			{
-				saveRaw.InitialDirectory = getParameter(INI_DATA_SAVE_PATH);
+				saveRaw.InitialDirectory = Path.GetFullPath(getParameter(INI_DATA_SAVE_PATH));
+			}
+			else
+			{
+				saveRaw.InitialDirectory = Path.GetFullPath(SpecialDirectories.MyDocuments);
 			}
 
-			if ((saveRaw.ShowDialog() == false))
+			bool saveShowResult = false;
+			for (int i = 0; i < 2; i++)
+			{
+				try
+				{
+					saveShowResult = (bool)saveRaw.ShowDialog();
+					break;
+				}
+				catch
+				{
+					saveRaw.InitialDirectory = "C:\\";
+				}
+			}
+
+			if (saveShowResult == false)
 			{
 				statusProgressBar.Maximum = oldMax;
 				statusProgressBar.Minimum = oldMin;
@@ -1874,21 +1906,32 @@ namespace X_Manager
 			askOverwrite = true;
 			//lastSettings = System.IO.File.ReadAllLines(iniFile);
 			Microsoft.Win32.OpenFileDialog fOpen = new Microsoft.Win32.OpenFileDialog();
-			if (Directory.Exists(getParameter("convertPath")))
+			if (Directory.Exists(Path.GetFullPath(Path.GetFullPath(getParameter("convertPath")))))
 			{
-				fOpen.InitialDirectory = getParameter("convertPath");
+				fOpen.InitialDirectory = Path.GetFullPath(getParameter("convertPath"));
 			}
 
 			//fOpen.FileName = "*.ard";
 			fOpen.Filter = "Sensor Raw Data | *.ard;*.rem;*.gp6;*.bs6;*.memDump;*.mdp";
 
 			fOpen.Multiselect = true;
-			if ((fOpen.ShowDialog() == false))
+			for (int i = 0; i < 2; i++)
 			{
-				return;
+				try
+				{
+					if (fOpen.ShowDialog() == false)
+					{
+						return;
+					}
+					break;
+				}
+				catch
+				{
+					fOpen.InitialDirectory = "C:\\";
+				}
 			}
 
-			updateParameter("convertPath", Path.GetDirectoryName(fOpen.FileName));
+			updateParameter("convertPath", Path.GetFullPath(Path.GetDirectoryName(fOpen.FileName)));
 			//File.WriteAllLines(iniFile, lastSettings);
 			convFiles = new List<string>();
 			convFiles.AddRange(fOpen.FileNames);
@@ -1942,7 +1985,7 @@ namespace X_Manager
 				}
 				else if (res == 2)              //Gestione Base Station
 				{
-					var remoteManagement = new BS_Main();
+					var remoteManagement = new BS_Main(this);
 					remoteManagement.Owner = this;
 					remoteManagement.ShowDialog();
 				}

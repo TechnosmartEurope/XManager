@@ -744,7 +744,8 @@ namespace X_Manager.Units.AxyTreks
 			additionalInfo = "";
 			if (debugLevel > 2)
 			{
-				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X") + csvSeparator + tsLoc.timeStampLength.ToString();
+				//additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X") + csvSeparator + tsLoc.timeStampLength.ToString();
+				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X") + csvSeparator + (tsLoc.ardPosition + offset).ToString() + csvSeparator + tsLoc.timeStampLength.ToString();
 			}
 			contoTab += 1;
 			if ((tsLoc.tsType & 64) == 64) activityWater = "Active";
@@ -884,7 +885,7 @@ namespace X_Manager.Units.AxyTreks
 
 		private DateTime findStartTime(ref MemoryStream br, ref string[] prefs, long pos, bool isRem)
 		{
-			
+
 			const int pref_h = 9;
 			const int pref_m = 10;
 			const int pref_s = 11;

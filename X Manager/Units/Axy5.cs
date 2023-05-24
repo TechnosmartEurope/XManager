@@ -56,15 +56,15 @@ namespace X_Manager.Units
 		//int accy = 3;
 		//int accz = 4;
 
-		int temp = 5;
-		int press = 6;
-		int magx = 7;
-		int magy = 8;
-		int magz = 9;
-		int adcVal = 10;
-		int batt = 11;
-		int meta = 12;
-		int ardPosition = 13;
+		int temp = 6;
+		int press = 7;
+		int magx = 8;
+		int magy = 9;
+		int magz = 10;
+		int adcVal = 11;
+		int batt = 12;
+		int meta = 13;
+		int ardPosition = 14;
 
 		int iend1;
 		int iend2;
@@ -1525,7 +1525,7 @@ namespace X_Manager.Units
 
 		private void groupConverter(ref timeStamp tsLoc, double[] group, string unitName, ref StreamWriter fOut)
 		{
-
+			
 			if (group.Length == 0)
 			{
 				if (nOutputs == 0)
@@ -1544,13 +1544,14 @@ namespace X_Manager.Units
 				}
 			}
 
+			//******************************************************** PRIMO HEADER
 			fOut.Write(gruppoCON[0]);
 			fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
 			fOut.Write((group[0] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			fOut.Write((group[1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			fOut.Write((group[2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			int gLen = gruppoCON.Length - 1;
-			for (int i = 5; i < gLen; i++)
+			for (int i = temp; i < gLen; i++)
 			{
 				fOut.Write(gruppoCON[i] + csvSeparator);
 			}
@@ -1558,6 +1559,7 @@ namespace X_Manager.Units
 
 			if (iend2 == 0) return;
 
+			//******************************************************** PRIMO GRUPPO
 			string[] gruppo = gruppoCON;
 			if (metadata == 1) gruppo[meta] = "";
 			if (debugLevel > 0) gruppo[ardPosition] = "";
@@ -1566,7 +1568,7 @@ namespace X_Manager.Units
 			{
 				gruppo = gruppoSENZA;
 			}
-
+			
 			for (int i = 3; i < iend1; i += 3)
 			{
 				fOut.Write(gruppoCON[0]);
@@ -1576,51 +1578,51 @@ namespace X_Manager.Units
 				fOut.Write((group[i + 1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 				fOut.Write((group[i + 2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 
-				for (int j = 3; j < gLen; j++)
+				for (int j = temp; j < gLen; j++)
 				{
 					fOut.Write(gruppo[j] + csvSeparator);
 				}
 				fOut.Write(gruppo[gLen] + "\r\n");
 			}
 
+			//******************************************************** SECONDO HEADER
 			fOut.Write(gruppoCON[0]);
 			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 			fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
 			fOut.Write((group[iend1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			fOut.Write((group[iend1 + 1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			fOut.Write((group[iend1 + 2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
-			//gruppo[1] = tsLoc.orario.ToString(dateTimeFormat);
-			//gruppo[2] = (group[iend1] * gCoeff).ToString(cifreDecString, nfi);
-			//gruppo[3] = (group[iend1 + 1] * gCoeff).ToString(cifreDecString, nfi);
-			//gruppo[4] = (group[iend1 + 2] * gCoeff).ToString(cifreDecString, nfi);
+
 			if (magEn == 2)
 			{
 				gruppo[magx] = tsLoc.magX[1].ToString("#0.0", nfi);
 				gruppo[magy] = tsLoc.magY[1].ToString("#0.0", nfi);
 				gruppo[magz] = tsLoc.magZ[1].ToString("#0.0", nfi);
-
-				for (int i = 3; i < gLen; i++)
-				{
-					fOut.Write(gruppo[i] + csvSeparator);
-				}
-				fOut.Write(gruppo[gLen] + "\r\n");
-
-				//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
-				if (!repeatEmptyValues)
-				{
-					gruppo[magx] = gruppo[magy] = gruppo[magz] = "";
-				}
 			}
-			else
+			for (int i = temp; i < gLen; i++)
 			{
-				//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
-				for (int i = 3; i < gLen; i++)
-				{
-					fOut.Write(gruppo[i] + csvSeparator);
-				}
-				fOut.Write(gruppo[gLen] + "\r\n");
+				fOut.Write(gruppo[i] + csvSeparator);
+			}
+			fOut.Write(gruppo[gLen] + "\r\n");
+			if ((magEn == 2) && !repeatEmptyValues)
+			{
+				gruppo[magx] = gruppo[magy] = gruppo[magz] = "";
 			}
 
+			//	//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
+
+			//}
+			//else
+			//{
+			//	//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
+			//	for (int i = temp; i < gLen; i++)
+			//	{
+			//		fOut.Write(gruppo[i] + csvSeparator);
+			//	}
+			//	fOut.Write(gruppo[gLen] + "\r\n");
+			//}
+
+			//******************************************************** SECONDO GRUPPO
 			for (int i = iend1 + 3; i < iend2; i += 3)
 			{
 				fOut.Write(gruppo[0]);
@@ -1635,7 +1637,7 @@ namespace X_Manager.Units
 				//gruppo[4] = (group[i + 2] * gCoeff).ToString(cifreDecString, nfi);
 
 				//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
-				for (int j = 3; j < gLen; j++)
+				for (int j = temp; j < gLen; j++)
 				{
 					fOut.Write(gruppo[j] + csvSeparator);
 				}
@@ -2167,20 +2169,31 @@ namespace X_Manager.Units
 		private void csvPlaceHeader(ref StreamWriter csv, string[] prefs)
 		{
 
-			int contoPlace;
+			int contoPlace = 1;
 
 			string csvHeader = "Tag ID";
 			if (prefs[pref_sameColumn] == "True")
 			{
+				temp--;
+				press--;
+				magx--;
+				magy--;
+				magz--;
+				adcVal--;
+				batt--;
+				meta--;
+				ardPosition--;
 				csvHeader = csvHeader + csvSeparator + "Timestamp";
+				contoPlace++;
 			}
 			else
 			{
 				csvHeader = csvHeader + csvSeparator + "Date" + csvSeparator + "Time";
+				contoPlace += 2;
 			}
 
 			csvHeader = csvHeader + csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
-			contoPlace = 5;
+			contoPlace += 3;
 
 			if (temperatureEn > 0)
 			{

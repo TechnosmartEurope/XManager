@@ -89,17 +89,18 @@ namespace X_Manager.Remote
 		readonly Control[] visArr;
 		private readonly Object addressLock = new Object();
 		private readonly Object scheduleLock = new Object();
+		object parent;
 		FTDI_Device ft;
 
 		int errorCode = 0;
 
-		public BS_Main()
+		public BS_Main(object parent)
 		{
 			InitializeComponent();
 			Point p = new Point(0, 0);
 
 			ft = MainWindow.FTDI;
-
+			this.parent = parent;
 			//Crea un elenco di controlli da rendere visibili o invisibile a seconda che l'unità selezionata sia o meno una basestation
 			visArr = new Control[] { channelListGB, scheduleGB, plusB, minusB, plusPlusB, undoB, allOnB, allOffB, confGB, saveB, bootloaderB, sendTimeB };
 
@@ -1259,7 +1260,7 @@ namespace X_Manager.Remote
 			conf[543] = (byte)(channelLV.SelectedItem as BS_listViewElement).Address;
 			//var g6 = new Units.Gipsy6(this);
 			//g6.firmTotA = 999999999;
-			var cf = new ConfigurationWindows.GiPSy6ConfigurationMain(conf, null);
+			var cf = new ConfigurationWindows.GiPSy6ConfigurationMain(conf, null, (MainWindow)parent);
 			cf.lockRfAddress = true;
 			cf.ShowDialog();
 			for (int i = 0; i < 32; i++)        //Questi byte vengono messi tutti a 0xff perché per cambiare il nome unità c'è il file .nnm

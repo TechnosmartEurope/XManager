@@ -685,14 +685,24 @@ namespace X_Manager.ConfigurationWindows
 			var s = new System.Windows.Forms.SaveFileDialog();
 			try
 			{
-				s.InitialDirectory = (System.IO.File.ReadAllLines(MainWindow.iniFile))[10];
+				s.InitialDirectory = System.IO.Path.GetFullPath(System.IO.File.ReadAllLines(MainWindow.iniFile)[10]);
 			}
 			catch { }
 			s.DefaultExt = ".sch";
 
-			s.ShowDialog();
-
-			if (String.IsNullOrEmpty(s.FileName)) return;
+			for (int i = 0; i < 2; i++)
+			{
+				try
+				{
+					s.ShowDialog();
+					if (String.IsNullOrEmpty(s.FileName)) return;
+					break;
+				}
+				catch
+				{
+					s.InitialDirectory = "C:\\";
+				}
+			}
 
 			try
 			{
@@ -746,11 +756,22 @@ namespace X_Manager.ConfigurationWindows
 			var l = new System.Windows.Forms.OpenFileDialog();
 			try
 			{
-				l.InitialDirectory = (System.IO.File.ReadAllLines(MainWindow.iniFile))[10];
+				l.InitialDirectory = System.IO.Path.GetFullPath(System.IO.File.ReadAllLines(MainWindow.iniFile)[10]);
 			}
 			catch { }
 
-			l.ShowDialog();
+			for (int i = 0; i < 2; i++)
+			{
+				try
+				{
+					l.ShowDialog();
+					break;
+				}
+				catch
+				{
+					l.InitialDirectory = "C:\\";
+				}
+			}
 
 			if (string.IsNullOrEmpty(l.FileName)) return;
 
