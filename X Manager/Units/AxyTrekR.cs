@@ -518,7 +518,7 @@ namespace X_Manager.Units.AxyTreks
 				}
 				else
 				{
-					if (isDepth == 1)
+					if (isDepth)
 					{
 						if (fTotA > 2000000)
 						{
@@ -1044,7 +1044,7 @@ namespace X_Manager.Units.AxyTreks
 			{
 				if (inMeters)
 				{
-					if (isDepth == 1)
+					if (isDepth)
 					{
 						csvHeader = csvHeader + csvSeparator + "Depth";
 					}

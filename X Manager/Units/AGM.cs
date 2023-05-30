@@ -35,15 +35,6 @@ namespace X_Manager.Units
 			public double[] gyro;
 			public double[] comp;
 		}
-		string dateFormatParameter;
-		byte dateFormat;
-		byte timeFormat;
-		bool sameColumn = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
-		bool isDepth = true;
-		bool inMeters = false;
-		bool angloTime = false;
 		ushort rate;
 		ushort accRange;
 		ushort gyroRange;
@@ -57,8 +48,6 @@ namespace X_Manager.Units
 		bool bit16 = true;
 		byte sampleLength;
 		ushort addMilli;
-		bool metadata;
-		//bool overrideTime;
 		CultureInfo dateCi;
 		new byte[] lastGroup;
 		byte cifreDec;
@@ -637,11 +626,6 @@ namespace X_Manager.Units
 				cifreDecString = "0.000";
 			}
 
-
-			//overrideTime = false;
-			//if (prefs[pref_override_time] == "True") overrideTime = true;
-
-			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
 
 			//Legge i parametri di logging

@@ -34,24 +34,16 @@ namespace X_Manager.Units
 			public byte timeStampLength;
 		}
 
-		byte dateFormat;
-		byte timeFormat;
-		bool sameColumn = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
 		bool bits;
 		byte bitsDiv;
-		bool angloTime = false;
 		ushort rate;
 		ushort rateComp;
 		byte range;
 		double gCoeff;
-		string dateFormatParameter;
 		ushort addMilli;
 		CultureInfo dateCi;
 		byte cifreDec;
 		string cifreDecString;
-		bool metadata;
 
 		public Axy4_1(object p)
 			: base(p)
@@ -489,7 +481,6 @@ namespace X_Manager.Units
 			if (prefs[pref_battery] == "True") prefBattery = true;
 
 			dateCi = new CultureInfo("it-IT");
-			angloTime = false;
 			if (prefs[pref_timeFormat] == "2")
 			{
 				angloTime = true;
@@ -514,7 +505,6 @@ namespace X_Manager.Units
 					break;
 			}
 
-			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
 
 			//Legge i parametri di logging

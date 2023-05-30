@@ -563,7 +563,7 @@ namespace X_Manager.Units.AxyTreks
 			if ((tsc.tsType & 4) == 4)
 			{
 
-				if (isDepth == 1)
+				if (isDepth)
 				{
 					if (pressureDepth5837(ref ard, ref tsc.temperature, ref tsc.press, pressOffset, ref tsc.tsType)) return;
 				}
@@ -1089,7 +1089,7 @@ namespace X_Manager.Units.AxyTreks
 				csvHeader += csvSeparator + "Temp. (°C)";
 				if (inMeters)
 				{
-					if (isDepth == 1)
+					if (isDepth)
 					{
 						csvHeader = csvHeader + csvSeparator + "Depth";
 					}

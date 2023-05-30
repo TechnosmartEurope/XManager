@@ -40,16 +40,8 @@ namespace X_Manager.Units
             public byte co2Error;
         }
 
-        byte dateFormat;
-        byte timeFormat;
-        bool sameColumn = false;
-        bool prefBattery = false;
         bool tempMS = false;
-        bool repeatEmptyValues = true;
-        bool angloTime = false;
         ushort rate;
-        string dateFormatParameter;
-        bool metadata;
         CultureInfo dateCi;
         double[] convCoeffs = new double[7];
 
@@ -615,7 +607,6 @@ namespace X_Manager.Units
                     break;
             }
 
-            metadata = false;
             if (prefs[pref_metadata] == "True") metadata = true;
 
             //Legge i parametri di logging
