@@ -35,7 +35,7 @@ namespace X_Manager.ConfigurationWindows
 			ADCValueUD.Value = 512;
 			magMinB.Content = ">";
 
-			SdDateTimePicker.Value = DateTime.Now;
+			SdDateTimePicker.SelectedDate = DateTime.Now;
 			OffRB.IsChecked = true;
 			ByTimeRB.IsChecked = false;
 			ByDateRB.IsChecked = false;
@@ -92,9 +92,9 @@ namespace X_Manager.ConfigurationWindows
 				schSettings[11] = ADCValueUD.Value;
 			}
 
-			schSettings[12] = SdDateTimePicker.Value.Value.Day;
-			schSettings[13] = SdDateTimePicker.Value.Value.Month;
-			schSettings[14] = SdDateTimePicker.Value.Value.Year;
+			schSettings[12] = SdDateTimePicker.SelectedDate.Value.Day;
+			schSettings[13] = SdDateTimePicker.SelectedDate.Value.Month;
+			schSettings[14] = SdDateTimePicker.SelectedDate.Value.Year;
 
 			schSettings[15] = 0;
 			if ((bool)ByTimeRB.IsChecked) schSettings[15] = 1;
@@ -146,7 +146,7 @@ namespace X_Manager.ConfigurationWindows
 
 				setSdRb(schSettings[15]);
 			}
-			else SdDateTimePicker.Value = DateTime.Now;
+			else SdDateTimePicker.SelectedDate = DateTime.Now;
 		}
 
 		public void disableWaterControl()
@@ -175,7 +175,7 @@ namespace X_Manager.ConfigurationWindows
 		public void setSdDate(double[] d)
 		{
 			DateTime dateD = new DateTime((int)d[0], (int)d[1], (int)d[2]);
-			SdDateTimePicker.Value = dateD;
+			SdDateTimePicker.SelectedDate = dateD;
 		}
 
 		public void setSdRb(double d)

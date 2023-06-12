@@ -326,7 +326,4 @@ Number of additional Leap Seconds used for the correction of GPS time.</value>
   <data name="tile_background_offline" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\tile_background_offline.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Xceed_Wpf_Toolkit" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Xceed.Wpf.Toolkit.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
 </root>

@@ -24,7 +24,7 @@
                     TabIndex="1" Click="upButtonClick" IsTabStop="False" Padding="0"/>
             <Button Name="downButton" Grid.Column="2" Content="˅" FontSize="12" MaxWidth="60" Width="15" Height="Auto" 
                     TabIndex="2" MinWidth="10" Padding="0" Click="downButtonClick" IsTabStop="False"/>
-            <Label x:Name ="footer" Grid.Column="3" MinHeight="0" FontSize="12" MinWidth="0" Height="Auto" />
+            <Label x:Name ="footer" Grid.Column="3" MinHeight="0" FontSize="12" MinWidth="0" Height="Auto" VerticalAlignment="Center" Content="PROVA" Margin="3,0,0,0"/>
         </Grid>
     </Grid>
 </UserControl>

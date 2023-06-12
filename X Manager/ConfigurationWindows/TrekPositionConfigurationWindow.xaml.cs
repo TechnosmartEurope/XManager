@@ -417,9 +417,9 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			conf[143] = (byte)(st.SdDateTimePicker.Value.Value.Year - 2000);
-			conf[144] = (byte)(st.SdDateTimePicker.Value.Value.Month);
-			conf[145] = (byte)(st.SdDateTimePicker.Value.Value.Day);
+			conf[143] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Year - 2000);
+			conf[144] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Month - 2000);
+			conf[145] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Day - 2000);
 
 			conf[152] = 0;
 			if ((bool)DailyCheck.IsChecked)
