@@ -349,7 +349,7 @@
     <Compile Include="MessaggioDebug.xaml.cs">
       <DependentUpon>MessaggioDebug.xaml</DependentUpon>
     </Compile>
-    <Compile Include="NumericUpDown.xaml.cs">
+    <Compile Include="Themes\NumericUpDown.xaml.cs">
       <DependentUpon>NumericUpDown.xaml</DependentUpon>
     </Compile>
     <Compile Include="Ok.xaml.cs">
@@ -383,6 +383,7 @@
     <Compile Include="Remote\Remote_Main.xaml.cs">
       <DependentUpon>Remote_Main.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Themes\XManager_Theme.cs" />
     <Compile Include="Units\AGM.cs" />
     <Compile Include="Units\Axy.cs" />
     <Compile Include="Units\Axy3.cs" />
@@ -528,7 +529,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="NumericUpDown.xaml">
+    <Page Include="Themes\NumericUpDown.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -598,6 +599,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Page>
     <Page Include="ConfigurationWindows\TrekPositionConfigurationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\XManager_Theme.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="X_Manager.NumericUpDown"
+﻿<UserControl x:Class="X_Manager.Themes.NumericUpDown"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -19,11 +19,11 @@
                 <ColumnDefinition Width="Auto" MaxWidth="60"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox Name="valueTB" Grid.Column="0" MinWidth="50" FontSize="12" KeyDown="kdValidate" LostFocus="lsValidate" TabIndex="0" Grid.ColumnSpan="2" Width="Auto" />
-            <Button Name="upButton" Grid.Column="1" Content="˄" FontSize="12" MaxWidth="60" Width="15" Height="Auto" MinWidth="10" 
-                    TabIndex="1" BorderThickness="1" Padding="0,0,0,2" Click="upButtonClick" IsTabStop="False"/>
+            <TextBox Name="valueTB" Grid.Column="0" MinWidth="50" FontSize="12" KeyDown="kdValidate" LostFocus="lsValidate" TabIndex="0" Grid.ColumnSpan="2" Width="Auto" Padding="0"/>
+            <Button Name="upButton" Grid.Column="1" Content="˄" FontSize="11" MaxWidth="60" Width="15" Height="Auto" MinWidth="10" 
+                    TabIndex="1" Click="upButtonClick" IsTabStop="False" Padding="0"/>
             <Button Name="downButton" Grid.Column="2" Content="˅" FontSize="12" MaxWidth="60" Width="15" Height="Auto" 
-                    TabIndex="2" MinWidth="10" Padding="0,0,0,2" Click="downButtonClick" IsTabStop="False"/>
+                    TabIndex="2" MinWidth="10" Padding="0" Click="downButtonClick" IsTabStop="False"/>
             <Label x:Name ="footer" Grid.Column="3" MinHeight="0" FontSize="12" MinWidth="0" Height="Auto" />
         </Grid>
     </Grid>

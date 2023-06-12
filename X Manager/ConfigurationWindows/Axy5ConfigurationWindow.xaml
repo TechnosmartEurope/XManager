@@ -4,7 +4,7 @@
                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                            xmlns:local="clr-namespace:X_Manager"
-                           xmlns:dc="clr-namespace:X_Manager"
+                           xmlns:dc="clr-namespace:X_Manager.Themes"
                            xmlns:dc2="clr-namespace:X_Manager.ConfigurationWindows"
                            mc:Ignorable="d" 
     Title="CONFIGURATION" SizeToContent="WidthAndHeight"

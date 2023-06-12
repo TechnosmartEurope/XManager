@@ -9,7 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using X_Manager.Themes;
 using System.Windows.Shapes;
 
 namespace X_Manager.ConfigurationWindows

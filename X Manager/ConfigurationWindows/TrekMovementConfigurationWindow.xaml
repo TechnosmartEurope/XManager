@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
-        xmlns:dc="clr-namespace:X_Manager"
+        xmlns:dc="clr-namespace:X_Manager.Themes"
         mc:Ignorable="d"
         Title="CONFIGURATION"
     Background="#FF181818" Height="790" Width="460"
@@ -32,19 +32,19 @@
                     </Grid.ColumnDefinitions>
                     <GroupBox Grid.Column="0" Header="SAMPLE RATE (Hz)" Foreground="#FF00AADE" x:Name="sampleRateGB">
                         <StackPanel Name="rates" Orientation="Vertical">
-                            <RadioButton Name="rate1RB"  Content="1" Margin="20,10,0,0" TabIndex="0" />
-                            <RadioButton Name="rate10RB" Content="10" Margin="20,10,0,0" TabIndex="1" Checked="setThresholdUdsEvent"/>
-                            <RadioButton Name="rate25RB" Content="25" Margin="20,10,0,0" TabIndex="2" Checked="setThresholdUdsEvent"/>
-                            <RadioButton Name="rate50RB" Content="50" Margin="20,10,0,0" TabIndex="3" Checked="setThresholdUdsEvent"/>
-                            <RadioButton Name="rate100RB" Content="100" Margin="20,10,0,10" TabIndex="4" Checked="setThresholdUdsEvent"/>
+                            <RadioButton Name="rate1RB"  Content="1" Margin="20,15,0,0" TabIndex="0" />
+                            <RadioButton Name="rate10RB" Content="10" Margin="20,20,0,0" TabIndex="1" Checked="setThresholdUdsEvent"/>
+                            <RadioButton Name="rate25RB" Content="25" Margin="20,20,0,0" TabIndex="2" Checked="setThresholdUdsEvent"/>
+                            <RadioButton Name="rate50RB" Content="50" Margin="20,20,0,0" TabIndex="3" Checked="setThresholdUdsEvent"/>
+                            <RadioButton Name="rate100RB" Content="100" Margin="20,20,0,10" TabIndex="4" Checked="setThresholdUdsEvent"/>
                         </StackPanel>
                     </GroupBox>
                     <GroupBox Grid.Column="1" Header="G FULLSCALE" Foreground="#FF00AADE">
                         <StackPanel Name="ranges" Orientation="Vertical">
-                            <RadioButton Name="range2RB" Content="+/- 2g" Margin="20,10,0,0" TabIndex="5" Checked="setThresholdUdsEvent"/>
-                            <RadioButton Name="range4RB" Content="+/- 4g" Margin="20,10,0,0" TabIndex="6" Checked="setThresholdUdsEvent"/>
-                            <RadioButton Name="range8RB" Content="+/- 8g" Margin="20,10,0,0" TabIndex="7" Checked="setThresholdUdsEvent"/>
-                            <RadioButton Name="range16RB" Content="+/- 16g" Margin="20,10,0,0" TabIndex="8" Checked="setThresholdUdsEvent"/>
+                            <RadioButton Name="range2RB" Content="+/- 2g" Margin="20,15,0,0" TabIndex="5" Checked="setThresholdUdsEvent"/>
+                            <RadioButton Name="range4RB" Content="+/- 4g" Margin="20,20,0,0" TabIndex="6" Checked="setThresholdUdsEvent"/>
+                            <RadioButton Name="range8RB" Content="+/- 8g" Margin="20,20,0,0" TabIndex="7" Checked="setThresholdUdsEvent"/>
+                            <RadioButton Name="range16RB" Content="+/- 16g" Margin="20,20,0,0" TabIndex="8" Checked="setThresholdUdsEvent"/>
                         </StackPanel>
                     </GroupBox>
                 </Grid>
@@ -69,7 +69,7 @@
                         </Grid.ColumnDefinitions>
 
                         <CheckBox Grid.Column="0" x:Name="contCB" Content="Continuous" VerticalAlignment="Bottom"
-                          FontSize="18" Margin="20,0,0,0" Checked="contChanged" Unchecked="contChanged"/>
+                          FontSize="18" Margin="20,0,0,2" Checked="contChanged" Unchecked="contChanged"/>
                         <Grid Grid.Column="1">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="1.2*"/>
@@ -106,8 +106,8 @@
                             <RowDefinition Height="5*"/>
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal" x:Name="tdLoggingHeaderSP">
-                            <Label Content="Temperature" FontSize="12" Margin="16,0,0,0"/>
-                            <Label Content="Pressure" FontSize="12" Margin="44,0,0,0"/>
+                            <Label Content="Temperature" FontSize="12" Margin="38,0,0,0"/>
+                            <Label Content="Pressure" FontSize="12" Margin="54,0,0,0"/>
                         </StackPanel>
 
                         <Grid Grid.Row="1" x:Name="gridNN" Margin="-10,0" HorizontalAlignment="Right" Width="395" >
@@ -116,9 +116,9 @@
                                 <ColumnDefinition Width="1*"/>
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Name="temperatureCB" Grid.Column="0" Click="tempDepthCBChecked" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="24,0,0,0" />
-                            <CheckBox Name="pressureCB" Grid.Column="1" Click="tempDepthCBChecked" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="12,0,0,0" />
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,-29,2" x:Name="tdPeriodSP">
+                            <CheckBox Name="temperatureCB" Grid.Column="0" Click="tempDepthCBChecked" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="24,0,0,0" VerticalAlignment="Center"/>
+							<CheckBox Name="pressureCB" Grid.Column="1" Click="tempDepthCBChecked" Content="Enabled" VerticalContentAlignment="Center" TabIndex="11" Margin="12,0,0,0" VerticalAlignment="Center"/>
+							<StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,-29,2" x:Name="tdPeriodSP">
                                 <StackPanel Name="logPeriodStackPanel" Orientation="Horizontal">
                                     <Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
                                     <TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="12"/>
@@ -167,7 +167,7 @@
 
                 </GroupBox>
                 <StackPanel Grid.Row="3" >
-                    <Button x:Name="sendButton" Content="Send configuration" FontSize="20" Margin="10" Click="sendConf" TabIndex="15"/>
+                    <Button x:Name="sendButton" Content="Send configuration" FontSize="20" Margin="10" Click="sendConf" TabIndex="15" Height="40"/>
                 </StackPanel>
                 
             </Grid>

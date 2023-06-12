@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace X_Manager
+namespace X_Manager.Themes
 {
     /// <summary>
     /// Interaction logic for NumericUpDown.xaml
