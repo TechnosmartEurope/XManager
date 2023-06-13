@@ -120,7 +120,6 @@ namespace X_Manager
 			{
 				case "1":
 					date1.IsChecked = true;
-
 					//dateTimePicker.FormatString = "dd/MM/yyyy";
 					break;
 				case "2":

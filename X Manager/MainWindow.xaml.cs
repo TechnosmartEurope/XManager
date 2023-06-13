@@ -2666,9 +2666,9 @@ namespace X_Manager
 
 
 
-		#endregion
 
+        #endregion
 
-	}
+    }
 
 }

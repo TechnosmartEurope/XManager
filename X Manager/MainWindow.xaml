@@ -24,34 +24,35 @@
 				</Grid.RowDefinitions>
 				<!-- Riga 0 MenuStrip-->
 				<Menu DockPanel.Dock="Top" Grid.Row="0" Height="Auto" Background="#FF181818">
-					<MenuItem Header="_SETTINGS" Margin="5" Foreground="#FF00AADE" FontSize="16" FontWeight="Bold" IsTabStop="False" >
-						<MenuItem Header="_Real Time Configuration" FontSize="12" Foreground="#FF181818" Click="realTimeConfigurationClick" IsTabStop="False" />
-						<MenuItem Header="_Change Picture" FontSize="12" Foreground="#FF181818" Click="changePictureClick" IsTabStop="False"/>
-						<MenuItem Header="_Unlock Unit" FontSize="12" Foreground="#FF181818" Click="unlockUnit_Click" IsTabStop="False"/>
+					<!--<MenuItem Header="_SETTINGS" Margin="5" Foreground="#FF00AADE" FontSize="16" FontWeight="Bold" IsTabStop="False" BorderThickness="0">-->
+					<MenuItem Header="_SETTINGS" Margin="5" FontSize="16" FontWeight="Bold" IsTabStop="False" BorderThickness="0" >
+						<MenuItem Header="_Real Time Configuration" FontSize="12" Click="realTimeConfigurationClick" IsTabStop="False" />
+						<MenuItem Header="_Change Picture" FontSize="12" Click="changePictureClick" IsTabStop="False"/>
+						<MenuItem Header="_Unlock Unit" FontSize="12" Click="unlockUnit_Click" IsTabStop="False"/>
 						<Separator />
-						<MenuItem Header="_Pressure Range" FontSize="12" Foreground="#FF181818" IsTabStop="False">
-							<MenuItem Header="_Air Sensor" x:Name="airSubItem" FontSize="12" Foreground="#FF181818" Click="airSensorSelected" IsCheckable="True" IsTabStop="False"/>
-							<MenuItem Header="_Depth Sensor" x:Name="depthSubItem" FontSize="12" Foreground="#FF181818" Click="depthSensorSelected" IsCheckable="True" IsTabStop="False"/>
+						<MenuItem Header="_Pressure Range" FontSize="12" IsTabStop="False">
+							<MenuItem Header="_Air Sensor" x:Name="airSubItem" FontSize="12" Click="airSensorSelected" IsCheckable="True" IsTabStop="False"/>
+							<MenuItem Header="_Depth Sensor" x:Name="depthSubItem" FontSize="12" Click="depthSensorSelected" IsCheckable="True" IsTabStop="False"/>
 						</MenuItem>
-						<MenuItem Header="_CSV Separator" FontSize="12" Foreground="#FF181818" IsTabStop="False">
-							<MenuItem Header="_Comma (,)" x:Name="commaSubItem" FontSize="12" Foreground="#FF181818" Click="commaSepSel" IsCheckable="True" IsTabStop="False" IsChecked="True"/>
-							<MenuItem Header="_Semicolon (;)" x:Name="semicolonSubItem" FontSize="12" Foreground="#FF181818" Click="semiSepSel" IsCheckable="True" IsTabStop="False"/>
-							<MenuItem Header="_Tab (     )" x:Name="tabSubItem" FontSize="12" Foreground="#FF181818" Click="tabSepSel" IsCheckable="True" IsTabStop="False"/>
+						<MenuItem Header="_CSV Separator" FontSize="12" IsTabStop="False">
+							<MenuItem Header="_Comma (,)" x:Name="commaSubItem" FontSize="12" Click="commaSepSel" IsCheckable="True" IsTabStop="False" IsChecked="True"/>
+							<MenuItem Header="_Semicolon (;)" x:Name="semicolonSubItem" FontSize="12" Click="semiSepSel" IsCheckable="True" IsTabStop="False"/>
+							<MenuItem Header="_Tab (     )" x:Name="tabSubItem" FontSize="12" Click="tabSepSel" IsCheckable="True" IsTabStop="False"/>
 						</MenuItem>
 						<Separator />
-						<MenuItem Header="_Download Speed" FontSize="12" Foreground="#FF181818" IsTabStop="False">
+						<MenuItem Header="_Download Speed" FontSize="12" IsTabStop="False">
 							<MenuItem x:Name="speedLegacy" Header="Legacy" IsCheckable="True" Click="speedLegacySelected"/>
 							<MenuItem x:Name="speed1" Header="1 MBaud" IsCheckable="True" Click="speed1Selected"/>
 							<MenuItem x:Name="speed2" Header="2 MBaud" IsCheckable="True" Click="speed2Selected"/>
 							<MenuItem x:Name="speed3" Header="3 MBaud" IsCheckable="True" Click="speed3Selected"/>
 						</MenuItem>
-						<MenuItem Header="_Download Range" x:Name="downloadRangeMenuItem" FontSize="12" Foreground="#FF181818" IsTabStop="False">
+						<MenuItem Header="_Download Range" x:Name="downloadRangeMenuItem" FontSize="12" IsTabStop="False">
 							<MenuItem x:Name="downloadAutomatic" Header="Automatic" IsCheckable="True"/>
 							<MenuItem x:Name="downloadManual" Header="Manual" IsCheckable="True"/>
 						</MenuItem>
-						<MenuItem Header="Keep MDP file after downloading" x:Name="keepMdpItem" FontSize="12" Foreground="#FF181818" Click="keepMdpClicked" IsCheckable="True" IsChecked="False" IsTabStop="False"/>
+						<MenuItem Header="Keep MDP file after downloading" x:Name="keepMdpItem" FontSize="12" Click="keepMdpClicked" IsCheckable="True" IsChecked="False" IsTabStop="False"/>
 					</MenuItem>
-					<MenuItem Header="_?" Margin="5" Foreground="#FF00AADE" Click="aboutInfoClick" FontSize="16" FontWeight="Bold" IsTabStop="False" />
+					<MenuItem Header="_?" Margin="5" Click="aboutInfoClick" FontSize="16" FontWeight="Bold" IsTabStop="False" BorderThickness="0" />
 				</Menu>
 				<!-- Riga 1 ServiceBar-->
 				<Grid Grid.Row="1">

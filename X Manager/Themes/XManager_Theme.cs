@@ -8,6 +8,12 @@ namespace X_Manager.Themes
 
 	public partial class CustomResources : ResourceDictionary
 	{
+
+
+
+		internal class XManager_Theme
+		{
+		}
 		public void ComboBoxTextPreviewMouseDown(object sender, EventArgs e)
 		{
 			var cp = sender as ContentPresenter;
@@ -36,12 +42,12 @@ namespace X_Manager.Themes
 					tb.IsChecked = true;
 					tb.IsChecked = true; tb.IsChecked = true; tb.IsChecked = true;
 					e.Handled = true;
-				}				
+				}
 			}
 		}
 
-		internal class XManager_Theme
-		{
-		}
+
+
+
 	}
 }
