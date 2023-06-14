@@ -32,8 +32,8 @@
             </Grid>
         </Grid>
         <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Button Name="yesB" Content="Yes" Height="23" HorizontalAlignment="Center" Margin="0,0,140,0" VerticalAlignment="Center" MinWidth="75" TabIndex="0" Click="yesClick"/>
-            <Button Name="noB" Content="No" Height="23" HorizontalAlignment="Center" Margin="0,0,-140,0" VerticalAlignment="Center" MinWidth="75" TabIndex="1" Click="noClick"/>
+            <Button Name="yesB" Content="Yes" Height="30" HorizontalAlignment="Center" Margin="0,0,140,0" VerticalAlignment="Center" MinWidth="75" TabIndex="0" Click="yesClick" Padding="5"/>
+            <Button Name="noB" Content="No" Height="30" HorizontalAlignment="Center" Margin="0,0,-140,0" VerticalAlignment="Center" MinWidth="75" TabIndex="1" Click="noClick" Padding="5"/>
         </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" >
             <CheckBox x:Name="choiceCB" VerticalAlignment="Top" Padding="0" Margin="10,0,0,0" Content="" FontSize="12" Checked="choiceChecked" Unchecked="choiceUnchecked"/>

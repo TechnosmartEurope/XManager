@@ -120,19 +120,19 @@ namespace X_Manager
 			{
 				case "1":
 					date1.IsChecked = true;
-					dateTimePicker.FormatString = "dd/MM/yyyy";
+					//dateTimePicker.FormatString = "dd/MM/yyyy";
 					break;
 				case "2":
 					date2.IsChecked = true;
-					dateTimePicker.FormatString = "MM/dd/yyyy";
+					//dateTimePicker.FormatString = "MM/dd/yyyy";
 					break;
 				case "3":
 					date3.IsChecked = true;
-					dateTimePicker.FormatString = "yyyy/MM/dd";
+					//dateTimePicker.FormatString = "yyyy/MM/dd";
 					break;
 				case "4":
 					date4.IsChecked = true;
-					dateTimePicker.FormatString = "yyyy/dd/MM";
+					//dateTimePicker.FormatString = "yyyy/dd/MM";
 					break;
 			}
 			switch (lastPrefs[pref_timeFormat])
@@ -188,7 +188,7 @@ namespace X_Manager
 			mUd.Value = Convert.ToDouble(lastPrefs[pref_m]);
 			sUd.Value = Convert.ToDouble(lastPrefs[pref_s]);
 			DateTime dd = new DateTime(Convert.ToInt16(lastPrefs[pref_date_year]), Convert.ToInt16(lastPrefs[pref_date_month]), Convert.ToInt16(lastPrefs[pref_date_day]));
-			dateTimePicker.Value = dd;
+			dateTimePicker.SelectedDate = dd;
 
 			OverrideTime.IsChecked = false;
 			if (lastPrefs[pref_time_override] == "True") OverrideTime.IsChecked = true;
@@ -327,9 +327,9 @@ namespace X_Manager
 			lastPrefs[pref_h] = p.ToString();
 			lastPrefs[pref_m] = mUd.Value.ToString();
 			lastPrefs[pref_s] = sUd.Value.ToString();
-			lastPrefs[pref_date_year] = dateTimePicker.Value.Value.Year.ToString();
-			lastPrefs[pref_date_month] = dateTimePicker.Value.Value.Month.ToString();
-			lastPrefs[pref_date_day] = dateTimePicker.Value.Value.Day.ToString();
+			lastPrefs[pref_date_year] = dateTimePicker.SelectedDate.Value.Year.ToString();
+			lastPrefs[pref_date_month] = dateTimePicker.SelectedDate.Value.Month.ToString();
+			lastPrefs[pref_date_day] = dateTimePicker.SelectedDate.Value.Day.ToString();
 			lastPrefs[pref_time_override] = OverrideTime.IsChecked.ToString();
 			lastPrefs[pref_metadata] = metadata.IsChecked.ToString();
 			lastPrefs[pref_leapSeconds] = leapSecondsUD.Value.ToString();
@@ -420,29 +420,29 @@ namespace X_Manager
 
 		private void dateFormat4(object sender, RoutedEventArgs e)
 		{
-			dateTimePicker.FormatString = "yyyy/dd/MM";
+			//dateTimePicker.FormatString = "yyyy/dd/MM";
 		}
 
 		private void dateFormat3(object sender, RoutedEventArgs e)
 		{
-			dateTimePicker.FormatString = "yyyy/MM/dd";
+			//dateTimePicker.FormatString = "yyyy/MM/dd";
 		}
 
 		private void dateFormat2(object sender, RoutedEventArgs e)
 		{
-			dateTimePicker.FormatString = "MM/dd/yyyy";
+			//dateTimePicker.FormatString = "MM/dd/yyyy";
 		}
 
 		private void dateFormat1(object sender, RoutedEventArgs e)
 		{
-			dateTimePicker.FormatString = "dd/MM/yyyy";
+			//dateTimePicker.FormatString = "dd/MM/yyyy";
 		}
 
 		private void setMoveBank(object sender, RoutedEventArgs e)
 		{
 			Millibars.IsChecked = true;
 			date1.IsChecked = true;
-			dateTimePicker.FormatString = "dd/MM/yyyy";
+			//dateTimePicker.FormatString = "dd/MM/yyyy";
 			time1.IsChecked = true;
 			fill.IsChecked = false;
 			same.IsChecked = true;

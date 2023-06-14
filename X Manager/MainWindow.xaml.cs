@@ -19,6 +19,7 @@ using X_Manager.ConfigurationWindows;
 using X_Manager.Remote;
 using X_Manager.Units.AxyTreks;
 using X_Manager.Units.Gipsy6;
+using System.Windows.Controls.Primitives;
 
 namespace X_Manager
 {
@@ -2665,9 +2666,9 @@ namespace X_Manager
 
 
 
-		#endregion
 
+        #endregion
 
-	}
+    }
 
 }

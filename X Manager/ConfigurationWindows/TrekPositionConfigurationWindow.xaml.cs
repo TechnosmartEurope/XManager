@@ -417,9 +417,9 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			conf[143] = (byte)(st.SdDateTimePicker.Value.Value.Year - 2000);
-			conf[144] = (byte)(st.SdDateTimePicker.Value.Value.Month);
-			conf[145] = (byte)(st.SdDateTimePicker.Value.Value.Day);
+			conf[143] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Year - 2000);
+			conf[144] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Month);
+			conf[145] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Day);
 
 			conf[152] = 0;
 			if ((bool)DailyCheck.IsChecked)
@@ -509,7 +509,7 @@ namespace X_Manager.ConfigurationWindows
 
 			TrekRemoteIntervals tr = new TrekRemoteIntervals(this);
 			tr.import(new double[23]);
-			((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content = tr;
+			((TabItem)ScheduleTab.Items.GetItemAt(8)).Content = tr;
 
 			WeeklyCheck.IsChecked = true;
 		}

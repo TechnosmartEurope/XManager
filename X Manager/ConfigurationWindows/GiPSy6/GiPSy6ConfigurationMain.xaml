@@ -1,18 +1,15 @@
-﻿<local:ConfigurationWindow x:Class="X_Manager.ConfigurationWindows.GiPSy6ConfigurationMain"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
-        mc:Ignorable="d" Background="#FF202020" SizeToContent="WidthAndHeight"
-        Title="GIPSY6 CONFIGURATION" Loaded="loaded" ResizeMode="CanMinimize">
+﻿<local:ConfigurationWindow x:Class="X_Manager.ConfigurationWindows.GiPSy6ConfigurationMain" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:local="clr-namespace:X_Manager.ConfigurationWindows"
+        mc:Ignorable="d" Background="#FF202020" SizeToContent="WidthAndHeight" Title="GIPSY6 CONFIGURATION" Loaded="loaded" ResizeMode="CanMinimize">
+	
 	<Grid Background="#FF202020" VerticalAlignment="Top" x:Name="ExternalGrid" Height="860" Width="968" >
 		<Grid.RowDefinitions>
 			<RowDefinition Height="40"/>
-			<RowDefinition Height="760"/>
+			<RowDefinition Height="820"/>
 		</Grid.RowDefinitions>
 		<StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" Background="DarkGray">
-			<Button x:Name="backB" Content="&lt;--" Background="#FF404040" FontSize="20" FontWeight="Bold" Height="40" VerticalAlignment="Top" Click="backClick"/>
+			<Button x:Name="backB" Content="&lt;--" Background="#FF404040" FontSize="20" FontWeight="Bold" Height="40" VerticalAlignment="Top" Click="backClick" />
 			<CheckBox x:Name="expertCB" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="20,0,0,0" Content="Expert Mode" Foreground="DarkSlateGray"
                       Checked="expertCB_Checked" Unchecked="expertCB_Unchecked"/>
 			<Button x:Name="importB" Margin="400,0,0,0" MinHeight="0" Height="36" Width="120" Padding="0" Click="importB_Click" >
@@ -31,9 +28,10 @@
 		<StackPanel Grid.Row="0" Orientation="Horizontal" Height="40" VerticalAlignment="Top" HorizontalAlignment="Right">
 			<Button x:Name="forthB" Content="-->" Background="#FF404040" FontSize="20" FontWeight="Bold" Click="forthClick" Height="40" VerticalAlignment="Top" />
 		</StackPanel>
-		<Frame Grid.Row="1" x:Name="Gipsy6ConfigurationBrowser" NavigationUIVisibility="Hidden"
-               VerticalAlignment="Top" VerticalContentAlignment="Top" Height="768" MaxHeight="760" >
+
+		<Frame Grid.Row="1" x:Name="Gipsy6ConfigurationBrowser" NavigationUIVisibility="Hidden" VerticalAlignment="Top" VerticalContentAlignment="Top" Height="794" MaxHeight="794" >
 
 		</Frame>
+
 	</Grid>
 </local:ConfigurationWindow>

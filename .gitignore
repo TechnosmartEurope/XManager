@@ -1,14 +1,6 @@
 .vs/
 /X Manager/bin
 /X Manager/obj
-/X Manager/FTDI_drivers/
-/X Manager/FTDI/
 desktop.ini
-X Manager Setup x64/
-X Manager Setup x86
-X Manager/FTD2XX.dll
-X Manager/FTD2XX.dll.old
-X Manager/FTD2XX_NET.XML.old
-X Manager/FTD2XX_NET.dll.old
-"X Manager.sln"
-"S Manager.v12.suo"
+Documentazione
+X Manager Setup *

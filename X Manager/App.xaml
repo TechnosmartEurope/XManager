@@ -5,8 +5,7 @@
     <Application.Resources>
         <ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
-				<ResourceDictionary Source="Themes/MetroDark/MetroDark.MSControls.Core.Implicit.xaml" />
-				<ResourceDictionary Source="Themes/MetroDark/MetroDark.MSControls.Toolkit.Implicit.xaml" />
+				<ResourceDictionary Source="Themes/XManager_Theme.xaml" />
 			</ResourceDictionary.MergedDictionaries>
 			<Style TargetType="{x:Type Rectangle}" />
 			<Style x:Key="confWindows" TargetType="{x:Type Page}">
