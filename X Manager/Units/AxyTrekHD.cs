@@ -1139,7 +1139,7 @@ namespace X_Manager.Units.AxyTreks
 			{
 				if (inMeters)
 				{
-					if (isDepth == 1)
+					if (isDepth)
 					{
 						csvHeader = csvHeader + csvSeparator + "Depth";
 					}

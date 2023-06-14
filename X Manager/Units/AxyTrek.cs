@@ -24,7 +24,6 @@ namespace X_Manager.Units.AxyTreks
 
 		protected int temperatureEnabled;
 		protected int pressureEnabled;
-		protected double pressOffset;
 		protected byte range;
 		protected ushort rate;
 		protected bool bits;
@@ -38,24 +37,9 @@ namespace X_Manager.Units.AxyTreks
 		protected bool adcStop = false;
 
 		protected uint contoCoord;
-		protected bool addGpsTime;
-		protected bool angloTime = false;
-		protected string dateFormatParameter;
-		protected byte dateFormat;
-		protected bool overrideTime = false;
-		protected bool inMeters = false;
-		protected bool prefBattery = false;
-		protected bool repeatEmptyValues = true;
-		protected int isDepth = 1;
 		protected bool primaCoordinata;
-		protected bool sameColumn = false;
 		protected string cifreDecString;
-		protected bool metadata;
-		protected int leapSeconds;
 		protected long infRemPosition;
-		protected bool makeTxt = false;
-		protected bool makeKml = false;
-		protected bool removeNonGps = false;
 
 		protected DateTime nullDate = new DateTime(1970, 1, 1, 0, 0, 0);
 		protected DateTime recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
@@ -949,7 +933,7 @@ namespace X_Manager.Units.AxyTreks
 			addGpsTime = parent.addGpsTime;
 			if (Parent.getParameter("pressureRange") == "air")
 			{
-				isDepth = 0;
+				isDepth = false;
 			}
 			if (prefs[pref_fillEmpty] == "False")
 			{
@@ -989,9 +973,7 @@ namespace X_Manager.Units.AxyTreks
 					dateFormatParameter = "yyyy/dd/MM";
 					break;
 			}
-			overrideTime = false;
 			if (prefs[pref_override_time] == "True") overrideTime = true;
-			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
 			leapSeconds = int.Parse(prefs[pref_leapSeconds]);
 			removeNonGps = bool.Parse(prefs[pref_removeNonGps]);

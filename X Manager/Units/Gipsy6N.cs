@@ -11,6 +11,7 @@ using System.Windows.Threading;
 using System.Globalization;
 using System.IO.Ports;
 using System.ComponentModel;
+using Windows.Security.Cryptography.Core;
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -138,6 +139,8 @@ namespace X_Manager.Units.Gipsy6
 			public int GPS_second;
 			public int proximityAddress;
 			public sbyte proximityPower;
+			public string unitNameTxt;
+			public string rfAddressString;
 			public int pos
 			{
 				get => _pos;
@@ -195,6 +198,8 @@ namespace X_Manager.Units.Gipsy6
 				tout.GPS_second = GPS_second;
 				tout.proximityAddress = proximityAddress;
 				tout.proximityPower = proximityPower;
+				tout.rfAddressString = rfAddressString;
+				tout.unitNameTxt = unitNameTxt;
 				tout.resetPos(this.pos);
 
 				return tout;
@@ -203,9 +208,7 @@ namespace X_Manager.Units.Gipsy6
 
 		const int RETRY_MAX = 4;
 		int rfAddress = -1;
-		string rfAddressString = "N.A.";
-		string unitName = "";
-		string unitNameTxt = "";
+		string lastKnownRfAddressString = "N.A.";
 
 		FileType fileType;
 		enum FileType : byte
@@ -253,29 +256,6 @@ namespace X_Manager.Units.Gipsy6
 			"minute(s)",
 			"hour(s)",
 		};
-
-
-		enum COLUMN : int
-		{
-			COL_NAME = 0,
-			COL_RF_ADDRESS,
-			COL_DATE,
-			COL_TIME,
-			COL_LATITUDE,
-			COL_LONGITUDE,
-			COL_HORIZONTAL_ACCURACY,
-			COL_ALTITUDE,
-			COL_VERTICAL_ACCURACY,
-			COL_SPEED,
-			COL_COURSE,
-			COL_BATTERY,
-			COL_PROXIMITY,
-			COL_PROXIMITY_POWER,
-			COL_EVENT,
-			COL_POSITION_IN_FILE,
-			COL_LENGTH
-		}
-
 
 		//bool repeatEmptyValues = false;
 		public bool remoteConnection = false;
@@ -1595,6 +1575,8 @@ namespace X_Manager.Units.Gipsy6
 
 		public override void convert(string fileName, string[] prefs)
 		{
+			base.convert(fileName, prefs);
+
 			//Stabilisce se è un download diretto o da basestation
 			if (Path.GetExtension(fileName).IndexOf("bs6", StringComparison.InvariantCultureIgnoreCase) != -1)
 			{
@@ -1615,6 +1597,7 @@ namespace X_Manager.Units.Gipsy6
 				}
 				unitName = newName;
 			}
+			lastKnownUnitName = unitName;
 
 			//Triplica la progress bar
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
@@ -1719,17 +1702,21 @@ namespace X_Manager.Units.Gipsy6
 			};
 			txtBGW.RunWorkerAsync();
 
-			//Crea e avvia il thread per la scrittura del file kml
-			string kmlName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName);
-			List<TimeStamp> kmlList = new List<TimeStamp>();
-			kmlSem = new Semaphore(0, 1);
-			kmlSemBack = new Semaphore(1, 1);
-			kmlBGW = new BackgroundWorker();
-			kmlBGW.DoWork += (s, args) =>
+			List<TimeStamp> kmlList = null;
+			if (makeKml)
 			{
-				kmlBGW_doWork(ref kmlList, kmlName);
-			};
-			kmlBGW.RunWorkerAsync();
+				//Crea e avvia il thread per la scrittura del file kml
+				string kmlName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName);
+				kmlList = new List<TimeStamp>();
+				kmlSem = new Semaphore(0, 1);
+				kmlSemBack = new Semaphore(1, 1);
+				kmlBGW = new BackgroundWorker();
+				kmlBGW.DoWork += (s, args) =>
+				{
+					kmlBGW_doWork(ref kmlList, kmlName);
+				};
+				kmlBGW.RunWorkerAsync();
+			}
 
 			//Inizializza le variabili
 			int pos = 0;
@@ -1795,23 +1782,12 @@ namespace X_Manager.Units.Gipsy6
 					txtSem.Release();
 				}
 
-				kmlSemBack.WaitOne();
-				kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
-				kmlSem.Release();
-
-				////Acquisisce l'acccesso alla pila txt
-				//lock (txtList)
-				//{
-				//	txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
-				//}
-				//relTxt = txtSem.Release();   //sblocca il thread txt
-
-				//Acquisisce l'acccesso alla pila kml
-				//lock (kmlList)
-				//{
-				//	kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
-				//}
-				//relkml = kmlSem.Release();   //sblocca il thread kml
+				if (kmlList != null)
+				{
+					kmlSemBack.WaitOne();
+					kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
+					kmlSem.Release();
+				}
 
 				if (noStampBuffer.Count == 1)
 				{
@@ -1824,13 +1800,20 @@ namespace X_Manager.Units.Gipsy6
 				parent.statusProgressBar.Value = pos;
 			}));
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Maximum = kmlList.Count));
+			if (makeKml)
+			{
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Maximum = kmlList.Count));
+			}
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Maximum = txtList.Count));
 			//Interlocked.Increment(ref lastTimestamp);   //Segnala ai thread che non saranno più aggiunti timestamp alle pile
 			txtSemBack.WaitOne();
-			kmlSemBack.WaitOne();
+			if (makeKml)
+			{
+				kmlSemBack.WaitOne();
+				kmlSem.Release();   //rilascia il thread kml per l'ultima volta
+			}
 			txtSem.Release();   //rilascia il thread txt per l'ultima volta
-			kmlSem.Release();   //rilascia il thread kml per l'ultima volta
+
 
 			//while (Interlocked.Read(ref conversionDone) < 2)
 			//{
@@ -1838,7 +1821,7 @@ namespace X_Manager.Units.Gipsy6
 			//}
 			//aspetta che i thread abbiano finito di scrivere i rispettivi file
 			txtSemBack.WaitOne();
-			kmlSemBack.WaitOne();
+			if (makeKml) kmlSemBack.WaitOne();
 
 			Application.Current.Dispatcher.Invoke(new Action(() =>
 			{
@@ -1855,23 +1838,19 @@ namespace X_Manager.Units.Gipsy6
 		private void txtBGW_doWork(ref List<TimeStamp> tL, string txtName)
 		{
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
-			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
-			txtBW.Write("Name\tRF Address\tDate\tTime\tLatitude (deg)\tLongitude (deg)\tHor. Acc. (m)" +
-							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tNearby Device\tNearby Device Received Signal Strength\tEvent\r\n");
-			string[] tabs = new string[(int)COLUMN.COL_LENGTH];
-			tabs[(int)COLUMN.COL_NAME] = unitName;
-			tabs[(int)COLUMN.COL_RF_ADDRESS] = rfAddressString;
-			if (fileType == FileType.FILE_BS6)
-			{
-				unitName = Path.GetFileNameWithoutExtension(txtName);
-			}
+
+			placeHeader(txtBW, ref columnPlace);
+
+			string[] tabs = new string[columnPlace[(int)COLUMN.COL_LENGTH]];
+			tabs[columnPlace[(int)COLUMN.COL_NAME]] = lastKnownUnitName;
+			tabs[columnPlace[(int)COLUMN.COL_RF_ADDRESS]] = lastKnownRfAddressString;
+			//if (fileType == FileType.FILE_BS6)
+			//{
+			//	unitName = Path.GetFileNameWithoutExtension(txtName);
+			//}
 			var t = new TimeStamp();
 			while (true)
 			{
-				//if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
-				//{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
-				//	txtSem.WaitOne();
-				//}
 				txtSem.WaitOne();
 				if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
 				{
@@ -1880,88 +1859,75 @@ namespace X_Manager.Units.Gipsy6
 				t = tL[0];
 				tL.RemoveAt(0);
 
-				//lock (tL)
-				//{
-				//	if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
-				//	{
-				//		break;
-				//	}
-				//	if (Interlocked.Read(ref lastTimestamp) > 0)
-				//	{
-				//		contoStatus++;
-				//		if (contoStatus == 100)
-				//		{
-				//			contoStatus = 0;
-				//			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Value += 100));
-				//		}
-				//	}
-				//	t = tL[0];
-				//	tL.RemoveAt(0);
-
-				//}
-
 				//Si scrive il timestmap nel txt
-				//if (!repeatEmptyValues)
+				if (!repeatEmptyValues)
 				{
-					tabs = new string[(int)COLUMN.COL_LENGTH];
-					tabs[(int)COLUMN.COL_NAME] = unitNameTxt;
-					tabs[(int)COLUMN.COL_RF_ADDRESS] = rfAddressString;
+					tabs = new string[columnPlace[(int)COLUMN.COL_LENGTH]];
+					tabs[columnPlace[(int)COLUMN.COL_NAME]] = t.unitNameTxt;
+					tabs[columnPlace[(int)COLUMN.COL_RF_ADDRESS]] = t.rfAddressString;
 				}
-				tabs[(int)COLUMN.COL_DATE] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
-				tabs[(int)COLUMN.COL_TIME] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				tabs[columnPlace[(int)COLUMN.COL_DATE]] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
+				if (sameColumn)
+				{
+					tabs[columnPlace[(int)COLUMN.COL_DATE]] += " " + t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				}
+				else
+				{
+					tabs[columnPlace[(int)COLUMN.COL_TIME]] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				}
 
 				if ((t.tsType & ts_battery) == ts_battery)
 				{
-					tabs[(int)COLUMN.COL_BATTERY] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[columnPlace[(int)COLUMN.COL_BATTERY]] = t.batteryLevel.ToString("0.00") + "V";
 				}
 				if ((t.tsType & ts_coordinate) == ts_coordinate)
 				{
-					tabs[(int)COLUMN.COL_LATITUDE] = t.lat.ToString("00.0000000", nfi);
-					tabs[(int)COLUMN.COL_LONGITUDE] = t.lon.ToString("000.0000000", nfi);
+					tabs[columnPlace[(int)COLUMN.COL_LATITUDE]] = t.lat.ToString("00.0000000", nfi);
+					tabs[columnPlace[(int)COLUMN.COL_LONGITUDE]] = t.lon.ToString("000.0000000", nfi);
 					if (t.hAcc == 7)
 					{
-						tabs[(int)COLUMN.COL_HORIZONTAL_ACCURACY] = "200";
+						tabs[columnPlace[(int)COLUMN.COL_HORIZONTAL_ACCURACY]] = "200";
 					}
 					else
 					{
-						tabs[(int)COLUMN.COL_HORIZONTAL_ACCURACY] = String.Format("{0}", accuracySteps[t.hAcc]);
+						tabs[columnPlace[(int)COLUMN.COL_HORIZONTAL_ACCURACY]] = String.Format("{0}", accuracySteps[t.hAcc]);
 					}
 
-					tabs[(int)COLUMN.COL_ALTITUDE] = t.altitude.ToString();
+					tabs[columnPlace[(int)COLUMN.COL_ALTITUDE]] = t.altitude.ToString();
 					if (t.vAcc == 7)
 					{
-						tabs[(int)COLUMN.COL_VERTICAL_ACCURACY] = "200";
+						tabs[columnPlace[(int)COLUMN.COL_VERTICAL_ACCURACY]] = "200";
 					}
 					else
 					{
-						tabs[(int)COLUMN.COL_VERTICAL_ACCURACY] = String.Format("{0}", accuracySteps[t.vAcc]);
+						tabs[columnPlace[(int)COLUMN.COL_VERTICAL_ACCURACY]] = String.Format("{0}", accuracySteps[t.vAcc]);
 					}
-					tabs[(int)COLUMN.COL_SPEED] = t.speed.ToString("0.0");
-					tabs[(int)COLUMN.COL_COURSE] = t.cog.ToString("0.0");
+					tabs[columnPlace[(int)COLUMN.COL_SPEED]] = t.speed.ToString("0.0");
+					tabs[columnPlace[(int)COLUMN.COL_COURSE]] = t.cog.ToString("0.0");
 				}
 
 				if ((t.tsTypeExt1 & ts_proximity) == ts_proximity)
 				{
-					tabs[(int)COLUMN.COL_PROXIMITY] = t.proximityAddress.ToString();
-					tabs[(int)COLUMN.COL_PROXIMITY_POWER] = t.proximityPower.ToString();
+					tabs[columnPlace[(int)COLUMN.COL_PROXIMITY]] = t.proximityAddress.ToString();
+					tabs[columnPlace[(int)COLUMN.COL_PROXIMITY_POWER]] = t.proximityPower.ToString();
 				}
 
 				if ((t.tsType & ts_event) == ts_event)
 				{
-					tabs[(int)COLUMN.COL_EVENT] = decodeEvent(ref t);
+					tabs[columnPlace[(int)COLUMN.COL_EVENT]] = decodeEvent(ref t);
 				}
 
 				if (debugLevel == 3)
 				{
-					tabs[(int)COLUMN.COL_POSITION_IN_FILE] += " - " + t.pos.ToString("X8");
+					tabs[columnPlace[(int)COLUMN.COL_POSITION_IN_FILE]] += " - " + t.pos.ToString("X8");
 				}
 
-
-				for (int i = 0; i < (int)COLUMN.COL_LENGTH - 1; i++)
+				for (int i = 0; i < columnPlace[(int)COLUMN.COL_LENGTH] - 2; i++)
 				{
 					txtBW.Write(tabs[i] + "\t");
 				}
-				txtBW.Write(tabs[(int)COLUMN.COL_LENGTH - 1] + "\r\n");
+				txtBW.Write(tabs[columnPlace[(int)COLUMN.COL_LENGTH] - 2]);
+				txtBW.Write(tabs[columnPlace[(int)COLUMN.COL_LENGTH] - 1] + "\r\n");
 				txtSemBack.Release();
 
 			}
@@ -2255,20 +2221,18 @@ namespace X_Manager.Units.Gipsy6
 					rfAddress = t.infoAr[3] * 65536 + t.infoAr[4] * 256 + t.infoAr[5];
 					if (rfAddress != 0 && rfAddress != 0xffffff)
 					{
-						rfAddressString = rfAddress.ToString();
+						lastKnownRfAddressString = rfAddress.ToString();
 					}
 				}
 				if (infoLength > 6)
 				{
 					byte[] nomeArr = new byte[28];
 					Array.Copy(t.infoAr, 6, nomeArr, 0, 28);
-					unitNameTxt = Encoding.ASCII.GetString(nomeArr);//
-					unitNameTxt = (unitNameTxt.Split('\0'))[0];
+					lastKnownUnitName = Encoding.ASCII.GetString(nomeArr);//
+					lastKnownUnitName = lastKnownUnitName.Split('\0')[0];
 				}
-				else
-				{
-					unitNameTxt = unitName;
-				}
+				t.unitNameTxt = lastKnownUnitName;
+				t.rfAddressString = lastKnownRfAddressString;
 				pos += infoLength;
 			}
 

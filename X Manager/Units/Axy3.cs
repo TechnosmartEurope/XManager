@@ -32,21 +32,13 @@ namespace X_Manager.Units
 			public byte timeStampLength;
 		}
 
-		byte dateFormat;
-		byte timeFormat;
-		bool sameColumn = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
 		bool bits;
 		byte bitsDiv;
-		bool angloTime = false;
 		ushort rate;
 		ushort rateComp;
 		byte range;
 		double gCoeff;
-		string dateFormatParameter;
 		ushort addMilli;
-		bool metadata;
 		CultureInfo dateCi;
 		byte cifreDec;
 		string cifreDecString;
@@ -483,10 +475,10 @@ namespace X_Manager.Units
 
 			//Imposta le preferenze di conversione
 
-			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
+			if (prefs[pref_fillEmpty] == "False") repeatEmptyValues = false;
 
 			dateSeparator = csvSeparator;
-			if ((prefs[pref_sameColumn] == "True"))
+			if (prefs[pref_sameColumn] == "True")
 			{
 				sameColumn = true;
 				dateSeparator = " ";
@@ -495,7 +487,6 @@ namespace X_Manager.Units
 			if (prefs[pref_battery] == "True") prefBattery = true;
 
 			dateCi = new CultureInfo("it-IT");
-			angloTime = false;
 			if (prefs[pref_timeFormat] == "2")
 			{
 				angloTime = true;
@@ -520,7 +511,6 @@ namespace X_Manager.Units
 					break;
 			}
 
-			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
 
 			//Legge i parametri di logging

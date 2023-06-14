@@ -72,7 +72,7 @@ namespace X_Manager.Units
 		public const byte ts_blockEnd = 0b0100_0000;
 
 
-		//Array preferenze
+		//Puntatori array preferenze conversione
 		public const int pref_pressMetri = 0;
 		public const int pref_millibars = 1;
 		public const int pref_dateFormat = 2;
@@ -86,6 +86,25 @@ namespace X_Manager.Units
 		public const int pref_metadata = 16;
 		public const int pref_leapSeconds = 17;
 		public const int pref_removeNonGps = 18;
+
+		//Preferenze conversione
+		protected bool angloTime = false;
+		protected string dateFormatParameter;
+		protected byte dateFormat;
+		protected byte timeFormat;
+		protected bool overrideTime = false;
+		protected bool inMeters = false;
+		protected bool prefBattery = false;
+		protected bool repeatEmptyValues = true;
+		protected bool sameColumn = false;
+		protected bool makeTxt = false;
+		protected bool makeKml = false;
+		protected double pressOffset;
+		protected bool addGpsTime;
+		protected bool isDepth = true;
+		protected bool metadata = false;
+		protected int leapSeconds;
+		protected bool removeNonGps = false;
 
 		protected string _modelName = "";
 		public virtual string modelName

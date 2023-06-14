@@ -39,28 +39,18 @@ namespace X_Manager.Units
 			public double magX_A, magY_A, magZ_A, magX_B, magY_B, magZ_B;
 			//public long ardPosition;
 		}
-
-		byte dateFormat;
-		byte timeFormat;
-		bool sameColumn = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
 		bool bits;
 		byte bitsDiv;
-		bool angloTime = false;
 		ushort rate;
 		ushort rateComp;
 		byte range;
 		//uint sogliaNeg;
 		//uint rendiNeg;
 		double gCoeff;
-		string dateFormatParameter;
 		ushort addMilli;
 		CultureInfo dateCi;
 		//byte cifreDec;
 		string cifreDecString;
-		bool metadata;
-		bool overrideTime;
 		string ardPos = "";
 		string ardFileName = "";
 		int magen;
@@ -687,7 +677,6 @@ namespace X_Manager.Units
 			if (prefs[pref_battery] == "True") prefBattery = true;
 
 			dateCi = new CultureInfo("it-IT");
-			angloTime = false;
 			if (prefs[pref_timeFormat] == "2")
 			{
 				angloTime = true;
@@ -712,10 +701,8 @@ namespace X_Manager.Units
 					break;
 			}
 
-			overrideTime = false;
 			if (prefs[pref_override_time] == "True") overrideTime = true;
 
-			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
 			if (debugLevel == 3) metadata = true;
 

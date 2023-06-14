@@ -38,27 +38,16 @@ namespace X_Manager.Units
 			public double magX_A, magY_A, magZ_A, magX_B, magY_B, magZ_B;
 		}
 
-		byte dateFormat;
-		//byte timeFormat;
-		bool sameColumn = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
-		bool isDepth = true;
 		bool bits;
 		byte bitsDiv;
-		bool inMeters = false;
-		bool angloTime = false;
 		ushort rate;
 		ushort rateComp;
 		byte range;
 		double gCoeff;
-		string dateFormatParameter;
 		ushort addMilli;
-		bool metadata;
 		byte cifreDec;
 		string cifreDecString;
 		CultureInfo dateCi;
-		bool overrideTime;
 		int magen;
 		int adcEn = 0;
 		//byte[] magData_A = new byte[6];
@@ -876,10 +865,8 @@ namespace X_Manager.Units
 					break;
 			}
 
-			overrideTime = false;
 			if (prefs[pref_override_time] == "True") overrideTime = true;
 
-			metadata = false;
 			if (prefs[pref_metadata] == "True") metadata = true;
 
 			//Legge i parametri di logging
