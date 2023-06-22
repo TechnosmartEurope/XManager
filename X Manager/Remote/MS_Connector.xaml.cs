@@ -611,7 +611,7 @@ namespace X_Manager.Remote
 					channelListCB.Items.Add(address);
 				}
 			}
-			channelListCB.FontSize = 40;
+			//channelListCB.FontSize = 20;
 			channelListCB.SelectedIndex = 0;
 			stopB.IsEnabled = false;
 			channelListCB.SelectionChanged += channelListSelectionChangedEvent;
