@@ -32,7 +32,7 @@ namespace X_Manager.ConfigurationWindows
 
 		public object Clone()
 		{
-			return this.MemberwiseClone();
+			return MemberwiseClone();
 		}
 
 		private void nIntCh(object sender, RoutedEventArgs e)

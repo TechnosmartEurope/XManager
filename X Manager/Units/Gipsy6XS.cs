@@ -1168,10 +1168,7 @@ namespace X_Manager.Units.Gipsy6
 			var t = new TimeStamp();
 			while (true)
 			{
-				//if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
-				//{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
-				//	txtSem.WaitOne();
-				//}
+
 				txtSem.WaitOne();
 				if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
 				{
@@ -1180,26 +1177,6 @@ namespace X_Manager.Units.Gipsy6
 				t = tL[0];
 				tL.RemoveAt(0);
 
-				//lock (tL)
-				//{
-				//	if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
-				//	{
-				//		break;
-				//	}
-				//	if (Interlocked.Read(ref lastTimestamp) > 0)
-				//	{
-				//		contoStatus++;
-				//		if (contoStatus == 100)
-				//		{
-				//			contoStatus = 0;
-				//			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Value += 100));
-				//		}
-				//	}
-				//	t = tL[0];
-				//	tL.RemoveAt(0);
-
-				//}
-
 				//Si scrive il timestmap nel txt
 				if (!repeatEmptyValues)
 				{
@@ -1207,9 +1184,16 @@ namespace X_Manager.Units.Gipsy6
 					tabs[columnPlace[(int)COLUMN.COL_NAME]] = t.unitNameTxt;
 				}
 				tabs[columnPlace[(int)COLUMN.COL_DATE]] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
-				tabs[columnPlace[(int)COLUMN.COL_TIME]] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				if (sameColumn)
+				{
+					tabs[columnPlace[(int)COLUMN.COL_DATE]] += " " + t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				}
+				else
+				{
+					tabs[columnPlace[(int)COLUMN.COL_TIME]] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				}
 
-				if ((t.tsType & ts_battery) == ts_battery)
+				if (((t.tsType & ts_battery) == ts_battery) && prefBattery)
 				{
 					tabs[columnPlace[(int)COLUMN.COL_BATTERY]] = t.batteryLevel.ToString("0.00") + "V";
 				}
@@ -1223,7 +1207,7 @@ namespace X_Manager.Units.Gipsy6
 					}
 					else
 					{
-						tabs[columnPlace[(int)COLUMN.COL_HORIZONTAL_ACCURACY]] = String.Format("{0}", accuracySteps[t.hAcc]);
+						tabs[columnPlace[(int)COLUMN.COL_HORIZONTAL_ACCURACY]] = string.Format("{0}", accuracySteps[t.hAcc]);
 					}
 
 					tabs[columnPlace[(int)COLUMN.COL_ALTITUDE]] = t.altitude.ToString();
@@ -1233,13 +1217,13 @@ namespace X_Manager.Units.Gipsy6
 					}
 					else
 					{
-						tabs[columnPlace[(int)COLUMN.COL_VERTICAL_ACCURACY]] = String.Format("{0}", accuracySteps[t.vAcc]);
+						tabs[columnPlace[(int)COLUMN.COL_VERTICAL_ACCURACY]] = string.Format("{0}", accuracySteps[t.vAcc]);
 					}
 					tabs[columnPlace[(int)COLUMN.COL_SPEED]] = t.speed.ToString("0.0");
 					tabs[columnPlace[(int)COLUMN.COL_COURSE]] = t.cog.ToString("0.0");
 				}
 
-				if ((t.tsType & ts_event) == ts_event)
+				if (((t.tsType & ts_event) == ts_event) && metadata)
 				{
 					tabs[columnPlace[(int)COLUMN.COL_EVENT]] = decodeEvent(ref t);
 				}

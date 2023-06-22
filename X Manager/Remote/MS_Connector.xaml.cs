@@ -88,7 +88,7 @@ namespace X_Manager.Remote
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
-			bootLoaderB.Visibility = Visibility.Hidden;
+			//bootLoaderB.Visibility = Visibility.Hidden;
 			masterStationType = 0;
 			ft.Open();
 			ft.BaudRate = 2000000;
@@ -101,7 +101,7 @@ namespace X_Manager.Remote
 				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'V', (byte)'N' }, 0, 4);
 				masterStationType = ft.ReadByte();
 				masterStationType = ft.ReadByte();
-				bootLoaderB.Visibility = Visibility.Visible;
+				//bootLoaderB.Visibility = Visibility.Visible;
 				masterStationType = 1;
 				firmware = new byte[3] { 1, 0, 2 };
 				ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'F', (byte)'V' }, 0, 4);
@@ -117,6 +117,9 @@ namespace X_Manager.Remote
 			parent.msModel = masterStationType;
 			ft.Write(new byte[] { (byte)'A', (byte)'T', (byte)'X' }, 0, 3);
 			firmwareL.Content = "Current Firmware Version: " + firmware[0].ToString() + "." + firmware[1].ToString() + "." + firmware[2].ToString();
+
+			KeyDown += ctrlManager;
+			wakeB.Focus();
 		}
 
 		public void UI_disconnected()
@@ -667,24 +670,25 @@ namespace X_Manager.Remote
 			loadNewChannelList(files[0]);
 		}
 
-		private void firmwareUploadClick(object sender, RoutedEventArgs e)
+		private void ctrlManager(object sender, KeyEventArgs e)
 		{
-			var tg = new YesNo("WARNING: you are entering the Master Station bootloader!\r\nPlease, proceed only if you have a new firmware to upload,\r\nelse please close this or your Master Station could potentially get bricked.", "Master Station Bootloader", "", "Yes", "No");
-			if (tg.ShowDialog() == 2) return;
-			ft.Open();
-			ft.BaudRate = 2000000;
-			byte[] piu = System.Text.Encoding.ASCII.GetBytes("+++");
-			ft.Write(piu, 0, 3);
-			Thread.Sleep(200);
-			byte[] atbl = System.Text.Encoding.ASCII.GetBytes("ATBL");
-			ft.Write(atbl, 0, 4);
-			Thread.Sleep(200);
-			string res = ft.ReadLine();
-			parent.close();
-			parent.MSbootloader();
-
+			if ((Keyboard.Modifiers == ModifierKeys.Control) && (e.Key == Key.B))
+			{
+				var tg = new YesNo("WARNING: you are entering the Master Station bootloader!\r\nPlease, proceed only if you have a new firmware to upload,\r\nelse please close this or your Master Station could potentially get bricked.", "Master Station Bootloader", "", "Yes", "No");
+				if (tg.ShowDialog() == 2) return;
+				ft.Open();
+				ft.BaudRate = 2000000;
+				byte[] piu = System.Text.Encoding.ASCII.GetBytes("+++");
+				ft.Write(piu, 0, 3);
+				Thread.Sleep(200);
+				byte[] atbl = System.Text.Encoding.ASCII.GetBytes("ATBL");
+				ft.Write(atbl, 0, 4);
+				Thread.Sleep(200);
+				string res = ft.ReadLine();
+				parent.close();
+				parent.MSbootloader();
+			}
 		}
-
 	}
 }
 

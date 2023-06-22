@@ -1863,8 +1863,8 @@ namespace X_Manager.Units.Gipsy6
 				if (!repeatEmptyValues)
 				{
 					tabs = new string[columnPlace[(int)COLUMN.COL_LENGTH]];
-					tabs[columnPlace[(int)COLUMN.COL_NAME]] = t.unitNameTxt;
-					tabs[columnPlace[(int)COLUMN.COL_RF_ADDRESS]] = t.rfAddressString;
+					tabs[columnPlace[(int)COLUMN.COL_NAME]] = lastKnownUnitName;
+					tabs[columnPlace[(int)COLUMN.COL_RF_ADDRESS]] = lastKnownRfAddressString;
 				}
 				tabs[columnPlace[(int)COLUMN.COL_DATE]] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
 				if (sameColumn)
@@ -1876,7 +1876,7 @@ namespace X_Manager.Units.Gipsy6
 					tabs[columnPlace[(int)COLUMN.COL_TIME]] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
 				}
 
-				if ((t.tsType & ts_battery) == ts_battery)
+				if (((t.tsType & ts_battery) == ts_battery) && prefBattery)
 				{
 					tabs[columnPlace[(int)COLUMN.COL_BATTERY]] = t.batteryLevel.ToString("0.00") + "V";
 				}
@@ -1912,7 +1912,7 @@ namespace X_Manager.Units.Gipsy6
 					tabs[columnPlace[(int)COLUMN.COL_PROXIMITY_POWER]] = t.proximityPower.ToString();
 				}
 
-				if ((t.tsType & ts_event) == ts_event)
+				if (((t.tsType & ts_event) == ts_event) && metadata)
 				{
 					tabs[columnPlace[(int)COLUMN.COL_EVENT]] = decodeEvent(ref t);
 				}
@@ -1926,7 +1926,6 @@ namespace X_Manager.Units.Gipsy6
 				{
 					txtBW.Write(tabs[i] + "\t");
 				}
-				txtBW.Write(tabs[columnPlace[(int)COLUMN.COL_LENGTH] - 2]);
 				txtBW.Write(tabs[columnPlace[(int)COLUMN.COL_LENGTH] - 1] + "\r\n");
 				txtSemBack.Release();
 

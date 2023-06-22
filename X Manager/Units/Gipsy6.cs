@@ -34,6 +34,9 @@ namespace X_Manager.Units.Gipsy6
 			COL_POSITION_IN_FILE,
 			COL_LENGTH
 		}
+
+		protected string[] headers = {"Name", "RF address", "Date", "Time", "Latitude", "Longitude", "Horizontal Acc.", "Altitude", "Vertical Acc.", "Speed", "Course", "Battery", "Nearby device",
+										"Nearby device signal strenght", "Event", "gp6Pos" };
 		protected Gipsy6(object p)
 					: base(p)
 		{
@@ -96,31 +99,46 @@ namespace X_Manager.Units.Gipsy6
 
 		protected void placeHeader(StreamWriter txtBW, ref byte[] columnPlace)
 		{
-			txtBW.Write("Name\tRF Address");
-			if (sameColumn)
-			{
-				txtBW.Write("\tTimestamp");
-			}
-			else
-			{
-				txtBW.Write("\tDate\tTime");
-			}
-
 			//txtBW.Write("\tLatitude (deg)\tLongitude (deg)\tHor. Acc. (m)" +
 			//							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tNearby Device\tNearby Device Received Signal Strength\tEvent\r\n");
 
-			txtBW.Write("\tLat\tLon\tHorAcc (m)" +
-													"\tAlt (m)\tVertAcc (m)\tSpeed (km/h)\tCourse\tBatt (v)\tNearby\tStrength\tEvent\r\n");
+			//txtBW.Write("\tLat\tLon\tHorAcc (m)" +
+			//										"\tAlt (m)\tVertAcc (m)\tSpeed (km/h)\tCourse\tBatt (v)\tNearby\tStrength\tEvent\r\n");
 
 			byte place = 0;
-			for (int i = 0; i < 17; i++)
+			for (COLUMN i = 0; i < COLUMN.COL_LENGTH; i++)
 			{
-				columnPlace[i] = place;
-				if ((i != 2) || !sameColumn)
+				columnPlace[(int)i] = place;
+				switch (i)
 				{
-					place++;
+					case COLUMN.COL_DATE: if (!sameColumn) place++; break;
+					case COLUMN.COL_BATTERY: if (prefBattery) place++; break;
+					case COLUMN.COL_EVENT: if (metadata) place++; break;
+					case COLUMN.COL_POSITION_IN_FILE: if (debugLevel >= 3) place++; break;
+					default: place++; break;
 				}
 			}
+			columnPlace[(int)COLUMN.COL_LENGTH] = place++;
+
+			var heads = new List<string>();
+			foreach (string s in headers)
+			{
+				heads.Add(s);
+			}
+
+			if (debugLevel < 3) heads.RemoveAt(15);
+			if (!metadata) heads.RemoveAt(14);
+			if (!prefBattery) heads.RemoveAt(11);
+			if (sameColumn)
+			{
+				heads.RemoveAt(3);
+				heads[2] = "Timestamp";
+			}
+			for (int i = 0; i < heads.Count - 1; i++)
+			{
+				txtBW.Write(heads[i] + "\t");
+			}
+			txtBW.Write(heads[heads.Count - 1] + "\r\n");
 
 		}
 

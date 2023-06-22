@@ -52,7 +52,10 @@
 						</MenuItem>
 						<MenuItem Header="Keep MDP file after downloading" x:Name="keepMdpItem" FontSize="12" Click="keepMdpClicked" IsCheckable="True" IsChecked="False" IsTabStop="False"/>
 					</MenuItem>
-					<MenuItem Header="_?" Margin="5" Click="aboutInfoClick" FontSize="16" FontWeight="Bold" IsTabStop="False" BorderThickness="0" />
+					<MenuItem Header="_?" Margin="5" FontSize="16" FontWeight="Bold" IsTabStop="False" BorderThickness="0">
+						<MenuItem Header="About" x:Name="aboutItem" FontSize="12" Click="aboutInfoClick" IsTabStop="False"/>
+						<MenuItem Header="License" x:Name="licenseItem" FontSize="12" Click="licenseClick" IsTabStop="False"/>
+					</MenuItem>
 				</Menu>
 				<!-- Riga 1 ServiceBar-->
 				<Grid Grid.Row="1">
@@ -68,7 +71,7 @@
 						<ColumnDefinition Width="234"/>
 						<ColumnDefinition Width="*"/>
 					</Grid.ColumnDefinitions>
-					<ComboBox  Margin="10,0,0,0"  x:Name="comPortComboBox" Width="204" TabIndex="0" IsTabStop="False" FontSize="13" DropDownOpened="ComPortComboBox_DropDownOpened"
+					<ComboBox  Margin="10,0,0,0" x:Name="comPortComboBox" Width="204" TabIndex="0" IsTabStop="False" FontSize="13" DropDownOpened="ComPortComboBox_DropDownOpened"
 							SelectionChanged="comPortComboBox_SelectionChanged" />
 					<Label Grid.Column="1" Margin="10,6,0,6" Width="46" Content="MODEL:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
 					<Label Grid.Column="2" Margin="5,6,0,6" x:Name="modelLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="Axy-Trek ND" Padding="0" Height="18" />
@@ -94,7 +97,7 @@
 					</Border>
 					<StackPanel Grid.Column="8" Orientation="Horizontal" HorizontalAlignment="Left" Width="234" Margin="0,0,0,0" >
 						<Label Margin="0,0,0,0" Width="39" Content="NAME:" VerticalAlignment="Center"  HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" />
-						<TextBox Margin="5,0,0,0" x:Name="unitNameTextBox" Width="161" Height="30" VerticalAlignment="Center" MouseDoubleClick="selectAddressMouse"
+						<TextBox Margin="5,0,0,0" x:Name="unitNameTextBox" Width="161" Height="36" VerticalAlignment="Center" MouseDoubleClick="selectAddressMouse"
 							GotKeyboardFocus="selectAddressKeyboard" PreviewMouseLeftButtonDown="selectivelyIgnoreMouseButton" KeyDown="unitNameTextBoxKeyDown" MaxLength="10" TabIndex="8"
 							FontSize="13" VerticalContentAlignment="Center"/>
 						<Button Margin="0,0,0,0" x:Name="unitNameButton" HorizontalAlignment="Right" Content="Set" TabIndex="9" FontSize="13" Padding="0" Click="unitNameButtonClick" Width="29"/>
@@ -147,7 +150,7 @@
 					<Button x:Name="dumpClearB" Grid.Column="1" Width="50" Foreground="Red" Content="X" Height="25" VerticalAlignment="Bottom" 
 						HorizontalAlignment="Right" Margin="0,0,10,0" MinHeight="0" Panel.ZIndex="3" Click="dumpClearB_Click"/>
 					<ComboBox x:Name="dumpBaudrateCB" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" MinHeight="0" Height="25" Margin="0,0,65,0" 
-						Width="100" FontSize="9" SelectionChanged="dumpBaudrateCB_SelectionChanged" SelectedIndex="2" Panel.ZIndex="3">
+						Width="100" FontSize="9" SelectionChanged="dumpBaudrateCB_SelectionChanged" SelectedIndex="2" Panel.ZIndex="3" >
 						<ComboBoxItem Content="9600 bps" />
 						<ComboBoxItem Content="38400 bps" />
 						<ComboBoxItem Content="115200 bps"/>
@@ -167,14 +170,16 @@
 									<RowDefinition />
 									<RowDefinition Height="0"/>
 								</Grid.RowDefinitions>
+
 								<TextBox x:Name="startUpMonitor"
                                              IsReadOnly="True" 
                                              Foreground="#FF00AADE"
-                                             FontSize="12"
-                                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                             TextWrapping="Wrap"
+                                             FontSize="12" 
+                                             TextWrapping="Wrap" VerticalAlignment="Stretch"
                                              VerticalScrollBarVisibility="Auto"
-                                             Background="#FF000000"/>
+                                             Background="#FF000000" />
+
+
 								<!-- <Button Grid.Row="1">Stop</Button>-->
 							</Grid>
 						</TabItem>

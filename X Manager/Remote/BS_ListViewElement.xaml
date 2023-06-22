@@ -9,7 +9,7 @@
     <Grid >
 		<Rectangle Fill="#00000000" Stroke="#FF181818" StrokeThickness="2" Margin="0" />
 		<!--<Button x:Name="settingsB" HorizontalAlignment="Right" Margin="2" MinHeight="10" Content="~" MinWidth="10" Width="20" Padding="0"/>-->
-		<Label x:Name="driveL" Content="PROVOLA" FontSize="10" VerticalAlignment="Center" Width="128" HorizontalAlignment="Left" />
+		<Label x:Name="driveL" Content="PROVOLA" FontSize="10" VerticalAlignment="Center" Width="128" HorizontalAlignment="Left" Margin="5,0,0,0"/>
 		<Label x:Name="newNameL" Foreground="#FF242020" FontSize="8" Content="N" VerticalAlignment="Top" HorizontalAlignment="Right" 
 			Padding="0" Margin="0,2,5,0"/>
 		<Label x:Name="newConfL" Foreground="#FF242020" FontSize="8" Content="C" VerticalAlignment="Bottom" HorizontalAlignment="Right" 

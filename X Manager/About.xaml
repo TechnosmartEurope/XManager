@@ -1,7 +1,7 @@
 ﻿<Window x:Class="X_Manager.About"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="aboutForm" Height="328" Width="715" WindowStartupLocation="CenterOwner">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Background="#FF181818"
+        Title="ABOUT" Height="328" Width="715" WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <BitmapImage x:Key="bannerLogo" UriSource="Resources/technosmartLogo.png"/>
         <BitmapImage x:Key="bannerLogoBlurred" UriSource="pack://siteoforigin:,,,/Resources/technosmartLogoBlurred.png"/>
@@ -14,15 +14,16 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Image Grid.Row="0" x:Name="banner" Source="Resources\technosmartLogoBlurred.png"/>
-        <Label Grid.Row="1" x:Name="programNameLabel" HorizontalAlignment="Center" Content="X Manager" FontSize="26" FontStyle="Italic" Foreground="Gray" />
+        <Label Grid.Row="1" x:Name="programNameLabel" HorizontalAlignment="Center" Content="X Manager" FontSize="26" FontStyle="Italic" Foreground="{StaticResource Foreground_General}" Margin="0,10,0,0" />
         <Label Grid.Row="2" HorizontalAlignment="Center" Content="provaProva" x:Name="versionLabel" FontSize="12" FontStyle="Italic" Foreground="Gray" Padding="5,0,5,5" />
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" x:Name="infoLabel" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="12" Foreground="Black" Padding="10,5,5,10"  />
-            <Label Grid.Column="1" Content="www.technosmart.eu" FontSize="14" VerticalAlignment="Bottom" HorizontalAlignment="Center" Foreground="Black" Padding="5,5,10,10"  />
+			<Label Grid.Column="0" x:Name="infoLabel" HorizontalAlignment="Left" FontFamily="Segoe UI" VerticalAlignment="Bottom" FontSize="12" Foreground="Gray" Padding="10,5,5,10" Margin="10,0,0,10" />
+			<Label Grid.Column="1" Content="www.technosmart.eu" FontSize="14" VerticalAlignment="Bottom" HorizontalAlignment="Center" Foreground="Gray" Padding="5,5,10,10" 
+				Margin ="0,0,10,10" FontFamily="Segoe UI"/>
         </Grid>
         
     </Grid>

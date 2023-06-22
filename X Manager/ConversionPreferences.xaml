@@ -42,8 +42,8 @@
                     <GroupBox Header="TIME FORMAT" >
                         <StackPanel>
                             <RadioButton x:Name="time1" Content="0-24 (MB)" Margin="0" Padding="6,0,0,0" FontSize="14" MinHeight="25" Checked="time1Checked"/>
-                            <RadioButton x:Name="time2" Content="0-12 am/pm" FontSize="14" MinHeight="25" MinWidth="24" Checked="time2Checked"/>
-                        </StackPanel>
+							<RadioButton x:Name="time2" Content="0-12 am/pm" FontSize="14" MinHeight="25" MinWidth="24" Checked="time2Checked"/>
+						</StackPanel>
                     </GroupBox>
                     <CheckBox Name="OverrideTime" Margin=" 5,5,0,0" Content="Override device time " FontSize="12" />
                     <CheckBox Name="removeNonGps" Margin=" 5,5,5,0" FontSize="12">
@@ -63,12 +63,12 @@
             </Grid.ColumnDefinitions>
             <GroupBox Grid.Column="0" Header="CONVERSION SETTINGS" Margin="5" MinHeight="30">
                 <StackPanel Orientation="Vertical">
-                    <CheckBox x:Name="fill" Content="Fill empty fields with last known values (MB)" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" />
-                    <CheckBox x:Name="same" Content="Date and Time on the same column" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" />
-                    <CheckBox x:Name="battery" Content="Battery column" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" />
-                    <CheckBox x:Name="metadata" Content="Metadata column " Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" />
-                    <CheckBox x:Name="txt" Content="Generate additional Text file with positions" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" />
-                    <CheckBox x:Name="kml" Content="Generate additional KML file with positions" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" />
+                    <CheckBox x:Name="fill" Content="Fill empty fields with last known values (MB)" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
+					<CheckBox x:Name="same" Content="Date and Time on the same column" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
+					<CheckBox x:Name="battery" Content="Battery column" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
+					<CheckBox x:Name="metadata" Content="Metadata column " Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
+					<CheckBox x:Name="txt" Content="Generate additional Text file with positions" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
+					<CheckBox x:Name="kml" Content="Generate additional KML file with positions" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
                 </StackPanel>
             </GroupBox>
             <GroupBox Grid.Column="1" Header="START TIME (optional)" Margin="5" Padding="0,5,5,5">
@@ -96,7 +96,7 @@
                     <!--<xctk:DateTimePicker x:Name="dateTimePicker" Height="Auto" Format="Custom" HorizontalContentAlignment="Left" Margin="0,15,0,10" TimePickerShowButtonSpinner="False" TimePickerAllowSpin="False" TimePickerVisibility="Hidden" />-->
 					<DatePicker x:Name="dateTimePicker" Margin="0,15,0,15" />
 					<StackPanel Orientation="Horizontal">
-                        <Label Content="Leap Seconds:" />
+                        <Label Content="Leap Seconds:" VerticalContentAlignment="Center"/>
                         <dc:NumericUpDown x:Name="leapSecondsUD"  Margin="10,0,0,0" maxValue="20" />
                     </StackPanel>
                 </StackPanel>

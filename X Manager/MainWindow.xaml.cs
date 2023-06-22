@@ -975,6 +975,13 @@ namespace X_Manager
 			about.ShowDialog();
 		}
 
+		void licenseClick(object sender, RoutedEventArgs e)
+		{
+			var license = new License();
+			license.Owner = this;
+			license.ShowDialog();
+		}
+
 		void airSensorSelected(object sender, RoutedEventArgs e)
 		{
 			//loadUserPrefs();
@@ -2667,8 +2674,8 @@ namespace X_Manager
 
 
 
-        #endregion
+		#endregion
 
-    }
+	}
 
 }

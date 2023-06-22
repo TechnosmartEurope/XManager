@@ -22,7 +22,7 @@ namespace X_Manager.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace X_Manager.Properties {
         ///   Restituisce l'istanza di ResourceManager nella cache utilizzata da questa classe.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("X_Manager.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace X_Manager.Properties {
         ///   ricerche di risorse eseguite utilizzando questa classe di risorse fortemente tipizzata.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ACC_OFF {
+        public static System.Drawing.Bitmap ACC_OFF {
             get {
                 object obj = ResourceManager.GetObject("ACC_OFF", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -73,7 +73,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ACC_ON {
+        public static System.Drawing.Bitmap ACC_ON {
             get {
                 object obj = ResourceManager.GetObject("ACC_ON", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -83,7 +83,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap alert2 {
+        public static System.Drawing.Bitmap alert2 {
             get {
                 object obj = ResourceManager.GetObject("alert2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -93,7 +93,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap bad {
+        public static System.Drawing.Bitmap bad {
             get {
                 object obj = ResourceManager.GetObject("bad", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -103,7 +103,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap CheckedSymbol {
+        public static System.Drawing.Bitmap CheckedSymbol {
             get {
                 object obj = ResourceManager.GetObject("CheckedSymbol", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -113,7 +113,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap clock {
+        public static System.Drawing.Bitmap clock {
             get {
                 object obj = ResourceManager.GetObject("clock", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -123,7 +123,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap COMP_OFF {
+        public static System.Drawing.Bitmap COMP_OFF {
             get {
                 object obj = ResourceManager.GetObject("COMP_OFF", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -133,7 +133,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap COMP_ON {
+        public static System.Drawing.Bitmap COMP_ON {
             get {
                 object obj = ResourceManager.GetObject("COMP_ON", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -173,7 +173,7 @@ namespace X_Manager.Properties {
         ///	yyyy/dd/MM
         ///How the date has to be disp [stringa troncata]&quot;;.
         /// </summary>
-        internal static string console_help {
+        public static string console_help {
             get {
                 return ResourceManager.GetString("console_help", resourceCulture);
             }
@@ -183,7 +183,7 @@ namespace X_Manager.Properties {
         ///   Cerca una stringa localizzata simile a 	&lt;/Document&gt;
         ///&lt;/kml&gt;.
         /// </summary>
-        internal static string Final_Bot {
+        public static string Final_Bot {
             get {
                 return ResourceManager.GetString("Final_Bot", resourceCulture);
             }
@@ -196,7 +196,7 @@ namespace X_Manager.Properties {
         ///	&lt;Document&gt;
         ///		&lt;name&gt;.
         /// </summary>
-        internal static string Final_Top_1 {
+        public static string Final_Top_1 {
             get {
                 return ResourceManager.GetString("Final_Top_1", resourceCulture);
             }
@@ -230,7 +230,7 @@ namespace X_Manager.Properties {
         ///				&lt;Icon&gt;
         ///					&lt;href&gt;http://maps.google.com/mapfiles/km [stringa troncata]&quot;;.
         /// </summary>
-        internal static string Final_Top_2 {
+        public static string Final_Top_2 {
             get {
                 return ResourceManager.GetString("Final_Top_2", resourceCulture);
             }
@@ -240,7 +240,7 @@ namespace X_Manager.Properties {
         ///   Cerca una stringa localizzata simile a 		&lt;/Folder&gt;
         ///.
         /// </summary>
-        internal static string Folder_Bot {
+        public static string Folder_Bot {
             get {
                 return ResourceManager.GetString("Folder_Bot", resourceCulture);
             }
@@ -251,7 +251,7 @@ namespace X_Manager.Properties {
         ///			&lt;name&gt;Placemarks&lt;/name&gt;
         ///.
         /// </summary>
-        internal static string Folder_Generics_Top {
+        public static string Folder_Generics_Top {
             get {
                 return ResourceManager.GetString("Folder_Generics_Top", resourceCulture);
             }
@@ -262,7 +262,7 @@ namespace X_Manager.Properties {
         ///			&lt;name&gt;Path&lt;/name&gt;
         ///.
         /// </summary>
-        internal static string Folder_Path_Top {
+        public static string Folder_Path_Top {
             get {
                 return ResourceManager.GetString("Folder_Path_Top", resourceCulture);
             }
@@ -273,7 +273,7 @@ namespace X_Manager.Properties {
         ///			&lt;name&gt;Waypoints&lt;/name&gt;
         ///.
         /// </summary>
-        internal static string Folder_Waypoints_Top {
+        public static string Folder_Waypoints_Top {
             get {
                 return ResourceManager.GetString("Folder_Waypoints_Top", resourceCulture);
             }
@@ -282,7 +282,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap GYRO_OFF {
+        public static System.Drawing.Bitmap GYRO_OFF {
             get {
                 object obj = ResourceManager.GetObject("GYRO_OFF", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -292,7 +292,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap GYRO_ON {
+        public static System.Drawing.Bitmap GYRO_ON {
             get {
                 object obj = ResourceManager.GetObject("GYRO_ON", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -300,10 +300,31 @@ namespace X_Manager.Properties {
         }
         
         /// <summary>
+        ///   Cerca una stringa localizzata simile a Apache License
+        ///Version 2.0, January 2004
+        ///http://www.apache.org/licenses/
+        ///
+        ///TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+        ///
+        ///1. Definitions.
+        ///
+        ///&quot;License&quot; shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 9 of this document.
+        ///
+        ///&quot;Licensor&quot; shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.
+        ///
+        ///&quot;Legal Entity&quot; shall mean the union of the acting entity and all other entities that contr [stringa troncata]&quot;;.
+        /// </summary>
+        public static string LICENSE {
+            get {
+                return ResourceManager.GetString("LICENSE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Cerca una stringa localizzata simile a 		&lt;LookAt&gt;
         ///			&lt;longitude&gt;.
         /// </summary>
-        internal static string lookat1 {
+        public static string lookat1 {
             get {
                 return ResourceManager.GetString("lookat1", resourceCulture);
             }
@@ -313,7 +334,7 @@ namespace X_Manager.Properties {
         ///   Cerca una stringa localizzata simile a &lt;/longitude&gt;
         ///			&lt;latitude&gt;.
         /// </summary>
-        internal static string lookat2 {
+        public static string lookat2 {
             get {
                 return ResourceManager.GetString("lookat2", resourceCulture);
             }
@@ -323,7 +344,7 @@ namespace X_Manager.Properties {
         ///   Cerca una stringa localizzata simile a &lt;/latitude&gt;
         ///			&lt;altitude&gt;.
         /// </summary>
-        internal static string lookat3 {
+        public static string lookat3 {
             get {
                 return ResourceManager.GetString("lookat3", resourceCulture);
             }
@@ -338,7 +359,7 @@ namespace X_Manager.Properties {
         ///		&lt;/LookAt&gt;
         ///.
         /// </summary>
-        internal static string lookat4 {
+        public static string lookat4 {
             get {
                 return ResourceManager.GetString("lookat4", resourceCulture);
             }
@@ -362,7 +383,7 @@ namespace X_Manager.Properties {
         ///    &lt;h2&gt;My Map&lt;/h2&gt;
         ///    &lt;div id=&quot;map&quot; class=&quot;map&quot;&gt;&lt;/ [stringa troncata]&quot;;.
         /// </summary>
-        internal static string map {
+        public static string map {
             get {
                 return ResourceManager.GetString("map", resourceCulture);
             }
@@ -372,7 +393,7 @@ namespace X_Manager.Properties {
         ///   Cerca una stringa localizzata simile a TagID	timestamp	location-lat	location-long	height-above-msl	ground-speed	satellite-count	hdop	maximum-signal-strengt
         ///.
         /// </summary>
-        internal static string Movebank_Top {
+        public static string Movebank_Top {
             get {
                 return ResourceManager.GetString("Movebank_Top", resourceCulture);
             }
@@ -381,7 +402,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ok {
+        public static System.Drawing.Bitmap ok {
             get {
                 object obj = ResourceManager.GetObject("ok", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -394,7 +415,7 @@ namespace X_Manager.Properties {
         ///			&lt;/Placemark&gt;
         ///.
         /// </summary>
-        internal static string Path_Bot {
+        public static string Path_Bot {
             get {
                 return ResourceManager.GetString("Path_Bot", resourceCulture);
             }
@@ -410,7 +431,7 @@ namespace X_Manager.Properties {
         ///					&lt;coordinates&gt;
         ///.
         /// </summary>
-        internal static string Path_Top {
+        public static string Path_Top {
             get {
                 return ResourceManager.GetString("Path_Top", resourceCulture);
             }
@@ -421,7 +442,7 @@ namespace X_Manager.Properties {
         ///			&lt;/Placemark&gt;
         ///.
         /// </summary>
-        internal static string Placemarks_Generic_Bot {
+        public static string Placemarks_Generic_Bot {
             get {
                 return ResourceManager.GetString("Placemarks_Generic_Bot", resourceCulture);
             }
@@ -431,7 +452,7 @@ namespace X_Manager.Properties {
         ///   Cerca una stringa localizzata simile a 			&lt;Placemark&gt;
         ///				&lt;name&gt;.
         /// </summary>
-        internal static string Placemarks_Generic_Top_1 {
+        public static string Placemarks_Generic_Top_1 {
             get {
                 return ResourceManager.GetString("Placemarks_Generic_Top_1", resourceCulture);
             }
@@ -441,7 +462,7 @@ namespace X_Manager.Properties {
         ///   Cerca una stringa localizzata simile a &lt;/name&gt;
         ///				&lt;styleUrl&gt;#classe.
         /// </summary>
-        internal static string Placemarks_Generic_Top_2 {
+        public static string Placemarks_Generic_Top_2 {
             get {
                 return ResourceManager.GetString("Placemarks_Generic_Top_2", resourceCulture);
             }
@@ -453,7 +474,7 @@ namespace X_Manager.Properties {
         ///					&lt;Data name=&quot;Altitude&quot;&gt;
         ///						&lt;value&gt;.
         /// </summary>
-        internal static string Placemarks_Generic_Top_3 {
+        public static string Placemarks_Generic_Top_3 {
             get {
                 return ResourceManager.GetString("Placemarks_Generic_Top_3", resourceCulture);
             }
@@ -465,7 +486,7 @@ namespace X_Manager.Properties {
         ///					&lt;Data name=&quot;Speed&quot;&gt;
         ///						&lt;value&gt;.
         /// </summary>
-        internal static string Placemarks_Generic_Top_4 {
+        public static string Placemarks_Generic_Top_4 {
             get {
                 return ResourceManager.GetString("Placemarks_Generic_Top_4", resourceCulture);
             }
@@ -478,7 +499,7 @@ namespace X_Manager.Properties {
         ///				&lt;Point&gt;
         ///					&lt;altitudeMode&gt;absolute&lt;/altitudeMode&gt;.
         /// </summary>
-        internal static string Placemarks_Generic_Top_5 {
+        public static string Placemarks_Generic_Top_5 {
             get {
                 return ResourceManager.GetString("Placemarks_Generic_Top_5", resourceCulture);
             }
@@ -487,7 +508,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una stringa localizzata simile a &lt;/altitudeMode&gt;.
         /// </summary>
-        internal static string Placemarks_Generic_Top_6 {
+        public static string Placemarks_Generic_Top_6 {
             get {
                 return ResourceManager.GetString("Placemarks_Generic_Top_6", resourceCulture);
             }
@@ -498,7 +519,7 @@ namespace X_Manager.Properties {
         ///		&lt;/Placemark&gt;
         ///.
         /// </summary>
-        internal static string Placemarks_Start_Bot {
+        public static string Placemarks_Start_Bot {
             get {
                 return ResourceManager.GetString("Placemarks_Start_Bot", resourceCulture);
             }
@@ -511,7 +532,7 @@ namespace X_Manager.Properties {
         ///			&lt;Point&gt;
         ///				&lt;altitudeMode&gt;clampToGround&lt;/altitudeMode&gt;.
         /// </summary>
-        internal static string Placemarks_Start_Top {
+        public static string Placemarks_Start_Top {
             get {
                 return ResourceManager.GetString("Placemarks_Start_Top", resourceCulture);
             }
@@ -522,7 +543,7 @@ namespace X_Manager.Properties {
         ///		&lt;/Placemark&gt;
         ///.
         /// </summary>
-        internal static string Placemarks_Stop_Bot {
+        public static string Placemarks_Stop_Bot {
             get {
                 return ResourceManager.GetString("Placemarks_Stop_Bot", resourceCulture);
             }
@@ -535,7 +556,7 @@ namespace X_Manager.Properties {
         ///			&lt;Point&gt;
         ///				&lt;altitudeMode&gt;clampToGround&lt;/altitudeMode&gt;.
         /// </summary>
-        internal static string Placemarks_Stop_Top {
+        public static string Placemarks_Stop_Top {
             get {
                 return ResourceManager.GetString("Placemarks_Stop_Top", resourceCulture);
             }
@@ -544,7 +565,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap PLAY_BUTTON {
+        public static System.Drawing.Bitmap PLAY_BUTTON {
             get {
                 object obj = ResourceManager.GetObject("PLAY_BUTTON", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -554,7 +575,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap question {
+        public static System.Drawing.Bitmap question {
             get {
                 object obj = ResourceManager.GetObject("question", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -564,7 +585,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap STOP_BUTTON {
+        public static System.Drawing.Bitmap STOP_BUTTON {
             get {
                 object obj = ResourceManager.GetObject("STOP_BUTTON", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -574,7 +595,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap technosmartLogo {
+        public static System.Drawing.Bitmap technosmartLogo {
             get {
                 object obj = ResourceManager.GetObject("technosmartLogo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -584,7 +605,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap technosmartLogoBlurred {
+        public static System.Drawing.Bitmap technosmartLogoBlurred {
             get {
                 object obj = ResourceManager.GetObject("technosmartLogoBlurred", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -594,7 +615,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap tile_background_loading {
+        public static System.Drawing.Bitmap tile_background_loading {
             get {
                 object obj = ResourceManager.GetObject("tile_background_loading", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -604,7 +625,7 @@ namespace X_Manager.Properties {
         /// <summary>
         ///   Cerca una risorsa localizzata di tipo System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap tile_background_offline {
+        public static System.Drawing.Bitmap tile_background_offline {
             get {
                 object obj = ResourceManager.GetObject("tile_background_offline", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));

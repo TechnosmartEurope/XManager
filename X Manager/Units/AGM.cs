@@ -701,11 +701,11 @@ namespace X_Manager.Units
 
 				if (decodeTimeStamp(ref ard, ref timeStampO, fTotA))
 				{
-					csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName)));
+					csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, lastGroup, shortFileName)));
 					break;
 				}
 
-				csv.Write(System.Text.Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
+				csv.Write(Encoding.ASCII.GetBytes(groupConverter(ref timeStampO, extractGroup(ref ard, ref timeStampO), shortFileName)));
 
 				if (detectEof(ref ard)) break;
 

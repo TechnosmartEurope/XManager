@@ -83,7 +83,7 @@
 				<StackPanel Grid.Column="1" Orientation="Horizontal" Margin="29,0,-29,2">
 					<StackPanel Name="logPeriodStackPanel" Orientation="Horizontal">
 						<Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
-						<TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="12"/>
+						<TextBox x:Name="tempDepthLogginUD" Height="30" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="12"/>
 						<Grid Width="30" Height="32" ScrollViewer.VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center">
 							<Grid.RowDefinitions>
 								<RowDefinition Height="1*" />

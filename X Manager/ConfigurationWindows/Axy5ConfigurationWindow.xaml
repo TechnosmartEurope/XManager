@@ -29,17 +29,17 @@
             <!-- Titolo -->
             <RowDefinition Height="50"/>
             <!-- Schedule -->
-            <RowDefinition Height="400"/>
+            <RowDefinition Height="385"/>
             <!-- Padding -->
             <RowDefinition />
             <!-- Schedule remoto -->
-            <RowDefinition Height="80"/>
+            <RowDefinition Height="90"/>
             <!-- Mag Rem Switch TOGGLES -->
             <RowDefinition Height="78"/>
             <!-- Temp Depth TOGGLES + period -->
             <RowDefinition Height="70"/>
             <!-- Movement trigger -->
-            <RowDefinition Height="66"/>
+            <RowDefinition Height="70"/>
             <!-- BORDER-->
             <RowDefinition Height="20" />
             </Grid.RowDefinitions>
@@ -161,7 +161,7 @@
             <GroupBox Grid.Column="3" Name="tdLogGB" Header="T/D Log period" Foreground="#FF00AADE">
                 <StackPanel Name="logPeriodStackPanel" Orientation="Horizontal" >
                     <Label VerticalAlignment="Center" Content="Period:" VerticalContentAlignment="Center"/>
-                    <TextBox x:Name="tempDepthLogginUD" Height="20" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="38"/>
+                    <TextBox x:Name="tempDepthLogginUD" Height="30" Text="5" Width="40" x:FieldModifier="private" Margin="0" HorizontalContentAlignment="center" TabIndex="38"/>
                     <Grid Width="30" Height="32" ScrollViewer.VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="1*" />
