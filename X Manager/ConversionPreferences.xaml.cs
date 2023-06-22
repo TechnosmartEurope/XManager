@@ -18,6 +18,7 @@ namespace X_Manager
 	/// <summary>
 	/// Interaction logic for ConversionPreferences.xaml
 	/// </summary>
+
 	public partial class ConversionPreferences : Window
 	{
 
@@ -54,7 +55,8 @@ namespace X_Manager
 		const int pref_leapSeconds = 17;
 		const int pref_nonGps = 18;
 
-		public ConversionPreferences()
+		string fileName;
+		public ConversionPreferences(string fileName)
 		{
 			DataContext = this;
 			InitializeComponent();
@@ -65,6 +67,7 @@ namespace X_Manager
 
 			Loaded += loaded;
 			Closing += closing;
+			this.fileName = fileName;
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -154,6 +157,12 @@ namespace X_Manager
 			if (lastPrefs[pref_txt] == "True") txt.IsChecked = true;
 			kml.IsChecked = false;
 			if (lastPrefs[pref_kml] == "True") kml.IsChecked = true;
+
+			if (System.IO.Path.GetExtension(fileName).Contains("6"))
+			{
+				txt.IsChecked = true;
+				txt.IsEnabled = false;
+			}
 
 			byte p = Convert.ToByte(lastPrefs[pref_h]);
 			if ((bool)time1.IsChecked)

@@ -215,6 +215,10 @@
 							<Setter TargetName="CheckBoxBorder" Property="BorderBrush" Value="{StaticResource Foreground_General}" />
 							<Setter TargetName="CheckBoxBorder" Property="BorderThickness" Value="2" />
 						</Trigger>
+						<Trigger Property="IsEnabled" Value="False" >
+							<Setter TargetName="CheckMark" Property="Stroke" Value="{StaticResource Foreground_Button_Disabled}" />
+							<Setter TargetName="CheckBoxBorder" Property="Background" Value="{StaticResource Background_ComboBox_Disabled}" />
+						</Trigger>
 					</ControlTemplate.Triggers>
 				</ControlTemplate>
 			</Setter.Value>
@@ -291,6 +295,10 @@
 						</Trigger>
 						<Trigger Property="IsChecked" Value="False">
 							<Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed" />
+						</Trigger>
+						<Trigger Property="IsEnabled" Value="False" >
+							<Setter TargetName="CheckMark" Property="Fill" Value="{StaticResource Foreground_Button_Disabled}" />
+							<Setter TargetName="Border" Property="Fill" Value="{StaticResource Background_ComboBox_Disabled}" />
 						</Trigger>
 					</ControlTemplate.Triggers>
 				</ControlTemplate>
@@ -481,6 +489,7 @@
 			</MultiTrigger>
 		</ControlTemplate.Triggers>
 	</ControlTemplate>
+
 	<ControlTemplate x:Key="{ComponentResourceKey ResourceId=TopLevelHeaderTemplateKey, TypeInTargetAssembly={x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
 		<Border x:Name="templateRoot" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
 			<Grid VerticalAlignment="Center">
@@ -531,6 +540,7 @@
 			</Trigger>
 		</ControlTemplate.Triggers>
 	</ControlTemplate>
+
 	<ControlTemplate x:Key="{ComponentResourceKey ResourceId=SubmenuItemTemplateKey, TypeInTargetAssembly={x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
 		<Border x:Name="templateRoot" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Height="22" SnapsToDevicePixels="true">
 			<Grid Margin="-1">
@@ -576,6 +586,7 @@
 			</MultiTrigger>
 		</ControlTemplate.Triggers>
 	</ControlTemplate>
+
 	<ControlTemplate x:Key="{ComponentResourceKey ResourceId=SubmenuHeaderTemplateKey, TypeInTargetAssembly={x:Type MenuItem}}" TargetType="{x:Type MenuItem}">
 		<Border x:Name="templateRoot" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Height="22" SnapsToDevicePixels="true">
 			<Grid Margin="-1">

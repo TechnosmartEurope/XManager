@@ -282,12 +282,12 @@
 	Bugfix-Basestation: ripristinata funzionalità "Change unit schedule"
 	Gipsy6: inserito evento "Schedule: OFF" e evento "B_EBVENT" (bad event)
 	Masterstation: alla pressione pulsante "Wake" il driver FTDI viene chiuso e riaperto, per prevenire "Masterstation Bloccata"
-1.20.3
+1.21.0
 	Gipsy6: il file KML viene creato solo se la casella è spuntata
-	Gipsy6: migliorata sincronizzazione thread evitando che il txtBGW utilizzi variabili globali nome unità e indirizzo rf (valori spostati nel timestamp)
 	Gipsy6: attivate opzioni di conversione "Date and Time on the same column", "Battery", Metadata"
+	Gipsy6: migliorata sincronizzazione thread evitando che il txtBGW utilizzi variabili globali nome unità e indirizzo rf (valori spostati nel timestamp)
 	Axy5 - bugfix: se l'evento memory full o low battery erano contenuti all'interno di un timestamp vuoto il software andava in crash
-	Masterstation: Rimosso pulsante Firmware Upload - si accede al bootloader con CTRL+B
-	Parametri di conversione spostati nella classe astratta Unit
 	Inserita Finestra di Licenza nel menù "?"
 	Lo schedule del Trek ha di default il remoto attivo 24 ore
+	Masterstation: Rimosso pulsante Firmware Upload - si accede al bootloader con CTRL+B
+	Parametri di conversione spostati nella classe astratta Unit

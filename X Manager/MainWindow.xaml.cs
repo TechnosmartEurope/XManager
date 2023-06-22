@@ -225,7 +225,7 @@ namespace X_Manager
 
 			if (convFiles.Count > 0)
 			{
-				convertDataLaunch();
+				convertDataLaunch(convFiles);
 			}
 
 #if DEBUG
@@ -933,9 +933,26 @@ namespace X_Manager
 			var openPicture = new Microsoft.Win32.OpenFileDialog();
 			openPicture.DefaultExt = ("JPG Files|*.jpg");
 			openPicture.Filter = ("JPG Files|*.jpg|PNG Files|*.png|BMP Files|*.bmp");
-			if (File.Exists(Path.GetFullPath(Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH)))))
+			string path = "";
+			try
 			{
-				openPicture.InitialDirectory = Path.GetFullPath(Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH)));
+				path = Path.GetFullPath(Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH)));
+			}
+			catch
+			{
+				try
+				{
+					path = Path.GetFullPath(SpecialDirectories.MyPictures);
+				}
+				catch
+				{
+					path = "C:\\";
+				}
+			}
+
+			if (Directory.Exists(path))
+			{
+				openPicture.InitialDirectory = Path.GetFullPath(path);
 			}
 
 			for (int i = 0; i < 2; i++)
@@ -965,6 +982,7 @@ namespace X_Manager
 				pictureBox.Source = bmp;
 			}
 			catch { }
+
 
 		}
 
@@ -1943,15 +1961,15 @@ namespace X_Manager
 			//File.WriteAllLines(iniFile, lastSettings);
 			convFiles = new List<string>();
 			convFiles.AddRange(fOpen.FileNames);
-			convertDataLaunch();
+			convertDataLaunch(convFiles);
 		}
 
-		private void convertDataLaunch()
+		private void convertDataLaunch(List<string> files)
 		{
-			ConversionPreferences cp = new ConversionPreferences();
+			ConversionPreferences cp = new ConversionPreferences(files[0]);
 			cp.Owner = this;
 			cp.ShowDialog();
-			if ((cp.goOn == false))
+			if (cp.goOn == false)
 			{
 				if (!askOverwrite)  //In caso di chiamata esterna, termina l'app
 				{
@@ -2294,7 +2312,7 @@ namespace X_Manager
 				files = (string[])e.Data.GetData(DataFormats.FileDrop);
 				if (files.Length == 1)
 				{
-					if (System.IO.Path.GetExtension(files[0]) == ".jpg" | System.IO.Path.GetExtension(files[0]) == ".bmp" | System.IO.Path.GetExtension(files[0]) == ".png")
+					if (Path.GetExtension(files[0]) == ".jpg" | Path.GetExtension(files[0]) == ".bmp" | Path.GetExtension(files[0]) == ".png")
 					{
 						updateParameter(INI_BACKGROUND_IMAGE_PATH, files[0]);
 						//File.WriteAllLines(iniFile, lastSettings);
@@ -2305,7 +2323,7 @@ namespace X_Manager
 						pictureBox.Source = bmp;
 						return;
 					}
-					else if (System.IO.Path.GetExtension(files[0]) == ".mdp" | System.IO.Path.GetExtension(files[0]) == ".memDump")
+					else if (Path.GetExtension(files[0]) == ".mdp" | Path.GetExtension(files[0]) == ".memDump")
 					{
 						//Implementare il fakeDownload dalle unità!
 					}
@@ -2314,7 +2332,7 @@ namespace X_Manager
 				List<string> fAr = new List<string>();
 				for (int i = 0; i < files.Length; i++)
 				{
-					if (System.IO.Path.GetExtension(files[i]) == ".ard")
+					if ((Path.GetExtension(files[i]) == ".ard") || (Path.GetExtension(files[i]) == ".gp6") || (Path.GetExtension(files[i]) == ".bs6"))
 					{
 						newCount += 1;
 					}
@@ -2326,7 +2344,7 @@ namespace X_Manager
 					return;
 				}
 
-				var cp = new ConversionPreferences();
+				var cp = new ConversionPreferences(fAr[0]);
 				cp.Owner = this;
 				cp.ShowDialog();
 				if (!cp.goOn) return;

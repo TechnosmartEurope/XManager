@@ -1157,10 +1157,10 @@ namespace X_Manager.Units.Gipsy6
 		{
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 
-			placeHeader(txtBW, ref columnPlace);
+			placeHeader(txtBW);
 
-			string[] tabs = new string[columnPlace[(int)COLUMN.COL_LENGTH]];
-			tabs[columnPlace[(int)COLUMN.COL_NAME]] = unitName;
+			string[] tabs = new string[p_length];
+			tabs[p_name] = unitName;
 			if (fileType == FileType.FILE_BS6)
 			{
 				unitName = Path.GetFileNameWithoutExtension(txtName);
@@ -1180,71 +1180,71 @@ namespace X_Manager.Units.Gipsy6
 				//Si scrive il timestmap nel txt
 				if (!repeatEmptyValues)
 				{
-					tabs = new string[columnPlace[(int)COLUMN.COL_LENGTH]];
-					tabs[columnPlace[(int)COLUMN.COL_NAME]] = t.unitNameTxt;
+					tabs = new string[p_length];
+					tabs[p_name] = t.unitNameTxt;
 				}
-				tabs[columnPlace[(int)COLUMN.COL_DATE]] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
+				tabs[p_date] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
 				if (sameColumn)
 				{
-					tabs[columnPlace[(int)COLUMN.COL_DATE]] += " " + t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+					tabs[p_date] += " " + t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
 				}
 				else
 				{
-					tabs[columnPlace[(int)COLUMN.COL_TIME]] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+					tabs[p_time] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
 				}
 
 				if (((t.tsType & ts_battery) == ts_battery) && prefBattery)
 				{
-					tabs[columnPlace[(int)COLUMN.COL_BATTERY]] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[p_battery] = t.batteryLevel.ToString("0.00") + "V";
 				}
 				if ((t.tsType & ts_coordinate) == ts_coordinate)
 				{
-					tabs[columnPlace[(int)COLUMN.COL_LATITUDE]] = t.lat.ToString("00.0000000", nfi);
-					tabs[columnPlace[(int)COLUMN.COL_LONGITUDE]] = t.lon.ToString("000.0000000", nfi);
+					tabs[p_latitude] = t.lat.ToString("00.0000000", nfi);
+					tabs[p_longitude] = t.lon.ToString("000.0000000", nfi);
 					if (t.hAcc == 7)
 					{
-						tabs[columnPlace[(int)COLUMN.COL_HORIZONTAL_ACCURACY]] = "200";
+						tabs[p_horizontalAccuracy] = "200";
 					}
 					else
 					{
-						tabs[columnPlace[(int)COLUMN.COL_HORIZONTAL_ACCURACY]] = string.Format("{0}", accuracySteps[t.hAcc]);
+						tabs[p_horizontalAccuracy] = string.Format("{0}", accuracySteps[t.hAcc]);
 					}
 
-					tabs[columnPlace[(int)COLUMN.COL_ALTITUDE]] = t.altitude.ToString();
+					tabs[p_altitude] = t.altitude.ToString();
 					if (t.vAcc == 7)
 					{
-						tabs[columnPlace[(int)COLUMN.COL_VERTICAL_ACCURACY]] = "200";
+						tabs[p_verticalAccuracy] = "200";
 					}
 					else
 					{
-						tabs[columnPlace[(int)COLUMN.COL_VERTICAL_ACCURACY]] = string.Format("{0}", accuracySteps[t.vAcc]);
+						tabs[p_verticalAccuracy] = string.Format("{0}", accuracySteps[t.vAcc]);
 					}
-					tabs[columnPlace[(int)COLUMN.COL_SPEED]] = t.speed.ToString("0.0");
-					tabs[columnPlace[(int)COLUMN.COL_COURSE]] = t.cog.ToString("0.0");
+					tabs[p_speed] = t.speed.ToString("0.0");
+					tabs[p_course] = t.cog.ToString("0.0");
 				}
 
 				if (((t.tsType & ts_event) == ts_event) && metadata)
 				{
-					tabs[columnPlace[(int)COLUMN.COL_EVENT]] = decodeEvent(ref t);
+					tabs[p_event] = decodeEvent(ref t);
 				}
 
 				if (debugLevel == 3)
 				{
-					tabs[columnPlace[(int)COLUMN.COL_POSITION_IN_FILE]] += " - " + t.pos.ToString("X8");
+					tabs[p_position] += " - " + t.pos.ToString("X8");
 				}
 
 
-				for (int i = 0; i < columnPlace[(int)COLUMN.COL_LENGTH] - 2; i++)
+				for (int i = 0; i < p_length - 1; i++)
 				{
 					txtBW.Write(tabs[i] + "\t");
 				}
-				txtBW.Write(tabs[columnPlace[(int)COLUMN.COL_LENGTH] - 1] + "\r\n");
+				txtBW.Write(tabs[p_length - 1] + "\r\n");
 				txtSemBack.Release();
 
 			}
 
-			txtBW.Close();
-			txtSemBack.Release();
+			//txtBW.Close();
+			//txtSemBack.Release();
 
 			//Interlocked.Increment(ref conversionDone);
 		}
