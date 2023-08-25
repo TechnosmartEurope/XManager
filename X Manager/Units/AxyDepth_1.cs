@@ -30,24 +30,13 @@ namespace X_Manager.Units
 			public byte timeStampLength;
 		}
 
-		byte dateFormat;
-		byte timeFormat;
-		bool sameColumn = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
-		bool isDepth = true;
 		bool bits;
 		byte bitsDiv;
-		bool inMeters = false;
-		bool angloTime = false;
 		ushort rate;
 		ushort rateComp;
 		byte range;
 		double gCoeff;
-		//byte debugLevel;
-		string dateFormatParameter;
 		ushort addMilli;
-		bool metadata;
 		byte cifreDec;
 		string cifreDecString;
 		CultureInfo dateCi;
@@ -583,56 +572,54 @@ namespace X_Manager.Units
 
 			//Imposta le preferenze di conversione
 
-			if ((prefs[pref_fillEmpty] == "False")) repeatEmptyValues = false;
+			if (prefs[p_filePrefs_fillEmpty] == "False") pref_repeatEmptyValues = false;
 
 			dateSeparator = csvSeparator;
-			if ((prefs[pref_sameColumn] == "True"))
+			if (prefs[p_filePrefs_sameColumn] == "True")
 			{
-				sameColumn = true;
+				pref_sameColumn = true;
 				dateSeparator = " ";
 			}
 
-			if (prefs[pref_battery] == "True") prefBattery = true;
+			if (prefs[p_filePrefs_battery] == "True") pref_battery = true;
 
 			dateCi = new CultureInfo("it-IT");
-			angloTime = false;
-			if (prefs[pref_timeFormat] == "2")
+			if (prefs[p_filePrefs_timeFormat] == "2")
 			{
-				angloTime = true;
+				pref_angloTime = true;
 				dateCi = new CultureInfo("en-US");
 			}
 
 			if (Parent.getParameter("pressureRange") == "air")
 			{
-				isDepth = false;
+				pref_isDepth = false;
 			}
 
-			if (prefs[pref_pressMetri] == "meters")
+			if (prefs[p_filePrefs_pressMetri] == "meters")
 			{
-				inMeters = true;
+				pref_inMeters = true;
 			}
 
-			timeStampO.pressOffset = float.Parse(prefs[pref_millibars]);
-			dateFormat = byte.Parse(prefs[pref_dateFormat]);
-			timeFormat = byte.Parse(prefs[pref_timeFormat]);
-			switch (dateFormat)
+			timeStampO.pressOffset = float.Parse(prefs[p_filePrefs_millibars]);
+			pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);
+			pref_timeFormat = byte.Parse(prefs[p_filePrefs_timeFormat]);
+			switch (pref_dateFormat)
 			{
 				case 1:
-					dateFormatParameter = "dd/MM/yyyy";
+					pref_dateFormatParameter = "dd/MM/yyyy";
 					break;
 				case 2:
-					dateFormatParameter = "MM/dd/yyyy";
+					pref_dateFormatParameter = "MM/dd/yyyy";
 					break;
 				case 3:
-					dateFormatParameter = "yyyy/MM/dd";
+					pref_dateFormatParameter = "yyyy/MM/dd";
 					break;
 				case 4:
-					dateFormatParameter = "yyyy/dd/MM";
+					pref_dateFormatParameter = "yyyy/dd/MM";
 					break;
 			}
 
-			metadata = false;
-			if (prefs[pref_metadata] == "True") metadata = true;
+			if (prefs[p_filePrefs_metadata] == "True") pref_metadata = true;
 
 			//Legge i parametri di logging
 			ard.ReadByte();
@@ -807,10 +794,10 @@ namespace X_Manager.Units
 			NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 			ushort contoTab = 0;
 
-			dateS = tsLoc.orario.ToString(dateFormatParameter);
+			dateS = tsLoc.orario.ToString(pref_dateFormatParameter);
 
 			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
-			if (angloTime)
+			if (pref_angloTime)
 			{
 				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
 				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
@@ -827,14 +814,14 @@ namespace X_Manager.Units
 			z *= gCoeff; z = Math.Round(z, cifreDec);
 
 			textOut = unitName + csvSeparator + dateTimeS + ".000";
-			if (angloTime) textOut += " " + ampm;
+			if (pref_angloTime) textOut += " " + ampm;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			additionalInfo = "";
 
 			contoTab += 2;
 			additionalInfo += csvSeparator;
-			if (repeatEmptyValues)
+			if (pref_repeatEmptyValues)
 			{
 				tsLoc.tsType = 13;
 			}
@@ -854,7 +841,7 @@ namespace X_Manager.Units
 			}
 
 			//Inserisce la batteria
-			if (prefBattery)
+			if (pref_battery)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
@@ -865,7 +852,7 @@ namespace X_Manager.Units
 			}
 
 			//Inserisce i metadati
-			if (metadata)
+			if (pref_metadata)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
@@ -881,7 +868,7 @@ namespace X_Manager.Units
 
 			if (tsLoc.stopEvent > 0) return textOut;
 
-			if (!repeatEmptyValues)
+			if (!pref_repeatEmptyValues)
 			{
 				additionalInfo = "";
 				for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
@@ -910,7 +897,7 @@ namespace X_Manager.Units
 				}
 				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
 
-				if (angloTime) textOut += " " + ampm;
+				if (pref_angloTime) textOut += " " + ampm;
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 				textOut += additionalInfo + "\r\n";
@@ -1049,7 +1036,7 @@ namespace X_Manager.Units
 
 			if ((tsc.tsType % 10) > 0)
 			{
-				if (isDepth)
+				if (pref_isDepth)
 				{
 					pressureDepth(ref ard, ref tsc);
 				}
@@ -1181,7 +1168,7 @@ namespace X_Manager.Units
 					return true;
 				}
 				tsc.press = (((d1 * sens / 2_097_152) - off) / 81_920);
-				if (inMeters)
+				if (pref_inMeters)
 				{
 					tsc.press -= tsc.pressOffset;
 					if (tsc.press < 0) tsc.press = 0;
@@ -1198,7 +1185,7 @@ namespace X_Manager.Units
 		private void csvPlaceHeader(ref BinaryWriter csv)
 		{
 			string csvHeader = "TagID";
-			if (sameColumn)
+			if (pref_sameColumn)
 			{
 				csvHeader += csvSeparator + "Timestamp";
 			}
@@ -1209,9 +1196,9 @@ namespace X_Manager.Units
 
 			csvHeader += csvSeparator + "X" + csvSeparator + "Y" + csvSeparator + "Z";
 
-			if (inMeters)
+			if (pref_inMeters)
 			{
-				if (isDepth)
+				if (pref_isDepth)
 				{
 					csvHeader += csvSeparator + "Depth";
 				}
@@ -1228,12 +1215,12 @@ namespace X_Manager.Units
 
 			csvHeader += csvSeparator + "Temp. (°C)";
 
-			if (prefBattery)
+			if (pref_battery)
 			{
 				csvHeader += csvSeparator + "Battery Voltage (V)";
 			}
 
-			if (metadata)
+			if (pref_metadata)
 			{
 				csvHeader += csvSeparator + "Metadata";
 			}

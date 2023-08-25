@@ -17,11 +17,13 @@
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Grid.Column="0" Content="Physical Address" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FF00AADE"/>
         <Label Grid.Row="0" Grid.Column="1" Content="Logical Address" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FF00AADE"/>
-        <TextBox Grid.Row="1" Grid.Column="0" x:Name="physicalTB" Margin="20,0,20,0" Background="Gray" Foreground="Black" Text="123456" FontSize="30" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-        <TextBox Grid.Row="1" Grid.Column="1" x:Name="logicalTB" Margin="20,0,20,0" Background="Gray" Foreground="Black" Text="123456" FontSize="30" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="phCB" Content="Hex" Margin="20,5,0,0" Checked="PhCB_Checked" Unchecked="PhCB_Checked"/>
-        <CheckBox Grid.Row="2" Grid.Column="1" x:Name="loCB" Content="Hex" Margin="20,5,0,0" Checked="LoCB_Checked" Unchecked="LoCB_Checked"/>
-        <Button Grid.Row="3" Grid.Column="0" x:Name="readB" Margin="40,0,40,15" Content="READ" Click="ReadB_Click" />
-        <Button Grid.Row="3" Grid.Column="1" x:Name="sendB" Margin="40,0,40,15" Content="SEND" Foreground="#FF00AADE" Click="SendB_Click"/>
+        <TextBox Grid.Row="1" Grid.Column="0" x:Name="physicalTB" Margin="20,0,20,0" Background="Gray" Foreground="Black" Text="123456" FontSize="30" VerticalContentAlignment="Center" 
+			HorizontalContentAlignment="Center" Height="50" />
+        <TextBox Grid.Row="1" Grid.Column="1" x:Name="logicalTB" Margin="20,0,20,0" Background="Gray" Foreground="Black" Text="123456" FontSize="30" VerticalContentAlignment="Center"
+				HorizontalContentAlignment="Center" Height="50"/>
+        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="phCB" Content="Hex" Margin="20,0,0,0" Checked="PhCB_Checked" Unchecked="PhCB_Checked" />
+        <CheckBox Grid.Row="2" Grid.Column="1" x:Name="loCB" Content="Hex" Margin="20,0,0,0" Checked="LoCB_Checked" Unchecked="LoCB_Checked"/>
+        <Button Grid.Row="3" Grid.Column="0" x:Name="readB" Content="READ" Click="ReadB_Click" VerticalAlignment="Center" Margin="20,0,20,0"/>
+        <Button Grid.Row="3" Grid.Column="1" x:Name="sendB" Margin="20,0,20,0" Content="SEND" Foreground="#FF00AADE" Click="SendB_Click" VerticalAlignment="Center"/>
     </Grid>
 </UserControl>

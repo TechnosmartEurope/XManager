@@ -38,27 +38,16 @@ namespace X_Manager.Units
 			public double magX_A, magY_A, magZ_A, magX_B, magY_B, magZ_B;
 		}
 
-		byte dateFormat;
-		//byte timeFormat;
-		bool sameColumn = false;
-		bool prefBattery = false;
-		bool repeatEmptyValues = true;
-		bool isDepth = true;
 		bool bits;
 		byte bitsDiv;
-		bool inMeters = false;
-		bool angloTime = false;
 		ushort rate;
 		ushort rateComp;
 		byte range;
 		double gCoeff;
-		string dateFormatParameter;
 		ushort addMilli;
-		bool metadata;
 		byte cifreDec;
 		string cifreDecString;
 		CultureInfo dateCi;
-		bool overrideTime;
 		int magen;
 		int adcEn = 0;
 		//byte[] magData_A = new byte[6];
@@ -823,64 +812,62 @@ namespace X_Manager.Units
 
 			//Imposta le preferenze di conversione
 
-			if (prefs[pref_fillEmpty] == "False")
+			if (prefs[p_filePrefs_fillEmpty] == "False")
 			{
-				repeatEmptyValues = false;
+				pref_repeatEmptyValues = false;
 			}
 
 			dateSeparator = csvSeparator;
-			if (prefs[pref_sameColumn] == "True")
+			if (prefs[p_filePrefs_sameColumn] == "True")
 			{
-				sameColumn = true;
+				pref_sameColumn = true;
 				dateSeparator = " ";
 			}
 
-			if (prefs[pref_battery] == "True")
+			if (prefs[p_filePrefs_battery] == "True")
 			{
-				prefBattery = true;
+				pref_battery = true;
 			}
 
 			dateCi = new CultureInfo("it-IT");
-			if (prefs[pref_timeFormat] == "2")
+			if (prefs[p_filePrefs_timeFormat] == "2")
 			{
 				dateCi = new CultureInfo("en-US");
-				angloTime = true;
+				pref_angloTime = true;
 			}
 
 			if (Parent.getParameter("pressureRange") == "air")
 			{
-				isDepth = false;
+				pref_isDepth = false;
 			}
 
-			if (prefs[pref_pressMetri] == "meters")
+			if (prefs[p_filePrefs_pressMetri] == "meters")
 			{
-				inMeters = true;
+				pref_inMeters = true;
 			}
 
-			timeStampO.pressOffset = double.Parse(prefs[pref_millibars]);
-			dateFormat = byte.Parse(prefs[pref_dateFormat]);
+			timeStampO.pressOffset = double.Parse(prefs[p_filePrefs_millibars]);
+			pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);
 			//timeFormat = byte.Parse(prefs[pref_timeFormat]);
-			switch (dateFormat)
+			switch (pref_dateFormat)
 			{
 				case 1:
-					dateFormatParameter = "dd/MM/yyyy";
+					pref_dateFormatParameter = "dd/MM/yyyy";
 					break;
 				case 2:
-					dateFormatParameter = "MM/dd/yyyy";
+					pref_dateFormatParameter = "MM/dd/yyyy";
 					break;
 				case 3:
-					dateFormatParameter = "yyyy/MM/dd";
+					pref_dateFormatParameter = "yyyy/MM/dd";
 					break;
 				case 4:
-					dateFormatParameter = "yyyy/dd/MM";
+					pref_dateFormatParameter = "yyyy/dd/MM";
 					break;
 			}
 
-			overrideTime = false;
-			if (prefs[pref_override_time] == "True") overrideTime = true;
+			if (prefs[p_filePrefs_overrideTime] == "True") pref_overrideTime = true;
 
-			metadata = false;
-			if (prefs[pref_metadata] == "True") metadata = true;
+			if (prefs[p_filePrefs_metadata] == "True") pref_metadata = true;
 
 			//Legge i parametri di logging
 			ard.ReadByte();
@@ -1092,10 +1079,10 @@ namespace X_Manager.Units
 			NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 			ushort contoTab = 0;
 
-			dateS = tsLoc.orario.ToString(dateFormatParameter);
+			dateS = tsLoc.orario.ToString(pref_dateFormatParameter);
 
 			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
-			if (angloTime)
+			if (pref_angloTime)
 			{
 				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
 				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
@@ -1112,7 +1099,7 @@ namespace X_Manager.Units
 			z *= gCoeff; z = Math.Round(z, cifreDec);
 
 			textOut = unitName + csvSeparator + dateTimeS + ".000";
-			if (angloTime) textOut += " " + ampm;
+			if (pref_angloTime) textOut += " " + ampm;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			additionalInfo = "";
@@ -1122,7 +1109,7 @@ namespace X_Manager.Units
 			//Inserisce il magnetometro
 			if (magen > 0)
 			{
-				if (((tsLoc.tsTypeExt1 & 8) == 8) | repeatEmptyValues)
+				if (((tsLoc.tsTypeExt1 & 8) == 8) | pref_repeatEmptyValues)
 				{
 					magAdditionalInfo += csvSeparator + tsLoc.magX_A.ToString("#.0", nfi);
 					magAdditionalInfo += csvSeparator + tsLoc.magY_A.ToString("#.0", nfi);
@@ -1139,36 +1126,36 @@ namespace X_Manager.Units
 			{
 				contoTab++;
 				additionalInfo += csvSeparator;
-				if (((tsLoc.tsTypeExt1 & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.adcVal.ToString(nfi);
+				if (((tsLoc.tsTypeExt1 & 2) == 2) | pref_repeatEmptyValues) additionalInfo += tsLoc.adcVal.ToString(nfi);
 			}
 
 			//Inserisce la pressione e la temperatura
 			contoTab += 1;
 			additionalInfo += csvSeparator;
-			if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString(nfi);
+			if (((tsLoc.tsType & 4) == 4) | pref_repeatEmptyValues) additionalInfo += tsLoc.press.ToString(nfi);
 
 			contoTab += 1;
 			additionalInfo += csvSeparator;
-			if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temp.ToString(nfi);
+			if (((tsLoc.tsType & 2) == 2) | pref_repeatEmptyValues) additionalInfo += tsLoc.temp.ToString(nfi);
 
 			//In caso di DepthFast inserisce la temperatura rapida
 			if (modelCode == model_axyDepthFast)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 16) == 16) | repeatEmptyValues) additionalInfo += tsLoc.fastTemp.ToString(nfi);
+				if (((tsLoc.tsType & 16) == 16) | pref_repeatEmptyValues) additionalInfo += tsLoc.fastTemp.ToString(nfi);
 			}
 
 			//Inserisce la batteria
-			if (prefBattery)
+			if (pref_battery)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString(nfi);
+				if (((tsLoc.tsType & 8) == 8) | pref_repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString(nfi);
 			}
 
 			//Inserisce i metadati
-			if (metadata)
+			if (pref_metadata)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
@@ -1206,7 +1193,7 @@ namespace X_Manager.Units
 			}
 			milli += addMilli;
 
-			if (!repeatEmptyValues)
+			if (!pref_repeatEmptyValues)
 			{
 				if (magen > 0)
 				{
@@ -1235,7 +1222,7 @@ namespace X_Manager.Units
 
 				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
 
-				if (angloTime) textOut += " " + ampm;
+				if (pref_angloTime) textOut += " " + ampm;
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 				textOut += magAdditionalInfo + additionalInfo + "\r\n";
@@ -1255,7 +1242,7 @@ namespace X_Manager.Units
 			z *= gCoeff; //z = Math.Round(z, cifreDec);
 
 			textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
-			if (angloTime) textOut += " " + ampm;
+			if (pref_angloTime) textOut += " " + ampm;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			if (magen == 2)
@@ -1266,7 +1253,7 @@ namespace X_Manager.Units
 			}
 
 			textOut += magAdditionalInfo + additionalInfo + "\r\n";
-			if (!repeatEmptyValues)
+			if (!pref_repeatEmptyValues)
 			{
 				if (magen > 0)
 				{
@@ -1292,7 +1279,7 @@ namespace X_Manager.Units
 				}
 				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
 
-				if (angloTime) textOut += " " + ampm;
+				if (pref_angloTime) textOut += " " + ampm;
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 				textOut += magAdditionalInfo + additionalInfo + "\r\n";
@@ -1458,7 +1445,7 @@ namespace X_Manager.Units
 
 			if (((tsc.tsType & 2) == 2) | ((tsc.tsType & 4) == 4))
 			{
-				if (isDepth)
+				if (pref_isDepth)
 				{
 					if (pressureDepth5837(ref ard, ref tsc)) return;
 				}
@@ -1528,7 +1515,7 @@ namespace X_Manager.Units
 
 			if ((tsc.tsTypeExt1 & 32) == 32)
 			{
-				if (!overrideTime)
+				if (!pref_overrideTime)
 				{
 					int anno = ard.ReadByte();
 					anno = ((anno >> 4) * 10) + (anno & 15) + 2000;
@@ -1665,7 +1652,7 @@ namespace X_Manager.Units
 					return true;
 				}
 				tsc.press = Math.Round((((d1 * sens / 2097152) - off) / 81920), 1);
-				if (inMeters)
+				if (pref_inMeters)
 				{
 					tsc.press -= tsc.pressOffset;
 					if (tsc.press <= 0) tsc.press = 0;
@@ -1682,7 +1669,7 @@ namespace X_Manager.Units
 		private void csvPlaceHeader(ref BinaryWriter csv)
 		{
 			string csvHeader = "TagID";
-			if (sameColumn)
+			if (pref_sameColumn)
 			{
 				csvHeader = csvHeader + csvSeparator + "Timestamp";
 			}
@@ -1698,13 +1685,13 @@ namespace X_Manager.Units
 				csvHeader += csvSeparator + "magX" + csvSeparator + "magY" + csvSeparator + "magZ";
 			}
 
-			if (!inMeters)
+			if (!pref_inMeters)
 			{
 				csvHeader += csvSeparator + "Pressure";
 			}
 			else
 			{
-				if (isDepth)
+				if (pref_isDepth)
 				{
 					csvHeader += csvSeparator + "Depth";
 				}
@@ -1726,12 +1713,12 @@ namespace X_Manager.Units
 				csvHeader += csvSeparator + "Analog";
 			}
 
-			if (prefBattery)
+			if (pref_battery)
 			{
 				csvHeader = csvHeader + csvSeparator + "Battery Voltage (V)";
 			}
 
-			if (metadata)
+			if (pref_metadata)
 			{
 				csvHeader = csvHeader + csvSeparator + "Metadata";
 			}

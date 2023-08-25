@@ -126,6 +126,7 @@ namespace X_Manager.Units.Gipsy6
 			public bool isEvent;
 			public int stopEvent;
 			public int GPS_second;
+			public string unitNameTxt;
 			public int pos
 			{
 				get => _pos;
@@ -175,6 +176,7 @@ namespace X_Manager.Units.Gipsy6
 				tout.isEvent = isEvent;
 				tout.stopEvent = stopEvent;
 				tout.GPS_second = GPS_second;
+				tout.unitNameTxt = unitNameTxt;
 				tout.resetPos(pos);
 
 				return tout;
@@ -182,8 +184,6 @@ namespace X_Manager.Units.Gipsy6
 		}
 
 		const int RETRY_MAX = 4;
-		string unitName = "";
-		string unitNameTxt = "";
 
 		FileType fileType;
 		enum FileType : byte
@@ -231,25 +231,6 @@ namespace X_Manager.Units.Gipsy6
 			"minute(s)",
 			"hour(s)",
 		};
-
-
-		enum COLUMN : int
-		{
-			COL_NAME = 0,
-			COL_DATE,
-			COL_TIME,
-			COL_LATITUDE,
-			COL_LONGITUDE,
-			COL_HORIZONTAL_ACCURACY,
-			COL_ALTITUDE,
-			COL_VERTICAL_ACCURACY,
-			COL_SPEED,
-			COL_COURSE,
-			COL_BATTERY,
-			COL_EVENT,
-			COL_POSITION_IN_FILE,
-			COL_LENGTH
-		}
 
 
 		//bool repeatEmptyValues = false;
@@ -912,6 +893,8 @@ namespace X_Manager.Units.Gipsy6
 
 		public override void convert(string fileName, string[] prefs)
 		{
+			base.convert(fileName, prefs);
+
 			//Stabilisce se è un download diretto o da basestation
 			if (Path.GetExtension(fileName).IndexOf("bs6", StringComparison.InvariantCultureIgnoreCase) != -1)
 			{
@@ -932,6 +915,7 @@ namespace X_Manager.Units.Gipsy6
 				}
 				unitName = newName;
 			}
+			lastKnownUnitName = unitName;
 
 			//Triplica la progress bar
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
@@ -1071,7 +1055,7 @@ namespace X_Manager.Units.Gipsy6
 			}));
 
 			//Importa il livello di debug per la conversione
-			debugLevel = parent.stDebugLevel;
+			pref_debugLevel = parent.stDebugLevel;
 
 			int progressBarCounter = 0;
 			//Cicla nel buffer decodificando i timestamp e aggiungendoli alla pila
@@ -1172,11 +1156,11 @@ namespace X_Manager.Units.Gipsy6
 		private void txtBGW_doWork(ref List<TimeStamp> tL, string txtName)
 		{
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
-			//								data   ora    lon   lat   hAcc	alt	vAcc	speed	cog	eve   batt
-			txtBW.Write("Name\tDate\tTime\tLatitude (deg)\tLongitude (deg)\tHor. Acc. (m)" +
-							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tEvent\r\n");
-			string[] tabs = new string[(int)COLUMN.COL_LENGTH];
-			tabs[(int)COLUMN.COL_NAME] = unitName;
+
+			placeHeader(txtBW);
+
+			string[] tabs = new string[p_fileCsv_length];
+			tabs[p_fileCsv_name] = unitName;
 			if (fileType == FileType.FILE_BS6)
 			{
 				unitName = Path.GetFileNameWithoutExtension(txtName);
@@ -1184,10 +1168,7 @@ namespace X_Manager.Units.Gipsy6
 			var t = new TimeStamp();
 			while (true)
 			{
-				//if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
-				//{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
-				//	txtSem.WaitOne();
-				//}
+
 				txtSem.WaitOne();
 				if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
 				{
@@ -1196,87 +1177,74 @@ namespace X_Manager.Units.Gipsy6
 				t = tL[0];
 				tL.RemoveAt(0);
 
-				//lock (tL)
-				//{
-				//	if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
-				//	{
-				//		break;
-				//	}
-				//	if (Interlocked.Read(ref lastTimestamp) > 0)
-				//	{
-				//		contoStatus++;
-				//		if (contoStatus == 100)
-				//		{
-				//			contoStatus = 0;
-				//			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.txtProgressBar.Value += 100));
-				//		}
-				//	}
-				//	t = tL[0];
-				//	tL.RemoveAt(0);
-
-				//}
-
 				//Si scrive il timestmap nel txt
-				//if (!repeatEmptyValues)
+				if (!pref_repeatEmptyValues)
 				{
-					tabs = new string[(int)COLUMN.COL_LENGTH];
-					tabs[(int)COLUMN.COL_NAME] = unitNameTxt;
+					tabs = new string[p_fileCsv_length];
+					tabs[p_fileCsv_name] = t.unitNameTxt;
 				}
-				tabs[(int)COLUMN.COL_DATE] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
-				tabs[(int)COLUMN.COL_TIME] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
-
-				if ((t.tsType & ts_battery) == ts_battery)
+				tabs[p_fileCsv_date] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
+				if (pref_sameColumn)
 				{
-					tabs[(int)COLUMN.COL_BATTERY] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[p_fileCsv_date] += " " + t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				}
+				else
+				{
+					tabs[p_fileCsv_time] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+				}
+
+				if (((t.tsType & ts_battery) == ts_battery) && pref_battery)
+				{
+					tabs[p_fileCsv_battery] = t.batteryLevel.ToString("0.00") + "V";
 				}
 				if ((t.tsType & ts_coordinate) == ts_coordinate)
 				{
-					tabs[(int)COLUMN.COL_LATITUDE] = t.lat.ToString("00.0000000", nfi);
-					tabs[(int)COLUMN.COL_LONGITUDE] = t.lon.ToString("000.0000000", nfi);
+					tabs[p_fileCsv_latitude] = t.lat.ToString("00.0000000", nfi);
+					tabs[p_fileCsv_longitude] = t.lon.ToString("000.0000000", nfi);
 					if (t.hAcc == 7)
 					{
-						tabs[(int)COLUMN.COL_HORIZONTAL_ACCURACY] = "200";
+						tabs[p_fileCsv_horizontalAccuracy] = "200";
 					}
 					else
 					{
-						tabs[(int)COLUMN.COL_HORIZONTAL_ACCURACY] = String.Format("{0}", accuracySteps[t.hAcc]);
+						tabs[p_fileCsv_horizontalAccuracy] = string.Format("{0}", accuracySteps[t.hAcc]);
 					}
 
-					tabs[(int)COLUMN.COL_ALTITUDE] = t.altitude.ToString();
+					tabs[p_fileCsv_altitude] = t.altitude.ToString();
 					if (t.vAcc == 7)
 					{
-						tabs[(int)COLUMN.COL_VERTICAL_ACCURACY] = "200";
+						tabs[p_fileCsv_verticalAccuracy] = "200";
 					}
 					else
 					{
-						tabs[(int)COLUMN.COL_VERTICAL_ACCURACY] = String.Format("{0}", accuracySteps[t.vAcc]);
+						tabs[p_fileCsv_verticalAccuracy] = string.Format("{0}", accuracySteps[t.vAcc]);
 					}
-					tabs[(int)COLUMN.COL_SPEED] = t.speed.ToString("0.0");
-					tabs[(int)COLUMN.COL_COURSE] = t.cog.ToString("0.0");
+					tabs[p_fileCsv_speed] = t.speed.ToString("0.0");
+					tabs[p_fileCsv_course] = t.cog.ToString("0.0");
 				}
 
-				if ((t.tsType & ts_event) == ts_event)
+				if (((t.tsType & ts_event) == ts_event) && pref_metadata)
 				{
-					tabs[(int)COLUMN.COL_EVENT] = decodeEvent(ref t);
+					tabs[p_fileCsv_event] = decodeEvent(ref t);
 				}
 
-				if (debugLevel == 3)
+				if (pref_debugLevel == 3)
 				{
-					tabs[(int)COLUMN.COL_POSITION_IN_FILE] += " - " + t.pos.ToString("X8");
+					tabs[p_fileCsv_position] += " - " + t.pos.ToString("X8");
 				}
 
 
-				for (int i = 0; i < (int)COLUMN.COL_LENGTH - 1; i++)
+				for (int i = 0; i < p_fileCsv_length - 1; i++)
 				{
 					txtBW.Write(tabs[i] + "\t");
 				}
-				txtBW.Write(tabs[(int)COLUMN.COL_LENGTH - 1] + "\r\n");
+				txtBW.Write(tabs[p_fileCsv_length - 1] + "\r\n");
 				txtSemBack.Release();
 
 			}
 
-			txtBW.Close();
-			txtSemBack.Release();
+			//txtBW.Close();
+			//txtSemBack.Release();
 
 			//Interlocked.Increment(ref conversionDone);
 		}
@@ -1423,7 +1391,7 @@ namespace X_Manager.Units.Gipsy6
 			byte test = gp6[pos];
 			int max = gp6.Length - 1;
 			t.txtAllowed = 0;
-			if (debugLevel > 0) t.txtAllowed++;
+			if (pref_debugLevel > 0) t.txtAllowed++;
 			while (true)
 			{
 				while ((test != 0xab) & (pos < max) && (test != 0xac) && (test != 0x0a))
@@ -1560,12 +1528,10 @@ namespace X_Manager.Units.Gipsy6
 				{
 					byte[] nomeArr = new byte[28];
 					Array.Copy(t.infoAr, 3, nomeArr, 0, 28);
-					unitNameTxt = Encoding.ASCII.GetString(nomeArr).TrimEnd((Char)0);
+					lastKnownUnitName = Encoding.ASCII.GetString(nomeArr);//
+					lastKnownUnitName = lastKnownUnitName.Split('\0')[0];
 				}
-				else
-				{
-					unitNameTxt = unitName;
-				}
+				t.unitNameTxt = lastKnownUnitName;
 				pos += infoLength;
 			}
 

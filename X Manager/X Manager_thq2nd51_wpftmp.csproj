@@ -1,0 +1,829 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{ACC5A131-75CD-4A30-A6A3-0E8A8D80E34A}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>X_Manager</RootNamespace>
+    <AssemblyName>X Manager</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;X64</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)' == 'x64'">
+    <DefineConstants>TRACE;X64</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Icona.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_x86|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug_x86\</OutputPath>
+    <DefineConstants>TRACE;X86; DEBUG</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <XamlDebuggingInformation>True</XamlDebuggingInformation>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_x86|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug_x86\</OutputPath>
+    <DefineConstants>TRACE;X64</DefineConstants>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <XamlDebuggingInformation>True</XamlDebuggingInformation>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_x64|AnyCPU'">
+    <OutputPath>bin\Debug_x64\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <DefineConstants>TRACE;DEBUG;X64</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <XamlDebuggingInformation>True</XamlDebuggingInformation>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_x64|x64'">
+    <OutputPath>bin\x64\Debug_x64\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>DEBUG;TRACE;X64</DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x86|AnyCPU'">
+    <OutputPath>bin\Release_x86\</OutputPath>
+    <DefineConstants>TRACE;X86</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x86|x64'">
+    <OutputPath>bin\x64\Release_x86\</OutputPath>
+    <DefineConstants>TRACE;X64</DefineConstants>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|AnyCPU'">
+    <OutputPath>bin\Release_x64\</OutputPath>
+    <DefineConstants>TRACE;X64</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x64'">
+    <OutputPath>bin\x64\Release_x64\</OutputPath>
+    <DefineConstants>TRACE;X64</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE;X64</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_x86|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug_x86\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;X86</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug_x64|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug_x64\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;X64</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x86|x86'">
+    <OutputPath>bin\x86\Release_x86\</OutputPath>
+    <DefineConstants>TRACE;X86</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x86'">
+    <OutputPath>bin\x86\Release_x64\</OutputPath>
+    <DefineConstants>TRACE;X64</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="About.xaml.cs">
+      <DependentUpon>About.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Bootloader\Bootloader_Gipsy6.xaml.cs">
+      <DependentUpon>Bootloader_Gipsy6.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ChartClasses\ChartWindow.cs" />
+    <Compile Include="ChartClasses\CustomChartArea.cs" />
+    <Compile Include="ChartClasses\CustomSeries.cs" />
+    <Compile Include="ConfigurationWindows\AccDayIntervals.xaml.cs">
+      <DependentUpon>AccDayIntervals.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\AgmConfigurationWindow.xaml.cs">
+      <DependentUpon>AgmConfigurationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\Axy5ConfigurationWindow.xaml.cs">
+      <DependentUpon>Axy5ConfigurationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\AxyConfigurationWindow.xaml.cs">
+      <DependentUpon>AxyConfigurationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\ConfigurationWindow.cs" />
+    <Compile Include="ConfigurationWindows\DayTab.xaml.cs">
+      <DependentUpon>DayTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\DropOffConfigurationWindow.xaml.cs">
+      <DependentUpon>DropOffConfigurationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\BasicsConfiguration.xaml.cs">
+      <DependentUpon>BasicsConfiguration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\BatteryConfiguration.xaml.cs">
+      <DependentUpon>BatteryConfiguration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\GeofencigConfiguration.xaml.cs">
+      <DependentUpon>GeofencigConfiguration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.xaml.cs">
+      <DependentUpon>GiPSy6ConfigurationMain.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\HourBar.xaml.cs">
+      <DependentUpon>HourBar.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\PageCopy.cs" />
+    <Compile Include="ConfigurationWindows\GiPSy6\ScheduleConfiguration.xaml.cs">
+      <DependentUpon>ScheduleConfiguration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\GiPSy6\TimePanel.xaml.cs">
+      <DependentUpon>TimePanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\DepthFastTrekHDFTCalibrationInputValues.xaml.cs">
+      <DependentUpon>DepthFastTrekHDFTCalibrationInputValues.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\DepthFastTrekHDFTCalibration.xaml.cs">
+      <DependentUpon>DepthFastTrekHDFTCalibration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\RemoteTab.xaml.cs">
+      <DependentUpon>RemoteTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\TrekMovementConfigurationWindow.xaml.cs">
+      <DependentUpon>TrekMovementConfigurationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\TrekRemoteIntervals.xaml.cs">
+      <DependentUpon>TrekRemoteIntervals.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\TrekSettingsTab.xaml.cs">
+      <DependentUpon>TrekSettingsTab.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigurationWindows\TrekPositionConfigurationWindow.xaml.cs">
+      <DependentUpon>TrekPositionConfigurationWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DownloadRangeInput.xaml.cs">
+      <DependentUpon>DownloadRangeInput.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FTDI\FTDI_Device.cs" />
+    <Compile Include="License.xaml.cs">
+      <DependentUpon>License.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MainConsole.cs" />
+    <Compile Include="MessaggioDebug.xaml.cs">
+      <DependentUpon>MessaggioDebug.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Settings.cs" />
+    <Compile Include="Themes\NumericUpDown.xaml.cs">
+      <DependentUpon>NumericUpDown.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Ok.xaml.cs">
+      <DependentUpon>Ok.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Parent.cs" />
+    <Compile Include="Remote\BS_Main.xaml.cs">
+      <DependentUpon>BS_Main.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Remote\BS_ListViewElement.xaml.cs">
+      <DependentUpon>BS_ListViewElement.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Remote\BS_NewUnitName.xaml.cs">
+      <DependentUpon>BS_NewUnitName.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Remote\MS_Configurator_1.xaml.cs">
+      <DependentUpon>MS_Configurator_1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Remote\MS_Connector.xaml.cs">
+      <DependentUpon>MS_Connector.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Remote\MS_Main.xaml.cs">
+      <DependentUpon>MS_Main.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Remote\MS_Supervisor_DateTime_1.xaml.cs">
+      <DependentUpon>MS_Supervisor_DateTime_1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Remote\RemoteUeserSelection.xaml.cs">
+      <DependentUpon>RemoteUeserSelection.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Remote\Remote_Main.xaml.cs">
+      <DependentUpon>Remote_Main.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Themes\XManager_Theme.cs" />
+    <Compile Include="Units\AGM.cs" />
+    <Compile Include="Units\Axy.cs" />
+    <Compile Include="Units\Axy3.cs" />
+    <Compile Include="Units\Axy4-1.cs" />
+    <Compile Include="Units\Axy4_2.cs" />
+    <Compile Include="Units\Axy5.cs" />
+    <Compile Include="Units\AxyDepth.cs" />
+    <Compile Include="Units\AxyDepth_1.cs" />
+    <Compile Include="Units\AxyDepth_2.cs" />
+    <Compile Include="Units\AxyTrek.cs" />
+    <Compile Include="Units\AxyTrekCO2.cs" />
+    <Compile Include="Units\AxyTrekFT.cs" />
+    <Compile Include="Units\AxyTrekHD.cs" />
+    <Compile Include="Units\AxyTrekN.cs" />
+    <Compile Include="ChartClasses\ChartWindowAGM.xaml.cs">
+      <DependentUpon>ChartWindowAGM.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ConversionPreferences.xaml.cs">
+      <DependentUpon>ConversionPreferences.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Units\AxyTrekR.cs" />
+    <Compile Include="Units\CO2_Logger.cs" />
+    <Compile Include="Units\Drop-Off.cs" />
+    <Compile Include="Units\Gipsy6.cs" />
+    <Compile Include="Units\Gipsy6N.cs" />
+    <Compile Include="Units\Gipsy6XS.cs" />
+    <Compile Include="Units\Unit.cs" />
+    <Compile Include="Warning.xaml.cs">
+      <DependentUpon>Warning.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="YesNo.xaml.cs">
+      <DependentUpon>YesNo.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\console-help.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\map.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\clock.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\tile_background_loading.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\tile_background_offline.png" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Changelog.txt" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.SDK.Contracts">
+      <Version>10.0.22621.755</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.InteropServices.WindowsRuntime">
+      <Version>4.3.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.WindowsRuntime">
+      <Version>4.6.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.WindowsRuntime.UI.Xaml">
+      <Version>4.6.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ItemGroup>
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\system.runtime.windowsruntime\4.6.0\buildTransitive\net461\..\..\ref\netstandard2.0\System.Runtime.WindowsRuntime.dll" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\system.runtime.windowsruntime.ui.xaml\4.6.0\build\net461\..\..\ref\netstandard2.0\System.Runtime.WindowsRuntime.UI.Xaml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Microsoft.CSharp.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Microsoft.VisualBasic.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\mscorlib.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\PresentationCore.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\PresentationFramework.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Core.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Data.DataSetExtensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Data.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Device.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Drawing.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Management.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Net.Http.dll" />
+    <ReferencePath Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\System.Windows.Controls.DataVisualization.Toolkit.dll" />
+    <ReferencePath Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\System.Windows.Controls.Input.Toolkit.dll" />
+    <ReferencePath Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\System.Windows.Controls.Layout.Toolkit.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Windows.Forms.DataVisualization.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Windows.Forms.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Xaml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Xml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Xml.Linq.dll" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.AI.MachineLearning.MachineLearningContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.AI.MachineLearning.Preview.MachineLearningPreviewContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Activation.ActivatedEventsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Activation.ActivationCameraSettingsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Activation.ContactActivatedEventsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Activation.WebUISearchActivatedEventsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Background.BackgroundAlarmApplicationContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Calls.Background.CallsBackgroundContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Calls.CallsPhoneContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Calls.CallsVoipContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Calls.LockScreenCallContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.CommunicationBlocking.CommunicationBlockingContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.FullTrustAppContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Preview.InkWorkspace.PreviewInkWorkspaceContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Preview.Notes.PreviewNotesContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Resources.Management.ResourceIndexerContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Search.Core.SearchCoreContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Search.SearchContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.SocialInfo.SocialInfoContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.StartupTaskContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.ApplicationModel.Wallet.WalletContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.Custom.CustomDeviceContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.DevicesLowLevelContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.Portable.PortableDeviceContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.Printers.Extensions.ExtensionsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.Printers.PrintersContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.Scanners.ScannerDeviceContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.SmartCards.SmartCardBackgroundTriggerContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.SmartCards.SmartCardEmulatorContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Devices.Sms.LegacySmsApiContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Embedded.DeviceLockdown.DeviceLockdownContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Foundation.FoundationContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Foundation.UniversalApiContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Gaming.Input.GamingInputPreviewContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Gaming.Preview.GamesEnumerationContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Gaming.UI.GameChatOverlayContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Gaming.UI.GamingUIProviderContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Gaming.XboxLive.StorageApiContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Globalization.GlobalizationJapanesePhoneticAnalyzerContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Graphics.Printing3D.Printing3DContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Management.Deployment.Preview.DeploymentPreviewContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Management.Deployment.SharedPackageContainerContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Management.Update.WindowsUpdateContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Management.Workplace.WorkplaceSettingsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.AppBroadcasting.AppBroadcastingContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.AppRecording.AppRecordingContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.Capture.AppBroadcastContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.Capture.AppCaptureContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.Capture.AppCaptureMetadataContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.Capture.CameraCaptureUIContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.Capture.GameBarContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.Devices.CallControlContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.MediaControlContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.Playlists.PlaylistsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Media.Protection.ProtectionRenewalContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Networking.Connectivity.WwanContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Networking.NetworkOperators.LegacyNetworkOperatorsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Networking.NetworkOperators.NetworkOperatorsFdnContract.WinMD" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Networking.Sockets.ControlChannelTriggerContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Networking.XboxLive.XboxLiveSecureSocketsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Perception.Automation.Core.PerceptionAutomationCoreContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Phone.PhoneContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Phone.StartScreen.DualSimTileContract.WinMD" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Security.EnterpriseData.EnterpriseDataContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Security.ExchangeActiveSyncProvisioning.EasContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Security.Isolation.Isolatedwindowsenvironmentcontract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Services.Maps.GuidanceContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Services.Maps.LocalSearchContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Services.Store.StoreContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Services.TargetedContent.TargetedContentContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Storage.Provider.CloudFilesContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.System.Profile.ProfileHardwareTokenContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.System.Profile.ProfileRetailInfoContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.System.Profile.ProfileSharedModeContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.System.Profile.SystemManufacturers.SystemManufacturersContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.System.SystemManagementContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.System.UserProfile.UserProfileContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.System.UserProfile.UserProfileLockScreenContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.ApplicationSettings.ApplicationsSettingsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.Core.AnimationMetrics.AnimationMetricsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.Core.CoreWindowDialogsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.Shell.SecurityAppManagerContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.UIAutomation.UIAutomationContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.ViewManagement.ViewManagementViewScalingContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.WebUI.Core.WebUICommandBarContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.Xaml.Core.Direct.XamlDirectContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.UI.Xaml.Hosting.HostingContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.Web.Http.Diagnostics.HttpDiagnosticsContract.winmd" />
+    <ReferencePath Include="C:\Users\marco\.nuget\packages\microsoft.windows.sdk.contracts\10.0.22621.755\ref\netstandard2.0\Windows.WinMD" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\WindowsBase.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\WindowsFormsIntegration.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\Microsoft.Win32.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\netstandard.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.AppContext.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Collections.Concurrent.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Collections.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Collections.NonGeneric.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Collections.Specialized.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ComponentModel.Annotations.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ComponentModel.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ComponentModel.EventBasedAsync.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ComponentModel.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ComponentModel.TypeConverter.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Console.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Data.Common.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Diagnostics.Contracts.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Diagnostics.Debug.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Diagnostics.FileVersionInfo.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Diagnostics.Process.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Diagnostics.StackTrace.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Diagnostics.TextWriterTraceListener.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Diagnostics.Tools.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Diagnostics.TraceSource.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Drawing.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Dynamic.Runtime.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Globalization.Calendars.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Globalization.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Globalization.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.Compression.ZipFile.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.FileSystem.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.FileSystem.DriveInfo.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.FileSystem.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.FileSystem.Watcher.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.IsolatedStorage.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.MemoryMappedFiles.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.Pipes.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.IO.UnmanagedMemoryStream.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Linq.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Linq.Expressions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Linq.Parallel.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Linq.Queryable.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.Http.Rtc.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.NameResolution.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.NetworkInformation.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.Ping.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.Requests.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.Security.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.Sockets.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.WebHeaderCollection.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.WebSockets.Client.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Net.WebSockets.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ObjectModel.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Reflection.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Reflection.Emit.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Reflection.Emit.ILGeneration.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Reflection.Emit.Lightweight.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Reflection.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Reflection.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Resources.Reader.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Resources.ResourceManager.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Resources.Writer.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.CompilerServices.VisualC.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.Handles.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.InteropServices.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.InteropServices.RuntimeInformation.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.Numerics.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.Serialization.Formatters.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.Serialization.Json.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.Serialization.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Runtime.Serialization.Xml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Security.Claims.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Security.Cryptography.Algorithms.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Security.Cryptography.Csp.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Security.Cryptography.Encoding.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Security.Cryptography.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Security.Cryptography.X509Certificates.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Security.Principal.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Security.SecureString.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ServiceModel.Duplex.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ServiceModel.Http.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ServiceModel.NetTcp.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ServiceModel.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ServiceModel.Security.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Text.Encoding.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Text.Encoding.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Text.RegularExpressions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Threading.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Threading.Overlapped.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Threading.Tasks.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Threading.Tasks.Parallel.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Threading.Thread.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Threading.ThreadPool.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Threading.Timer.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.ValueTuple.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Xml.ReaderWriter.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Xml.XDocument.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Xml.XmlDocument.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Xml.XmlSerializer.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Xml.XPath.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\Facades\System.Xml.XPath.XDocument.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\App.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\About.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Bootloader\Bootloader_Gipsy6.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\AccDayIntervals.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\AgmConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ChartClasses\ChartWindowAGM.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\Axy5ConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\AxyConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\DayTab.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\DropOffConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\BasicsConfiguration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\BatteryConfiguration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\GeofencigConfiguration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\GiPSy6ConfigurationMain.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\HourBar.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\ScheduleConfiguration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\GiPSy6\TimePanel.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\DepthFastTrekHDFTCalibrationInputValues.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\DepthFastTrekHDFTCalibration.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\RemoteTab.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\TrekMovementConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\TrekRemoteIntervals.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\TrekSettingsTab.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConversionPreferences.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\DownloadRangeInput.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\License.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\MainWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\MessaggioDebug.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Themes\NumericUpDown.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Ok.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\BS_Main.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\BS_ListViewElement.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\BS_NewUnitName.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\MS_Configurator_1.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\MS_Connector.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\MS_Main.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\MS_Supervisor_DateTime_1.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\RemoteUeserSelection.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Remote\Remote_Main.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\ConfigurationWindows\TrekPositionConfigurationWindow.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Themes\XManager_Theme.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\Warning.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\YesNo.g.cs" />
+    <Compile Include="D:\Dropbox\Sviluppo\SOFTWARE\X-Manager\X Manager\obj\Debug_x64\GeneratedInternalTypeHelper.g.cs" />
+  </ItemGroup>
+</Project>

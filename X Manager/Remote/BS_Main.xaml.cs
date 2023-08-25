@@ -1651,7 +1651,7 @@ namespace X_Manager.Remote
 			//	psi.FileName = "format.com";
 			//	psi.CreateNoWindow = true; //if you want to hide the window
 			//	psi.WorkingDirectory = Environment.SystemDirectory;
-			//	psi.Arguments = "/FS:FAT32" + " /Y" + " /V:BaseStation /Q /A:2048 " + drive;
+			//	psi.Arguments = "/FS:FAT32" + " /Y" + " /V:BaseStation /Q /A:16384 " + drive;
 			//	psi.UseShellExecute = false;
 			//	psi.CreateNoWindow = true;
 			//	psi.RedirectStandardOutput = true;

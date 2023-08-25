@@ -72,20 +72,42 @@ namespace X_Manager.Units
 		public const byte ts_blockEnd = 0b0100_0000;
 
 
-		//Array preferenze
-		public const int pref_pressMetri = 0;
-		public const int pref_millibars = 1;
-		public const int pref_dateFormat = 2;
-		public const int pref_timeFormat = 3;
-		public const int pref_fillEmpty = 4;
-		public const int pref_sameColumn = 5;
-		public const int pref_battery = 6;
-		public const int pref_txt = 7;
-		public const int pref_kml = 8;
-		public const int pref_override_time = 15;
-		public const int pref_metadata = 16;
-		public const int pref_leapSeconds = 17;
-		public const int pref_removeNonGps = 18;
+		//Puntatori array preferenze conversione
+		public const int p_filePrefs_pressMetri = 0;
+		public const int p_filePrefs_millibars = 1;
+		public const int p_filePrefs_dateFormat = 2;
+		public const int p_filePrefs_timeFormat = 3;
+		public const int p_filePrefs_fillEmpty = 4;
+		public const int p_filePrefs_sameColumn = 5;
+		public const int p_filePrefs_battery = 6;
+		public const int p_filePrefs_txt = 7;
+		public const int p_filePrefs_kml = 8;
+		public const int p_filePrefs_overrideTime = 15;
+		public const int p_filePrefs_metadata = 16;
+		public const int p_filePrefs_leapSeconds = 17;
+		public const int p_filePrefs_removeNonGps = 18;
+		public const int p_filePrefs_proximity = 19;
+
+		//Preferenze conversione
+		protected bool pref_angloTime = false;
+		protected string pref_dateFormatParameter;
+		protected byte pref_dateFormat;
+		protected byte pref_timeFormat;
+		protected bool pref_overrideTime = false;
+		protected bool pref_inMeters = false;
+		protected bool pref_battery = false;
+		protected bool pref_repeatEmptyValues = true;
+		protected bool pref_sameColumn = false;
+		protected bool pref_makeTxt = false;
+		protected bool pref_makeKml = false;
+		protected double pref_pressOffset;
+		protected bool pref_addGpsTime;
+		protected bool pref_isDepth = true;
+		protected bool pref_metadata = false;
+		protected int pref_leapSeconds;
+		protected bool pref_removeNonGps = false;
+		protected bool pref_proximity = false;
+		protected byte pref_debugLevel;
 
 		protected string _modelName = "";
 		public virtual string modelName
@@ -114,7 +136,6 @@ namespace X_Manager.Units
 		protected int nInputs;
 		protected int nOutputs;
 		protected double[] lastGroup = new double[1];
-		protected byte debugLevel;
 
 		protected Parent parent;
 		protected FTDI_Device ft;

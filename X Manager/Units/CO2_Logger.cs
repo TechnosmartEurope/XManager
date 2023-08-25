@@ -40,16 +40,8 @@ namespace X_Manager.Units
             public byte co2Error;
         }
 
-        byte dateFormat;
-        byte timeFormat;
-        bool sameColumn = false;
-        bool prefBattery = false;
         bool tempMS = false;
-        bool repeatEmptyValues = true;
-        bool angloTime = false;
         ushort rate;
-        string dateFormatParameter;
-        bool metadata;
         CultureInfo dateCi;
         double[] convCoeffs = new double[7];
 
@@ -573,50 +565,49 @@ namespace X_Manager.Units
 
             //Imposta le preferenze di conversione
 
-            if (prefs[pref_fillEmpty] == "False")
+            if (prefs[p_filePrefs_fillEmpty] == "False")
             {
-                repeatEmptyValues = false;
+                pref_repeatEmptyValues = false;
             }
 
             dateSeparator = csvSeparator;
-            if (prefs[pref_sameColumn] == "True")
+            if (prefs[p_filePrefs_sameColumn] == "True")
             {
-                sameColumn = true;
+                pref_sameColumn = true;
                 dateSeparator = " ";
             }
 
-            if (prefs[pref_battery] == "True")
+            if (prefs[p_filePrefs_battery] == "True")
             {
-                prefBattery = true;
+                pref_battery = true;
             }
 
             dateCi = new CultureInfo("it-IT");
-            if (prefs[pref_timeFormat] == "2")
+            if (prefs[p_filePrefs_timeFormat] == "2")
             {
                 dateCi = new CultureInfo("en-US");
-                angloTime = true;
+                pref_angloTime = true;
             }
 
-            dateFormat = byte.Parse(prefs[pref_dateFormat]);
-            timeFormat = byte.Parse(prefs[pref_timeFormat]);
-            switch (dateFormat)
+            pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);
+            pref_timeFormat = byte.Parse(prefs[p_filePrefs_timeFormat]);
+            switch (pref_dateFormat)
             {
                 case 1:
-                    dateFormatParameter = "dd/MM/yyyy";
+                    pref_dateFormatParameter = "dd/MM/yyyy";
                     break;
                 case 2:
-                    dateFormatParameter = "MM/dd/yyyy";
+                    pref_dateFormatParameter = "MM/dd/yyyy";
                     break;
                 case 3:
-                    dateFormatParameter = "yyyy/MM/dd";
+                    pref_dateFormatParameter = "yyyy/MM/dd";
                     break;
                 case 4:
-                    dateFormatParameter = "yyyy/dd/MM";
+                    pref_dateFormatParameter = "yyyy/dd/MM";
                     break;
             }
 
-            metadata = false;
-            if (prefs[pref_metadata] == "True") metadata = true;
+            if (prefs[p_filePrefs_metadata] == "True") pref_metadata = true;
 
             //Legge i parametri di logging
 
@@ -702,17 +693,17 @@ namespace X_Manager.Units
             NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
             ushort contoTab = 0;
 
-            dateS = tsLoc.orario.ToString(dateFormatParameter);
+            dateS = tsLoc.orario.ToString(pref_dateFormatParameter);
 
             dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
-            if (angloTime)
+            if (pref_angloTime)
             {
                 ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
                 dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
             }
 
             textOut = unitName + csvSeparator + dateTimeS;
-            if (angloTime) textOut += " " + ampm;
+            if (pref_angloTime) textOut += " " + ampm;
 
             additionalInfo = "";
 
@@ -728,15 +719,15 @@ namespace X_Manager.Units
             additionalInfo += csvSeparator + tsLoc.co2Baseline.ToString(nfi) + csvSeparator + tsLoc.co2Error.ToString(nfi);
 
             //Inserisce la batteria
-            if (prefBattery)
+            if (pref_battery)
             {
                 contoTab += 1;
                 additionalInfo += csvSeparator;
-                if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString(nfi);
+                if (((tsLoc.tsType & 8) == 8) | pref_repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString(nfi);
             }
 
             //Inserisce i metadati
-            if (metadata)
+            if (pref_metadata)
             {
                 contoTab += 1;
                 additionalInfo += csvSeparator;
@@ -803,7 +794,7 @@ namespace X_Manager.Units
         private void csvPlaceHeader(ref BinaryWriter csv)
         {
             string csvHeader = "TagID";
-            if (sameColumn)
+            if (pref_sameColumn)
             {
                 csvHeader += csvSeparator + "Timestamp";
             }
@@ -824,12 +815,12 @@ namespace X_Manager.Units
 
 
 
-            if (prefBattery)
+            if (pref_battery)
             {
                 csvHeader = csvHeader + csvSeparator + "Battery Voltage (V)";
             }
 
-            if (metadata)
+            if (pref_metadata)
             {
                 csvHeader = csvHeader + csvSeparator + "Metadata";
             }

@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:dc="clr-namespace:X_Manager"
-             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:dc="clr-namespace:X_Manager.Themes"
              mc:Ignorable="d" 
              d:DesignHeight="400" d:DesignWidth="900">
 	<!-- Content(Grid) -->
@@ -28,15 +27,19 @@
 						<RowDefinition Height="1.2*"/>
 						<RowDefinition Height="1.2*"/>
 					</Grid.RowDefinitions>
-					<RadioButton x:Name="OffRB" Grid.Row="0" Content="Off" Checked="offRbChecked" Margin="10,0,0,0"/>
+					<RadioButton x:Name="OffRB" Grid.Row="0" Content="Off" Checked="offRbChecked" Margin="10,0,0,0" VerticalAlignment="Center"/>
 					<StackPanel Grid.Row="1" Orientation="Horizontal" >
-						<RadioButton x:Name="ByTimeRB" Checked="byTimeRbChecked" Margin="10,0,0,0"/>
+						<RadioButton x:Name="ByTimeRB" Checked="byTimeRbChecked" Margin="10,0,0,0" VerticalAlignment="Center"/>
 						<!--<TextBox x:Name="startDelayNud" />-->
-						<dc:NumericUpDown x:Name="startDelayNud" TabIndex="1" maxValue="65535" footerContent="Minutes" footerWidth="Auto" headerHeight="0" VerticalAlignment="Center" Margin="0,14,0,12" Height="30" Width="249"/>
+						<!--<dc:NumericUpDown x:Name="startDelayNud" TabIndex="1" maxValue="65535" footerContent="Minutes" footerWidth="Auto" headerHeight="0" VerticalAlignment="Center" Margin="0,14,0,12" Height="30" Width="249"/>-->
+						<dc:NumericUpDown x:Name="startDelayNud"  TabIndex="1" maxValue="65535" footerContent="Minutes" footerWidth="Auto" headerHeight="0" VerticalAlignment="Center" 
+							Margin="0,14,0,12" Height="30" Width="249"/>
+
 					</StackPanel>
 					<StackPanel x:Name="SdByDateSP" Grid.Row="2" Orientation="Horizontal" >
-						<RadioButton x:Name="ByDateRB" Checked="byDateRbChecked" Margin="10,0,0,0"/>
-						<xctk:DateTimePicker x:Name="SdDateTimePicker" Height="30" Format="ShortDate" FontSize="13" HorizontalContentAlignment="Left" Margin="0,12,0,14" TimePickerShowButtonSpinner="False" TimePickerAllowSpin="False" TimePickerVisibility="Hidden" Width="250" />
+						<RadioButton x:Name="ByDateRB" Checked="byDateRbChecked" Margin="10,0,0,0" VerticalAlignment="Center"/>
+						<!--<xctk:DateTimePicker x:Name="SdDateTimePicker" Height="30" Format="ShortDate" FontSize="13" HorizontalContentAlignment="Left" Margin="0,12,0,14" TimePickerShowButtonSpinner="False" TimePickerAllowSpin="False" TimePickerVisibility="Hidden" Width="250" />-->
+						<DatePicker x:Name="SdDateTimePicker" SelectedDateFormat="Short" Margin="0,12,0,14" VerticalAlignment="Center" Width="206"/>
 					</StackPanel>
 				</Grid>
 			</GroupBox>
@@ -80,9 +83,9 @@
 						<RowDefinition Height="1*"/>
 					</Grid.RowDefinitions>
 					
-                    <CheckBox x:Name="adcRecording" Grid.Row="0" Margin ="5,0,0,0"  Content="Enable raw data recording" Height="15" Padding="0" VerticalContentAlignment="Center" TabIndex="0"/>
+                    <CheckBox x:Name="adcRecording" Grid.Row="0" Margin ="5,0,0,0"  Content="Enable raw data recording" Height="20" Padding="0" VerticalContentAlignment="Center" TabIndex="0"/>
                     <StackPanel x:Name="adcSP" Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" >
-                        <CheckBox x:Name="adcTrigger"  Margin ="5,0,0,0"  Content="Stop log if raw" Height="15" Padding="0" VerticalContentAlignment="Center" TabIndex="0"/>
+                        <CheckBox x:Name="adcTrigger"  Margin ="5,0,0,0"  Content="Stop log if raw" Height="20" Padding="0" VerticalContentAlignment="Center" TabIndex="0"/>
                         <Button x:Name="magMinB"  Margin="12,5,0,5" BorderThickness="0" Content=">" 
                                 FontSize="12" Padding="0,0,0,2" HorizontalAlignment="Center" 
                                 MinWidth="10" MinHeight="10" Width="25" Height="20" VerticalAlignment="Center" Click="magMinClick"/>
@@ -124,7 +127,7 @@
 						<RowDefinition />
 						<RowDefinition />
 					</Grid.RowDefinitions>
-					<RadioButton Margin="10,0,0,0" Grid.Row="0" x:Name="dDisabled" Content="Disabled (Recommended)"/>
+					<RadioButton Margin="10,0,0,0" Grid.Row="0" x:Name="dDisabled" Content="Disabled (Recommended)" VerticalAlignment="Center"/>
 					<RadioButton Margin="10,0,0,0" Grid.Row="1" x:Name="dEnabled" Content="Enabled" VerticalAlignment="Center" />
 				</Grid>
 			</GroupBox>

@@ -281,7 +281,7 @@ namespace X_Manager.Units.AxyTreks
 						+ "\tREM Position: " + infRemPosition.ToString("X4") + "\r\n"
 					+ "START:  " + startTime.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss"));
 
-					if ((startTime == new DateTime(1, 1, 1, 1, 1, 1)) & removeNonGps)
+					if ((startTime == new DateTime(1, 1, 1, 1, 1, 1)) & pref_removeNonGps)
 					{
 						File.AppendAllText(logFile, "\tGPS FIX MISSING: This session contains no gps fix and won't be included in the csv file.\r\n");
 
@@ -373,7 +373,7 @@ namespace X_Manager.Units.AxyTreks
 
 					if (((timeStampO.tsType & 32) == 32) | ((timeStampO.tsType & 16) == 16))
 					{
-						if (makeTxt)
+						if (pref_makeTxt)
 						{
 							txtWrite(ref timeStampO.tsType, ref timeStampO.coord, ref timeStampO.orario, ref timeStampO.data, ref timeStampO.gsvSum,
 									ref timeStampO.ardPosition, ref timeStampO.eventAr, ref txt);
@@ -381,7 +381,7 @@ namespace X_Manager.Units.AxyTreks
 					}
 					if ((timeStampO.tsType & 16) == 16)
 					{
-						if (makeKml) kmlWrite(ref timeStampO.coord, ref timeStampO.orario, ref kml, ref placeMark);
+						if (pref_makeKml) kmlWrite(ref timeStampO.coord, ref timeStampO.orario, ref kml, ref placeMark);
 					}
 				}
 
@@ -396,7 +396,7 @@ namespace X_Manager.Units.AxyTreks
 					File.AppendAllText(logFile, "\t\tSTOP: " + timeStampO.orario.AddSeconds(1).ToString("dd/MM/yyyy HH:mm:ss") + "\r\n\r\n");
 				}
 
-				if (makeTxt)
+				if (pref_makeTxt)
 				{
 					txtWrite(ref timeStampO.tsType, ref timeStampO.coord, ref timeStampO.orario, ref timeStampO.data, ref timeStampO.gsvSum,
 									ref timeStampO.ardPosition, ref timeStampO.eventAr, ref txt);
@@ -433,7 +433,7 @@ namespace X_Manager.Units.AxyTreks
 
 			}
 
-			if (makeKml)
+			if (pref_makeKml)
 			{
 				try
 				{
@@ -460,7 +460,7 @@ namespace X_Manager.Units.AxyTreks
 
 			}
 
-			if (makeTxt) txt.Close();
+			if (pref_makeTxt) txt.Close();
 
 			csv.Close();
 			try
@@ -518,20 +518,20 @@ namespace X_Manager.Units.AxyTreks
 				}
 				else
 				{
-					if (isDepth == 1)
+					if (pref_isDepth)
 					{
 						if (fTotA > 2000000)
 						{
-							if (pressureDepth5837(ref ard, ref tsc.temperature, ref tsc.press, pressOffset, ref tsc.tsType)) return;
+							if (pressureDepth5837(ref ard, ref tsc.temperature, ref tsc.press, pref_pressOffset, ref tsc.tsType)) return;
 						}
 						else
 						{
-							if (pressureDepth5803(ref ard, ref tsc.temperature, ref tsc.press, pressOffset, ref tsc.tsType)) return;
+							if (pressureDepth5803(ref ard, ref tsc.temperature, ref tsc.press, pref_pressOffset, ref tsc.tsType)) return;
 						}
 					}
 					else
 					{
-						if (pressureAir(ref ard, ref tsc.temperature, ref tsc.press, pressOffset, ref tsc.tsType)) return;
+						if (pressureAir(ref ard, ref tsc.temperature, ref tsc.press, pref_pressOffset, ref tsc.tsType)) return;
 					}
 				}
 			}
@@ -686,15 +686,15 @@ namespace X_Manager.Units.AxyTreks
 
 			ushort contoTab = 0;
 
-			dateS = tsLoc.orario.ToString(dateFormatParameter);
+			dateS = tsLoc.orario.ToString(pref_dateFormatParameter);
 
 			var dateCi = new CultureInfo("it-IT");
-			if (angloTime)
+			if (pref_angloTime)
 			{
 				dateCi = new CultureInfo("en-US");
 			}
 			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
-			if (angloTime)
+			if (pref_angloTime)
 			{
 				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
 				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
@@ -702,11 +702,11 @@ namespace X_Manager.Units.AxyTreks
 			milli = 0;
 
 			textOut += unitName + csvSeparator + dateTimeS + ".000";
-			if (angloTime)
+			if (pref_angloTime)
 			{
 				textOut += " " + ampm;
 			}
-			if (addGpsTime)
+			if (pref_addGpsTime)
 			{
 				if ((tsLoc.tsType & 16) == 16)
 				{
@@ -737,7 +737,7 @@ namespace X_Manager.Units.AxyTreks
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			additionalInfo = "";
-			if (debugLevel > 2)
+			if (pref_debugLevel > 0)
 			{
 				additionalInfo += csvSeparator + (tsLoc.ardPosition + offset).ToString("X") + csvSeparator + tsLoc.timeStampLength.ToString();
 			}
@@ -753,18 +753,18 @@ namespace X_Manager.Units.AxyTreks
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 4) == 4) | repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
+				if (((tsLoc.tsType & 4) == 4) | pref_repeatEmptyValues) additionalInfo += tsLoc.press.ToString("0.00", nfi);
 			}
 			if (temperatureEnabled > 0)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
+				if (((tsLoc.tsType & 2) == 2) | pref_repeatEmptyValues) additionalInfo += tsLoc.temperature.ToString("0.0", nfi);
 			}
 
 			//Inserire la coordinata.
 			contoTab += 7;
-			if (((tsLoc.tsType & 16) == 16) | repeatEmptyValues)
+			if (((tsLoc.tsType & 16) == 16) | pref_repeatEmptyValues)
 			{
 				string altSegno, eo, ns;
 				altSegno = eo = ns = "-";
@@ -795,26 +795,26 @@ namespace X_Manager.Units.AxyTreks
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
-				if (((tsLoc.tsTypeExt1 & 2) == 2) | repeatEmptyValues) additionalInfo += tsLoc.ADC.ToString("0000");
+				if (((tsLoc.tsTypeExt1 & 2) == 2) | pref_repeatEmptyValues) additionalInfo += tsLoc.ADC.ToString("0000");
 			}
 
 			if (adcStop)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
-				if (((tsLoc.tsTypeExt1 & 4) == 4) | repeatEmptyValues) additionalInfo += "Threshold crossed";
+				if (((tsLoc.tsTypeExt1 & 4) == 4) | pref_repeatEmptyValues) additionalInfo += "Threshold crossed";
 			}
 
 			//Inserisce la batteria
-			if (prefBattery)
+			if (pref_battery)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString("0.00", nfi);
+				if (((tsLoc.tsType & 8) == 8) | pref_repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString("0.00", nfi);
 			}
 
 			//Inserisce i metadati
-			if (metadata)
+			if (pref_metadata)
 			{
 				contoTab += 1;
 				additionalInfo += csvSeparator;
@@ -844,7 +844,7 @@ namespace X_Manager.Units.AxyTreks
 
 			if (tsLoc.stopEvent > 0) return;// textOut;
 
-			if (!repeatEmptyValues)
+			if (!pref_repeatEmptyValues)
 			{
 				additionalInfo = "";
 				for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
@@ -867,7 +867,7 @@ namespace X_Manager.Units.AxyTreks
 				}
 				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
 
-				if (angloTime) textOut += " " + ampm;
+				if (pref_angloTime) textOut += " " + ampm;
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 				textOut += additionalInfo + "\r\n";
@@ -897,7 +897,7 @@ namespace X_Manager.Units.AxyTreks
 				dt = new DateTime(1, 1, 1, 1, 1, 1);
 			}
 
-			if (overrideTime) return dt;
+			if (pref_overrideTime) return dt;
 
 			timeStamp tsc = new timeStamp();
 			pos -= 1;
@@ -1028,7 +1028,7 @@ namespace X_Manager.Units.AxyTreks
 			{
 				dt = new DateTime(2000 + tsc.data.anno, tsc.data.mese, tsc.data.giorno, tsc.data.ore, tsc.data.minuti, tsc.data.secondi);
 				dt = dt.AddSeconds(-secondiAdd);
-				dt = dt.AddSeconds(leapSeconds * -1);
+				dt = dt.AddSeconds(pref_leapSeconds * -1);
 			}
 			catch { }
 
@@ -1042,9 +1042,9 @@ namespace X_Manager.Units.AxyTreks
 
 			if (pressureEnabled > 0)
 			{
-				if (inMeters)
+				if (pref_inMeters)
 				{
-					if (isDepth == 1)
+					if (pref_isDepth)
 					{
 						csvHeader = csvHeader + csvSeparator + "Depth";
 					}
@@ -1068,8 +1068,8 @@ namespace X_Manager.Units.AxyTreks
 				+ csvSeparator + "ground-speed" + csvSeparator + "satellites" + csvSeparator + "hdop" + csvSeparator + "signal-strength";
 			if (adcLog) csvHeader += csvSeparator + "Radar Signal RAW";
 			if (adcStop) csvHeader += csvSeparator + "Sensor State";
-			if (prefBattery) csvHeader += csvSeparator + "Battery (V)";
-			if (metadata) csvHeader += csvSeparator + "Metadata";
+			if (pref_battery) csvHeader += csvSeparator + "Battery (V)";
+			if (pref_metadata) csvHeader += csvSeparator + "Metadata";
 
 			csvHeader += "\r\n";
 

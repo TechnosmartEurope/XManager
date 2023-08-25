@@ -15,8 +15,8 @@
             <RowDefinition Height="100"/>
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="1" x:Name="titleL" Text="GiPSy6 Bootloader" Foreground="#FF00AADE" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="50"/>
-        <TextBox Grid.Row="2" x:Name="fileTB" HorizontalAlignment="Left" Height="23" Margin="20,40,0,0" VerticalAlignment="Top" Width="680" FontSize="14" Background="#FF0D0D0D"/>
-		<Button Grid.Row="2" x:Name="openFileB" Content="Open" Height="23" Width="70" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="700,40,0,0" Click="openFileB_Click"/>
+        <TextBox Grid.Row="2" x:Name="fileTB" HorizontalAlignment="Left" Height="30" Margin="20,40,0,0" VerticalAlignment="Top" Width="680" FontSize="14" Background="#FF0D0D0D"/>
+		<Button Grid.Row="2" x:Name="openFileB" Content="Open" Height="30" Width="70" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="700,40,0,0" Click="openFileB_Click"/>
 		<TextBox Grid.Row="2" x:Name="filePropertiesTB" Height="20" Width="500" Margin="20,0,0,12	" HorizontalAlignment="Left" VerticalAlignment="Bottom" 
 					FontSize="12" Foreground="White" Text="Properties" BorderThickness="0"/>
 		<CheckBox Grid.Row="3" x:Name="wipeDataCB" Margin="20,0,0,0" Width="200" HorizontalAlignment="Left" Height="40" VerticalContentAlignment="Center" Content="Wipe Data" FontSize="18"

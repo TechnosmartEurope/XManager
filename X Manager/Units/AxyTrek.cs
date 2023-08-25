@@ -24,7 +24,6 @@ namespace X_Manager.Units.AxyTreks
 
 		protected int temperatureEnabled;
 		protected int pressureEnabled;
-		protected double pressOffset;
 		protected byte range;
 		protected ushort rate;
 		protected bool bits;
@@ -38,24 +37,9 @@ namespace X_Manager.Units.AxyTreks
 		protected bool adcStop = false;
 
 		protected uint contoCoord;
-		protected bool addGpsTime;
-		protected bool angloTime = false;
-		protected string dateFormatParameter;
-		protected byte dateFormat;
-		protected bool overrideTime = false;
-		protected bool inMeters = false;
-		protected bool prefBattery = false;
-		protected bool repeatEmptyValues = true;
-		protected int isDepth = 1;
 		protected bool primaCoordinata;
-		protected bool sameColumn = false;
 		protected string cifreDecString;
-		protected bool metadata;
-		protected int leapSeconds;
 		protected long infRemPosition;
-		protected bool makeTxt = false;
-		protected bool makeKml = false;
-		protected bool removeNonGps = false;
 
 		protected DateTime nullDate = new DateTime(1970, 1, 1, 0, 0, 0);
 		protected DateTime recoveryDate = new DateTime(1970, 1, 1, 0, 0, 0);
@@ -942,59 +926,57 @@ namespace X_Manager.Units.AxyTreks
 
 		protected void convertInit(string[] prefs)
 		{
-			if (prefs[pref_pressMetri] == "meters") inMeters = true;
-			pressOffset = double.Parse(prefs[pref_millibars]);
+			if (prefs[p_filePrefs_pressMetri] == "meters") pref_inMeters = true;
+			pref_pressOffset = double.Parse(prefs[p_filePrefs_millibars]);
 
-			debugLevel = parent.stDebugLevel;
-			addGpsTime = parent.addGpsTime;
+			pref_debugLevel = parent.stDebugLevel;
+			pref_addGpsTime = parent.addGpsTime;
 			if (Parent.getParameter("pressureRange") == "air")
 			{
-				isDepth = 0;
+				pref_isDepth = false;
 			}
-			if (prefs[pref_fillEmpty] == "False")
+			if (prefs[p_filePrefs_fillEmpty] == "False")
 			{
-				repeatEmptyValues = false;
+				pref_repeatEmptyValues = false;
 			}
 			dateSeparator = csvSeparator;
-			if (prefs[pref_sameColumn] == "True")
+			if (prefs[p_filePrefs_sameColumn] == "True")
 			{
-				sameColumn = true;
+				pref_sameColumn = true;
 				dateSeparator = " ";
 			}
-			if (addGpsTime)
+			if (pref_addGpsTime)
 			{
-				repeatEmptyValues = false;
-				sameColumn = true;
+				pref_repeatEmptyValues = false;
+				pref_sameColumn = true;
 			}
-			if (prefs[pref_txt] == "True") makeTxt = true;
-			if (prefs[pref_kml] == "True") makeKml = true;
-			if (prefs[pref_battery] == "True") prefBattery = true;
+			if (prefs[p_filePrefs_txt] == "True") pref_makeTxt = true;
+			if (prefs[p_filePrefs_kml] == "True") pref_makeKml = true;
+			if (prefs[p_filePrefs_battery] == "True") pref_battery = true;
 			
-			if (prefs[pref_timeFormat] == "2") angloTime = true;
+			if (prefs[p_filePrefs_timeFormat] == "2") pref_angloTime = true;
 
-			dateFormat = byte.Parse(prefs[pref_dateFormat]);
+			pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);
 			//timeFormat = byte.Parse(prefs[pref_timeFormat]);
-			switch (dateFormat)
+			switch (pref_dateFormat)
 			{
 				case 1:
-					dateFormatParameter = "dd/MM/yyyy";
+					pref_dateFormatParameter = "dd/MM/yyyy";
 					break;
 				case 2:
-					dateFormatParameter = "MM/dd/yyyy";
+					pref_dateFormatParameter = "MM/dd/yyyy";
 					break;
 				case 3:
-					dateFormatParameter = "yyyy/MM/dd";
+					pref_dateFormatParameter = "yyyy/MM/dd";
 					break;
 				case 4:
-					dateFormatParameter = "yyyy/dd/MM";
+					pref_dateFormatParameter = "yyyy/dd/MM";
 					break;
 			}
-			overrideTime = false;
-			if (prefs[pref_override_time] == "True") overrideTime = true;
-			metadata = false;
-			if (prefs[pref_metadata] == "True") metadata = true;
-			leapSeconds = int.Parse(prefs[pref_leapSeconds]);
-			removeNonGps = bool.Parse(prefs[pref_removeNonGps]);
+			if (prefs[p_filePrefs_overrideTime] == "True") pref_overrideTime = true;
+			if (prefs[p_filePrefs_metadata] == "True") pref_metadata = true;
+			pref_leapSeconds = int.Parse(prefs[p_filePrefs_leapSeconds]);
+			pref_removeNonGps = bool.Parse(prefs[p_filePrefs_removeNonGps]);
 		}
 
 		protected string[] convertPrepareOutputFiles(string fileName)
@@ -1024,12 +1006,12 @@ namespace X_Manager.Units.AxyTreks
 			BinaryWriter kml = BinaryWriter.Null;
 			BinaryWriter placeMark = BinaryWriter.Null;
 
-			if (makeTxt)
+			if (pref_makeTxt)
 			{
 				if ((File.Exists(names[1])) & (names[5].Contains("ard"))) fDel(names[1]);
 				txt = new BinaryWriter(File.OpenWrite(names[1]));
 			}
-			if (makeKml)
+			if (pref_makeKml)
 			{
 				if ((File.Exists(names[2])) & (names[5].Contains("ard"))) fDel(names[2]);
 				if ((File.Exists(names[3])) & (names[5].Contains("ard"))) fDel(names[3]);
@@ -1067,7 +1049,7 @@ namespace X_Manager.Units.AxyTreks
 			}
 			else
 			{
-				removeNonGps = false;
+				pref_removeNonGps = false;
 				sesAdd.Add(0);
 			}
 			ardFile.Close();
@@ -1125,7 +1107,7 @@ namespace X_Manager.Units.AxyTreks
 			firmTotA = (uint)ard.ReadByte() * 1000000 + (uint)ard.ReadByte() * 1000 + (uint)ard.ReadByte();
 			firmTotB = (uint)ard.ReadByte() * 1000000 + (uint)ard.ReadByte() * 1000 + (uint)ard.ReadByte();
 
-			if (debugLevel > 0)
+			if (pref_metadata)
 			{
 				txt.Write(Encoding.ASCII.GetBytes("\r\n********************************* SESSION #" + sesCounter.ToString() + " (0x" +
 				(ard.Position + infRemPosition).ToString("X4") + ")\r\n"));
@@ -1345,7 +1327,7 @@ namespace X_Manager.Units.AxyTreks
 		protected virtual void csvPlaceHeader(ref BinaryWriter csv)
 		{
 			string csvHeader = "TagID";
-			if (sameColumn)
+			if (pref_sameColumn)
 			{
 				csvHeader = csvHeader + csvSeparator + "Timestamp";
 			}
@@ -1527,7 +1509,7 @@ namespace X_Manager.Units.AxyTreks
 					return true;
 				}
 				press = ((d1 * sens / 2_097_152) - off) / 81_920;
-				if (inMeters)
+				if (pref_inMeters)
 				{
 					press -= pressOffset;
 					if (press < 0) press = 0;
@@ -1644,7 +1626,7 @@ namespace X_Manager.Units.AxyTreks
 					return true;
 				}
 				press = (((d1 * sens / 2_097_152) - off) / 81_920);
-				if (inMeters)
+				if (pref_inMeters)
 				{
 					press -= pressOffset;
 					if (press <= 0) press = 0;
@@ -1755,10 +1737,10 @@ namespace X_Manager.Units.AxyTreks
 		{
 			string altSegno, eo, ns, coords;
 			var nfi = new CultureInfo("en-US", false).NumberFormat;
-			string dateS = orario.ToString(dateFormatParameter);
+			string dateS = orario.ToString(pref_dateFormatParameter);
 			string dateTimeS = dateS + csvSeparator + orario.ToString("HH:mm:ss");
 
-			if (((tsType & 32) == 32) && (debugLevel > 0))
+			if (((tsType & 32) == 32) && pref_metadata)
 			{
 				coords = dateTimeS + '\t';
 				string coords2 = "";
@@ -1785,7 +1767,7 @@ namespace X_Manager.Units.AxyTreks
 				coords += "\t" + altSegno + ((coord.altH * 256 + coord.altL) * 2).ToString() + "\t" + speed.ToString("0.0") + "\t";
 				coords += coord.nSat.ToString() + "\t" + coord.DOP.ToString() + "." + coord.DOPdec.ToString();
 				coords += "\t" + gsvSum.ToString();
-				if (debugLevel > 2)
+				if (pref_debugLevel > 0)
 				{
 					coords += " " + data.ore.ToString("00") + ":" + data.minuti.ToString("00") + ":" + data.secondi.ToString("00") + " " +
 									data.giorno.ToString("00") + "-" + data.mese.ToString("00") + "-20" + data.anno.ToString("00") +
@@ -1828,15 +1810,15 @@ namespace X_Manager.Units.AxyTreks
 					s = s + "Schedule: " + eventAr[1].ToString() + " " + eventAr[2].ToString() + " " + eventAr[3].ToString();
 					break;
 				case 8:
-					if ((debugLevel > 1)) s += "ACTIVITY = ACT_RUN";
+					if (pref_metadata) s += "ACTIVITY = ACT_RUN";
 					else s = "";
 					break;
 				case 9:
-					if ((debugLevel > 1)) s += "ACTIVITY = ACT_LASTONE";
+					if (pref_metadata) s += "ACTIVITY = ACT_LASTONE";
 					else s = "";
 					break;
 				case 10:
-					if ((debugLevel > 1)) s += "ACTIVITY = ACT_STOP";
+					if (pref_metadata) s += "ACTIVITY = ACT_STOP";
 					else s = "";
 					break;
 				case 11:
@@ -1855,7 +1837,7 @@ namespace X_Manager.Units.AxyTreks
 					s += "Maintenance reset. New data on next session...";
 					break;
 				case 16:
-					if (debugLevel > 1) s += "MAX7 found OFF during CONT or ALT_ON. Restarted.";
+					if (pref_metadata) s += "MAX7 found OFF during CONT or ALT_ON. Restarted.";
 					else s = "";
 					break;
 				case 17:
@@ -1865,7 +1847,7 @@ namespace X_Manager.Units.AxyTreks
 					s += "Got Time and Position.";
 					break;
 				case 80:
-					if (debugLevel > 2)
+					if (pref_debugLevel > 0)
 					{
 						s += "Debug. Fase: " + eventAr[1].ToString();
 						s += " OnOff: " + (eventAr[2] & 1).ToString();

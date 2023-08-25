@@ -15,6 +15,7 @@ using X_Manager.Units;
 using X_Manager.ConfigurationWindows;
 using X_Manager;
 using X_Manager.Units.AxyTreks;
+using System.IO;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -82,21 +83,34 @@ namespace X_Manager.ConfigurationWindows
 			bool result = false;
 			while (!result)         //Sistemare, forse result non viene messo a true
 			{
-				if (!System.IO.File.Exists(trekSchedFile))
+				if (!File.Exists(trekSchedFile))
 				{
 					exportSchedule(trekSchedFile);
 					result = true;
 				}
 				else
 				{
-					result = importSchedule(trekSchedFile, false);
-					if (!result)
+					var br = new BinaryReader(File.OpenRead(trekSchedFile));
+					if (br.BaseStream.Length > 0x45a)
 					{
-						try
+						br.Close();
+						result = importSchedule(trekSchedFile, false);
+						if (!result)
 						{
-							System.IO.File.Delete(trekSchedFile);
+							try
+							{
+								File.Delete(trekSchedFile);
+							}
+							catch { }
 						}
-						catch { }
+						
+					}
+					else
+					{
+						br.Close();
+						File.Delete(trekSchedFile);
+						exportSchedule(trekSchedFile);
+						result = true;
 					}
 				}
 			}
@@ -417,9 +431,9 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			conf[143] = (byte)(st.SdDateTimePicker.Value.Value.Year - 2000);
-			conf[144] = (byte)(st.SdDateTimePicker.Value.Value.Month);
-			conf[145] = (byte)(st.SdDateTimePicker.Value.Value.Day);
+			conf[143] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Year - 2000);
+			conf[144] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Month);
+			conf[145] = (byte)(st.SdDateTimePicker.SelectedDate.Value.Day);
 
 			conf[152] = 0;
 			if ((bool)DailyCheck.IsChecked)
@@ -508,8 +522,15 @@ namespace X_Manager.ConfigurationWindows
 			((TabItem)ScheduleTab.Items.GetItemAt(7)).Content = tt;
 
 			TrekRemoteIntervals tr = new TrekRemoteIntervals(this);
-			tr.import(new double[23]);
-			((TabItem)(ScheduleTab.Items.GetItemAt(8))).Content = tr;
+			var defaultRemoteSchedule = new double[23];
+			defaultRemoteSchedule[16] = 1;
+			defaultRemoteSchedule[18] = 24;
+			defaultRemoteSchedule[19] = 25;
+			defaultRemoteSchedule[20] = 25;
+			defaultRemoteSchedule[21] = 25;
+			defaultRemoteSchedule[22] = 25;
+			tr.import(defaultRemoteSchedule);
+			((TabItem)ScheduleTab.Items.GetItemAt(8)).Content = tr;
 
 			WeeklyCheck.IsChecked = true;
 		}
@@ -612,7 +633,7 @@ namespace X_Manager.ConfigurationWindows
 
 		private bool importSchedule(string fileName, bool checkCompatibility)
 		{
-			System.IO.BinaryReader fi = new System.IO.BinaryReader(System.IO.File.Open(fileName, System.IO.FileMode.Open));
+			BinaryReader fi = new BinaryReader(File.Open(fileName, FileMode.Open));
 			string header = "";
 			try
 			{
@@ -770,7 +791,7 @@ namespace X_Manager.ConfigurationWindows
 
 		private void exportSchedule(string fileName)
 		{
-			var fo = new System.IO.BinaryWriter(System.IO.File.Open(fileName, System.IO.FileMode.Create));
+			var fo = new BinaryWriter(File.Open(fileName, FileMode.Create));
 
 			string header = "TSM-TREK";
 			if (unit is AxyTrekN)
@@ -826,6 +847,8 @@ namespace X_Manager.ConfigurationWindows
 			{
 				fo.Write(value);
 			}
+			//Scrittura due byte finali per sostituzione schedule di default senza remoto con schedule di default con remoto sempre attivo
+			fo.Write((UInt16)0x0200);
 
 			fo.Close();
 		}

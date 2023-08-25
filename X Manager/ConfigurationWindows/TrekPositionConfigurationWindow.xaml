@@ -15,9 +15,9 @@
         </Grid.RowDefinitions>
 
         <Menu DockPanel.Dock="Top" Grid.Row="0" Height="Auto" Background="#FF181818">
-            <MenuItem Header="_FILE" Margin="5" Foreground="#FF00AADE" FontSize="16" FontWeight="Bold" >
-                <MenuItem Header="_Open schedule..." FontSize="12" Foreground="#FF181818" Click="openSchedule" />
-                <MenuItem Header="_Save schedule as..." FontSize="12" Foreground="#FF181818" IsCheckable="True" IsChecked="False" Click="saveScheduleAs"/>
+            <MenuItem Header="_FILE" Margin="5" FontSize="16" FontWeight="Bold" >
+                <MenuItem Header="_Open schedule..." FontSize="12" Click="openSchedule" />
+                <MenuItem Header="_Save schedule as..." FontSize="12" IsCheckable="True" IsChecked="False" Click="saveScheduleAs"/>
             </MenuItem>
         </Menu>
 
