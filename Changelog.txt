@@ -1,0 +1,294 @@
+1.0.0	Release iniziale
+1.1.0	Bugfix: corretta aqcuisizione del nome da unità connessa. Si fermava al primo spazio invece che all'ultimo carattere diverso da spazio.
+	Bugfix: corretto schedule axyTrek, rimaneva tutto su Continuous.
+	Inserimento grafica pulsante "Remote" e finestra "Remote Connector".
+	Migliorate finestre "Configuration read" e "Congiuration succesfully updated" nella lettura e scrittura schedule.
+	Inizio supporto per GiPSy-6.
+1.2.0	Doppia release x86 e x64
+	Ottimizzazione conversione mediante covnersione di variabili in int e caching esclusivo su ram in lettura e parziale in scirttura (solo axy trek)
+1.2.1	Bugfix: conversione timestamp con orario; usava il weekday al posto dei secondi e i secondi al posto dei minuti
+	Bugfix: modificata variabile temperatura da integer a double
+	Migliorata retrocompatibilità per evento di debug Axy-Trek
+1.2.2	Bugfix: piccole correzioni su Axy5
+	Inizio gestione github
+1.2.3	Bugfix: Corretta conversione dati magnetometro
+1.2.4	Bugfix: AGM: Corretta conversione magnetometro 1Hz, non metteva i tab se il dato mancava nel timestamp
+1.2.5	Aggiunta configurazione schedule Axy5
+	Classe Unit e derivate: sostituite funzioni getSchedule e setSchedule con getGpsSchedule e setGpsSchedule.
+	Classe Unit e derivate: aggiunte funzioni getAccSchedule e setAccSchedule
+	Bugfix: Aggiunti try-catch in apertura ard e csv per gestire eccezione file già aperti.
+	Separate finestre configurazione accelerometro per Axy e Axytrek
+	Separate temperatura e pressione nella config. AxyTrek per firmware Trek 3.4.0 (temperatura da sensore LIS2DH quando profond assente). Garantita retrocompatibilita' per precedenti fw
+1.3.0	Configurtazione Schedule Axy5
+	Configurazione Schedule Remoto Axy5
+	Completata conversione Axy5, compreso evento "Remote communication established"
+1.3.1	Corretta conversione 1Hz Axy4 e AxyDepth (1 e 2)
+1.3.2	Bugifx: il download (remote e non) Axy5, non richiedeva l'ultima pagina del blocco interrompendo la lettura sequenziale.
+	Remote: aggiunta comando per andare a 115200 inviato a 2000000, per resettare la basestation in caso di crash
+1.3.3	Bugfix: conversione axy5 non usava i coefficienti di conversione lasciando il valore raw
+1.4.0	Supporto per memoria 4Gb single die con lettura continua di blocco.
+	Bugfix: conversioni axyTrek e axyDepth usavano i coefficienti di conversione * 1000
+	LeapSecond parametrizzato nelle preferenze di conversione
+1.5.0	Implementazione gestione memoria Single e Dual Die AxyDepth2
+	AxyTrek: configurazione finestre remoto
+1.5.1	Implementata memoria SingleDie anche su AxyDepth2
+	Bugfix: Axytrek remoto: corretto carattere riconoscimento dual/single die in download remoto.
+1.5.2	Axy5: allineamento con axyTrek per richiesta download 1.5 / 2 MBaud in fase di inizio download
+	Ripristinato invio comando di disconnessione al trek remoto
+	Trek remoto: riconoscimento evento "Remote Connection"
+1.5.3	Bugfix: Soglie adc erroneamente dimensionate a 12bit potevano attivare il trigger adc di inibizione gps anche se non voluto
+1.5.4	Bugfix: finestra di configurazione trek non inviava correttamente le finestre remoto mettendole sempre a zero
+	Aggiunta funzione per pubblicazione ora gps in accanto all'ora locale nei timestamp con coordinata (CTRL+G nella finestra preferenze di conversione)
+1.6.0	Aggiunta connessione remota con indirizzamento a 3 byte
+	Aggiunte funzone di configurazione unità remota vergine
+	Bugfix: corretta covnersione pressione sensore vecchio (MS5803)
+	Bugfix: download remoto (tutte le unità) ignorava preferenza keepMdp in caso di pulsante stop
+1.6.1	Invio orario alla Basestation tramite Masterstation
+1.6.2	Bufgix: non veniva riaperta la porta seriale dopo aver chiuso la finestra di connessione unità remota
+1.6.3	Aggiunta possibilità di scaricare aree di memoria custom dalle unità
+1.7.0	Conversione file .rem
+	Bugfix: Settings -> Custom range download perdeva la spunta
+1.7.1	Axy5: completata conversione Axy5 per nuovo timestamp con dati in fondo.
+	Remoto: la finestra scompare se l'unità non ha l'indirizzo vergine.
+	Remoto: possibilità di scrivere "c" nella casella indirizzo per impostare l'indirizzo vergine.
+1.7.2	Gestione schedule accelerometro axyTrek
+1.7.3	AGM: corretta conversione giroscopio 1Hz.
+1.7.4	Axy5: Correzione bug in conversione
+	Axy5: Introdotta conversione sensore ADC
+1.8.0	AxyTrek: Aggiunto supporto per unità con burst accelerometo.
+	Bugfix: Conversione axy5, crashava se si toglievano i metadati nelle opzioni di conversione
+1.8.1	Bugfix: conversione .rem, durante la ricerca gps la barra di avanzamento non procedeva correttamente
+	Interfaccia configurazione Axy5 ora "responsive", con scrollbar e padding per risoluzioni più basse
+	Bugfix: La finestra di salvataggio download puntava agli "ard1" per tutte le unità escludendo gli "ard"
+1.8.2	I file eliminati vengono spostati nel cestino
+	Possibilità di impostare il trek come solare da software.
+	AxyTrek: scrittura coordinate nel csv anche nei periodi in cui l'accelerometro è in burst-off.
+1.8.3	Possibilità di scegliere se il csv dal rem deve contenere le sessioni senza gps
+1.9.0	Utilizzo conversione da riga di comando
+	Doppio click su file ard fa partire il sw in conversione
+	Aggiunta indicazione ETA in conversione
+	Axy5: aggiunta posizione ard nel csv - colonna metadati, in caso di debug=3
+	Bugfix: Axy5, se selezionato "fill empty fields" crashava
+1.9.1	Bugfix: AGM, in caso di "fill empty values", giroscopio e magnetometro seganavano zero (al cent.di.secondo 0 e se impostati come "linked")
+	Bugfix: correzione ETA (riportava male i minuti)
+1.9.2	Auto resize della finestra di configurazione axytrek in funzione della risoluzione dello schermo
+	Bugfix: Conversione axy5 crashava se tolta la colonna batteria da preferenze conversione
+1.9.3	Bugfix - AxyTrek: attesa progressWorker (busy)
+	Bugfix - AxyTrek: migliorato riconoscimento tripletta x y z di troppo tra header inizio sessione e primo timestamp. Il riconoscimento falliva nel caso di tripletta contenente escape 0xAB
+	AxyTrek: nella conversione rem viene utilizza data (ma non ora) della precedente sessione (se valida) come data in caso di fix gps 06/01/1980
+	AxyTrek: indicazione di nuova sessione nel txt dai rem
+1.9.4	AxyTrek: indicazione di nuova sessione nel txt dai rem inserita solo in caso di debugLevel > 0
+1.9.5	Rimossa restrizione tipologia FTDI dall'elenco porte COM
+	Bugfix: ripristinata funzione comando stop durante conversione dei rem
+	Bugfix: se le sessioni dei rem sono 254 la conversione crasha nel costruire l'array delle sessioni
+	Introdotte prime funzionalità per gestione gipsy6 (Texas)
+1.9.6	Bugfix: ripristinata connessione con AxyTrek
+1.10.0	Supporto per Axy-Quattrok
+	Inizio scrittura classi di configurazione GiPSy6
+	Bugfix: la conversione Axy5 ignorava sensore depth/aria convertendo sempre acqua
+	Bugfix: errata interpretazione dell'header per le info su temperatura, pressione e adc abilitati.
+1.10.1	Ripristinata conversione pressione aria nell'axy5.
+	Continuazione sviluppo finestre interffaccia gipsy6
+1.10.2	Messagi di warning in caso di mdp o ard corrotti nell'Axy5.
+	Sviluppo splippy map per il gipsy6
+	Vettori fisici e logici per la memoria dispositivo (retrocompatibilità con precedenti unità)
+	AGM: Implementazione memoria SingleDie
+1.10.3	Allineamento vettori fisici e logici e funzioni per tutte le unità
+	Correzione separatore decimale in temperatura e pressione Axy5
+	Bugfix: Download Axy5 non funzionava dopo migrazione a nuovo sistema vettori fisici e logici memoria
+1.10.4	Download settato su firmware 1.7.0 - MPLAB X
+	Sistemata gestione memoria Axy5 e aggiornamento progress bar
+1.11.0	Gestione Axy4D con Firmware => 3.0.0 (Magnetometro/Board Axy5)
+1.11.1	Bugfix: separatore decimale magnetometro su axy4d
+1.11.2	Bugfix: crashava alla configurazione dell'axyDepth.5
+1.11.3	Bugfix: conversione axyDepth.5
+1.11.4	Rimossa limitazione elenco porte COM
+	Bugfix: Axy5 dichiarava ard corrupted all'ultimo pre-stamp prima di evento poweroff
+	Bugfix: Axy5, in decodetimestamp rilevamento evento di fine sessione (poweroff, memfull, lowbattery) spostato a inizio timestamp esteso.
+1.11.5	Bugfix: Conversione Air nell'AxyDepth 1
+1.12.0	Uniformate costanti di identificazione modello.
+	Aggiunta classe Drop-Off
+	Aggiunte configurazione e conversione ADC per Axy4.5
+1.12.1	AxyQuattrok: gestione zero e span per calibrazione
+	Nuovo formato file ini con parametro = valore
+1.13.0	Bootloader Gipsy6
+	Possibilità di mettere i secondi DropOff a zero.
+	Bugfix: lettura batteria Gipsy6
+	AxyQuattrok: sistemati zero e span
+	Bugfix: conversione Axy4/Depth_2 a 1Hz
+1.13.1	Bugfix: il manual range download veniva ignorato con gipsy6 e axy5
+	Bugfix: Axy5 falliva download in caso di memory full
+1.14.0	Gipsy6: conversione nuova codifica coordinate
+	Gipsy6: nuove impostazioni start delay / filtri earyl-stop e enhanced-accuracygit 
+	Gipsy6: Supporto per configurazioni orari remoto.
+	Gipsy6: Modalità Basic / Expert per la configurazione.
+	Rimosso incorpramento driver FTDI (l'utente lo dovrà scaricare dal sito).
+1.14.1	Bugfix: lo schedule Gipsy6 veniva caricato male e invertiva i mesi di validità dello schedule B
+1.14.2	Gipsy6: uso enumeratore per identificare gli eventi
+	Bugfix: Axy5, la data nel timestamp veniva interpretata prima di riconoscere un timestamp escape con memoria piena
+1.14.3	Axy5 Download riga 621 modificato puntatore al buffer di download. Prima il puntatore puntava inizio buffer e 
+		veniva utilizzato sommando l'offset; ora viene creato puntando direttamente all'offset del buffer.
+	Aggiunta possibilità di minimizzare l'interfaccia
+	Bugfix: configurazione gipsy6: Togliendo enhanced mode crashava se non si erano prima "visitate" le pagine di geofencing.
+	Dimensionamento layout finestre auto-adattante alla risoluzione dello schermo.
+1.14.4	Bugfix: Configurazione AxyDepth.5 non teneva conto di periodo logging temperatura e pressione e abilitazione logging ADC presenti nel firmware 3.1.0 e successivi
+1.14.5	Geofencing: i ruquadri non possono scavalcare i bordi ai poli e al confine +/-180°, si in modalità online che offline.
+	Bufgix - Gipsy6: txm e kml BGW accumulavano nella stringa di uscita senza scaricarla nel writer, se non alla fine della conversione
+	Gipsy6: implementata triplice progressbar (producer, kml e txt consumer)
+	Implementato pulsante per aggiornamento live della batteria.
+	All'apertura della configurazione gipsy6, controlla se ci sono più di 1024 tiles nella cache e elimina quelle di troppo.
+	Il geofencing si abilita/disabilita automaticamente verificando la presenza di almeno un'area e almeno un orario. Tolta  la spunta "Enabled".
+1.14.6	Bugfix: la conversione axy4.5 (sia normale che depth) in caso di 1Hz incrementava l'orario di due secondi invece che 1
+	Posizione di default geofencing in caso nessun rettangolo sia abilitato portata a coordinate 0,0
+	Bugfix: Nella finestra di configurazione Gipsy6_Basic non venivano correttamente inviati i parametri Early Stop e Enhanced Accuracy
+	Bugfix: AGM. Venivano usati i coefficienti del giroscopio nella conversione del magnetometro in modalità acc-linked.
+	Axy5-Conversione: Passaggio da BinaryWriter a StreamWriter
+1.14.7(NR)	Bugfix: il pulsante "FLASH" della finestra firmware upload del gipsy6 aveva aree non premibili
+	Bugfix: la finestra firmware upload del gipsy6 lasciava la porta seriale impegnata dopo la chiusura
+1.15.0	Allineamento classe Gipsy6 con firmware finale 1.0.0
+	Il remote connector si chiude automaticamente quando la connessione va a buon fine.
+1.15.1	Il remote connector non si chiude automaticamente se si preme "Wake" con CTRL premuto
+1.15.2	Bugfix - AxyDepth: con i firmware da 2.7.0 in poi non leggeva il byte AdcEn nell'header di configurazione, quindi il primo timestamp risultava disallineato
+1.15.3	Gips6: i timestamp non validi vengono ignorati
+1.15.4	Ripristinata funzione refresh battery in caso du connessione remota
+	Aggiunto evento remote_connection
+1.15.5	Gipsy6: la password per configurazione unità remota/locale e per soglie batteria viene chiesta solo una volta per sessione di lavoro
+	Aggiunta funzione keep alive per connessione remota con gipsy6 tramite masterstation
+1.16.0	Gipsy6: spostate funzioni porta seriale su driver ftdi
+1.16.1	Spostato Bootloader gipsy6 su driver ftdi (ancora non funziona da tasto Upload New Firmware)
+	Aggiunti livelli di debug su conversione Gipsy6
+1.16.2	Completata migrazione bootloader gipsy6, ora funziona sia per unità vergini che programmate
+	Migliorato funzionamento keepAlive per gipsy6
+	Migliorata gestione aknoledgment comando per comunicazione gipsy6
+	Gipsy6: modificata dimensione pacchetti da 64 a 28 byte per invio configurazione all'unità.
+1.16.3
+	Gipsy6: Aggiunti tasti AllOn/AllOff per geofencing e orari remoto
+	Gipsy6: Possibilità di inserire l'indirizzo unità remota sia in formato decimale che esadecimale
+	Gipsy6: Aggiunta tasto "TODAY" per inserimento data start delay
+	Gipsy6: Aggiunta retrocompatibilità invio pacchetti da 64byte per configurazione unità con firmware fino a 1.3.0
+	Ripristinata connessione con unità diverse da gipsy6
+	Bugfix: La Finestra di Dialogo Open File per conversione ard AxyTrek non puntava correttamente all'ultimo percorso aperto
+1.16.4
+	Masterstation_1: ridotti tentativi di connessione da 6 a 3
+	Gipsy6 - Inizio implementazione retry per pacchetti download remoto
+	Remoto - Inizio progettazione BaseManager
+	Bugfix Gipsy6: la latitudine prendeva erroneamente il segno della longitudine
+1.17.0
+	Nuova comunicazione remota gipsy6 basata su acknoledgement
+	Formattazione txt gipsy6 con nome unità e indirizzo remoto
+	Pulsante firmware per masaterstation
+	Possibilità resume donwload incompleti gipsy6
+1.17.1
+	Bugfix - AxyTrek: l'invio della configurazione accelerometro resettava l'eventuale impostazione come unità solare
+	Spostata funzione di wakeup masterstation su drive ftdi
+	Il remote connector lasciava la seriale impegnata se chiuso prima di tentare la connessione o dopo una connessione non andata a buon fine.
+	Gipsy6: possibilità con CTRL+click di aprire la finestra di configurazione del gipsy6 con configurazione di default invece di quella letta dal gipsy
+		(quella letta viene comunque salvata su file)
+	Bugfix - gipsy: corretta conversione del course over ground
+1.17.2
+	Bootloader funzionante con gipsy6, masterstation 2, basestation 2 e CC1352P generico tramite CTRL+B
+	Titoli personalizzati per finestra di bootloader gipsy6/masterstation/basestation/CC1352
+	Gipsy6: tolta la possibilita di assegnare indirizzi rf 0 e range 0xFFFF00-0xFFFFFF
+	Bugfix: il bootloader da CTRL+B provava a partire anche se non era connesso nessun cavo dati
+	Completamento funzioni Basemanager2
+	Modalità supervisor e invio ora alla BS impostabile sia su masterstation 1 che 2
+1.17.3
+	Transizione completa a driver FTDI.
+	Dumpview: possibilità di cancellare lo schermo e di cambiare baudrate
+	Possibilità di modificare l'indirizzo ricevente della basestation
+1.17.4
+	Gipsy6: Decodifica eventi Fix Start e Fix Timeout
+	Gipsy6: Aggiunto settaggio nascosto in Basic Configuration (CTRL+D) per eventi di debug
+	Basestation: Corretto l'invio della data sulla sd che era locale e non GMT0
+1.17.5
+	Inizio predisposizione conversione file basestation gipsy6
+	Aggiunti controlli d'errore su apertura automatica del primo dispositivo FTDI all'avvio del software
+1.18.0
+	Basemanager: aggiunti pulsanti Import/Export
+	Basemanager: aggiunta possibilità di configurazione schedule senza unità connessa
+	Bugfix-Basemanager: i file di configurazione unità venivano salvati con nome indirizzo esadecimale invece che decimale
+	Bugfix-Basemanager: non veniva scritto il a 1 il byte di configurazione per presenza di nuova configurazione unità
+	Gipsy6: aggiunta conversione file da basestation
+	Interfaccia: il nome della porta seriale si colora di verde se la connessione con il dispositivo FTDI è andata a buon fine
+1.18.1
+	Gipsy6-Schedule: Aggiunto warning in caso di schedule principale totalmente OFF
+	Gipsy6-Schedule: Aggiunti pulsanti "All as A/B/C/D"
+	Gipsy6-Schedule: Aggiunta selezione secondi di enhanced accuracy (per firmware uguali o superiori a 1.4.7)
+	AxyTrek: aumentato timeout per attesa risposta alla connessione remota
+1.18.2
+	Gipsy6-Schedule: aggiunte  impostazioni per la prossimità
+	Gipsy6-Schedule: modificata modalità impostazione orari remoto (e prossimità)
+	Gipsy6: aggiunta decodifica rilevamento unità prossima nel file txt
+	Bugfix: non venivano elencate le porte seriale con numero >= 20
+1.18.3	
+	Bugfix: caselle indirizzi remoto e di prossimità
+1.18.4	
+	Rimosso file con lunghezza dei timestamp nella conversione dell'axy4/4.5
+	Tolta possibilità di modifica indirizzo RF in caso di settaggio schedule nel Basemanager, quando si importa uno schedule da file. Inoltre l'indirizzo
+		viene lasciato uguale a quello dell'unità selezionata, ignorando quello presente nel file importato
+1.18.5
+	Aggiunta unità AxyDepth in modalità AxyDepthFast.5
+	Basemanager: se si cambia l'indirizzo di un'unità l'eventuale nuovo schedule associato si aggancia al nuovo indirizzo
+	Bugfix: non impostava correttamente la modalità Verbose nell axydepth
+	Bugfix: non veniva riconosciuto l'Axy4 legacy in conversione e il file ard veniva considerato di default come un trek
+	Gipsy6: Completata conversione Course Over Ground
+	Bugfix: Corretti intervalli possibili di scansione per sensore di prossimità gipsy6
+1.18.6
+	Axy4.5/Depth.5/Fast - Aggiunta funzionalità start delay nella finestra di configurazione
+	Gipsy6 - Prossimità: aggiunto intervallo da 60 minuti
+	Bugfix Gipsy6 - prossimità: informazioni
+	Gipsy6: aggiunti i preset alla configurazione soglie batteria e aggiunta soglia pre-download remoto
+	Gipsy6: lettura nuovi schedule con modalità mesi a 2 byte invece che 12 (inclusa retrocompatibilità)
+	Esclusi file da 0 byte dalla lista file da convertire
+1.18.7
+	Aggiunta regolazione potenza per prossimità
+1.18.8
+	Axy-Trek HD: aggiunta coefficienti calibrazione per sensore temperatura	
+1.18.9
+	Ridenominazione Axy-Quattrok -> Axy-Trek HD
+	Aggiunta conversione REM da axytrekHD
+	Aggiunto coefficiente di temperatura per calibrazione pressione su trekHD
+	Aggiunto calcolo automatico coefficienti di calibrazione di temp. e pressione pre trekHD
+	Aggiunto calcolo e invio soglie di pressione e temperatura per funzionamento sensore d'acqua virtuale nel trekHD
+1.18.10
+	Gestione unità Axy-Trek FT
+	Aggiunta calibrazione AxyDepth-Fast
+	Implementate classi astratte Axy e AxyTrek
+1.18.11
+	Gestione unità Axy-Trek CO2
+1.18.12
+	Riorganizzazione classi AxyTrek
+	Correzione colonne rem in caso contenga sessioni con impostazioni differenti
+	Supporto per Axy-Trek R
+1.19.0
+	Suppport per Gipsy6-XS
+	Bugfix - Dumpview: il baudrate partiva con l'ultimo utilizzato dall'interfaccia FTDI e non da quello indicato nella combobox 
+	Gipsy6: possibilità di scaricare l'immagine della flash da utility bootloader
+	Gipsy6: aggiunta possibilità di impostare la prossimità a 1 secondo
+	Axy5: Supporto per firmware 2.0.0
+	Axy5: Correzione coefficiente di conversione accelerometro in modalità 16g/12bit
+	AxyTrek: Ripristinata possibilità di ignorare l'orario gps usando quello indicato nelle preferenze di conversione
+1.20.0
+	Bugfix: ripristinata funzione Export su schedule gipsy6
+	Bugfix - BaseManager. Crashava all'avvio se non c'era connettività  internet
+	Inseriti codici di errore in avvio BaseManager
+1.20.1
+	Bugfix: ripristinate funzionalità Supervisor Station AxyTrek
+	Bugfix - Gipsy6: ripristinato geofencing2
+1.20.2
+	Bugfix - Axy5: aggiustata formattazione csv
+	Bugfix: Le finestre di dialogo FileOpen e FileSave crashano per alcuni clienti per via di qualche anomalia nel percorso dell'InitialDirectory.
+	Bugfix: il download via cavo non funzionava se l'indirizzo di partenza era diverso da zero (perchè dati cancellati da basestation)
+	Bugfix-Basestation: ripristinata funzionalità "Change unit schedule"
+	Gipsy6: inserito evento "Schedule: OFF" e evento "B_EBVENT" (bad event)
+	Masterstation: alla pressione pulsante "Wake" il driver FTDI viene chiuso e riaperto, per prevenire "Masterstation Bloccata"
+1.21.0
+	Gipsy6: il file KML viene creato solo se la casella è spuntata
+	Gipsy6: attivate opzioni di conversione "Date and Time on the same column", "Battery", Metadata" e "Proximity"
+	Gipsy6: migliorata sincronizzazione thread evitando che il txtBGW utilizzi variabili globali nome unità e indirizzo rf (valori spostati nel timestamp)
+	Axy5 - bugfix: se l'evento memory full o low battery erano contenuti all'interno di un timestamp vuoto il software andava in crash
+	Inserita Finestra di Licenza nel menù "?"
+	Lo schedule del Trek ha di default il remoto attivo 24 ore
+	Masterstation: Rimosso pulsante Firmware Upload - si accede al bootloader con CTRL+B
+	Parametri di conversione spostati nella classe astratta Unit
+	Tracciamento errori di avvio software con codice di errore "S_ERR_CODE"

@@ -1055,7 +1055,7 @@ namespace X_Manager.Units.Gipsy6
 			}));
 
 			//Importa il livello di debug per la conversione
-			debugLevel = parent.stDebugLevel;
+			pref_debugLevel = parent.stDebugLevel;
 
 			int progressBarCounter = 0;
 			//Cicla nel buffer decodificando i timestamp e aggiungendoli alla pila
@@ -1159,8 +1159,8 @@ namespace X_Manager.Units.Gipsy6
 
 			placeHeader(txtBW);
 
-			string[] tabs = new string[p_length];
-			tabs[p_name] = unitName;
+			string[] tabs = new string[p_fileCsv_length];
+			tabs[p_fileCsv_name] = unitName;
 			if (fileType == FileType.FILE_BS6)
 			{
 				unitName = Path.GetFileNameWithoutExtension(txtName);
@@ -1178,67 +1178,67 @@ namespace X_Manager.Units.Gipsy6
 				tL.RemoveAt(0);
 
 				//Si scrive il timestmap nel txt
-				if (!repeatEmptyValues)
+				if (!pref_repeatEmptyValues)
 				{
-					tabs = new string[p_length];
-					tabs[p_name] = t.unitNameTxt;
+					tabs = new string[p_fileCsv_length];
+					tabs[p_fileCsv_name] = t.unitNameTxt;
 				}
-				tabs[p_date] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
-				if (sameColumn)
+				tabs[p_fileCsv_date] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
+				if (pref_sameColumn)
 				{
-					tabs[p_date] += " " + t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+					tabs[p_fileCsv_date] += " " + t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
 				}
 				else
 				{
-					tabs[p_time] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
+					tabs[p_fileCsv_time] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
 				}
 
-				if (((t.tsType & ts_battery) == ts_battery) && prefBattery)
+				if (((t.tsType & ts_battery) == ts_battery) && pref_battery)
 				{
-					tabs[p_battery] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[p_fileCsv_battery] = t.batteryLevel.ToString("0.00") + "V";
 				}
 				if ((t.tsType & ts_coordinate) == ts_coordinate)
 				{
-					tabs[p_latitude] = t.lat.ToString("00.0000000", nfi);
-					tabs[p_longitude] = t.lon.ToString("000.0000000", nfi);
+					tabs[p_fileCsv_latitude] = t.lat.ToString("00.0000000", nfi);
+					tabs[p_fileCsv_longitude] = t.lon.ToString("000.0000000", nfi);
 					if (t.hAcc == 7)
 					{
-						tabs[p_horizontalAccuracy] = "200";
+						tabs[p_fileCsv_horizontalAccuracy] = "200";
 					}
 					else
 					{
-						tabs[p_horizontalAccuracy] = string.Format("{0}", accuracySteps[t.hAcc]);
+						tabs[p_fileCsv_horizontalAccuracy] = string.Format("{0}", accuracySteps[t.hAcc]);
 					}
 
-					tabs[p_altitude] = t.altitude.ToString();
+					tabs[p_fileCsv_altitude] = t.altitude.ToString();
 					if (t.vAcc == 7)
 					{
-						tabs[p_verticalAccuracy] = "200";
+						tabs[p_fileCsv_verticalAccuracy] = "200";
 					}
 					else
 					{
-						tabs[p_verticalAccuracy] = string.Format("{0}", accuracySteps[t.vAcc]);
+						tabs[p_fileCsv_verticalAccuracy] = string.Format("{0}", accuracySteps[t.vAcc]);
 					}
-					tabs[p_speed] = t.speed.ToString("0.0");
-					tabs[p_course] = t.cog.ToString("0.0");
+					tabs[p_fileCsv_speed] = t.speed.ToString("0.0");
+					tabs[p_fileCsv_course] = t.cog.ToString("0.0");
 				}
 
-				if (((t.tsType & ts_event) == ts_event) && metadata)
+				if (((t.tsType & ts_event) == ts_event) && pref_metadata)
 				{
-					tabs[p_event] = decodeEvent(ref t);
+					tabs[p_fileCsv_event] = decodeEvent(ref t);
 				}
 
-				if (debugLevel == 3)
+				if (pref_debugLevel == 3)
 				{
-					tabs[p_position] += " - " + t.pos.ToString("X8");
+					tabs[p_fileCsv_position] += " - " + t.pos.ToString("X8");
 				}
 
 
-				for (int i = 0; i < p_length - 1; i++)
+				for (int i = 0; i < p_fileCsv_length - 1; i++)
 				{
 					txtBW.Write(tabs[i] + "\t");
 				}
-				txtBW.Write(tabs[p_length - 1] + "\r\n");
+				txtBW.Write(tabs[p_fileCsv_length - 1] + "\r\n");
 				txtSemBack.Release();
 
 			}
@@ -1391,7 +1391,7 @@ namespace X_Manager.Units.Gipsy6
 			byte test = gp6[pos];
 			int max = gp6.Length - 1;
 			t.txtAllowed = 0;
-			if (debugLevel > 0) t.txtAllowed++;
+			if (pref_debugLevel > 0) t.txtAllowed++;
 			while (true)
 			{
 				while ((test != 0xab) & (pos < max) && (test != 0xac) && (test != 0x0a))

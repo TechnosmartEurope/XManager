@@ -566,55 +566,55 @@ namespace X_Manager.Units
 			//Imposta le preferenze di conversione
 
 			dateSeparator = csvSeparator;
-			if (prefs[pref_sameColumn] == "True")
+			if (prefs[p_filePrefs_sameColumn] == "True")
 			{
-				sameColumn = true;
+				pref_sameColumn = true;
 				dateSeparator = " ";
 			}
 
 			if (Parent.getParameter("pressureRange") == "air")
 			{
-				isDepth = false;
+				pref_isDepth = false;
 			}
 
-			if (prefs[pref_pressMetri] == "meters")
+			if (prefs[p_filePrefs_pressMetri] == "meters")
 			{
-				inMeters = true;
+				pref_inMeters = true;
 			}
 
-			if (prefs[pref_fillEmpty] == "False")
+			if (prefs[p_filePrefs_fillEmpty] == "False")
 			{
-				repeatEmptyValues = false;
+				pref_repeatEmptyValues = false;
 			}
 
-			if (prefs[pref_battery] == "True")
+			if (prefs[p_filePrefs_battery] == "True")
 			{
-				prefBattery = true;
+				pref_battery = true;
 			}
 
 			dateCi = new CultureInfo("it-IT");
-			if (prefs[pref_timeFormat] == "2")
+			if (prefs[p_filePrefs_timeFormat] == "2")
 			{
 				dateCi = new CultureInfo("en-US");
-				angloTime = true;
+				pref_angloTime = true;
 			}
 
-			timeStampO.pressOffset = float.Parse(prefs[pref_millibars]);
-			dateFormat = byte.Parse(prefs[pref_dateFormat]);
-			timeFormat = byte.Parse(prefs[pref_timeFormat]);
-			switch (dateFormat)
+			timeStampO.pressOffset = float.Parse(prefs[p_filePrefs_millibars]);
+			pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);
+			pref_timeFormat = byte.Parse(prefs[p_filePrefs_timeFormat]);
+			switch (pref_dateFormat)
 			{
 				case 1:
-					dateFormatParameter = "dd/MM/yyyy";
+					pref_dateFormatParameter = "dd/MM/yyyy";
 					break;
 				case 2:
-					dateFormatParameter = "MM/dd/yyyy";
+					pref_dateFormatParameter = "MM/dd/yyyy";
 					break;
 				case 3:
-					dateFormatParameter = "yyyy/MM/dd";
+					pref_dateFormatParameter = "yyyy/MM/dd";
 					break;
 				case 4:
-					dateFormatParameter = "yyyy/dd/MM";
+					pref_dateFormatParameter = "yyyy/dd/MM";
 					break;
 			}
 
@@ -626,7 +626,7 @@ namespace X_Manager.Units
 				cifreDecString = "0.000";
 			}
 
-			if (prefs[pref_metadata] == "True") metadata = true;
+			if (prefs[p_filePrefs_metadata] == "True") pref_metadata = true;
 
 			//Legge i parametri di logging
 			//ard.BaseStream.Position = 7;
@@ -832,10 +832,10 @@ namespace X_Manager.Units
 			UInt16 milli;
 			NumberFormatInfo nfi = (new CultureInfo("en-US", false).NumberFormat);
 
-			dateS = tsLoc.orario.ToString(dateFormatParameter);
+			dateS = tsLoc.orario.ToString(pref_dateFormatParameter);
 			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
 
-			if (angloTime)
+			if (pref_angloTime)
 			{
 				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
 				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
@@ -885,7 +885,7 @@ namespace X_Manager.Units
 
 			textOut += unitName + csvSeparator + dateTimeS + ".000";
 
-			if (angloTime) textOut += " " + ampm;
+			if (pref_angloTime) textOut += " " + ampm;
 
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
@@ -917,7 +917,7 @@ namespace X_Manager.Units
 			else if (gyroMode == 1)
 			{
 				//Inserisce il giroscopio a 1 Hz
-				if (((tsLoc.tsType & 128) == 128) | repeatEmptyValues)
+				if (((tsLoc.tsType & 128) == 128) | pref_repeatEmptyValues)
 				{
 					gyrox = (Math.Round(tsLoc.gyro[0], cifreDec)).ToString(cifreDecString, nfi);
 					gyroy = (Math.Round(tsLoc.gyro[1], cifreDec)).ToString(cifreDecString, nfi);
@@ -952,7 +952,7 @@ namespace X_Manager.Units
 			else if (compassMode == 1)
 			{
 				//Inserisce il magnetometro a 1 Hz
-				if (((tsLoc.tsType & 2) == 2) | repeatEmptyValues)
+				if (((tsLoc.tsType & 2) == 2) | pref_repeatEmptyValues)
 				{
 					compx = (Math.Round(tsLoc.comp[0], cifreDec)).ToString(cifreDecString, nfi);
 					compy = (Math.Round(tsLoc.comp[1], cifreDec)).ToString(cifreDecString, nfi);
@@ -983,17 +983,17 @@ namespace X_Manager.Units
 			temp = Math.Round(tsLoc.temp, 2).ToString(nfi);
 
 			//Inserisce la batteria
-			if (prefBattery)
+			if (pref_battery)
 			{
 				battSep = csvSeparator;
-				if (((tsLoc.tsType & 8) == 8) | repeatEmptyValues)
+				if (((tsLoc.tsType & 8) == 8) | pref_repeatEmptyValues)
 				{
 					volt = tsLoc.batteryLevel.ToString(nfi);
 				}
 			}
 
 			//Inserisce i metadati
-			if (metadata)
+			if (pref_metadata)
 			{
 				metadataSep = csvSeparator;
 				if (tsLoc.logEvent > 0)
@@ -1042,7 +1042,7 @@ namespace X_Manager.Units
 
 			metadataContent = "";
 
-			if (!repeatEmptyValues)
+			if (!pref_repeatEmptyValues)
 			{
 				gyrox = "";
 				gyroy = "";
@@ -1087,7 +1087,7 @@ namespace X_Manager.Units
 				}
 				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
 
-				if (angloTime) textOut += " " + ampm;
+				if (pref_angloTime) textOut += " " + ampm;
 
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
@@ -1152,7 +1152,7 @@ namespace X_Manager.Units
 				{
 					if (i == tsLoc.agmSyncEventPosition)
 					{
-						if (metadata)
+						if (pref_metadata)
 						{
 							tsLoc.agmSyncEventFlag = false;
 							textOut += "TIMEMARK!";
@@ -1201,7 +1201,7 @@ namespace X_Manager.Units
 			//tsmask.2   Temperatura da MS5837
 			if ((tsc.tsType & 4) == 4)
 			{
-				if (isDepth)
+				if (pref_isDepth)
 				{
 					pressureDepth5837(ref ard, ref tsc);
 				}
@@ -1347,7 +1347,7 @@ namespace X_Manager.Units
 		private void csvPlaceHeader(string csvSeparator, ref BinaryWriter csv)
 		{
 			string csvHeader = "TagID";
-			if (sameColumn)
+			if (pref_sameColumn)
 			{
 				csvHeader = csvHeader + csvSeparator + "Timestamp";
 			}
@@ -1370,7 +1370,7 @@ namespace X_Manager.Units
 
 			if (depthMode > 0)
 			{
-				if (inMeters)
+				if (pref_inMeters)
 				{
 					csvHeader += csvSeparator + "Depth";
 				}
@@ -1382,12 +1382,12 @@ namespace X_Manager.Units
 
 			csvHeader += csvSeparator + "Temp. (°C)";
 
-			if (prefBattery)
+			if (pref_battery)
 			{
 				csvHeader += csvSeparator + "Battery Voltage (V)";
 			}
 
-			if (metadata)
+			if (pref_metadata)
 			{
 				csvHeader += csvSeparator + "Metadata";
 			}
@@ -1565,7 +1565,7 @@ namespace X_Manager.Units
 					return true;
 				}
 				tsc.press = (((d1 * sens / 2_097_152) - off) / 81_920);
-				if (inMeters)
+				if (pref_inMeters)
 				{
 					tsc.press -= tsc.pressOffset;
 					if (tsc.press <= 0) tsc.press = 0;

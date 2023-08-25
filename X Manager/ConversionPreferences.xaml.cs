@@ -33,6 +33,8 @@ namespace X_Manager
 		public bool isRem = false;
 		public bool overrideTime = false;
 		bool am;
+		public bool events = false;
+		public bool proximity = false;
 		//bool removeNonGps = false;
 
 		const int pref_pressMetri = 0;
@@ -54,6 +56,7 @@ namespace X_Manager
 		const int pref_metadata = 16;
 		const int pref_leapSeconds = 17;
 		const int pref_nonGps = 18;
+		const int pref_proximity = 19;
 
 		string fileName;
 		public ConversionPreferences(string fileName)
@@ -68,6 +71,17 @@ namespace X_Manager
 			Loaded += loaded;
 			Closing += closing;
 			this.fileName = fileName;
+
+			if (System.IO.Path.GetExtension(fileName).Contains("6"))
+			{
+				//eventsCB.Visibility = Visibility.Visible;
+				proximityCB.Visibility = Visibility.Visible;
+			}
+			else
+			{
+				//eventsCB.Visibility = Visibility.Hidden;
+				proximityCB.Visibility = Visibility.Hidden;
+			}
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
@@ -77,7 +91,7 @@ namespace X_Manager
 				lastPrefs = System.IO.File.ReadAllLines(prefFile);
 				string s = lastPrefs[16];
 
-				if (s == "" | string.IsNullOrEmpty(s) | lastPrefs.Length < 19)
+				if (s == "" | string.IsNullOrEmpty(s) | lastPrefs.Length != 20)
 				{
 					throw new Exception("");
 				}
@@ -85,26 +99,27 @@ namespace X_Manager
 			}
 			catch
 			{
-				string newPrefs = "millibars\r\n";
 				var dt = DateTime.Now;
-				newPrefs += "1016\r\n";
-				newPrefs += "1\r\n";
-				newPrefs += "1\r\n";
-				newPrefs += "False\r\n";
-				newPrefs += "False\r\n";
-				newPrefs += "False\r\n";
-				newPrefs += "True\r\n";
-				newPrefs += "True\r\n";
-				newPrefs += dt.Hour.ToString() + "\r\n";
-				newPrefs += dt.Minute.ToString() + "\r\n";
-				newPrefs += dt.Second.ToString() + "\r\n";
-				newPrefs += dt.Date.Year.ToString() + "\r\n";
-				newPrefs += dt.Date.Month.ToString() + "\r\n";
-				newPrefs += dt.Date.Day.ToString() + "\r\n";
-				newPrefs += "False\r\n";
-				newPrefs += "True\r\n";
-				newPrefs += "2\r\n";
-				newPrefs += "False\r\n";
+				string newPrefs = "millibars\r\n";              //pressione in millibar o metri
+				newPrefs += "1016\r\n";                         //millibar a livello del mare
+				newPrefs += "1\r\n";                            //formato data
+				newPrefs += "1\r\n";                            //formato ora
+				newPrefs += "False\r\n";                        //Fill empty fields
+				newPrefs += "False\r\n";                        //Date and Time on the same column
+				newPrefs += "False\r\n";                        //Battery
+				newPrefs += "True\r\n";                         //TXT
+				newPrefs += "True\r\n";                         //KML
+				newPrefs += dt.Hour.ToString() + "\r\n";        //Ore
+				newPrefs += dt.Minute.ToString() + "\r\n";      //Minuti
+				newPrefs += dt.Second.ToString() + "\r\n";      //Secondi
+				newPrefs += dt.Date.Year.ToString() + "\r\n";   //Anno
+				newPrefs += dt.Date.Month.ToString() + "\r\n";  //Mese
+				newPrefs += dt.Date.Day.ToString() + "\r\n";    //Giorno
+				newPrefs += "False\r\n";                        //Override date time
+				newPrefs += "True\r\n";                         //Metadata
+				newPrefs += "2\r\n";                            //Leap seconds
+				newPrefs += "False\r\n";                        //Sessioni senza gps
+				newPrefs += "True\r\n";                         //Prossimità (gipsy6)
 
 				System.IO.File.WriteAllText(prefFile, newPrefs);
 			}
@@ -151,8 +166,8 @@ namespace X_Manager
 			if (lastPrefs[pref_fillEmpty] == "True") fill.IsChecked = true;
 			same.IsChecked = false;
 			if (lastPrefs[pref_sameColumn] == "True") same.IsChecked = true;
-			battery.IsChecked = false;
-			if (lastPrefs[pref_battery] == "True") battery.IsChecked = true;
+			batteryCB.IsChecked = false;
+			if (lastPrefs[pref_battery] == "True") batteryCB.IsChecked = true;
 			txt.IsChecked = false;
 			if (lastPrefs[pref_txt] == "True") txt.IsChecked = true;
 			kml.IsChecked = false;
@@ -202,12 +217,14 @@ namespace X_Manager
 			OverrideTime.IsChecked = false;
 			if (lastPrefs[pref_time_override] == "True") OverrideTime.IsChecked = true;
 
-			metadata.IsChecked = false;
-			if (lastPrefs[pref_metadata] == "True") metadata.IsChecked = true;
+			metadataCB.IsChecked = false;
+			if (lastPrefs[pref_metadata] == "True") metadataCB.IsChecked = true;
 
 			leapSecondsUD.Value = int.Parse(lastPrefs[pref_leapSeconds]);
 
 			removeNonGps.IsChecked = bool.Parse(lastPrefs[pref_nonGps]);
+
+			proximityCB.IsChecked = bool.Parse(lastPrefs[pref_proximity]);
 
 		}
 
@@ -226,18 +243,34 @@ namespace X_Manager
 						break;
 					case Key.D:
 						string testo1 = "Generate additional Text file with positions";
+
 						switch (debugLevel)
 						{
 							case 0:
-								txt.Content = testo1 + "(d1)";
+								//if (System.IO.Path.GetExtension(fileName).Contains("6"))
+								//{
+								txt.Content = testo1 + " (D)";
+								//}
+								//else
+								//{
+								//	txt.Content = testo1 + " (d1)";
+								//}
 								debugLevel = 1;
 								break;
 							case 1:
-								txt.Content = testo1 + "(d2)";
-								debugLevel = 2;
+								//if (System.IO.Path.GetExtension(fileName).Contains("6"))
+								//{
+								txt.Content = testo1;
+								debugLevel = 0;
+								//}
+								//else
+								//{
+								//	txt.Content = testo1 + " (d2)";
+								//	debugLevel = 2;
+								//}
 								break;
 							case 2:
-								txt.Content = testo1 + "(d3)";
+								txt.Content = testo1 + " (d3)";
 								debugLevel = 3;
 								break;
 							case 3:
@@ -286,7 +319,7 @@ namespace X_Manager
 
 		private void closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
-			string[] lastPrefs = new string[19];
+			string[] lastPrefs = new string[20];
 			if ((bool)Millibars.IsChecked)
 			{
 				lastPrefs[pref_pressMetri] = "millibars";
@@ -316,7 +349,7 @@ namespace X_Manager
 			if ((bool)time1.IsChecked) lastPrefs[pref_timeFormat] = "1";
 			lastPrefs[pref_fillEmpty] = fill.IsChecked.ToString();
 			lastPrefs[pref_sameColumn] = same.IsChecked.ToString();
-			lastPrefs[pref_battery] = battery.IsChecked.ToString();
+			lastPrefs[pref_battery] = batteryCB.IsChecked.ToString();
 			lastPrefs[pref_txt] = txt.IsChecked.ToString();
 			lastPrefs[pref_kml] = kml.IsChecked.ToString();
 			overrideTime = (bool)OverrideTime.IsChecked;
@@ -340,9 +373,11 @@ namespace X_Manager
 			lastPrefs[pref_date_month] = dateTimePicker.SelectedDate.Value.Month.ToString();
 			lastPrefs[pref_date_day] = dateTimePicker.SelectedDate.Value.Day.ToString();
 			lastPrefs[pref_time_override] = OverrideTime.IsChecked.ToString();
-			lastPrefs[pref_metadata] = metadata.IsChecked.ToString();
+			lastPrefs[pref_metadata] = metadataCB.IsChecked.ToString();
 			lastPrefs[pref_leapSeconds] = leapSecondsUD.Value.ToString();
 			lastPrefs[pref_nonGps] = removeNonGps.IsChecked.ToString();
+			lastPrefs[pref_proximity] = proximityCB.IsChecked.ToString();
+
 			if (System.IO.File.Exists(prefFile)) System.IO.File.Delete(prefFile);
 			System.IO.File.WriteAllLines(prefFile, lastPrefs);
 		}
@@ -455,8 +490,8 @@ namespace X_Manager
 			time1.IsChecked = true;
 			fill.IsChecked = false;
 			same.IsChecked = true;
-			battery.IsChecked = false;
-			metadata.IsChecked = false;
+			batteryCB.IsChecked = false;
+			metadataCB.IsChecked = false;
 		}
 
 	}

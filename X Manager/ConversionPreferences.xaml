@@ -64,9 +64,17 @@
             <GroupBox Grid.Column="0" Header="CONVERSION SETTINGS" Margin="5" MinHeight="30">
                 <StackPanel Orientation="Vertical">
                     <CheckBox x:Name="fill" Content="Fill empty fields with last known values (MB)" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
-					<CheckBox x:Name="same" Content="Date and Time on the same column" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
-					<CheckBox x:Name="battery" Content="Battery column" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
-					<CheckBox x:Name="metadata" Content="Metadata column " Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
+					<CheckBox x:Name="same" Content="Date and Time on the same col umn" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
+					<StackPanel Orientation="Horizontal" Margin="0,4,0,0" Height="19" >
+						<CheckBox x:Name="batteryCB" Content="Battery column" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" VerticalAlignment="Center" />
+						<CheckBox x:Name="proximityCB" Content="Proximity column" VerticalContentAlignment="Center" FontSize="14" VerticalAlignment="Center" Margin="51,0,0,0" />
+						
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Margin="0,4,0,0" Height="19" >
+						<CheckBox x:Name="metadataCB" Content="Metadata column " VerticalContentAlignment="Center" FontSize="14" MinHeight="0" VerticalAlignment="Center" />
+						<!--<CheckBox x:Name="eventsCB" Content="Event column" VerticalContentAlignment="Center" FontSize="14" VerticalAlignment="Center" Margin="70,0,0,0"/>-->
+					</StackPanel>
+					
 					<CheckBox x:Name="txt" Content="Generate additional Text file with positions" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
 					<CheckBox x:Name="kml" Content="Generate additional KML file with positions" Padding="5,0,0,0" VerticalContentAlignment="Center" FontSize="14" MinHeight="0" Margin="0,4,0,0" />
                 </StackPanel>

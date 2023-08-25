@@ -13,48 +13,25 @@ namespace X_Manager.Units.Gipsy6
 
 		protected string unitName = "";
 		protected string lastKnownUnitName = "";
-		//protected byte[] columnPlace = new byte[17];
-		//protected enum COLUMN : int
-		//{
-		//	COL_NAME = 0,
-		//	COL_RF_ADDRESS,
-		//	COL_DATE,
-		//	COL_TIME,
-		//	COL_LATITUDE,
-		//	COL_LONGITUDE,
-		//	COL_HORIZONTAL_ACCURACY,
-		//	COL_ALTITUDE,
-		//	COL_VERTICAL_ACCURACY,
-		//	COL_SPEED,
-		//	COL_COURSE,
-		//	COL_BATTERY,
-		//	COL_PROXIMITY,
-		//	COL_PROXIMITY_POWER,
-		//	COL_EVENT,
-		//	COL_POSITION_IN_FILE,
-		//	COL_LENGTH
-		//}
 
-		protected int p_name = 0;
-		protected int p_rfAddress = 1;
-		protected int p_date = 2;
-		protected int p_time = 3;
-		protected int p_latitude = 4;
-		protected int p_longitude = 5;
-		protected int p_horizontalAccuracy = 6;
-		protected int p_altitude = 7;
-		protected int p_verticalAccuracy = 8;
-		protected int p_speed = 9;
-		protected int p_course = 10;
-		protected int p_battery = 11;
-		protected int p_proximity = 12;
-		protected int p_proximityPower = 13;
-		protected int p_event = 14;
-		protected int p_position = 15;
-		protected int p_length = 16;
+		protected int p_fileCsv_name = 0;
+		protected int p_fileCsv_rfAddress = 1;
+		protected int p_fileCsv_date = 2;
+		protected int p_fileCsv_time = 3;
+		protected int p_fileCsv_latitude = 4;
+		protected int p_fileCsv_longitude = 5;
+		protected int p_fileCsv_horizontalAccuracy = 6;
+		protected int p_fileCsv_altitude = 7;
+		protected int p_fileCsv_verticalAccuracy = 8;
+		protected int p_fileCsv_speed = 9;
+		protected int p_fileCsv_course = 10;
+		protected int p_fileCsv_battery = 11;
+		protected int p_fileCsv_proximity = 12;
+		protected int p_fileCsv_proximityPower = 13;
+		protected int p_fileCsv_event = 14;
+		protected int p_fileCsv_position = 15;
+		protected int p_fileCsv_length = 16;
 
-		//protected string[] headers = {"Name", "RF address", "Date", "Time", "Latitude", "Longitude", "Horizontal Acc.", "Altitude", "Vertical Acc.", "Speed", "Course", "Battery", "Nearby device",
-		//								"Nearby device signal strenght", "Event", "gp6Pos" };
 		protected Gipsy6(object p)
 					: base(p)
 		{
@@ -62,97 +39,99 @@ namespace X_Manager.Units.Gipsy6
 
 		public override void convert(string fileName, string[] prefs)
 		{
-			if (prefs[pref_pressMetri] == "meters") inMeters = true;
-			pressOffset = double.Parse(prefs[pref_millibars]);
+			if (prefs[p_filePrefs_pressMetri] == "meters") pref_inMeters = true;
+			pref_pressOffset = double.Parse(prefs[p_filePrefs_millibars]);
 
-			debugLevel = parent.stDebugLevel;
-			addGpsTime = parent.addGpsTime;
+			pref_debugLevel = parent.stDebugLevel;
+			pref_addGpsTime = parent.addGpsTime;
 			if (Parent.getParameter("pressureRange") == "air")
 			{
-				isDepth = false;
+				pref_isDepth = false;
 			}
-			if (prefs[pref_fillEmpty] == "False")
+			if (prefs[p_filePrefs_fillEmpty] == "False")
 			{
-				repeatEmptyValues = false;
+				pref_repeatEmptyValues = false;
 			}
 			dateSeparator = csvSeparator;
-			if (prefs[pref_sameColumn] == "True")
+			if (prefs[p_filePrefs_sameColumn] == "True")
 			{
-				sameColumn = true;
+				pref_sameColumn = true;
 				dateSeparator = " ";
 			}
-			if (addGpsTime)
+			if (pref_addGpsTime)
 			{
-				repeatEmptyValues = false;
-				sameColumn = true;
+				pref_repeatEmptyValues = false;
+				pref_sameColumn = true;
 			}
-			if (prefs[pref_txt] == "True") makeTxt = true;
-			if (prefs[pref_kml] == "True") makeKml = true;
-			if (prefs[pref_battery] == "True") prefBattery = true;
+			if (prefs[p_filePrefs_txt] == "True") pref_makeTxt = true;
+			if (prefs[p_filePrefs_kml] == "True") pref_makeKml = true;
+			if (prefs[p_filePrefs_battery] == "True") pref_battery = true;
 
-			if (prefs[pref_timeFormat] == "2") angloTime = true;
+			if (prefs[p_filePrefs_timeFormat] == "2") pref_angloTime = true;
 
-			dateFormat = byte.Parse(prefs[pref_dateFormat]);
+			pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);
 			//timeFormat = byte.Parse(prefs[pref_timeFormat]);
-			switch (dateFormat)
+			switch (pref_dateFormat)
 			{
 				case 1:
-					dateFormatParameter = "dd/MM/yyyy";
+					pref_dateFormatParameter = "dd/MM/yyyy";
 					break;
 				case 2:
-					dateFormatParameter = "MM/dd/yyyy";
+					pref_dateFormatParameter = "MM/dd/yyyy";
 					break;
 				case 3:
-					dateFormatParameter = "yyyy/MM/dd";
+					pref_dateFormatParameter = "yyyy/MM/dd";
 					break;
 				case 4:
-					dateFormatParameter = "yyyy/dd/MM";
+					pref_dateFormatParameter = "yyyy/dd/MM";
 					break;
 			}
-			if (prefs[pref_override_time] == "True") overrideTime = true;
-			if (prefs[pref_metadata] == "True") metadata = true;
-			leapSeconds = int.Parse(prefs[pref_leapSeconds]);
-			removeNonGps = bool.Parse(prefs[pref_removeNonGps]);
+			if (prefs[p_filePrefs_overrideTime] == "True") pref_overrideTime = true;
+			if (prefs[p_filePrefs_metadata] == "True") pref_metadata = true;
+			if (prefs[p_filePrefs_proximity] == "True") pref_proximity = true;
+			pref_leapSeconds = int.Parse(prefs[p_filePrefs_leapSeconds]);
+			pref_removeNonGps = bool.Parse(prefs[p_filePrefs_removeNonGps]);
+
 		}
 
 		protected void placeHeader(StreamWriter txtBW)//, ref byte[] columnPlace)
 		{
-			//txtBW.Write("\tLatitude (deg)\tLongitude (deg)\tHor. Acc. (m)" +
-			//							"\tAltitude (m)\tVert. Acc. (m)\tSpeed (km/h)\tCourse (deg)\tBattery (v)\tNearby Device\tNearby Device Received Signal Strength\tEvent\r\n");
-
-			//txtBW.Write("\tLat\tLon\tHorAcc (m)" +
-			//										"\tAlt (m)\tVertAcc (m)\tSpeed (km/h)\tCourse\tBatt (v)\tNearby\tStrength\tEvent\r\n");
 
 			var headers = new List<string>() { "Name", "RF address", "Date", "Time", "Latitude", "Longitude", "Horizontal Acc.", "Altitude", "Vertical Acc.", "Speed", "Course", "Battery", "Nearby device",
 										"Nearby device signal strenght", "Event", "gp6Pos" };
 
 			string dateHeader = "Date";
 			if (this is Gipsy6XS) headers.Remove("RF address");
-			if (sameColumn)
+			if (pref_sameColumn)
 			{
 				headers.Remove("Time");
 				headers[headers.IndexOf("Date")] = "Timestamp";
 				dateHeader = "Timestamp";
 			}
-			if (!prefBattery) headers.Remove("Battery");
-			if (!metadata) headers.Remove("Event");
-			if (debugLevel < 3) headers.Remove("gp6Pos");
+			if (!pref_battery) headers.Remove("Battery");
+			if (!pref_metadata) headers.Remove("Event");
+			if (pref_debugLevel == 0) headers.Remove("gp6Pos");
+			if (!pref_proximity)
+			{
+				headers.Remove("Nearby device");
+				headers.Remove("Nearby device signal strenght");
+			}
 
-			p_date = headers.IndexOf(dateHeader);
-			p_time = headers.IndexOf("Time");
-			p_latitude = headers.IndexOf("Latitude");
-			p_longitude = headers.IndexOf("Longitude");
-			p_horizontalAccuracy = headers.IndexOf("Horizontal Acc.");
-			p_altitude = headers.IndexOf("Altitude");
-			p_verticalAccuracy = headers.IndexOf("Vertical Acc.");
-			p_speed = headers.IndexOf("Speed");
-			p_course = headers.IndexOf("Course");
-			p_battery = headers.IndexOf("Battery");
-			p_proximity = headers.IndexOf("Nearby device");
-			p_proximityPower = headers.IndexOf("Nearby device signal strenght");
-			p_event = headers.IndexOf("Event");
-			p_position = headers.IndexOf("gp6Pos");
-			p_length = headers.Count;
+			p_fileCsv_date = headers.IndexOf(dateHeader);
+			p_fileCsv_time = headers.IndexOf("Time");
+			p_fileCsv_latitude = headers.IndexOf("Latitude");
+			p_fileCsv_longitude = headers.IndexOf("Longitude");
+			p_fileCsv_horizontalAccuracy = headers.IndexOf("Horizontal Acc.");
+			p_fileCsv_altitude = headers.IndexOf("Altitude");
+			p_fileCsv_verticalAccuracy = headers.IndexOf("Vertical Acc.");
+			p_fileCsv_speed = headers.IndexOf("Speed");
+			p_fileCsv_course = headers.IndexOf("Course");
+			p_fileCsv_battery = headers.IndexOf("Battery");
+			p_fileCsv_proximity = headers.IndexOf("Nearby device");
+			p_fileCsv_proximityPower = headers.IndexOf("Nearby device signal strenght");
+			p_fileCsv_event = headers.IndexOf("Event");
+			p_fileCsv_position = headers.IndexOf("gp6Pos");
+			p_fileCsv_length = headers.Count;
 
 			//byte place = 0;
 			//for (COLUMN i = 0; i < COLUMN.COL_LENGTH; i++)
@@ -188,8 +167,6 @@ namespace X_Manager.Units.Gipsy6
 				txtBW.Write(headers[i] + "\t");
 			}
 			txtBW.Write(headers[headers.Count - 1] + "\r\n");
-
 		}
-
 	}
 }

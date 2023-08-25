@@ -104,7 +104,7 @@ namespace X_Manager.Units
 			configurePositionButtonEnabled = false;
 			modelCode = model_axy5;
 			//modelName = "Axy-5";
-			debugLevel = parent.stDebugLevel;
+			pref_debugLevel = parent.stDebugLevel;
 			group = new byte[2000];
 		}
 
@@ -489,7 +489,7 @@ namespace X_Manager.Units
 				Thread.Sleep(70);
 				byte b = (byte)(baudrate / 1000000);
 				ft.Write(new byte[] { b }, 0, 1);       // 3 ->
-				dummy = (byte)ft.ReadByte();            // <- 3
+				dummy = ft.ReadByte();            // <- 3
 				ft.BaudRate = (uint)baudrate;
 
 				Thread.Sleep(400);
@@ -1108,13 +1108,13 @@ namespace X_Manager.Units
 			string barStatus = "";
 
 			//Imposta le preferenze di conversione
-			if (Parent.getParameter("pressureRange") == "air") isDepth = false;
+			if (Parent.getParameter("pressureRange") == "air") pref_isDepth = false;
 
-			if (prefs[pref_fillEmpty] == "False") repeatEmptyValues = false;
+			if (prefs[p_filePrefs_fillEmpty] == "False") pref_repeatEmptyValues = false;
 
-			if (prefs[pref_battery] == "True") prefBattery = true;
+			if ((prefs[p_filePrefs_battery] == "True") || pref_debugLevel > 0) pref_battery = true;
 
-			switch (int.Parse(prefs[pref_dateFormat]))
+			switch (int.Parse(prefs[p_filePrefs_dateFormat]))
 			{
 				case 1:
 					dateTimeFormat = "dd/MM/yyyy";
@@ -1130,9 +1130,9 @@ namespace X_Manager.Units
 					break;
 			}
 
-			if (prefs[pref_sameColumn] == "True")
+			if (prefs[p_filePrefs_sameColumn] == "True")
 			{
-				sameColumn = true;
+				pref_sameColumn = true;
 				dateTimeFormat += " ";
 			}
 			else
@@ -1141,7 +1141,7 @@ namespace X_Manager.Units
 			}
 
 
-			if (prefs[pref_timeFormat] == "2")
+			if (prefs[p_filePrefs_timeFormat] == "2")
 			{
 				dateCi = new CultureInfo("en-US");
 				dateTimeFormat += "hh:mm:ss.fff tt";
@@ -1152,15 +1152,15 @@ namespace X_Manager.Units
 				dateTimeFormat += "HH:mm:ss.fff";
 			}
 
-			if (prefs[pref_pressMetri] == "meters")
+			if (prefs[p_filePrefs_pressMetri] == "meters")
 			{
-				inMeters = true;
+				pref_inMeters = true;
 			}
-			pressOffset = double.Parse(prefs[pref_millibars]);
+			pref_pressOffset = double.Parse(prefs[p_filePrefs_millibars]);
 
-			if (prefs[pref_override_time] == "True") overrideTime = true;
+			if (prefs[p_filePrefs_overrideTime] == "True") pref_overrideTime = true;
 
-			if (prefs[pref_metadata] == "True") metadata = true;
+			if ((prefs[p_filePrefs_metadata] == "True") || pref_debugLevel > 0) pref_metadata = true;
 
 			//Imposta i file di lettura e di scrittura
 			string shortFileName;
@@ -1547,10 +1547,10 @@ namespace X_Manager.Units
 
 			//******************************************************** PRIMO GRUPPO
 			string[] gruppo = gruppoCON;
-			if (metadata) gruppo[meta] = "";
-			if (debugLevel > 0) gruppo[ardPosition] = "";
+			if (pref_metadata) gruppo[meta] = "";
+			if (pref_debugLevel > 0) gruppo[ardPosition] = "";
 
-			if (!repeatEmptyValues)
+			if (!pref_repeatEmptyValues)
 			{
 				gruppo = gruppoSENZA;
 			}
@@ -1590,7 +1590,7 @@ namespace X_Manager.Units
 				fOut.Write(gruppo[i] + csvSeparator);
 			}
 			fOut.Write(gruppo[gLen] + "\r\n");
-			if ((magEn == 2) && !repeatEmptyValues)
+			if ((magEn == 2) && !pref_repeatEmptyValues)
 			{
 				gruppo[magx] = gruppo[magy] = gruppo[magz] = "";
 			}
@@ -1639,7 +1639,7 @@ namespace X_Manager.Units
 
 			if (!header) goto _footer;
 
-			if (debugLevel > 0)
+			if (pref_debugLevel > 0)
 			{
 				gruppoCON[ardPosition] = ard.Position.ToString("X");
 			}
@@ -1753,7 +1753,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					if (!repeatEmptyValues) gruppoCON[temp] = "";
+					if (!pref_repeatEmptyValues) gruppoCON[temp] = "";
 				}
 			}
 
@@ -1763,11 +1763,11 @@ namespace X_Manager.Units
 				if ((tsc.tsType & ts_battery) == ts_battery)
 				{
 					tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
-					if (prefBattery) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+					if (pref_battery) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
 				}
 				else
 				{
-					if (!repeatEmptyValues & prefBattery) gruppoCON[batt] = "";
+					if (!pref_repeatEmptyValues & pref_battery) gruppoCON[batt] = "";
 				}
 			}
 
@@ -1779,7 +1779,7 @@ namespace X_Manager.Units
 				{
 					eventAr[i] = (byte)ard.ReadByte();
 				}
-				if (metadata)
+				if (pref_metadata)
 				{
 					if (eventAr[0] == 11) { tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0; }
 					else if (eventAr[0] == 12) { tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; }
@@ -1792,7 +1792,7 @@ namespace X_Manager.Units
 			}
 			else
 			{
-				if (metadata)
+				if (pref_metadata)
 				{
 					gruppoCON[meta] = "";
 				}
@@ -1860,7 +1860,7 @@ namespace X_Manager.Units
 						iend2 = 300;
 						break;
 				}
-				if (metadata)
+				if (pref_metadata)
 				{
 					string eve;
 					eve = "Switching to ";
@@ -1885,7 +1885,7 @@ namespace X_Manager.Units
 			}
 
 			//ORARIO
-			if (((tsc.tsTypeExt1 & ts_time) == ts_time) && (!overrideTime))
+			if (((tsc.tsTypeExt1 & ts_time) == ts_time) && (!pref_overrideTime))
 			{
 				int anno, mese, giorno, ore, minuti, secondi;
 				byte[] dateArr = new byte[8];
@@ -1953,7 +1953,7 @@ namespace X_Manager.Units
 			{
 				if ((tsc.tsType & ts_pressure) == ts_pressure)
 				{
-					if (isDepth)
+					if (pref_isDepth)
 					{
 						try
 						{
@@ -1983,7 +1983,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					if (!repeatEmptyValues)
+					if (!pref_repeatEmptyValues)
 					{
 						gruppoCON[temp] = "";
 						gruppoCON[press] = "";
@@ -1996,11 +1996,11 @@ namespace X_Manager.Units
 			if ((tsc.tsType & ts_battery) == ts_battery)
 			{
 				tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
-				if (prefBattery) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+				if (pref_battery) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
 			}
 			else
 			{
-				if (!repeatEmptyValues & prefBattery) gruppoCON[batt] = "";
+				if (!pref_repeatEmptyValues & pref_battery) gruppoCON[batt] = "";
 			}
 
 
@@ -2019,7 +2019,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					if (!repeatEmptyValues) gruppoCON[adcVal] = "";
+					if (!pref_repeatEmptyValues) gruppoCON[adcVal] = "";
 				}
 			}
 
@@ -2061,7 +2061,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					if (!repeatEmptyValues) gruppoCON[magx] = gruppoCON[magy] = gruppoCON[magz] = "";
+					if (!pref_repeatEmptyValues) gruppoCON[magx] = gruppoCON[magy] = gruppoCON[magz] = "";
 				}
 			}
 
@@ -2157,7 +2157,7 @@ namespace X_Manager.Units
 			int contoPlace = 1;
 
 			string csvHeader = "Tag ID";
-			if (sameColumn)
+			if (pref_sameColumn)
 			{
 				xAccPos--;
 				yAccPos--;
@@ -2243,7 +2243,7 @@ namespace X_Manager.Units
 				ardPosition--;
 			}
 
-			if (prefBattery)
+			if (pref_battery)
 			{
 				csvHeader = csvHeader + csvSeparator + "Batt. V. (V)";
 				contoPlace++;
@@ -2254,7 +2254,7 @@ namespace X_Manager.Units
 				ardPosition--;
 			}
 
-			if (metadata)
+			if (pref_metadata)
 			{
 				csvHeader = csvHeader + csvSeparator + "Metadata";
 				contoPlace++;
@@ -2264,7 +2264,7 @@ namespace X_Manager.Units
 				ardPosition--;
 			}
 
-			if (debugLevel > 0)
+			if (pref_debugLevel > 0)
 			{
 				csvHeader = csvHeader + csvSeparator + "ARD position";
 				contoPlace++;
@@ -2273,7 +2273,7 @@ namespace X_Manager.Units
 			gruppoCON = Enumerable.Repeat("", contoPlace).ToArray();
 			gruppoSENZA = Enumerable.Repeat("", contoPlace).ToArray();
 
-			if (repeatEmptyValues)
+			if (pref_repeatEmptyValues)
 			{
 				if (temperatureEn > 0) gruppoCON[temp] = 0.ToString("00.00", nfi);
 				if (pressureEn > 0) gruppoCON[press] = 0.ToString("0000.00", nfi);
@@ -2284,7 +2284,7 @@ namespace X_Manager.Units
 					gruppoCON[magz] = 0.ToString("#0.0", nfi);
 				}
 				if (adcEn > 0) gruppoCON[adcVal] = 0.ToString("0000");
-				if (prefBattery) gruppoCON[batt] = 0.ToString("0.00", nfi);
+				if (pref_battery) gruppoCON[batt] = 0.ToString("0.00", nfi);
 			}
 
 
@@ -2535,9 +2535,9 @@ namespace X_Manager.Units
 					return;
 				}
 				tsc.pressure = (((d1 * sens / 2097152) - off) / 81920);
-				if (inMeters)
+				if (pref_inMeters)
 				{
-					tsc.pressure -= pressOffset;
+					tsc.pressure -= pref_pressOffset;
 					if (tsc.pressure <= 0) tsc.pressure = 0;
 					else
 					{

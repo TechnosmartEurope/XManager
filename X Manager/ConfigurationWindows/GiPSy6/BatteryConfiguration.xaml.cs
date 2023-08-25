@@ -37,25 +37,25 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 		SolidColorBrush bianco;
 
 
-		static readonly Double[][] thRP = {  new Double[] { 3.75, 3.7, 3.85, 3.4, 3.55, 3.8 },	//10mAh remoti / pann
-											new Double[] { 3.7, 3.7, 3.85, 3.4, 3.5, 3.75 },		//20-35mAh
-											new Double[] { 3.7, 3.65, 3.85, 3.4, 3.5, 3.7 },		//40/50mAH
-											new Double[] { 3.65, 3.60, 3.85, 3.4, 3.5, 3.7 },	//70-90mAH
-											new Double[] { 3.65, 3.60, 3.85, 3.35, 3.5, 3.7 },	//110-300mAH
-											new Double[] { 3.60, 3.55, 3.85, 3.35, 3.5, 3.60 },	//400-650mAH
-											new Double[] { 3.55, 3.5, 3.85, 3.4, 3.5, 3.55 } };  //1200+mAH
+		static readonly Double[][] thRP = {  new Double[] { 3.75, 3.75, 3.90, 3.4, 3.55, 3.65 },	//10mAh remoti / pann
+											new Double[] { 3.7, 3.72, 3.87, 3.4, 3.5, 3.65 },		//20-35mAh
+											new Double[] { 3.7, 3.68, 3.85, 3.4, 3.5, 3.6 },		//40/50mAH
+											new Double[] { 3.65, 3.60, 3.85, 3.4, 3.5, 3.6 },	//70-90mAH
+											new Double[] { 3.65, 3.60, 3.85, 3.35, 3.5, 3.55 },	//110-300mAH
+											new Double[] { 3.60, 3.55, 3.85, 3.35, 3.5, 3.55 },	//400-650mAH
+											new Double[] { 3.55, 3.5, 3.85, 3.4, 3.5, 3.50 } };  //1200+mAH
 
-		static readonly Double[][] thRN = {   new Double[] { 3.75, 3.5, 3.85, 3.4, 3.55, 3.8 },	//10mAh remoti / no pann
-											new Double[] { 3.7, 3.5, 3.85, 3.4, 3.5, 3.75 },		//20-35mAh
-											new Double[] { 3.7, 3.45, 3.85, 3.4, 3.5, 3.7 },		//40/50mAH
-											new Double[] { 3.65, 3.45, 3.85, 3.4, 3.5, 3.65 },	//70-90mAH
-											new Double[] { 3.65, 3.40, 3.85, 3.35, 3.5, 3.65 },	//110-300mAH
-											new Double[] { 3.60, 3.35, 3.85, 3.35, 3.5, 3.60 },	//400-650mAH
-											new Double[] { 3.55, 3.30, 3.85, 3.35, 3.5, 3.55 } };  //1200+mAH
+		static readonly Double[][] thRN = {   new Double[] { 3.75, 3.5, 3.85, 3.4, 3.55, 3.60 },	//10mAh remoti / no pann
+											new Double[] { 3.7, 3.5, 3.85, 3.4, 3.5, 3.60 },		//20-35mAh
+											new Double[] { 3.7, 3.45, 3.85, 3.4, 3.5, 3.55 },		//40/50mAH
+											new Double[] { 3.65, 3.45, 3.85, 3.4, 3.5, 3.55 },	//70-90mAH
+											new Double[] { 3.65, 3.40, 3.85, 3.35, 3.5, 3.50 },	//110-300mAH
+											new Double[] { 3.60, 3.35, 3.85, 3.35, 3.5, 3.45 },	//400-650mAH
+											new Double[] { 3.55, 3.30, 3.85, 3.35, 3.5, 3.45 } };  //1200+mAH
 
-		static readonly Double[][] thLP = {  new Double[]  { 3.75, 3.7, 3.85, 3.4, 3.3, 3.3 },	//10mAh locali / pann
-											new Double[] { 3.7, 3.7, 3.85, 3.4, 3.3, 3.3 },		//20-35mAh
-											new Double[] { 3.7, 3.65, 3.85, 3.4, 3.3, 3.3 },		//40/50mAH
+		static readonly Double[][] thLP = {  new Double[]  { 3.75, 3.75, 3.90, 3.4, 3.3, 3.3 },	//10mAh locali / pann
+											new Double[] { 3.7, 3.72, 3.87, 3.4, 3.3, 3.3 },		//20-35mAh
+											new Double[] { 3.7, 3.68, 3.85, 3.4, 3.3, 3.3 },		//40/50mAH
 											new Double[] { 3.65, 3.60, 3.85, 3.4, 3.3, 3.3 },	//70-90mAH
 											new Double[] { 3.65, 3.60, 3.85, 3.35, 3.3, 3.3 },	//110-300mAH
 											new Double[] { 3.60, 3.55, 3.85, 3.35, 3.3, 3.3 },	//400-650mAH

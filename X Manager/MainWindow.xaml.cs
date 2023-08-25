@@ -27,7 +27,9 @@ namespace X_Manager
 	{
 
 		public static Random random = new Random();
-
+		//sviluppo
+		private int start_error_code = 0;
+		///sviluppo
 		#region Dichiarazioni
 
 		Unit oUnit;
@@ -131,7 +133,7 @@ namespace X_Manager
 		private void parseArgIn()
 		{
 			List<string> args = new List<string>();
-			args = Environment.GetCommandLineArgs().ToList<string>();
+			args = Environment.GetCommandLineArgs().ToList();
 			args.RemoveAt(0);
 			int parCount = 0;
 			while (args.Count > 0)
@@ -174,62 +176,96 @@ namespace X_Manager
 
 		private void mainWindowLoaded(object sender, EventArgs e)
 		{
-			Console.WriteLine("Loaded.");
-
-			loadUserPrefs();
-			uiDisconnected();
-			initPicture();
-			//scanButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-			scanPorts(true);
-			string press = getParameter("pressureRange", "depth");
-			switch (press)
+			try
 			{
-				case "depth":
-					depthSubItem.IsChecked = true;
-					airSubItem.IsChecked = false;
-					break;
-				case "air":
-					depthSubItem.IsChecked = false;
-					airSubItem.IsChecked = true;
-					break;
-			}
-			keepMdpItem.IsChecked = bool.Parse(getParameter("keepMdp", "true"));
-			//keepMdpItem.IsChecked = false;
-			//if (lastSettings[6] == "true") keepMdpItem.IsChecked = true;
-			//selectDownloadSpeed(lastSettings[7]);
-			//csvSeparatorChanged(lastSettings[8]);
-			selectDownloadSpeed(getParameter("downloadSpeed", "3"));
-			csvSeparatorChanged(getParameter("csvSeparator", "\t"));
-			normalViewTabItem.IsSelected = true;
+				Console.WriteLine("Loaded.");
+				//sviluppo
+				start_error_code = 0;
+				///sviluppo
+				loadUserPrefs();
+				//sviluppo
+				start_error_code = 1;
+				///sviluppo
+				uiDisconnected();
+				//sviluppo
+				start_error_code = 2;
+				///sviluppo
+				initPicture();
+				//sviluppo
+				start_error_code = 3;
+				///sviluppo
+				//scanButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+				scanPorts(true);
+				//sviluppo
+				start_error_code = 8;
+				///sviluppo
+				string press = getParameter("pressureRange", "depth");
+				switch (press)
+				{
+					case "depth":
+						depthSubItem.IsChecked = true;
+						airSubItem.IsChecked = false;
+						break;
+					case "air":
+						depthSubItem.IsChecked = false;
+						airSubItem.IsChecked = true;
+						break;
+				}
+				keepMdpItem.IsChecked = bool.Parse(getParameter("keepMdp", "true"));
+				//sviluppo
+				start_error_code = 9;
+				///sviluppo
+				//keepMdpItem.IsChecked = false;
+				//if (lastSettings[6] == "true") keepMdpItem.IsChecked = true;
+				//selectDownloadSpeed(lastSettings[7]);
+				//csvSeparatorChanged(lastSettings[8]);
+				selectDownloadSpeed(getParameter("downloadSpeed", "3"));
+				//sviluppo
+				start_error_code = 10;
+				///sviluppo
+				csvSeparatorChanged(getParameter("csvSeparator", "\t"));
+				//sviluppo
+				start_error_code = 11;
+				///sviluppo
+				normalViewTabItem.IsSelected = true;
 
-			switch (getParameter("downloadMode", "A"))
-			{
-				case "A":
-					downloadAutomatic.IsChecked = true;
-					break;
-				case "M":
-					downloadManual.IsChecked = true;
-					break;
-			}
+				switch (getParameter("downloadMode", "A"))
+				{
+					case "A":
+						downloadAutomatic.IsChecked = true;
+						break;
+					case "M":
+						downloadManual.IsChecked = true;
+						break;
+				}
 
-			//if (lastSettings[9].Equals("A")) downloadAutomatic.IsChecked = true;
-			//if (lastSettings[9].Equals("M")) downloadManual.IsChecked = true;
+				//if (lastSettings[9].Equals("A")) downloadAutomatic.IsChecked = true;
+				//if (lastSettings[9].Equals("M")) downloadManual.IsChecked = true;
+				//sviluppo
+				start_error_code = 12;
+				///sviluppo
+				downloadManual.Checked += downloadModeChecked;
+				downloadManual.Unchecked += downloadModeChecked;
+				downloadAutomatic.Checked += downloadModeChecked;
+				downloadAutomatic.Unchecked += downloadModeChecked;
+				//sviluppo
+				start_error_code = 13;
+				///sviluppo
+				progressBarStopButton.IsEnabled = false;
+				progressBarStopButtonColumn.Width = new GridLength(0);
+				//sviluppo
+				start_error_code = 14;
+				///sviluppo
 
-			downloadManual.Checked += downloadModeChecked;
-			downloadManual.Unchecked += downloadModeChecked;
-			downloadAutomatic.Checked += downloadModeChecked;
-			downloadAutomatic.Unchecked += downloadModeChecked;
-
-			progressBarStopButton.IsEnabled = false;
-			progressBarStopButtonColumn.Width = new GridLength(0);
-
-			if (convFiles.Count > 0)
-			{
-				convertDataLaunch(convFiles);
-			}
-
+				if (convFiles.Count > 0)
+				{
+					convertDataLaunch(convFiles);
+				}
+				//sviluppo
+				start_error_code = 15;
+				///sviluppo
 #if DEBUG
-			byte[] conf = new byte[514] { 0xCF, 0x55, 0x01, 0x00,
+				byte[] conf = new byte[514] { 0xCF, 0x55, 0x01, 0x00,
 					// 4	Nome unità: 27 caratteri + terminatore 0
 					0, 0, 0, 0, 0, 0, 0,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 					0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -301,10 +337,20 @@ namespace X_Manager
 					0x00, 0x00
 					//514
 					};
-			//var confForm = new GiPSy6ConfigurationMain(conf, Unit.model_Gipsy6);
-			//confForm.ShowDialog();
-			windowMovingEnded(this, new EventArgs());
 #endif
+				//var confForm = new GiPSy6ConfigurationMain(conf, Unit.model_Gipsy6);
+				//confForm.ShowDialog();
+				windowMovingEnded(this, new EventArgs());
+				//sviluppo
+				start_error_code = 16;
+				///sviluppo
+			}
+			catch (Exception ex)
+			{
+				string mess = "S_ERR_CODE: " + start_error_code.ToString() + "\r\n" + ex.Message;
+				MessageBox.Show(mess);
+			}
+
 		}
 
 		private void locationChanged(object sender, EventArgs e)
@@ -1147,6 +1193,9 @@ namespace X_Manager
 			System.Management.ManagementObjectSearcher moSearch = new System.Management.ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity");
 			//System.Management.ManagementObjectCollection moReturn = moSearch.Get();
 			//System.Management.ManagementObject mo;// = moReturn.ite
+			//sviluppo
+			start_error_code = 4;
+			///sviluppo
 			string deviceName = "";
 			foreach (System.Management.ManagementObject mo in moSearch.Get())
 			{
@@ -1176,6 +1225,9 @@ namespace X_Manager
 					//MessageBox.Show(ex.Message);
 				}
 			}
+			//sviluppo
+			start_error_code = 5;
+			///sviluppo
 			if (comPortComboBox.Items.Count == 0)
 			{
 				comPortComboBoxClear();
@@ -1215,6 +1267,9 @@ namespace X_Manager
 				FTDI = null;
 				return;
 			}
+			//sviluppo
+			start_error_code = 6;
+			///sviluppo
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -1237,7 +1292,9 @@ namespace X_Manager
 					}
 				}
 			}
-
+			//sviluppo
+			start_error_code = 7;
+			///sviluppo
 			if (!FTDI.Open())
 			{
 				MessageBox.Show("Invalid datacable or port already open.");
