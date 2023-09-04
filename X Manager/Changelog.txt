@@ -294,3 +294,8 @@
 	Tracciamento errori di avvio software con codice di errore "S_ERR_CODE"
 1.21.1	Axy4 - bugfix: separava data e ora nella prima riga di ogni timestamp nonostante l'opzione di unirle fosse abilitata
 	Axy5 - bufgix: in caso di timestamp vuoto a 1Hz la copia dell'ultimo campione valido era sbagliata nel caso ci fossero numeri negativi
+1.21.2	Gipsy6: aggiornate preset soglie batteria
+	Gipsy6: OFF-time di default a 10 minuti
+	Gipsy6: rimossa richiesta password per modifica soglie batterie e remotizzazione unità
+	Gipsy6: quando si importa lo schedule l'indirizzo rf remoto non viene mai sovrascritto dallo schedule importato
+	X-Manager: aggiunto tracciamento errore ridimensionamento automatico finestra (ricerca errori in avvio)

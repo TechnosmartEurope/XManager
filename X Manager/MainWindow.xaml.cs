@@ -361,32 +361,41 @@ namespace X_Manager
 
 		private void windowMovingEnded(object sender, EventArgs e)
 		{
-
-			var scr = System.Windows.Forms.Screen.AllScreens;
-
-			windowMovingTimer.Stop();
-			var wih = new WindowInteropHelper(this);
-			var screen = System.Windows.Forms.Screen.FromHandle(wih.Handle);
-			var waWidth = screen.WorkingArea.Width;
-			var waHeight = screen.WorkingArea.Height;
-			double scale = 1;
-			if (ExternalGrid.LayoutTransform is ScaleTransform)
+			try
 			{
-				scale = ((ScaleTransform)ExternalGrid.LayoutTransform).ScaleX;
-			}
-			var width = Width / scale;
-			var height = Height / scale;
+				var scr = System.Windows.Forms.Screen.AllScreens;
 
-			scale = 1;
-			while ((waWidth <= width) || (waHeight <= height))
+				windowMovingTimer.Stop();
+				var wih = new WindowInteropHelper(this);
+				var screen = System.Windows.Forms.Screen.FromHandle(wih.Handle);
+				var waWidth = screen.WorkingArea.Width;
+				var waHeight = screen.WorkingArea.Height;
+				double scale = 1;
+				if (ExternalGrid.LayoutTransform is ScaleTransform)
+				{
+					scale = ((ScaleTransform)ExternalGrid.LayoutTransform).ScaleX;
+				}
+				var width = Width / scale;
+				var height = Height / scale;
+
+				scale = 1;
+				while ((waWidth <= width) || (waHeight <= height))
+				{
+					scale -= .2;
+					width *= scale;
+					height *= scale;
+					if (scale <= .2) break;
+
+				}
+				ExternalGrid.LayoutTransform = new ScaleTransform(scale, scale);
+			}
+			catch
 			{
-				scale -= .2;
-				width *= scale;
-				height *= scale;
-				if (scale <= .2) break;
-
+				LocationChanged -= locationChanged;
+				windowMovingTimer.Stop();
+				MessageBox.Show("WR_Err");
 			}
-			ExternalGrid.LayoutTransform = new ScaleTransform(scale, scale);
+
 			//if (Left < screen.Bounds.X)
 			//{
 			//	Left = screen.Bounds.X + 5;

@@ -31,10 +31,11 @@ namespace X_Manager.ConfigurationWindows
 		DateTime sdDate;
 		string[] oldAdd;
 		bool isRemote = false;
-		bool _lockRfAddress = false;
+		//bool _lockRfAddress = false;
 		Units.Unit unit;
 		FrameworkElement[] remoteControls;
 		FrameworkElement[] proximityControls;
+		bool _lockRfAddress = false;
 		public bool lockRfAddress
 		{
 			get
@@ -249,120 +250,221 @@ namespace X_Manager.ConfigurationWindows
 		{
 			if (Keyboard.Modifiers == ModifierKeys.Control)
 			{
-				if (e.Key == Key.L || e.Key == Key.R || e.Key == Key.B)
+				e.Handled = true;
+				switch (e.Key)
 				{
-					bool allowed = true;
-					if (!MainWindow.adminUser)
-					{
-						allowed = false;
-						string res = Interaction.InputBox("Insert password: ", "Password");
-						if ((res != "cetriolo") && (res != "saji"))
+					case Key.B:
+						//if (!MainWindow.adminUser)
+						//{
+						//	string res = Interaction.InputBox("Insert password: ", "Password");
+						//	if ((res != "cetriolo") && (res != "saji"))
+						//	{
+						//		MessageBox.Show("Wrong password.");
+						//		return;
+						//	}
+						//	else
+						//	{
+						//		MainWindow.adminUser = true;
+						//		var bc = new GiPSy6.BatteryConfiguration(conf, unit);
+						//		bc.ShowDialog();
+						//	}
+						//}
+						var bc = new GiPSy6.BatteryConfiguration(conf, unit);
+						bc.ShowDialog();
+						break;
+					case Key.L:
+						isRemote = false;
+						foreach (FrameworkElement fe in remoteControls)
 						{
-							MessageBox.Show("Wrong password.");
+							fe.Visibility = Visibility.Hidden;
+						}
+						if (unit is Units.Gipsy6.Gipsy6N)
+						{
+							byte schMode = conf[516];
+							for (int i = 516; i < 540; i++)
+							{
+								conf[i] = 0;
+							}
+							if (schMode == 0xff)
+							{
+								conf[516] = 0xff;
+							}
+							conf[544] = 0x11; conf[545] = 0x09;
+							conf[546] = 0xcd; conf[547] = 0x08;
+							conf[548] = 0xab; conf[549] = 0x0a;
+							conf[550] = 0x00; conf[551] = 0x08;
+							conf[552] = 0x00; conf[553] = 0x08;
+							MessageBox.Show("Unit set as local.\r\nPlease remeber to adjust the battery thresholds accordingly.");
+							bc = new GiPSy6.BatteryConfiguration(conf, unit);
+							bc.ShowDialog();
 						}
 						else
 						{
-							allowed = true;
+							MessageBox.Show("Gipsy6 XS can be only local.");
 						}
-					}
-					if (allowed)
-					{
-						MainWindow.adminUser = true;
-						if (e.Key == Key.L)
+						break;
+					case Key.R:
+						if (unit is Units.Gipsy6.Gipsy6XS)
 						{
-							isRemote = false;
-							foreach (FrameworkElement fe in remoteControls)
+							MessageBox.Show("Gipsy6 XS can be only local.");
+							return;
+						}
+						isRemote = true;
+						foreach (FrameworkElement fe in remoteControls)
+						{
+							fe.Visibility = Visibility.Visible;
+						}
+						//remoteScheduleTitleTB.Visibility = Visibility.Visible;
+						//remoteAddressTitleTB.Visibility = Visibility.Visible;
+						//remoteAddressTB.Visibility = Visibility.Visible;
+						//remoteScheduleTB.Visibility = Visibility.Visible;
+						//remoteHB.Visibility = Visibility.Visible;
+						if (unit.firmTotA < 1005000)
+						{
+							foreach (FrameworkElement fe in proximityControls)
 							{
 								fe.Visibility = Visibility.Hidden;
 							}
-							if (unit is Units.Gipsy6.Gipsy6N)
-							{
-								byte schMode = conf[516];
-								for (int i = 516; i < 540; i++)
-								{
-									conf[i] = 0;
-								}
-								if (schMode == 0xff)
-								{
-									conf[516] = 0xff;
-								}
-								conf[544] = 0x11; conf[545] = 0x09;
-								conf[546] = 0xcd; conf[547] = 0x08;
-								conf[548] = 0xab; conf[549] = 0x0a;
-								conf[550] = 0x00; conf[551] = 0x08;
-								conf[552] = 0x00; conf[553] = 0x08;
-								MessageBox.Show("The unit will be set as local.");
-							}
-							else
-							{
-								MessageBox.Show("Gipsy6 XS can be only local.");
-							}
-
+							//proximityTB.Visibility = Visibility.Visible;
+							//proximityHB.Visibility = Visibility.Visible;
 						}
-						else if (e.Key == Key.R)
-						{
-							if (unit is Units.Gipsy6.Gipsy6XS)
-							{
-								MessageBox.Show("Gipsy6 XS can be only local.");
-								return;
-							}
-							isRemote = true;
-							foreach (FrameworkElement fe in remoteControls)
-							{
-								fe.Visibility = Visibility.Visible;
-							}
-							//remoteScheduleTitleTB.Visibility = Visibility.Visible;
-							//remoteAddressTitleTB.Visibility = Visibility.Visible;
-							//remoteAddressTB.Visibility = Visibility.Visible;
-							//remoteScheduleTB.Visibility = Visibility.Visible;
-							//remoteHB.Visibility = Visibility.Visible;
-							if (unit.firmTotA < 1005000)
-							{
-								foreach (FrameworkElement fe in proximityControls)
-								{
-									fe.Visibility = Visibility.Hidden;
-								}
-								//proximityTB.Visibility = Visibility.Visible;
-								//proximityHB.Visibility = Visibility.Visible;
-							}
-							remoteHB.allOn();
-							proximityHB.allOff();
+						remoteHB.allOn();
+						proximityHB.allOff();
 
-							conf[544] = 0xbc; conf[545] = 0x09;
-							conf[546] = 0xbc; conf[547] = 0x09;
-							conf[548] = 0x44; conf[549] = 0x0a;
-							conf[550] = 0x11; conf[551] = 0x09;
-							conf[552] = 0x77; conf[553] = 0x09;
-							MessageBox.Show("The unit will be set as remote.");
-						}
-						else if (e.Key == Key.B)
+						conf[544] = 0xbc; conf[545] = 0x09;
+						conf[546] = 0xbc; conf[547] = 0x09;
+						conf[548] = 0x44; conf[549] = 0x0a;
+						conf[550] = 0x11; conf[551] = 0x09;
+						conf[552] = 0x77; conf[553] = 0x09;
+						MessageBox.Show("Unit set as remote.\r\nPlease remeber to adjust the battery thresholds accordingly.");
+						bc = new GiPSy6.BatteryConfiguration(conf, unit);
+						bc.ShowDialog();
+						break;
+					case Key.D:
+						byte debugEventsPointer = 56;
+						if (unit is Units.Gipsy6.Gipsy6N)
 						{
-							var bc = new GiPSy6.BatteryConfiguration(conf, unit);
-							bc.ShowDialog();
+							debugEventsPointer++;
+						}
+						if (conf[debugEventsPointer] == 0)
+						{
+							conf[debugEventsPointer] = 1;
+							debugEventsL.Text = "(Debug Events ON)";
+						}
+						else
+						{
+							conf[debugEventsPointer] = 0;
+							debugEventsL.Text = "";
 						}
 						e.Handled = true;
-					}
-					e.Handled = true;
+						break;
 				}
-				else if (e.Key == Key.D)
-				{
-					byte debugEventsPointer = 56;
-					if (unit is Units.Gipsy6.Gipsy6N)
-					{
-						debugEventsPointer++;
-					}
-					if (conf[debugEventsPointer] == 0)
-					{
-						conf[debugEventsPointer] = 1;
-						debugEventsL.Text = "(Debug Events ON)";
-					}
-					else
-					{
-						conf[debugEventsPointer] = 0;
-						debugEventsL.Text = "";
-					}
-					e.Handled = true;
-				}
+
+				//if (e.Key == Key.L || e.Key == Key.R || e.Key == Key.B)
+				//{
+				//	bool allowed = true;
+				//	if (e.Key == Key.B)
+				//	{
+
+				//	}
+
+				//	if (allowed)
+				//	{
+				//		if (e.Key == Key.L)
+				//		{
+				//			isRemote = false;
+				//			foreach (FrameworkElement fe in remoteControls)
+				//			{
+				//				fe.Visibility = Visibility.Hidden;
+				//			}
+				//			if (unit is Units.Gipsy6.Gipsy6N)
+				//			{
+				//				byte schMode = conf[516];
+				//				for (int i = 516; i < 540; i++)
+				//				{
+				//					conf[i] = 0;
+				//				}
+				//				if (schMode == 0xff)
+				//				{
+				//					conf[516] = 0xff;
+				//				}
+				//				conf[544] = 0x11; conf[545] = 0x09;
+				//				conf[546] = 0xcd; conf[547] = 0x08;
+				//				conf[548] = 0xab; conf[549] = 0x0a;
+				//				conf[550] = 0x00; conf[551] = 0x08;
+				//				conf[552] = 0x00; conf[553] = 0x08;
+				//				MessageBox.Show("Unit set as local.");
+				//			}
+				//			else
+				//			{
+				//				MessageBox.Show("Gipsy6 XS can be only local.");
+				//			}
+
+				//		}
+				//		else if (e.Key == Key.R)
+				//		{
+				//			if (unit is Units.Gipsy6.Gipsy6XS)
+				//			{
+				//				MessageBox.Show("Gipsy6 XS can be only local.");
+				//				return;
+				//			}
+				//			isRemote = true;
+				//			foreach (FrameworkElement fe in remoteControls)
+				//			{
+				//				fe.Visibility = Visibility.Visible;
+				//			}
+				//			//remoteScheduleTitleTB.Visibility = Visibility.Visible;
+				//			//remoteAddressTitleTB.Visibility = Visibility.Visible;
+				//			//remoteAddressTB.Visibility = Visibility.Visible;
+				//			//remoteScheduleTB.Visibility = Visibility.Visible;
+				//			//remoteHB.Visibility = Visibility.Visible;
+				//			if (unit.firmTotA < 1005000)
+				//			{
+				//				foreach (FrameworkElement fe in proximityControls)
+				//				{
+				//					fe.Visibility = Visibility.Hidden;
+				//				}
+				//				//proximityTB.Visibility = Visibility.Visible;
+				//				//proximityHB.Visibility = Visibility.Visible;
+				//			}
+				//			remoteHB.allOn();
+				//			proximityHB.allOff();
+
+				//			conf[544] = 0xbc; conf[545] = 0x09;
+				//			conf[546] = 0xbc; conf[547] = 0x09;
+				//			conf[548] = 0x44; conf[549] = 0x0a;
+				//			conf[550] = 0x11; conf[551] = 0x09;
+				//			conf[552] = 0x77; conf[553] = 0x09;
+				//			MessageBox.Show("Unit set as remote.");
+				//		}
+				//		else if (e.Key == Key.B)
+				//		{
+				//			var bc = new GiPSy6.BatteryConfiguration(conf, unit);
+				//			bc.ShowDialog();
+				//		}
+				//		e.Handled = true;
+				//	}
+				//	e.Handled = true;
+				//}
+				//else if (e.Key == Key.D)
+				//{
+				//	byte debugEventsPointer = 56;
+				//	if (unit is Units.Gipsy6.Gipsy6N)
+				//	{
+				//		debugEventsPointer++;
+				//	}
+				//	if (conf[debugEventsPointer] == 0)
+				//	{
+				//		conf[debugEventsPointer] = 1;
+				//		debugEventsL.Text = "(Debug Events ON)";
+				//	}
+				//	else
+				//	{
+				//		conf[debugEventsPointer] = 0;
+				//		debugEventsL.Text = "";
+				//	}
+				//	e.Handled = true;
+				//}
 			}
 		}
 

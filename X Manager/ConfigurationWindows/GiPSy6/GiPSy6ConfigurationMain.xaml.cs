@@ -59,7 +59,7 @@ namespace X_Manager.ConfigurationWindows
 		{
 
 			InitializeComponent();
-			
+
 			this.unit = unit;
 			if (unit is null)
 			{
@@ -414,10 +414,10 @@ namespace X_Manager.ConfigurationWindows
 			Gipsy6ConfigurationBrowser.Content = null;
 
 			Array.Copy(newConf, 16, axyConfOut, 0, 0x22a);
-			if (oldLockRfAddress)
-			{
-				Array.Copy(oldRfAddress, 0, axyConfOut, 541, 3); 
-			}
+			//if (oldLockRfAddress)
+			//{
+			Array.Copy(oldRfAddress, 0, axyConfOut, 541, 3);
+			//}
 
 			if (unit.firmTotA < 1004007)
 			{
