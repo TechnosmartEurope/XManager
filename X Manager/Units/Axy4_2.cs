@@ -1042,7 +1042,7 @@ namespace X_Manager.Units
 					return textOut;
 				}
 				tsLoc.orario = tsLoc.orario.AddSeconds(1);
-				dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi);
+				dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
 			}
 
 			if (!pref_repeatEmptyValues)
@@ -1088,7 +1088,7 @@ namespace X_Manager.Units
 				if (rate == 1)
 				{
 					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+					dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
 				}
 			}
 
@@ -1134,7 +1134,7 @@ namespace X_Manager.Units
 				if (rate == 1)
 				{
 					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateTimeS = dateS + csvSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+					dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
 				}
 				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
 
