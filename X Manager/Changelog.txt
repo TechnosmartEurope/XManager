@@ -293,3 +293,4 @@
 	Parametri di conversione spostati nella classe astratta Unit
 	Tracciamento errori di avvio software con codice di errore "S_ERR_CODE"
 1.21.1	Axy4 - bugfix: separava data e ora nella prima riga di ogni timestamp nonostante l'opzione di unirle fosse abilitata
+	Axy5 - bufgix: in caso di timestamp vuoto a 1Hz la copia dell'ultimo campione valido era sbagliata nel caso ci fossero numeri negativi

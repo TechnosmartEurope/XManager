@@ -1474,12 +1474,14 @@ namespace X_Manager.Units
 			{
 				if (nOutputs == 1)
 				{
-					return new double[] { group[0], group[1], group[2] };
+					//return new double[] { group[0], group[1], group[2] };
+					tsc.timeStampLength = 1;
 				}
 				else
 				{
 					return new double[] { };
 				}
+
 			}
 
 			int resultCode = 0;
