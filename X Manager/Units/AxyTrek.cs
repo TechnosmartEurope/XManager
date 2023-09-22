@@ -479,20 +479,20 @@ namespace X_Manager.Units.AxyTreks
 			int bytesReturned = 0;
 
 			ft.BaudRate = (uint)baudrate;
-			bool firstLoop = true;
+			bool refreshAddress = true;
 			bool mem4 = false;
 			if (firmTotA > 2999999) mem4 = true;
 			bool success = true;
 			while (actMemory < toMemory)
 			{
-				if (((actMemory % 0x2000000) == 0) | (firstLoop))
+				if (refreshAddress)
 				{
 					address = BitConverter.GetBytes(actMemory);
 					Array.Reverse(address);
 					Array.Copy(address, 0, outBuffer, 1, 3);
-					outBuffer[0] = 65;  //A
+					outBuffer[0] = 65;  //'A'
 					bytesToWrite = 4;
-					firstLoop = false;
+					refreshAddress = false;
 				}
 				else
 				{
@@ -508,7 +508,7 @@ namespace X_Manager.Units.AxyTreks
 				}
 				else if (bytesReturned < 4096)
 				{
-					firstLoop = true;
+					refreshAddress = true;
 				}
 				else
 				{
@@ -524,7 +524,7 @@ namespace X_Manager.Units.AxyTreks
 								address = BitConverter.GetBytes(actMemory);
 								Array.Reverse(address);
 								Array.Copy(address, 0, outBuffer, 1, 3);
-								outBuffer[0] = 97;
+								outBuffer[0] = 97;  //'a'
 								bytesToWrite = 4;
 								ft.Write(outBuffer, bytesToWrite);
 								if (ft.Read(inBuffer, 2048) < 0)
@@ -536,14 +536,14 @@ namespace X_Manager.Units.AxyTreks
 								actMemory += 2048;
 							}
 							if (success == false) break;
-							firstLoop = true;
+							refreshAddress = true;
 						}
 						else
 						{
 							fo.Write(inBuffer, 0, 4096);
 							if ((actMemory % 0x40000) == 0)
 							{
-								firstLoop = true;
+								refreshAddress = true;
 							}
 						}
 
@@ -809,6 +809,11 @@ namespace X_Manager.Units.AxyTreks
 			const int yes_alaways = 11;
 			int resp = no;
 			ushort counter = 0;
+			int sectorLength = 1024;
+			if (firmTotA < 4000000)
+			{
+				sectorLength = 256;
+			}
 
 			while (mdp.BaseStream.Position < mdp.BaseStream.Length)
 			{
@@ -849,7 +854,7 @@ namespace X_Manager.Units.AxyTreks
 					{
 						var oldPosition = mdp.BaseStream.Position;
 						mdp.BaseStream.Position = mdp.BaseStream.Length - 1;
-						if (mdp.ReadByte() == 254)
+						if (mdp.ReadByte() == sectorLength - 2)
 						{
 							mdp.BaseStream.Position -= 8;
 							firmwareArray = mdp.ReadBytes(6);
@@ -857,20 +862,20 @@ namespace X_Manager.Units.AxyTreks
 						mdp.BaseStream.Position = oldPosition;
 					}
 					ard.Write(firmwareArray, 0, 6);
-					ard.Write(mdp.ReadBytes(254));
+					ard.Write(mdp.ReadBytes(sectorLength - 2));
 
 				}
 
 				else if (testByte == 0x55)
 				{
-					ard.Write(mdp.ReadBytes(255));
+					ard.Write(mdp.ReadBytes(sectorLength - 1));
 				}
 
 				else if (testByte == 0xff)
 				{
 					try
 					{
-						mdp.ReadBytes(255);
+						mdp.ReadBytes(sectorLength - 1);
 						if (mdp.ReadByte() == 0xcf)
 						{
 							mdp.BaseStream.Position--;
@@ -890,7 +895,7 @@ namespace X_Manager.Units.AxyTreks
 				{
 #if DEBUG
 					//MessageBox.Show(testByte.ToString("X2") + "  " + mdp.BaseStream.Position.ToString("X"));
-					ard.Write(mdp.ReadBytes(255));
+					ard.Write(mdp.ReadBytes(sectorLength - 1));
 #endif
 
 
@@ -953,7 +958,7 @@ namespace X_Manager.Units.AxyTreks
 			if (prefs[p_filePrefs_txt] == "True") pref_makeTxt = true;
 			if (prefs[p_filePrefs_kml] == "True") pref_makeKml = true;
 			if (prefs[p_filePrefs_battery] == "True") pref_battery = true;
-			
+
 			if (prefs[p_filePrefs_timeFormat] == "2") pref_angloTime = true;
 
 			pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);

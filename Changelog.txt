@@ -299,3 +299,4 @@
 	Gipsy6: rimossa richiesta password per modifica soglie batterie e remotizzazione unità
 	Gipsy6: quando si importa lo schedule l'indirizzo rf remoto non viene mai sovrascritto dallo schedule importato
 	X-Manager: aggiunto tracciamento errore ridimensionamento automatico finestra (ricerca errori in avvio)
+1.21.3	Compatibilità con AxyTrek con firmware_A uguale o inferiore a 4.0.0 (nuove librerie memoria)
