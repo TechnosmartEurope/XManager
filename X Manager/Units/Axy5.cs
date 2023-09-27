@@ -987,10 +987,10 @@ namespace X_Manager.Units
 			const int yes_alaways = 11;
 			int resp = no;
 			ushort counter = 0;
-			int sectorLength = 1023;
+			int sectorLength = 1024;
 			if (firmTotA < 2000000)
 			{
-				sectorLength = 255;
+				sectorLength = 256;
 			}
 
 			fileName = Path.GetFileNameWithoutExtension(fileNameMdp);
@@ -1039,12 +1039,12 @@ namespace X_Manager.Units
 						ftemp -= (uint)fwAr[1] * 1000;
 						fwAr[2] = (byte)ftemp;
 						ard.Write(fwAr, 0, 3);
-						ard.Write(mdp.ReadBytes(sectorLength - 1));
+						ard.Write(mdp.ReadBytes(sectorLength - 2));
 					}
 					else
 					{
 						ard.Write(new byte[] { 0xab, 0x80 });
-						ard.Write(mdp.ReadBytes(sectorLength - 1));
+						ard.Write(mdp.ReadBytes(sectorLength - 2));
 					}
 				}
 				else if (testByte == 0xff)
@@ -1056,7 +1056,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					ard.Write(mdp.ReadBytes(sectorLength));
+					ard.Write(mdp.ReadBytes(sectorLength - 1));
 				}
 			}
 

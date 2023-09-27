@@ -300,3 +300,4 @@
 	Gipsy6: quando si importa lo schedule l'indirizzo rf remoto non viene mai sovrascritto dallo schedule importato
 	X-Manager: aggiunto tracciamento errore ridimensionamento automatico finestra (ricerca errori in avvio)
 1.21.3	Compatibilità con AxyTrek con firmware_A uguale o inferiore a 4.0.0 (nuove librerie memoria)
+1.21.4	Compatibilità con AGM con firmware uguale o inferiore a 3.0.0 e Axy4.5 con firmware uguale o inferiore a 4.0.0 (nuove librerie memoria)

@@ -893,12 +893,7 @@ namespace X_Manager.Units.AxyTreks
 				}
 				else
 				{
-#if DEBUG
-					//MessageBox.Show(testByte.ToString("X2") + "  " + mdp.BaseStream.Position.ToString("X"));
 					ard.Write(mdp.ReadBytes(sectorLength - 1));
-#endif
-
-
 				}
 			}
 			try

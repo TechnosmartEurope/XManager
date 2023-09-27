@@ -373,7 +373,7 @@ namespace X_Manager.Units
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
 		{
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusLabel.Content = "Creating Ard file(s)..."));
-			var mdp = new BinaryReader(System.IO.File.Open(fileNameMdp, FileMode.Open));
+			var mdp = new BinaryReader(File.Open(fileNameMdp, FileMode.Open));
 
 			BinaryWriter ard = BinaryWriter.Null;
 			//ushort packLength = 255;
@@ -385,6 +385,11 @@ namespace X_Manager.Units
 			const int yes_alaways = 11;
 			int resp = no;
 			ushort counter = 0;
+			int sectorLength = 1024;
+			if (firmTotA < 3000000)
+			{
+				sectorLength = 255;
+			}
 
 			while (mdp.BaseStream.Position < mdp.BaseStream.Length)
 			{
@@ -398,7 +403,7 @@ namespace X_Manager.Units
 					}
 					counter++;
 					fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "_S" + counter.ToString() + ".ard";
-					if (System.IO.File.Exists(fileNameArd))
+					if (File.Exists(fileNameArd))
 					{
 						if (resp < 11)
 						{
@@ -414,16 +419,16 @@ namespace X_Manager.Units
 							do
 							{
 								fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileNameArd) + " (1)" + ".ard";
-							} while (System.IO.File.Exists(fileNameArd));
+							} while (File.Exists(fileNameArd));
 						}
 					}
-					ard = new System.IO.BinaryWriter(System.IO.File.Open(fileNameArd, FileMode.Create));
+					ard = new BinaryWriter(File.Open(fileNameArd, FileMode.Create));
 					ard.Write(new byte[] { modelCode }, 0, 1);
 					if (!connected)
 					{
 						var oldPosition = mdp.BaseStream.Position;
 						mdp.BaseStream.Position = mdp.BaseStream.Length - 1;
-						if (mdp.ReadByte() == 254)
+						if (mdp.ReadByte() == sectorLength - 2)
 						{
 							mdp.BaseStream.Position -= 5;
 							firmwareArray = mdp.ReadBytes(3);
@@ -432,7 +437,7 @@ namespace X_Manager.Units
 						mdp.BaseStream.Position = oldPosition;
 					}
 					ard.Write(firmwareArray, 0, firmwareArray.Length);
-					ard.Write(mdp.ReadBytes(254));
+					ard.Write(mdp.ReadBytes(sectorLength - 2));
 				}
 				else if (testByte == 0xff)
 				{
@@ -443,7 +448,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					ard.Write(mdp.ReadBytes(255));
+					ard.Write(mdp.ReadBytes(sectorLength - 1));
 				}
 			}
 			try
@@ -461,9 +466,9 @@ namespace X_Manager.Units
 					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
 					{
 						string newFileNameMdp = Path.GetDirectoryName(fileNameMdp) + "\\" + Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						if (System.IO.File.Exists(newFileNameMdp)) fDel(newFileNameMdp); //System.IO.File.Delete(newFileNameMdp);
-																						 //string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
-						System.IO.File.Move(fileNameMdp, newFileNameMdp);
+						if (File.Exists(newFileNameMdp)) fDel(newFileNameMdp); //System.IO.File.Delete(newFileNameMdp);
+																			   //string newFileNameMdp = Path.GetFileNameWithoutExtension(fileNameMdp) + ".memDump";
+						File.Move(fileNameMdp, newFileNameMdp);
 					}
 				}
 			}
@@ -1579,15 +1584,10 @@ namespace X_Manager.Units
 			return false;
 		}
 
-
-
-
 		public override void downloadRemote(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 			throw new NotImplementedException();
 		}
-
-
 
 		public override void getCoeffs()
 		{
@@ -1608,8 +1608,6 @@ namespace X_Manager.Units
 		{
 			return base.getAccSchedule();
 		}
-
-
 
 		public override void setAccSchedule(byte[] schedule)
 		{
