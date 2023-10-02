@@ -49,6 +49,7 @@ namespace X_Manager.Units.AxyTreks
 		{
 			byte[] conf = new byte[41];
 			conf[0] = modelCode;
+			resetTimer();
 			ft.Write("TTTTTTTTGGAC");
 			try
 			{
@@ -77,6 +78,7 @@ namespace X_Manager.Units.AxyTreks
 
 		public override void setConf(byte[] conf)
 		{
+			resetTimer();
 			ft.Write("TTTTTTTTTGGAc");
 			try
 			{

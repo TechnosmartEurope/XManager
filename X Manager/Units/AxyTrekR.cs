@@ -50,6 +50,7 @@ namespace X_Manager.Units.AxyTreks
 			}
 
 			coeffs[0] = 0;
+			resetTimer();
 			ft.Write("TTTTTTTTTTTTTGGAg");
 			try
 			{
@@ -76,6 +77,7 @@ namespace X_Manager.Units.AxyTreks
 		{
 			byte[] conf = new byte[29];
 			conf[25] = modelCode;
+			resetTimer();
 			ft.Write("TTTTTTTTGGAC");
 			try
 			{

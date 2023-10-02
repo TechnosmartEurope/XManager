@@ -92,10 +92,24 @@ namespace X_Manager.Units.AxyTreks
 			configurePositionButtonEnabled = true;
 		}
 
+		protected void resetTimer()
+		{
+			if (MainWindow.keepAliveTimer != null)
+			{
+				MainWindow.keepAliveTimer.Stop();
+				MainWindow.keepAliveTimer.Start();
+			}
+		}
+
+		public override void keepAlive()
+		{
+			ft.Write("TTTTTTTGGAK");
+		}
 		public override string askBattery()
 		{
 			string battery = "";
 			double battLevel;
+			resetTimer();
 			ft.Write("TTTTGGAB");
 			try
 			{
@@ -117,6 +131,7 @@ namespace X_Manager.Units.AxyTreks
 			string unitNameBack;
 			try
 			{
+				resetTimer();
 				ft.Write("TTTTTTTGGAN");
 				unitNameBack = ft.ReadLine();
 			}
@@ -131,6 +146,7 @@ namespace X_Manager.Units.AxyTreks
 		public override uint[] askMaxMemory()
 		{
 			UInt32 m;
+			resetTimer();
 			ft.Write("TTTTTTTGGAm");
 			try
 			{
@@ -151,6 +167,7 @@ namespace X_Manager.Units.AxyTreks
 		public override uint[] askMemory()
 		{
 			UInt32 m;
+			resetTimer();
 			ft.Write("TTTTTTTGGAM");
 			try
 			{
@@ -170,6 +187,7 @@ namespace X_Manager.Units.AxyTreks
 
 		public override void eraseMemory()
 		{
+			resetTimer();
 			ft.Write("TTTTTTTTGGAE");
 			try
 			{
@@ -183,6 +201,7 @@ namespace X_Manager.Units.AxyTreks
 
 		public override bool getRemote()
 		{
+			resetTimer();
 			if (firmTotA > 3001000)
 			{
 				ft.Write("TTTTTTTTTTGGAl");
@@ -199,6 +218,7 @@ namespace X_Manager.Units.AxyTreks
 		{
 			if (firmTotA >= 3008001)
 			{
+				resetTimer();
 				ft.Write("TTTTTTTTTTGGAi");
 				try
 				{
@@ -216,6 +236,7 @@ namespace X_Manager.Units.AxyTreks
 
 		public override void setConf(byte[] conf)
 		{
+			resetTimer();
 			ft.Write("TTTTTTTTTGGAc");
 			try
 			{
@@ -245,6 +266,7 @@ namespace X_Manager.Units.AxyTreks
 			{
 				throw new Exception(unitNotReady);
 			}
+			resetTimer();
 			if (!evitaSoglie)
 			{
 				uint[] soglie = calcolaSoglieDepth();
@@ -270,16 +292,17 @@ namespace X_Manager.Units.AxyTreks
 		{
 			byte[] schedule = new byte[200];
 			ft.ReadExisting();
+			resetTimer();
 			ft.Write("TTTTTTTTTTTTTGGAS");
 			Thread.Sleep(200);
 			try
 			{
 				for (int i = 0; i <= 63; i++) { schedule[i] = ft.ReadByte(); }
 				if (remote) ft.Write(new byte[] { 2 }, 0, 1);
-
+				resetTimer();
 				for (int i = 64; i <= 127; i++) { schedule[i] = ft.ReadByte(); }
 				if (remote) ft.Write(new byte[] { 2 }, 0, 1);
-
+				resetTimer();
 				for (int i = 128; i <= 171; i++) { schedule[i] = ft.ReadByte(); }
 				if (firmTotB > 3003999)
 				{
@@ -296,6 +319,8 @@ namespace X_Manager.Units.AxyTreks
 
 		public override void setGpsSchedule(byte[] schedule)
 		{
+			resetTimer();
+			resetTimer();
 			ft.Write("TTTTTTTTTTTTTGGAs");
 			Thread.Sleep(200);
 			try
@@ -305,6 +330,7 @@ namespace X_Manager.Units.AxyTreks
 				if (remote) ft.ReadByte();
 				ft.Write(schedule, 64, 64);
 				if (remote) ft.ReadByte();
+				resetTimer();
 				if (firmTotB < 3004000)
 				{
 					ft.Write(schedule, 128, 44);
@@ -335,6 +361,7 @@ namespace X_Manager.Units.AxyTreks
 			while ((!firmValid) && (tentativi < 5))
 			{
 				ft.ReadExisting();
+				resetTimer();
 				ft.Write("TTTTTTTGGAF");
 				ft.ReadTimeout = 400;
 				Thread.Sleep(600);
@@ -381,6 +408,7 @@ namespace X_Manager.Units.AxyTreks
 			if (newName.Length < 10)
 			{
 				for (int i = newName.Length; i < 10; i++) newName += " ";
+				resetTimer();
 				ft.Write("TTTTTTTGGAn");
 				try
 				{
@@ -401,6 +429,7 @@ namespace X_Manager.Units.AxyTreks
 			{
 				ft.Open();
 			}
+			resetTimer();
 			ft.Write("TTTTTTTGGAO");
 		}
 
@@ -606,6 +635,7 @@ namespace X_Manager.Units.AxyTreks
 
 			byte mdrSpeed = 9;
 			mdrSpeed = 8;
+			resetTimer();
 			string br = "D";
 			if (mdrSpeed == 9) br = "H";
 			ft.Write("TTTTTTTTTTTTTTGGA" + br);
@@ -624,7 +654,7 @@ namespace X_Manager.Units.AxyTreks
 				ft.Write("ATX");
 				Thread.Sleep(900);
 				ft.Write("R");
-				//Thread.Sleep(100);
+				resetTimer();
 				dieCount = ft.ReadByte();
 				ft.ReadExisting();
 				if (dieCount == 0x52) dieCount = 2;
@@ -669,9 +699,10 @@ namespace X_Manager.Units.AxyTreks
 			bool mem4 = false;
 			bool success = true;
 			if (firmTotA > 2999999) mem4 = true;
-
+			
 			while (actMemory < toMemory)
 			{
+				resetTimer();
 				if (((actMemory % 0x2000000) == 0) | (firstLoop))
 				{
 					address = BitConverter.GetBytes(actMemory);
@@ -748,7 +779,7 @@ namespace X_Manager.Units.AxyTreks
 			fo.Write(firmwareArray, 0, 6);
 			fo.Write(new byte[] { modelCode, 254 }, 0, 2);
 			fo.Close();
-
+			resetTimer();
 			if (!success)
 			{
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));

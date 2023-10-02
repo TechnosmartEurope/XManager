@@ -2108,14 +2108,17 @@ namespace X_Manager
 			Baudrate_base = baudRate;
 			remoteConnection = true;
 			connectClick(this, new RoutedEventArgs());
-			if (unitConnected && oUnit is Gipsy6N)       //In caso di gipsy6 remoto disabilita il pulsante per l'upload del firmware
+			if (unitConnected)       
 			{
 				keepAliveTimer = new System.Timers.Timer();
 				keepAliveTimer.Elapsed += keepAliveTimerElapsed;
 				keepAliveTimer.Interval = 5000;
 				keepAliveTimer.AutoReset = true;
 				keepAliveTimer.Enabled = true;
-				configurePositionButton.IsEnabled = false;
+				if (oUnit is Gipsy6)    //In caso di gipsy6 remoto disabilita il pulsante per l'upload del firmware
+				{
+					configurePositionButton.IsEnabled = false;
+				}
 			}
 			return connectButton.Content.Equals("Disconnect");
 		}
