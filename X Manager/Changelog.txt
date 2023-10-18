@@ -302,3 +302,5 @@
 1.21.3	Compatibilità con AxyTrek con firmware_A uguale o inferiore a 4.0.0 (nuove librerie memoria)
 1.21.4	Compatibilità con AGM con firmware uguale o inferiore a 3.0.0 e Axy4.5 con firmware uguale o inferiore a 4.0.0 (nuove librerie memoria)
 1.21.5	Funzionalità "Keep Alive" anche per AxyTrek remoto
+1.21.6	Visualizzazione versione .NET installata in finestra About
+	AGM - bugfix: convertendo un mdp in ard il file mdp veniva comunque cancellato anche se abilitato "keep mdp"

@@ -16,10 +16,10 @@ using FT_HANDLE = System.UInt32;
 
 namespace X_Manager.Units
 {
-	class AGM : Units.Unit
+	class AGM : Unit
 	{
 		const double teslaCoeff = 0.1459536;
-		ushort[] coeffs = new ushort[7];
+		//ushort[] coeffs = new ushort[7];
 		double[] convCoeffs = new double[7];
 		new byte[] firmwareArray = new byte[3];
 		struct timeStamp
@@ -34,6 +34,7 @@ namespace X_Manager.Units
 			public ushort agmSyncEventPosition;
 			public double[] gyro;
 			public double[] comp;
+			public int ardPosition;
 		}
 		ushort rate;
 		ushort accRange;
@@ -460,7 +461,7 @@ namespace X_Manager.Units
 
 			try
 			{
-				if ((Parent.getParameter("keepMdp").Equals("false")) | (!connected)) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
+				if (Parent.getParameter("keepMdp").Equals("false")) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
 				else
 				{
 					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
@@ -541,8 +542,8 @@ namespace X_Manager.Units
 
 			try
 			{
-				ard = new System.IO.BinaryReader(System.IO.File.Open(fileName, FileMode.Open));
-				csv = new System.IO.BinaryWriter(System.IO.File.OpenWrite(fileNameCsv));
+				ard = new BinaryReader(File.Open(fileName, FileMode.Open));
+				csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
 			}
 			catch (Exception ex)
 			{
@@ -561,7 +562,6 @@ namespace X_Manager.Units
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
 				return;
 			}
-
 
 			ard.BaseStream.Position = 1;
 			uint fTotA = (uint)(ard.ReadByte() * 1000000 + ard.ReadByte() * 1000 + ard.ReadByte());
@@ -631,7 +631,8 @@ namespace X_Manager.Units
 				cifreDecString = "0.000";
 			}
 
-			if (prefs[p_filePrefs_metadata] == "True") pref_metadata = true;
+			pref_debugLevel = parent.stDebugLevel;
+			if (prefs[p_filePrefs_metadata] == "True" || pref_debugLevel == 1) pref_metadata = true;
 
 			//Legge i parametri di logging
 			//ard.BaseStream.Position = 7;
@@ -784,7 +785,7 @@ namespace X_Manager.Units
 						ard.BaseStream.Position -= 1;
 						if (badGroup)
 						{
-							System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+							File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
 						}
 					}
 				}
@@ -798,10 +799,10 @@ namespace X_Manager.Units
 					else if ((position == badPosition) && (!badGroup))
 					{
 						badGroup = true;
-						System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
+						File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
 					}
 				}
-			} while ((dummy != (byte)0xab) && (ard.BaseStream.Position < ard.BaseStream.Length));
+			} while ((dummy != 0xab) && (ard.BaseStream.Position < ard.BaseStream.Length));
 
 			Array.Resize(ref group, (int)position);
 
@@ -1028,10 +1029,14 @@ namespace X_Manager.Units
 					textOut += metadataSep + metadataContent + "\r\n";
 					return textOut;
 				}
-				if ((tsLoc.agmSyncEventFlag) && (tsLoc.agmSyncEventPosition == 0))
+				if (tsLoc.agmSyncEventFlag && (tsLoc.agmSyncEventPosition == 0))
 				{
 					tsLoc.agmSyncEventFlag = false;
 					textOut += "TIMEMARK";
+				}
+				if (pref_debugLevel == 1)
+				{
+					metadataContent += " " + tsLoc.ardPosition.ToString("X8");
 				}
 			}
 
@@ -1045,7 +1050,7 @@ namespace X_Manager.Units
 
 			if (tsLoc.logEvent > 0) return textOut;
 
-			metadataContent = "";
+			//metadataContent = "";
 
 			if (!pref_repeatEmptyValues)
 			{
@@ -1174,6 +1179,7 @@ namespace X_Manager.Units
 
 		private bool decodeTimeStamp(ref BinaryReader ard, ref timeStamp tsc, uint fTotA)
 		{
+			tsc.ardPosition = (int)ard.BaseStream.Position;
 			tsc.tsType = ard.ReadByte();
 			tsc.logEvent = 0;
 

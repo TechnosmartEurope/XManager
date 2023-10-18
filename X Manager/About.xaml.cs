@@ -35,10 +35,13 @@ namespace X_Manager
         private void loaded(object sender, EventArgs e)
         {
 
-            banner.Source = ImageSourceForBitmap(X_Manager.Properties.Resources.technosmartLogoBlurred);
+			string fd = RuntimeInformation.FrameworkDescription;
+
+			banner.Source = ImageSourceForBitmap(Properties.Resources.technosmartLogoBlurred);
 
             var ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             versionLabel.Content = "Version: " + ver.ToString();
+			netVersionLabel.Content = "Installed " + fd;
 
 #if X86
             versionLabel.Content += " (32 bit)";

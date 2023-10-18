@@ -11,12 +11,14 @@
             <RowDefinition Height="80"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition />
         </Grid.RowDefinitions>
         <Image Grid.Row="0" x:Name="banner" Source="Resources\technosmartLogoBlurred.png"/>
         <Label Grid.Row="1" x:Name="programNameLabel" HorizontalAlignment="Center" Content="X Manager" FontSize="26" FontStyle="Italic" Foreground="{StaticResource Foreground_General}" Margin="0,10,0,0" />
         <Label Grid.Row="2" HorizontalAlignment="Center" Content="provaProva" x:Name="versionLabel" FontSize="12" FontStyle="Italic" Foreground="Gray" Padding="5,0,5,5" />
-        <Grid Grid.Row="3">
+		<Label Grid.Row="3" HorizontalAlignment="Center" Content="provaProva" x:Name="netVersionLabel" FontSize="12" FontStyle="Italic" Foreground="Gray" Padding="5,0,5,5" />
+		<Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="Auto"/>
