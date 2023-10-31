@@ -2108,7 +2108,7 @@ namespace X_Manager
 			Baudrate_base = baudRate;
 			remoteConnection = true;
 			connectClick(this, new RoutedEventArgs());
-			if (unitConnected)       
+			if (unitConnected)
 			{
 				keepAliveTimer = new System.Timers.Timer();
 				keepAliveTimer.Elapsed += keepAliveTimerElapsed;
@@ -2653,7 +2653,6 @@ namespace X_Manager
 					break;
 				case Unit.model_axy5:
 					cUnit = new Axy5(this);
-					cUnit.firmTotA = fw;
 					break;
 				case Unit.model_axyDepth:
 					if (fileType == type_ard) fw = (byte)fs.ReadByte();
@@ -2699,7 +2698,7 @@ namespace X_Manager
 					cUnit = new AxyTrekN(this);
 					break;
 			}
-
+			cUnit.firmTotA = fw;
 			UInt32 FileLength = (UInt32)fs.Length;
 			fs.Close();
 			mainGrid.IsEnabled = false;
@@ -2732,6 +2731,10 @@ namespace X_Manager
 				iFile.Position = iFile.Length - 2;
 				outt[0] = (uint)iFile.ReadByte();
 				iFile.Position = iFile.Length - 5;
+				if (outt[0] <= 7)
+				{
+					iFile.Position -= 3;
+				}
 				outt[1] = (uint)(iFile.ReadByte() * 1000000 + iFile.ReadByte() * 1000 + iFile.ReadByte());
 			}
 			else

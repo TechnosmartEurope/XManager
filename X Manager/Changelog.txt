@@ -304,3 +304,7 @@
 1.21.5	Funzionalità "Keep Alive" anche per AxyTrek remoto
 1.21.6	Visualizzazione versione .NET installata in finestra About
 	AGM - bugfix: convertendo un mdp in ard il file mdp veniva comunque cancellato anche se abilitato "keep mdp"
+1.22.0	Basemanager: configurazione orario trasmissione dati in 4G
+	Basemanager: configurazione pause between attempts
+	Bugfix: la conversione di memDump precedentemente scaricati generava ard errati per le unità con nuove librerie memoria (tranne Axy5)
+	Bugfix - gipsy6: in conversione con CTRL+D il txt, se selezionato "Fill empty", generava numeri lunghissimi come posizione nell'ard

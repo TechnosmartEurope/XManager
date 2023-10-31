@@ -1934,7 +1934,7 @@ namespace X_Manager.Units.Gipsy6
 
 				if (pref_debugLevel > 0)
 				{
-					tabs[p_fileCsv_position] += t.pos.ToString("X8");
+					tabs[p_fileCsv_position] = t.pos.ToString("X8");
 				}
 
 				for (int i = 0; i < p_fileCsv_length - 1; i++)

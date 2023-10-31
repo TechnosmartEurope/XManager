@@ -45,18 +45,66 @@
 		<Button Grid.Column="2" x:Name="allOffB" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="80" Margin="90,0,5,5" MinHeight="0" Content="ALL OFF" Click="allOffB_Click"/>
 
 
-		<GroupBox x:Name="confGB" Grid.Column="3"  Margin="5,10,5,95" Header="Configuration" Foreground="#FF00AADE">
+		<GroupBox x:Name="confGB" Grid.Column="3"  Margin="3,10,3,95" Header="Configuration" Foreground="#FF00AADE">
 			<StackPanel Margin="0" Orientation="Vertical">
 				<Label Content="Basestation name:" Margin="0,0,0,0" FontSize="12" Foreground="#FF606060"/>
-				<TextBox x:Name="bsNameTB" Margin="0,0,0,0" Background="#FF202020" FontSize="12" MaxLength="30" TextWrapping="Wrap" Height="50"
-					Foreground="White" PreviewKeyDown="bsNameTB_PreviewKeyDown"/>
-				<Label Content="User ID:" Margin="0,10,0,0" FontSize="12" Foreground="#FF606060"/>
-				<Label x:Name="userIDL" FontSize="12"/>
-				<Label Content="Basestation ID:" Margin="0,10,0,0" FontSize="12" Foreground="#FF606060"/>
-				<Label x:Name="bsIDL" FontSize="12"/>
+				<TextBox x:Name="bsNameTB" Margin="0,0,0,0" Background="#FF202020" FontSize="12" MaxLength="30" TextWrapping="Wrap" Height="22" MinHeight="0"
+					Foreground="White" PreviewKeyDown="bsNameTB_PreviewKeyDown" />
+				<Grid Height="18" Margin="0,10,0,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Label Content="User ID:" FontSize="12" Foreground="#FF606060" Grid.Column="0"/>
+					<Label Content="Basestation ID:" FontSize="12" Foreground="#FF606060" Grid.Column="1"/>
+				</Grid>
+				<Grid Height="18" Margin="0,0,0,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition/>
+						<ColumnDefinition/>
+					</Grid.ColumnDefinitions>
+					<Label x:Name="userIDL" FontSize="12" Grid.Column="0"/>
+					<Label x:Name="bsIDL" FontSize="12" Grid.Column="1"/>
+				</Grid>
 				<Label Content="Receiving Address:" Margin="0,10,0,0" FontSize="12" Foreground="#FF606060"/>
-				<TextBox x:Name="bsAddressTB" Margin="0,0,0,0" Background="#FF202020" FontSize="12" MaxLength="10" Height="30"
+				<TextBox x:Name="bsAddressTB" Margin="0,0,0,0" Background="#FF202020" FontSize="12" MaxLength="10" Height="22" MinHeight="0"
 					Foreground="White"/>
+				<Label Content="4G Connection schedule:" Margin="0,20,0,0" FontSize="12" Foreground="#FF606060"/>
+				<StackPanel Orientation="Horizontal" Margin="0,0,5,0" MinHeight="0" Height="30">
+					<CheckBox x:Name="schedule4GCB" Content="Enable" Foreground="#FF808080" VerticalAlignment="Center" Height="16" Checked="schedule4GCB_Checked" Unchecked="schedule4GCB_Unchecked"/>
+					<ComboBox x:Name="schedule4GCBB" Margin="20,0,0,0" Width="60" MinHeight="0" Height="22">
+						<ComboBoxItem>00</ComboBoxItem>
+						<ComboBoxItem>01</ComboBoxItem>
+						<ComboBoxItem>02</ComboBoxItem>
+						<ComboBoxItem>03</ComboBoxItem>
+						<ComboBoxItem>04</ComboBoxItem>
+						<ComboBoxItem>05</ComboBoxItem>
+						<ComboBoxItem>06</ComboBoxItem>
+						<ComboBoxItem>07</ComboBoxItem>
+						<ComboBoxItem>08</ComboBoxItem>
+						<ComboBoxItem>09</ComboBoxItem>
+						<ComboBoxItem>10</ComboBoxItem>
+						<ComboBoxItem>11</ComboBoxItem>
+						<ComboBoxItem>12</ComboBoxItem>
+						<ComboBoxItem>13</ComboBoxItem>
+						<ComboBoxItem>14</ComboBoxItem>
+						<ComboBoxItem>15</ComboBoxItem>
+						<ComboBoxItem>16</ComboBoxItem>
+						<ComboBoxItem>17</ComboBoxItem>
+						<ComboBoxItem>18</ComboBoxItem>
+						<ComboBoxItem>19</ComboBoxItem>
+						<ComboBoxItem>20</ComboBoxItem>
+						<ComboBoxItem>21</ComboBoxItem>
+						<ComboBoxItem>22</ComboBoxItem>
+						<ComboBoxItem>23</ComboBoxItem>
+					</ComboBox>
+				</StackPanel>
+				<Label Content="Wait time between attempts:" Margin="0,20,0,0" FontSize="12" Foreground="#FF606060"/>
+				<StackPanel Orientation="Horizontal" Height="30" Margin="0,5,0,0">
+					<TextBox x:Name="bsWaitTimeTB" Background="#FF202020" FontSize="12" MaxLength="10" Height="22" MinHeight="0" Width="60" Foreground="White"
+					 LostFocus="waitTimeValidateLF" KeyDown="waitTimeValidateKD" />
+					<Label Content="Minutes" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="#FF606060" FontSize="12"/>
+				</StackPanel>
 			</StackPanel>
 
 		</GroupBox>

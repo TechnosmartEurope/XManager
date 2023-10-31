@@ -12,6 +12,9 @@ using System.Windows.Media;
 using System.Net;
 using Microsoft.VisualBasic;
 using Microsoft.SqlServer.Server;
+using System.Runtime.Remoting.Channels;
+using Windows.UI.Composition;
+using System.Diagnostics.Eventing.Reader;
 
 namespace X_Manager.Remote
 {
@@ -51,8 +54,8 @@ namespace X_Manager.Remote
 		string currentDriveLabel = "";
 		List<BS_listViewElement[]> historyList;
 		TextBox newChannelTB;
-		System.Timers.Timer saveAddressTimer;
-		System.Timers.Timer saveScheduleTimer;
+		//System.Timers.Timer saveAddressTimer;
+		//System.Timers.Timer saveScheduleTimer;
 		System.Timers.Timer listDriveTimer;
 		System.Timers.Timer validateDriveTimer;
 		List<string> oldDriveLabels;
@@ -63,7 +66,11 @@ namespace X_Manager.Remote
 		int tempBsLvIndex;
 		int bsAddress;
 		List<CheckBox> scheduleCBArr;
-		byte[] oldScheduleArr;
+		int[] initialLV;
+		byte[] initialScheduleArr;
+		int initial4GSelectedIndex;
+		UInt16 initialWaitTime;
+		UInt16 lastValidWaitTime;
 		DriveStatus oldDriveStatus;
 		byte[] timestamp;
 		byte[] oldConf;
@@ -84,7 +91,7 @@ namespace X_Manager.Remote
 		const string FOLDER_CONFIG = "CONFIG";
 
 		bool save = false;
-		bool somethingChanged = false;
+		//bool somethingChanged = false;
 		string intialName = "";
 		readonly Control[] visArr;
 		private readonly Object addressLock = new Object();
@@ -116,14 +123,14 @@ namespace X_Manager.Remote
 				errorCode++;
 
 				//Imposta il timer per il salvataggio della unit list a seguito di modifiche
-				saveAddressTimer = new System.Timers.Timer();
-				saveAddressTimer.Interval = 1000;
-				saveAddressTimer.Elapsed += saveAddressTimerElapsed;
+				//saveAddressTimer = new System.Timers.Timer();
+				//saveAddressTimer.Interval = 1000;
+				//saveAddressTimer.Elapsed += saveAddressTimerElapsed;
 
 				//Imposta i timer per il salvataggio dello schedule a seguito di modifiche
-				saveScheduleTimer = new System.Timers.Timer();
-				saveScheduleTimer.Interval = 1100;
-				saveScheduleTimer.Elapsed += saveScheduleTimerElapsed;
+				//saveScheduleTimer = new System.Timers.Timer();
+				//saveScheduleTimer.Interval = 1100;
+				//saveScheduleTimer.Elapsed += saveScheduleTimerElapsed;
 
 				//Imposta il timer per il refresh periodico della lista unità
 				listDriveTimer = new System.Timers.Timer();
@@ -159,8 +166,6 @@ namespace X_Manager.Remote
 					chb.HorizontalContentAlignment = HorizontalAlignment.Left;
 					chb.Padding = new Thickness(0);
 					chb.FontSize = 10;
-					chb.Checked += scheduleCBchanged;
-					chb.Unchecked += scheduleCBchanged;
 					scheduleG.Children.Add(chb);
 					scheduleCBArr.Add(chb);
 					thickness.Top += 40;
@@ -187,6 +192,12 @@ namespace X_Manager.Remote
 			try
 			{
 
+				//inizializza gli status per il controllo salvataggio in chiusura
+				initialScheduleArr = new byte[24];
+				initialWaitTime = 0;
+				initial4GSelectedIndex = -1;
+				initialLV = new int[0];
+				lastValidWaitTime = 0;
 
 				//Nasconde tutti i controlli relativi allo schedule perché in avvio non è stata selezionata alcuna basestation
 				selectedDriveAspect(DriveStatus.NOT_SELECTED);
@@ -214,8 +225,6 @@ namespace X_Manager.Remote
 					catch { }
 				}
 
-
-
 				//Se almeno uno dei drive è una basestation la seleziona			
 
 				for (int i = 0; i < driveLV.Items.Count; i++)
@@ -235,8 +244,6 @@ namespace X_Manager.Remote
 				}
 
 				errorCode++;
-
-
 
 				//Fa partire il timer per il controllo periodico delle unità connesse
 				listDriveTimer.Start();
@@ -379,8 +386,8 @@ namespace X_Manager.Remote
 		private void bootloader_Click(object sender, RoutedEventArgs e)
 		{
 			listDriveTimer.Stop();
-			saveAddressTimer.Stop();
-			saveScheduleTimer.Stop();
+			//saveAddressTimer.Stop();
+			//saveScheduleTimer.Stop();
 			validateDriveTimer.Stop();
 			if (ft is null)
 			{
@@ -444,14 +451,44 @@ namespace X_Manager.Remote
 		private void closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
 
-			saveAddressTimer.Stop();
-			saveScheduleTimer.Stop();
+			//saveAddressTimer.Stop();
+			//saveScheduleTimer.Stop();
 			listDriveTimer.Stop();
 			validateDriveTimer.Stop();
-			if (!bsNameTB.Text.Equals(intialName))
+			bool somethingChanged = false;
+			DriveInfo dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
+			if (validateDrive(dr))
 			{
-				somethingChanged = true;
+				if (!bsNameTB.Text.Equals(intialName))
+				{
+					somethingChanged = true;
+				}
+
+				byte[] actSchedule = new byte[24];
+				for (int i = 0; i < 24; i++)
+				{
+					if (scheduleCBArr[i].IsChecked == true)
+					{
+						actSchedule[i] = 1;
+					}
+				}
+				if (!actSchedule.SequenceEqual(initialScheduleArr))
+				{
+					somethingChanged = true;
+				}
+				if (schedule4GCBB.SelectedIndex != initial4GSelectedIndex) somethingChanged = true;
+				if (UInt16.Parse(bsWaitTimeTB.Text) != initialWaitTime) somethingChanged = true;
+				int[] actLV = new int[channelLV.Items.Count];
+				for (int i = 0; i < actLV.Length; i++)
+				{
+					actLV[i] = ((BS_listViewElement)channelLV.Items[i]).Address;
+				}
+				if (!actLV.SequenceEqual(initialLV))
+				{
+					somethingChanged = true;
+				}
 			}
+
 			if (somethingChanged && !save)
 			{
 				var tg = new YesNo("WARNING: Do you want to save changes before closing?", "Unsaved Changes", "", "Yes", "No");
@@ -477,8 +514,8 @@ namespace X_Manager.Remote
 					}
 				}
 			}
-			saveAddressTimer = null;
-			saveScheduleTimer = null;
+			//saveAddressTimer = null;
+			//saveScheduleTimer = null;
 			listDriveTimer = null;
 			validateDriveTimer = null;
 		}
@@ -678,7 +715,7 @@ namespace X_Manager.Remote
 				return;
 			}
 
-			DriveStatus d = DriveStatus.VALID;
+			DriveStatus d = DriveStatus.NOT_VALID;
 
 			if (validateDrive((driveLV.SelectedItem as BS_listViewElement).Drive))
 			{
@@ -693,16 +730,16 @@ namespace X_Manager.Remote
 						d = DriveStatus.TO_BE_FORMATTED;
 					}
 				}
-				else
-				{
-					d = DriveStatus.NOT_VALID;
-				}
 			}
 			if (d != oldDriveStatus)
 			{
 				if (d == DriveStatus.VALID)
 				{
+					initialLV = new int[0];
 					fillChannelList((driveLV.SelectedItem as BS_listViewElement).Drive);
+					initial4GSelectedIndex = -1;
+					initialWaitTime = 0;
+					initialScheduleArr = new byte[24];
 					fillScheduleList((driveLV.SelectedItem as BS_listViewElement).Drive);
 					fillConf((driveLV.SelectedItem as BS_listViewElement).Drive);
 				}
@@ -729,15 +766,22 @@ namespace X_Manager.Remote
 		private void driveLvItemClicked()
 		{
 
-			var drive = ((BS_listViewElement)driveLV.SelectedItem).Drive;
+			validateDriveTimer.Stop();
+
+			DriveInfo drive = ((BS_listViewElement)driveLV.SelectedItem).Drive;
 			currentSelectedDrive = ((BS_listViewElement)driveLV.SelectedItem).Drive;    //Crea una copia del riferimento al drive selezionato
-			if (drive == null) return;
+			if (drive == null)
+			{
+				validateDriveTimer.Start();
+				return;
+			}
 			/*Confronta il nome del drive cliccato con quello precedentemente selezionato,
-			 * *se è lo stesso esce subito */
+			 se è lo stesso esce subito */
 			if (currentDriveLetter == drive.Name)
 			{
 				if (currentDriveLabel == drive.VolumeLabel)
 				{
+					validateDriveTimer.Start();
 					return;
 				}
 			}
@@ -745,17 +789,20 @@ namespace X_Manager.Remote
 			currentDriveLetter = drive.Name;                //Se è diverso, aggiorna il nome
 			currentDriveLabel = drive.VolumeLabel;
 
+			initialLV = new int[0];
+			initial4GSelectedIndex = -1;
+			initialWaitTime = 0;
+			initialScheduleArr = new byte[24];
+
 			if (validateDrive(drive))
 			{
 				//Se il drive selezionato è una BaseStation, rende visibili i controlli di lavoro
 				selectedDriveAspect(DriveStatus.VALID);
 
-				//Resetta il flag di cambiamenti effettuati
-				somethingChanged = false;
-
 				fillChannelList(drive);         //Riempie la lista unità
 				fillScheduleList(drive);        //Imposta gli orari dello schedule
-				fillConf(drive);                //Riempe i campi della configurazione
+				fillConf(drive);                //Riempie i campi della configurazione
+
 				resizeLVelements();
 			}
 			//else if (drive.VolumeLabel.Contains("BaseStation") || drive.VolumeLabel.Contains("BASESTATION"))
@@ -805,6 +852,7 @@ namespace X_Manager.Remote
 
 		private void fillChannelList(DriveInfo d)
 		{
+
 			channelLV.Items.Clear();
 			byte[] buff = File.ReadAllBytes(d.Name + FILE_UNITS);   //Carica in memoria il contenuto del file unità
 			if (buff.Length == 0)                                   //Se non ci sono unità esce subito
@@ -887,6 +935,13 @@ namespace X_Manager.Remote
 				counter += 0x10;
 			}
 
+			//Copia la lista indirizzi in quella originale, per il controllo salvataggio in uscita
+			initialLV = new int[channelLV.Items.Count];
+			for (int i = 0; i < initialLV.Length; i++)
+			{
+				initialLV[i] = ((BS_listViewElement)channelLV.Items[i]).Address;
+			}
+
 			//Aggiorna il file con la lista unità (nel caso fossero state tolte spunte)
 			File.WriteAllBytes(d.Name + FILE_UNITS, buff);
 
@@ -943,7 +998,6 @@ namespace X_Manager.Remote
 						}
 						if (add)                //Inserisce il nuovo indirizzo nella posizione calcolata
 						{
-							somethingChanged = true;
 							undo_addItem();  //Viene aggiunto un livello di undo
 							var lvv = new BS_listViewElement(newCh, false);
 							lvv.Width = channelLV.ActualWidth - 15;
@@ -1001,13 +1055,12 @@ namespace X_Manager.Remote
 						break;
 					}
 				}
-				somethingChanged = true;
 				pos++;
 				//Inserisce il nuovo indirizzo nella posizione calcolata
 				channelLV.Items.Insert(pos, new BS_listViewElement(val, false));
 				channelLV.SelectedIndex = pos;
 				//Fa partire il timer per il salvataggio automatico
-				saveAddressTimer.Stop();
+				//saveAddressTimer.Stop();
 				//saveAddressTimer.Start();
 			}
 		}
@@ -1025,7 +1078,6 @@ namespace X_Manager.Remote
 			while (channelLV.SelectedItems.Count > 0)
 			{
 				channelLV.Items.Remove(channelLV.SelectedItems[0]);
-				somethingChanged = true;
 			}
 			//Prova a selezionare l'elemento presente alla posizione salvata prima
 			try
@@ -1034,7 +1086,7 @@ namespace X_Manager.Remote
 			}
 			catch { }
 			//Fa partire il timer per il salvataggio automatico
-			saveAddressTimer.Stop();
+			//saveAddressTimer.Stop();
 			//saveAddressTimer.Start();
 		}
 
@@ -1119,7 +1171,6 @@ namespace X_Manager.Remote
 						}
 						if (add)
 						{
-							somethingChanged = true;
 							//Si crea il nuovo elemento e si inserisce nella posizione calcolata in precedenza
 							tempBsLvElement = new BS_listViewElement(newCh, false);
 							//Si controlla se al vecchio indirizzo era associato uno schedule da inviare
@@ -1290,7 +1341,7 @@ namespace X_Manager.Remote
 			//Ripristina l'ultima configurazione salvata nell'undo
 			undo_restoreItem();
 			//Fa partire il timer per il salvataggio automatico
-			saveAddressTimer.Stop();
+			//saveAddressTimer.Stop();
 			//saveAddressTimer.Start();
 		}
 
@@ -1316,7 +1367,7 @@ namespace X_Manager.Remote
 		private void saveAddressTimerElapsed(Object source, ElapsedEventArgs e)
 		{
 			//Allo scadere del timer viene salvata su file la lista indirizzi
-			saveAddressTimer.Stop();
+			//saveAddressTimer.Stop();
 			//lock (addressLock)
 			//{
 			//	Application.Current.Dispatcher.Invoke(() => saveUnitList());
@@ -1374,46 +1425,74 @@ namespace X_Manager.Remote
 
 		private void fillScheduleList(DriveInfo d)
 		{
-			//Legge dal file degli schedule i caratteri '1' o '0' relativi agli orari e imposta di conseguenza le checkbox
+			//Legge dal file degli schedule i btye 1 o 0 relativi agli orari e imposta di conseguenza le checkbox
 			//string[] schedule = File.ReadAllLines(d.Name + FILE_SCHEDULE);
 			byte[] schedule = File.ReadAllBytes(d.Name + FILE_SCHEDULE);
-			oldScheduleArr = new byte[24];
 			for (int i = 0; i < 24; i++)
 			{
-				scheduleCBArr[i].Checked -= scheduleCBchanged;
-				scheduleCBArr[i].Unchecked -= scheduleCBchanged;
 				if (schedule[i] == 1)
 				{
 					scheduleCBArr[i].IsChecked = true;
-					oldScheduleArr[i] = 1;
+					initialScheduleArr[i] = 1;
 				}
 				else
 				{
 					scheduleCBArr[i].IsChecked = false;
-					oldScheduleArr[i] = 0;
+					initialScheduleArr[i] = 0;
 				}
-				scheduleCBArr[i].Checked += scheduleCBchanged;
-				scheduleCBArr[i].Unchecked += scheduleCBchanged;
 			}
+
+			schedule4GCB.IsChecked = false;
+			schedule4GCBB.SelectedIndex = -1;
+			if (schedule.Length > 24)
+			{
+				for (int i = 24; i < 48; i++)
+				{
+					if (schedule[i] != 0)
+					{
+						schedule4GCB.IsChecked = true;
+						schedule4GCBB.SelectedIndex = i - 24;
+						break;
+					}
+				}
+			}
+			initial4GSelectedIndex = schedule4GCBB.SelectedIndex;
+
+			UInt16 waitTime = 0;
+			if (schedule.Length > 48)
+			{
+				waitTime = (UInt16)((schedule[48] * 256 + schedule[49]) / 60);
+			}
+			initialWaitTime = waitTime;
+			lastValidWaitTime = waitTime;
+			bsWaitTimeTB.Text = waitTime.ToString();
 		}
 
-		private void scheduleCBchanged(object sender, RoutedEventArgs e)
+		private void schedule4GCB_Checked(object sender, RoutedEventArgs e)
 		{
-			somethingChanged = true;
-			saveScheduleTimer.Stop();
-			//saveScheduleTimer.Start();
+			schedule4GCBB.IsEnabled = true;
+			schedule4GCBB.SelectedIndex = 0;
 		}
+
+		private void schedule4GCB_Unchecked(object sender, RoutedEventArgs e)
+		{
+			schedule4GCBB.Text = "";
+			schedule4GCBB.SelectedIndex = -1;
+			schedule4GCBB.IsEnabled = false;
+		}
+
+		//private void scheduleCBchanged(object sender, RoutedEventArgs e)
+		//{
+		//	somethingChanged = true;
+		//	//saveScheduleTimer.Stop();
+		//	//saveScheduleTimer.Start();
+		//}
 
 		private void allOnB_Click(object sender, RoutedEventArgs e)
 		{
-			somethingChanged = true;
 			for (int i = 0; i < 24; i++)
 			{
-				scheduleCBArr[i].Checked -= scheduleCBchanged;
-				scheduleCBArr[i].Unchecked -= scheduleCBchanged;
 				scheduleCBArr[i].IsChecked = true;
-				scheduleCBArr[i].Checked += scheduleCBchanged;
-				scheduleCBArr[i].Unchecked += scheduleCBchanged;
 			}
 			//lock (scheduleLock)
 			//{
@@ -1423,14 +1502,9 @@ namespace X_Manager.Remote
 
 		private void allOffB_Click(object sender, RoutedEventArgs e)
 		{
-			somethingChanged = true;
 			for (int i = 0; i < 24; i++)
 			{
-				scheduleCBArr[i].Checked -= scheduleCBchanged;
-				scheduleCBArr[i].Unchecked -= scheduleCBchanged;
 				scheduleCBArr[i].IsChecked = false;
-				scheduleCBArr[i].Checked += scheduleCBchanged;
-				scheduleCBArr[i].Unchecked += scheduleCBchanged;
 			}
 			//lock (scheduleLock)
 			//{
@@ -1438,25 +1512,53 @@ namespace X_Manager.Remote
 			//}
 		}
 
-		private void saveScheduleTimerElapsed(object sender, ElapsedEventArgs e)
-		{
-			saveScheduleTimer.Stop();
-			byte[] newScheduleArr = new byte[24];
-			for (int i = 0; i < 24; i++)
-			{
-				Application.Current.Dispatcher.Invoke(() => newScheduleArr[i] = (bool)scheduleCBArr[i].IsChecked ? (byte)1 : (byte)0);
-			}
-			if (!newScheduleArr.SequenceEqual(oldScheduleArr))
-			{
-				Array.Copy(newScheduleArr, oldScheduleArr, newScheduleArr.Length);
-				//lock (scheduleLock)
-				//{
-				//	Application.Current.Dispatcher.Invoke(() => saveSchedule());
-				//}
-			}
+		//private void saveScheduleTimerElapsed(object sender, ElapsedEventArgs e)
+		//{
+		//	//saveScheduleTimer.Stop();
+		//	byte[] newScheduleArr = new byte[24];
+		//	for (int i = 0; i < 24; i++)
+		//	{
+		//		Application.Current.Dispatcher.Invoke(() => newScheduleArr[i] = (bool)scheduleCBArr[i].IsChecked ? (byte)1 : (byte)0);
+		//	}
+		//	if (!newScheduleArr.SequenceEqual(oldScheduleArr))
+		//	{
+		//		Array.Copy(newScheduleArr, oldScheduleArr, newScheduleArr.Length);
+		//		//lock (scheduleLock)
+		//		//{
+		//		//	Application.Current.Dispatcher.Invoke(() => saveSchedule());
+		//		//}
+		//	}
 
+		//}
+
+		private void waitTimeValidateLF(object sender, EventArgs e)
+		{
+			waitTimeValidate();
 		}
 
+		private void waitTimeValidateKD(object sender, KeyEventArgs e)
+		{
+			if (e.Key == Key.Enter || e.Key == Key.Tab)
+			{
+				e.Handled = true;
+				waitTimeValidate();
+				bootloaderB.Focus();
+			}
+		}
+
+		private void waitTimeValidate()
+		{
+			UInt16 newWaitTime = 30000;
+			if (UInt16.TryParse(bsWaitTimeTB.Text, out newWaitTime) && newWaitTime <= 30)
+			{
+				lastValidWaitTime = newWaitTime;
+				bsWaitTimeTB.Text = newWaitTime.ToString();
+			}
+			else
+			{
+				bsWaitTimeTB.Text = lastValidWaitTime.ToString();
+			}
+		}
 		private void saveSchedule()
 		{
 			DriveInfo dr;
@@ -1464,23 +1566,29 @@ namespace X_Manager.Remote
 			{
 				dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
 				if (!validateDrive(dr)) return;
-				byte[] sch = new byte[48];
+				byte[] sch = new byte[50];
 
+				//Controlla le 24 caselle dello schedule e imposta i relativi 24 byte
 				for (int i = 0; i < 24; i++)
 				{
 					if (scheduleCBArr[i].IsChecked == true)
 					{
 						sch[i] = 1;
 					}
-					else
-					{
-						sch[i] = 0;
-					}
 				}
-				for (int i = 24; i < 48; i++)   //orari 4G: per ora tutti a zero
+
+				//Se la casella 4G è abilitata, mette il byte relativo all'orario a 1
+				if (schedule4GCB.IsChecked == true)
 				{
-					sch[i] = 0;
+					sch[schedule4GCBB.SelectedIndex + 24] = 1;
 				}
+
+				//Imposta i due byte di tempo tra i tentativi convertendoli in secondi
+				UInt16 spacing = UInt16.Parse(bsWaitTimeTB.Text);
+				spacing *= 60;
+				sch[48] = (byte)(spacing >> 8);
+				sch[49] = (byte)(spacing & 0xff);
+
 				File.WriteAllBytes(dr.Name + FILE_SCHEDULE, sch);
 			}
 			catch (Exception ex)
@@ -1697,7 +1805,10 @@ namespace X_Manager.Remote
 			File.WriteAllBytes(di.Name + FILE_CONF, conf);
 			File.WriteAllText(di.Name + FILE_NAME, "No Name");
 			File.WriteAllBytes(di.Name + FILE_SCHEDULE, new byte[] {    0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-																		0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,});
+																		0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+																		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+																		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+																		0x00, 0x00});
 			File.WriteAllBytes(di.Name + FILE_UNITS, new byte[] {       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 																		0x00, 0x00, 0x00, 0x00, 0x00,0x00});
 
@@ -1758,6 +1869,7 @@ namespace X_Manager.Remote
 
 			return outb;
 		}
+
 
 	}
 }
