@@ -25,14 +25,19 @@ namespace X_Manager
 		public bool remote;
 		public bool addGpsTime;
 
+		public DateTime convertingStartDate;
+		public string convertingFileName;
+
 		public string ftdiSerialNumber;
 		public abstract void nextFile();
+
 		public abstract void downloadFailed();
 
 		public abstract void downloadIncomplete();
 
 		public abstract void downloadFinished();
-		public virtual unsafe string setLatency(string portName, byte latency){
+		public virtual unsafe string setLatency(string portName, byte latency)
+		{
 			return "NULL";
 		}
 		public virtual string getStatusLabelContent()
@@ -43,14 +48,15 @@ namespace X_Manager
 		public static string getParameter(string parName)
 		{
 			string parOut = "";
-			for (int i=0; i < settings.Length; i++){
+			for (int i = 0; i < settings.Length; i++)
+			{
 				string par = settings[i];
 				if (parName == par.Split('=')[0])
 				{
 					parOut = par.Split('=')[1];
 					break;
 				}
-			}				
+			}
 			//foreach (string par in settings)
 			//{
 			//	if (parName == par.Split('=')[0])

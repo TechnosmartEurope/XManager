@@ -85,6 +85,14 @@ namespace X_Manager
 		public const string INI_GIPSY6_BOOTLOADER_WIPE_DATA = "gipsy6BootloaderWipeData";
 		public const string INI_GIPSY6_BOOTLOADER_WIPE_SETTINGS = "gipsy6BootloaderWipeSettings";
 
+		enum FILETYPE
+		{
+			FILETYPE_ARD = 1,
+			FILETYPE_REM,
+			FILETYPE_MDP,
+			FILETYPE_GP6,
+			FILETYPE_BS6
+		};
 
 		public static string companyFolder = "\\" + System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).CompanyName;
 		public static string appFolder = "\\" + System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).ProductName;
@@ -1996,14 +2004,14 @@ namespace X_Manager
 		private void convertDataClick(object sender, RoutedEventArgs e)
 		{
 			askOverwrite = true;
-			//lastSettings = System.IO.File.ReadAllLines(iniFile);
+
 			Microsoft.Win32.OpenFileDialog fOpen = new Microsoft.Win32.OpenFileDialog();
+			fOpen.Reset();
 			if (Directory.Exists(Path.GetFullPath(Path.GetFullPath(getParameter("convertPath")))))
 			{
 				fOpen.InitialDirectory = Path.GetFullPath(getParameter("convertPath"));
 			}
 
-			//fOpen.FileName = "*.ard";
 			fOpen.Filter = "Sensor Raw Data | *.ard;*.rem;*.gp6;*.bs6;*.memDump;*.mdp";
 
 			fOpen.Multiselect = true;
@@ -2033,6 +2041,7 @@ namespace X_Manager
 		private void convertDataLaunch(List<string> files)
 		{
 			ConversionPreferences cp = new ConversionPreferences(files[0]);
+
 			cp.Owner = this;
 			cp.ShowDialog();
 			if (cp.goOn == false)
@@ -2043,6 +2052,9 @@ namespace X_Manager
 				}
 				return;
 			}
+
+			//convertingStartDate = new DateTime(0);
+			convertingFileName = "";
 
 			stDebugLevel = cp.debugLevel;
 			stOldUnitDebug = cp.OldUnitDebug;
@@ -2456,14 +2468,8 @@ namespace X_Manager
 
 		public override void nextFile()
 		{
-			const int type_ard = 1;
-			const int type_rem = 2;
-			const int type_mdp = 3;
-			const int type_gp6 = 4;
-
-
 			convFile++;
-			int fileType = type_ard;
+			FILETYPE fileType = FILETYPE.FILETYPE_ARD;
 			string fileHeader = "ARD ";
 			string fileName = "";
 			string fileNameCsv;
@@ -2489,9 +2495,20 @@ namespace X_Manager
 			}
 			catch { }
 
+			//string kmlMergeFileName = convertingFileName;
 			try
 			{
 				fileName = convFiles[0];
+				string compFileName = Path.GetFileNameWithoutExtension(fileName);
+				if (compFileName.Length > 8)
+				{
+					compFileName = compFileName.Substring(0, 8);
+					if (!compFileName.Equals(convertingFileName))
+					{
+						convertingFileName = compFileName;
+						convertingStartDate = new DateTime(0);
+					}
+				}
 			}
 			catch
 			{
@@ -2504,70 +2521,60 @@ namespace X_Manager
 
 			if (GoOn)
 			{
-				string exten = Path.GetExtension(fileName);
-				if (exten.Length > 4)
-				{
-					addOn = ("_S" + exten.Remove(0, 4));
-				}
-				fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
-				fileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
-				fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + "_temp" + ".kml";
-				fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".kml";
-				nomiFile = new string[] { fileNameCsv, fileNametxt, fileNamePlaceMark };
-			}
 
-			if (GoOn)
-			{
 				if (Path.GetExtension(fileName).Contains("Dump") || Path.GetExtension(fileName).Contains("dump") || Path.GetExtension(fileName).Contains("mdp"))
 				{
 					fileHeader = "MEMDUMP ";
-					fileType = type_mdp;
+					fileType = FILETYPE.FILETYPE_MDP;
 				}
 				else
 				{
 					if (Path.GetExtension(fileName).Contains("rem"))
 					{
 						fileHeader = "REM ";
-						fileType = type_rem;
-
+						fileType = FILETYPE.FILETYPE_REM;
 					}
-					if (Path.GetExtension(fileName).Contains("gp6") || Path.GetExtension(fileName).Contains("bs6"))
+					if (Path.GetExtension(fileName).Contains("gp6"))
 					{
-						fileType = type_gp6;
+						fileType = FILETYPE.FILETYPE_GP6;
 					}
+					if (Path.GetExtension(fileName).Contains("bs6"))
+					{
+						fileType = FILETYPE.FILETYPE_BS6;
+					}
+				}
 
+				string convertingFilePathAndName = fileName;
+				if (fileType == FILETYPE.FILETYPE_BS6 && stDebugLevel == 0)
+				{
+					convertingFilePathAndName = Path.GetDirectoryName(fileName) + "\\" + convertingFileName + Path.GetExtension(fileName);
+				}
+				string exten = Path.GetExtension(fileName);
+				if (exten.Length > 4)
+				{
+					addOn = "_S" + exten.Remove(0, 4);
+				}
+				fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + ".csv";
+				fileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + ".txt";
+				fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + "_temp" + ".kml";
+				fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + ".kml";
+				nomiFile = new string[] { fileNameCsv, fileNametxt, fileNamePlaceMark };
+
+				if (fileType != FILETYPE.FILETYPE_BS6 || stDebugLevel > 0)
+				{
 					foreach (string nomefile in nomiFile)
 					{
-						if (File.Exists(nomefile) & askOverwrite)
+						try
 						{
-							YesNo yn = new YesNo(Path.GetFileName(nomefile) + " already exists. Do you want to overwrite it?", "OVERWRITE");
-							if (yn.ShowDialog() == YesNo.NO)
-							{
-								GoOn = false;
-								yn.Close();
-								break;
-							}
-							yn.Close();
+							FileSystem.DeleteFile(nomefile);
+							//File.Delete(nomefile);
+
 						}
+						catch { }
 					}
 				}
 			}
-
-			if (GoOn)
-			{
-				foreach (string nomefile in nomiFile)
-				{
-					try
-					{
-						FileSystem.DeleteFile(nomefile);
-						//File.Delete(nomefile);
-
-					}
-					catch { }
-				}
-			}
-
-			if (!GoOn)
+			else
 			{
 				mainGrid.IsEnabled = true;
 				statusProgressBar.IsIndeterminate = false;
@@ -2592,16 +2599,17 @@ namespace X_Manager
 
 			statusProgressBar.IsIndeterminate = true;
 
-			statusLabel.Content = fileHeader + "File " + convFile.ToString() + "/" + convFileTot.ToString() + ": " + System.IO.Path.GetFileName(fileName) + " ";
+			statusLabel.Content = fileHeader + "File " + convFile.ToString() + "/" + convFileTot.ToString() + ": " + Path.GetFileName(fileName) + " ";
 			convFiles.RemoveAt(0);
+			bool kmlClose = false;
 			FileStream fs = File.OpenRead(fileName);
 			byte model;
 			uint fw = 0; //Controllare cosa succede in caso di ardfile=false alla riga 1555 e poi al caso successivo (Depth)
-			if (fileType == type_ard)           //nell'ard il tipo di unità è scritto nel primo byte
+			if (fileType == FILETYPE.FILETYPE_ARD)           //nell'ard il tipo di unità è scritto nel primo byte
 			{
 				model = (byte)fs.ReadByte();
 			}
-			else if (fileType == type_gp6)
+			else if (fileType == FILETYPE.FILETYPE_GP6 || fileType == FILETYPE.FILETYPE_BS6)
 			{
 				if (fs.Length == 0)
 				{
@@ -2610,8 +2618,21 @@ namespace X_Manager
 				}
 				fs.Position = fs.Length - 2;
 				model = (byte)fs.ReadByte();
+				if (fileType == FILETYPE.FILETYPE_BS6)
+				{
+					if (convFiles.Count == 0)
+					{
+						kmlClose = true;
+					}
+					else
+					{
+						string nextFileName = Path.GetFileNameWithoutExtension(convFiles[0]);
+						if (nextFileName.Length > 8) nextFileName = nextFileName.Substring(0, 8);
+						if (!nextFileName.Equals(convertingFileName)) kmlClose = true;
+					}
+				}
 			}
-			else if (fileType == type_rem)      //nel rem bisogna saltare l'header con la posizione della lista sessioni per leggere il byte con tipo unità
+			else if (fileType == FILETYPE.FILETYPE_REM)      //nel rem bisogna saltare l'header con la posizione della lista sessioni per leggere il byte con tipo unità
 			{
 				fs.Position = 0x1000;
 				model = (byte)fs.ReadByte();
@@ -2641,7 +2662,7 @@ namespace X_Manager
 					break;
 				case Unit.model_axy4:
 				case Unit.model_axy4_legacy:
-					if (fileType == type_ard)
+					if (fileType == FILETYPE.FILETYPE_ARD)
 					{
 						fw = (byte)fs.ReadByte();
 					}
@@ -2655,7 +2676,7 @@ namespace X_Manager
 					cUnit = new Axy5(this);
 					break;
 				case Unit.model_axyDepth:
-					if (fileType == type_ard) fw = (byte)fs.ReadByte();
+					if (fileType == FILETYPE.FILETYPE_ARD) fw = (byte)fs.ReadByte();
 					if (fw < 2)
 					{
 						cUnit = new AxyDepth_1(this);
@@ -2690,6 +2711,7 @@ namespace X_Manager
 					break;
 				case Unit.model_Gipsy6N:
 					cUnit = new Gipsy6N(this);
+					((Gipsy6)cUnit).kmlClose = kmlClose;
 					break;
 				case Unit.model_Gipsy6XS:
 					cUnit = new Gipsy6XS(this);
@@ -2705,7 +2727,7 @@ namespace X_Manager
 			cUnit.convertStop = false;
 			Thread conversionThread;
 			string[] prefsOut = File.ReadAllLines(prefFile);
-			if ((fileType == type_ard) | (fileType == type_rem) | (fileType == type_gp6))
+			if ((fileType == FILETYPE.FILETYPE_ARD) || (fileType == FILETYPE.FILETYPE_REM) || (fileType == FILETYPE.FILETYPE_GP6) || (fileType == FILETYPE.FILETYPE_BS6))
 			{
 				statusProgressBar.Maximum = FileLength;
 				progressBarStopButton.IsEnabled = true;

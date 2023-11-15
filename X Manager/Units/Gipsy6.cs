@@ -32,6 +32,7 @@ namespace X_Manager.Units.Gipsy6
 		protected int p_fileCsv_position = 15;
 		protected int p_fileCsv_length = 16;
 
+		public bool kmlClose;
 		protected Gipsy6(object p)
 					: base(p)
 		{
