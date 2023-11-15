@@ -119,7 +119,7 @@ namespace X_Manager.Units.AxyTreks
 			BinaryReader ardFile = convertOpenArdFile(fileName);
 			if (ardFile is null)
 			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 				return;
 			}
 			BinaryWriter[] bws = convertCreateOutputFiles(names, fileName);
@@ -472,7 +472,7 @@ namespace X_Manager.Units.AxyTreks
 			//sw.Stop();
 			//MessageBox.Show(sw.Elapsed.TotalSeconds.ToString());
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.nextFile()));
+				new Action(() => parent.nextFile(true)));
 		}
 
 		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc, uint fTotA)

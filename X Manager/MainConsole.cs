@@ -351,7 +351,7 @@ namespace X_Manager
 
 		}
 
-		public override void nextFile()
+		public override void nextFile(bool deleteExistingFile)
 		{
 			if (stop)
 			{

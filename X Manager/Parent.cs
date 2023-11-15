@@ -29,7 +29,7 @@ namespace X_Manager
 		public string convertingFileName;
 
 		public string ftdiSerialNumber;
-		public abstract void nextFile();
+		public abstract void nextFile(bool deleteExistingFiles);
 
 		public abstract void downloadFailed();
 

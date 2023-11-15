@@ -474,7 +474,7 @@ namespace X_Manager.Units
 				}
 			}
 			catch { }
-			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
 		public override byte[] getConf()
@@ -559,7 +559,7 @@ namespace X_Manager.Units
 				catch { }
 				var w = new Warning(ex.Message);
 				w.ShowDialog();
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 				return;
 			}
 
@@ -728,7 +728,7 @@ namespace X_Manager.Units
 			csv.Close();
 			ard.Close();
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
 		private byte[] extractGroup(ref BinaryReader ard, ref timeStamp tsc)

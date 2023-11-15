@@ -952,7 +952,7 @@ namespace X_Manager.Units.AxyTreks
 				}
 			}
 			catch { }
-			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
 		protected void convertInit(string[] prefs)

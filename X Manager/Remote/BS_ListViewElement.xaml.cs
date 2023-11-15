@@ -48,11 +48,13 @@ namespace X_Manager.Remote
 				if (value == null)
 				{
 					newConfL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0x24, 0x20, 0x20));
+					newConfL.Background = new SolidColorBrush(Color.FromArgb(255, 0x24, 0x20, 0x20));
 					newConf = null;
 				}
 				else
 				{
-					newConfL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0));
+					newConfL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0));
+					newConfL.Background = new SolidColorBrush(Color.FromArgb(255, 0x20, 0x60, 0x20));
 					newConf = new byte[value.Length];
 					Array.Copy(value, 0, newConf, 0, value.Length);
 				}
@@ -70,11 +72,13 @@ namespace X_Manager.Remote
 				if (value == "")
 				{
 					newNameL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0x24, 0x20, 0x20));
+					newNameL.Background = new SolidColorBrush(Color.FromArgb(255, 0x24, 0x20, 0x20));
 					newName = "";
 				}
 				else
 				{
-					newNameL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0));
+					newNameL.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0));
+					newNameL.Background = new SolidColorBrush(Color.FromArgb(255, 0x20, 0x60, 0x20));
 					newName = value;
 				}
 			}

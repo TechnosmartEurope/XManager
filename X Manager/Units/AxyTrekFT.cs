@@ -115,7 +115,7 @@ namespace X_Manager.Units.AxyTreks
 			BinaryReader ardFile = convertOpenArdFile(fileName);
 			if (ardFile is null)
 			{
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 				return;
 			}
 			BinaryWriter[] bws = convertCreateOutputFiles(names, fileName);
@@ -431,7 +431,7 @@ namespace X_Manager.Units.AxyTreks
 			//sw.Stop();
 			//MessageBox.Show(sw.Elapsed.TotalSeconds.ToString());
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.nextFile()));
+				new Action(() => parent.nextFile(true)));
 		}
 
 		private void decodeTimeStamp(ref MemoryStream ard, ref timeStamp tsc, uint fTotA)
@@ -886,7 +886,7 @@ namespace X_Manager.Units.AxyTreks
 						double ppos = br.Position;
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ppos));
 						if ((timeStamp0 & 1) == 1) timeStamp1 = (byte)br.ReadByte();
-						if ((timeStamp0 & 2) == 2) br.Position += 4;    //Fast temp.
+						if ((timeStamp0 & 2) == 2) br.Position += 3;    //Fast temp.
 						if ((timeStamp0 & 4) == 4) br.Position += 6;    //Press + temp sensore piccolo
 						if ((timeStamp0 & 8) == 8) br.Position += 2;
 						if ((timeStamp0 & 16) == 16)

@@ -57,7 +57,7 @@ namespace X_Manager
 			else
 			{
 				MainConsole mc = new MainConsole();
-				mc.nextFile();
+				mc.nextFile(true);
 				//MainConsole mc = app.InitializeConsole(ref app);
 			}
 

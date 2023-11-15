@@ -75,6 +75,8 @@ namespace X_Manager.Remote
 		byte[] timestamp;
 		byte[] oldConf;
 		int oldAddress;
+		bool scrollBarPresent = false;
+		ScrollViewer addressSV;
 
 		private enum DriveStatus
 		{
@@ -171,7 +173,10 @@ namespace X_Manager.Remote
 					thickness.Top += 40;
 				}
 
-				//Invalida l'indirizzo di ricezzione
+				//Aggiusta la dimensione delle listview se la scrollbar verticale è visibile
+				resizeLVelements();
+
+				//Invalida l'indirizzo di ricezione
 				bsAddress = -1;
 
 				errorCode++;
@@ -271,11 +276,35 @@ namespace X_Manager.Remote
 		{
 			//Evento per la gestione del ridimensionamento della finestra; gli elementi delle listview vengono riadattati alla nuova dimensione
 			//delle listview
-			resizeLVelements();
+			try
+			{
+				resizeLVelements();
+			}
+			catch { }
+		}
+
+		private childItem FindVisualChild<childItem>(DependencyObject obj)
+			   where childItem : DependencyObject
+
+		{
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+			{
+				DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+				if (child != null && child is childItem)
+					return (childItem)child;
+				else
+				{
+					childItem childOfChild = FindVisualChild<childItem>(child);
+					if (childOfChild != null)
+						return childOfChild;
+				}
+			}
+			return null;
 		}
 
 		private void resizeLVelements()
 		{
+
 			var newWidth = driveLV.ActualWidth;
 			foreach (BS_listViewElement element in driveLV.Items)
 			{
@@ -285,12 +314,13 @@ namespace X_Manager.Remote
 			newWidth = channelLV.ActualWidth;
 			foreach (BS_listViewElement element in channelLV.Items)
 			{
-				element.Width = newWidth - 15;
+				element.Width = newWidth - 30;
 			}
 			if (newChannelTB != null)
 			{
 				newChannelTB.Width = channelLV.Width;
 			}
+
 		}
 
 		private void disableControls(FrameworkElement c)
@@ -888,6 +918,8 @@ namespace X_Manager.Remote
 			for (int i = 0; i < (int)units; i++)
 			{
 				var lve = new BS_listViewElement(addsIn[i].Item1, addsIn[i].Item2);
+				lve.Height = 26;
+				lve.Width = channelLV.ActualWidth - 30;
 				//Se per l'unità corrente esiste un file di configurazione:
 				if (File.Exists(d.Name + "\\CONFIG\\" + lve.Address.ToString("00000000") + ".cfg"))
 				{
@@ -934,6 +966,8 @@ namespace X_Manager.Remote
 
 				counter += 0x10;
 			}
+
+
 
 			//Copia la lista indirizzi in quella originale, per il controllo salvataggio in uscita
 			initialLV = new int[channelLV.Items.Count];
@@ -1000,7 +1034,7 @@ namespace X_Manager.Remote
 						{
 							undo_addItem();  //Viene aggiunto un livello di undo
 							var lvv = new BS_listViewElement(newCh, false);
-							lvv.Width = channelLV.ActualWidth - 15;
+							lvv.Width = channelLV.ActualWidth - 30;
 							channelLV.Items.Insert(pos, lvv);
 							channelLV.ScrollIntoView(lvv);      //Fa scorrere la listview per inquadrare il nuovo indirizzo
 																//lock (addressLock)
@@ -1028,7 +1062,9 @@ namespace X_Manager.Remote
 			undo_addItem();
 			if (channelLV.Items.Count == 0)
 			{
-				channelLV.Items.Insert(0, new BS_listViewElement(1, false));
+				BS_listViewElement lve = new BS_listViewElement(1, false);
+				lve.Width = channelLV.ActualWidth - 30;
+				channelLV.Items.Insert(0, lve);
 				channelLV.SelectedIndex = 0;
 				return;
 			}
@@ -1057,7 +1093,9 @@ namespace X_Manager.Remote
 				}
 				pos++;
 				//Inserisce il nuovo indirizzo nella posizione calcolata
-				channelLV.Items.Insert(pos, new BS_listViewElement(val, false));
+				BS_listViewElement lve = new BS_listViewElement(val, false);
+				lve.Width = channelLV.ActualWidth - 30;
+				channelLV.Items.Insert(pos, lve);
 				channelLV.SelectedIndex = pos;
 				//Fa partire il timer per il salvataggio automatico
 				//saveAddressTimer.Stop();
@@ -1188,7 +1226,7 @@ namespace X_Manager.Remote
 								tempBsLvElement.NewConf = oldConf;
 								oldConf = null;
 							}
-							tempBsLvElement.Width = channelLV.ActualWidth - 15;
+							tempBsLvElement.Width = channelLV.ActualWidth - 30;
 							channelLV.Items.Insert(pos, tempBsLvElement);
 							channelLV.ScrollIntoView(tempBsLvElement);
 							//Si salva su basestation la nuova lista
@@ -1559,6 +1597,7 @@ namespace X_Manager.Remote
 				bsWaitTimeTB.Text = lastValidWaitTime.ToString();
 			}
 		}
+
 		private void saveSchedule()
 		{
 			DriveInfo dr;

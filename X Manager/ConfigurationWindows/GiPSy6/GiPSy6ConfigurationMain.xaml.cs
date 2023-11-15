@@ -55,12 +55,12 @@ namespace X_Manager.ConfigurationWindows
 
 		DispatcherTimer windowMovingTimer = new DispatcherTimer();
 
-		public GiPSy6ConfigurationMain(byte[] conf, Units.Unit unit, MainWindow mw)
+		public GiPSy6ConfigurationMain(byte[] conf, Units.Unit unitIn, MainWindow mw)
 		{
 
 			InitializeComponent();
 
-			this.unit = unit;
+			unit = unitIn;
 			if (unit is null)
 			{
 				unit = new Gipsy6N(mw);

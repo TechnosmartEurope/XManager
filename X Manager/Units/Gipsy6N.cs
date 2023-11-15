@@ -1457,7 +1457,7 @@ namespace X_Manager.Units.Gipsy6
 		public override void extractArds(string fileNameMdp, string fileName, bool fromDownload)
 		{
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusLabel.Content = "Creating Ard file(s)..."));
-			var mdp = new BinaryReader(System.IO.File.Open(fileNameMdp, FileMode.Open));
+			var mdp = new BinaryReader(File.Open(fileNameMdp, FileMode.Open));
 
 			BinaryWriter ard = BinaryWriter.Null;
 			//ushort packLength = 255;
@@ -1485,7 +1485,7 @@ namespace X_Manager.Units.Gipsy6
 					counter++;
 					fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "_S" + counter.ToString() + ".ard";
 
-					if (System.IO.File.Exists(fileNameArd))
+					if (File.Exists(fileNameArd))
 					{
 						if (resp < 11)
 						{
@@ -1494,18 +1494,18 @@ namespace X_Manager.Units.Gipsy6
 						}
 						if ((resp == yes) | (resp == yes_alaways))
 						{
-							System.IO.File.Delete(fileNameArd);
+							File.Delete(fileNameArd);
 						}
 						else
 						{
 							do
 							{
 								fileNameArd = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileNameArd) + " (1)" + ".ard";
-							} while (System.IO.File.Exists(fileNameArd));
+							} while (File.Exists(fileNameArd));
 						}
 					}   //Richiesta overwrite se file già esistente
 
-					ard = new System.IO.BinaryWriter(System.IO.File.Open(fileNameArd, FileMode.Create));
+					ard = new BinaryWriter(File.Open(fileNameArd, FileMode.Create));
 					ard.Write(new byte[] { modelCode }, 0, 1);
 					if (!connected)
 					{
@@ -1579,7 +1579,7 @@ namespace X_Manager.Units.Gipsy6
 				}
 			}
 			catch { }
-			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(false)));
 		}
 
 		public override void convert(string fileName, string[] prefs)
@@ -1650,22 +1650,30 @@ namespace X_Manager.Units.Gipsy6
 				buffLen -= partH * 2;
 				gp6 = new byte[buffLen];
 
-				if (fileType == FileType.FILE_BS6)  //Recupera il nome dell'unità e l'eventuale schedule
+				if (fileType == FileType.FILE_BS6)  //Compone il nome dell'unità e l'eventuale schedule
 				{
-					gp6File.BaseStream.Position = 0x16;
-					string add = Encoding.ASCII.GetString(gp6File.ReadBytes(28));
-					add = add.Trim(Path.GetInvalidFileNameChars());
-					int stringPos = add.Length - 1;
-					while (add[add.Length - 1] == ' ')
+					//gp6File.BaseStream.Position = 0x16;
+					//string add = Encoding.ASCII.GetString(gp6File.ReadBytes(28));
+					//add = add.Trim(Path.GetInvalidFileNameChars());
+					//int stringPos = add.Length - 1;
+					//while (add[add.Length - 1] == ' ')
+					//{
+					//	add = add.Substring(0, add.Length - 1);
+					//}
+					//string addDebug = Path.GetFileName(fileName).Substring(8, 16);
+					//fileName = Path.GetDirectoryName(fileName) + "\\" + add;
+					//if (pref_debugLevel > 0)
+					//{
+					//	fileName += addDebug;
+					//}
+
+					string add = Path.GetFileNameWithoutExtension(fileName);
+					if (add.Length > 8) add = add.Substring(0, 8);
+					while ((add[0] == '0') && add.Length > 1)
 					{
-						add = add.Substring(0, add.Length - 1);
+						add = add.Substring(1, add.Length - 1);
 					}
-					string addDebug = Path.GetFileName(fileName).Substring(8, 16);
 					fileName = Path.GetDirectoryName(fileName) + "\\" + add;
-					if (pref_debugLevel > 0)
-					{
-						fileName += addDebug;
-					}
 
 					gp6File.BaseStream.Position = 0x15;
 					byte newConfP = gp6File.ReadByte();
@@ -1857,8 +1865,16 @@ namespace X_Manager.Units.Gipsy6
 					parent.statusProgressBar.Margin = new Thickness(10, 5, 10, 10);
 				}));
 
-				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-					new Action(() => parent.nextFile()));
+				if (fileType == FileType.FILE_GP6)
+				{
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+										new Action(() => parent.nextFile(true)));
+				}
+				else
+				{
+					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
+										new Action(() => parent.nextFile(false)));
+				}
 			}
 		}
 
@@ -1888,13 +1904,15 @@ namespace X_Manager.Units.Gipsy6
 				t = tL[0];
 				tL.RemoveAt(0);
 
-				//Si scrive il timestmap nel txt
+				//Si scrive il timestamp nel txt
 				if (!pref_repeatEmptyValues)
 				{
 					tabs = new string[p_fileCsv_length];
-					tabs[p_fileCsv_name] = t.unitNameTxt;
-					tabs[p_fileCsv_rfAddress] = t.rfAddressString;
+
 				}
+				tabs[p_fileCsv_name] = t.unitNameTxt;
+				tabs[p_fileCsv_rfAddress] = t.rfAddressString;
+
 				tabs[p_fileCsv_date] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
 				if (pref_sameColumn)
 				{
@@ -2023,7 +2041,7 @@ namespace X_Manager.Units.Gipsy6
 					kml.Write(lonS);
 					latS = t.lat.ToString("00.0000000", nfi) + ",";
 					kml.Write(latS);
-					altS = t.altitude.ToString("0000.0", nfi) ;
+					altS = t.altitude.ToString("0000.0", nfi);
 					kml.Write(altS + "\r\n");
 
 					if (primaCoordinata && !placeExisting)
@@ -2406,78 +2424,6 @@ namespace X_Manager.Units.Gipsy6
 			}
 			return outs;
 		}
-
-		//private bool detectEof(ref MemoryStream ard)
-		//{
-		//	if (ard.Position >= ard.Length) return true;
-		//	else return false;
-		//}
-
-		//private double[] extractGroup(ref MemoryStream ard, ref TimeStamp tsc)
-		//{
-		//	byte[] group = new byte[2000];
-		//	bool badGroup = false;
-		//	long position = 0;
-		//	int dummy, dummyExt;
-		//	int badPosition = 600;
-
-		//	if (ard.Position == ard.Length) return lastGroup;
-
-		//	do
-		//	{
-		//		dummy = ard.ReadByte();
-		//		if (dummy == 0xab)
-		//		{
-		//			if (ard.Position < ard.Length) dummyExt = ard.ReadByte();
-		//			else return lastGroup;
-
-		//			if (dummyExt == 0xab)
-		//			{
-		//				group[position] = (byte)0xab;
-		//				position += 1;
-		//				dummy = 0;
-		//			}
-		//			else
-		//			{
-		//				ard.Position -= 1;
-		//				if (badGroup)
-		//				{
-		//					//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
-		//				}
-		//			}
-		//		}
-		//		else
-		//		{
-		//			if (position < badPosition)
-		//			{
-		//				group[position] = (byte)dummy;
-		//				position++;
-		//			}
-		//			else if ((position == badPosition) && (!badGroup))
-		//			{
-		//				badGroup = true;
-		//				//System.IO.File.AppendAllText(((FileStream)ard.BaseStream).Name + "errorList.txt", "-> " + ard.BaseStream.Position.ToString("X8") + "\r\n");
-		//			}
-		//		}
-		//	} while ((dummy != (byte)0xab) && (ard.Position < ard.Length));
-
-		//	//Implementare dati accelerometrici quando disponibili dall'unità
-		//	//tsc.timeStampLength = (byte)(position);
-
-		//	//int resultCode = 0;
-		//	//double[] doubleResultArray = new double[nOutputs * 3];
-		//	//if (bits)
-		//	//{
-		//	//	resultCode = resample4(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
-		//	//}
-		//	//else
-		//	//{
-		//	//	resultCode = resample3(group, (int)tsc.timeStampLength, doubleResultArray, nOutputs);
-		//	//}
-
-		//	//return doubleResultArray;
-		//	return new double[] { };
-		//}
 
 		public override void Dispose()
 		{

@@ -2065,7 +2065,7 @@ namespace X_Manager
 			convFile = 0;
 			if (convFileTot != 0)
 			{
-				nextFile();
+				nextFile(true);
 			}
 		}
 
@@ -2466,7 +2466,7 @@ namespace X_Manager
 
 		#region Conversione
 
-		public override void nextFile()
+		public override void nextFile(bool deleteExistingFile)
 		{
 			convFile++;
 			FILETYPE fileType = FILETYPE.FILETYPE_ARD;
@@ -2500,14 +2500,26 @@ namespace X_Manager
 			{
 				fileName = convFiles[0];
 				string compFileName = Path.GetFileNameWithoutExtension(fileName);
-				if (compFileName.Length > 8)
+				if (Path.GetExtension(fileName).Contains("bs6"))
 				{
-					compFileName = compFileName.Substring(0, 8);
+					if (compFileName.Length > 8) compFileName = compFileName.Substring(0, 8);
+					string add = Path.GetFileNameWithoutExtension(compFileName);
+					if (add.Length > 8) add = add.Substring(0, 8);
+					while ((add[0] == '0') && add.Length > 1)
+					{
+						add = add.Substring(1, add.Length - 1);
+					}
+					compFileName = Path.GetDirectoryName(compFileName) + "\\" + add;
 					if (!compFileName.Equals(convertingFileName))
 					{
 						convertingFileName = compFileName;
 						convertingStartDate = new DateTime(0);
+						deleteExistingFile = true;
 					}
+				}
+				else
+				{
+					convertingStartDate = new DateTime(0);
 				}
 			}
 			catch
@@ -2560,7 +2572,7 @@ namespace X_Manager
 				fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + ".kml";
 				nomiFile = new string[] { fileNameCsv, fileNametxt, fileNamePlaceMark };
 
-				if (fileType != FILETYPE.FILETYPE_BS6 || stDebugLevel > 0)
+				if (fileType != FILETYPE.FILETYPE_BS6 || stDebugLevel > 0 || deleteExistingFile)
 				{
 					foreach (string nomefile in nomiFile)
 					{
@@ -2613,7 +2625,7 @@ namespace X_Manager
 			{
 				if (fs.Length == 0)
 				{
-					nextFile();
+					nextFile(fileType==FILETYPE.FILETYPE_GP6);
 					return;
 				}
 				fs.Position = fs.Length - 2;
@@ -2649,7 +2661,7 @@ namespace X_Manager
 				catch (Exception ex)
 				{
 					warningShow(fileName + ": " + ex.Message);
-					nextFile();
+					nextFile(true);
 					return;
 				}
 

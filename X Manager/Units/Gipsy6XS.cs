@@ -888,7 +888,7 @@ namespace X_Manager.Units.Gipsy6
 				}
 			}
 			catch { }
-			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
 		public override void convert(string fileName, string[] prefs)
@@ -1150,7 +1150,7 @@ namespace X_Manager.Units.Gipsy6
 			}));
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-				new Action(() => parent.nextFile()));
+				new Action(() => parent.nextFile(true)));
 		}
 
 		private void txtBGW_doWork(ref List<TimeStamp> tL, string txtName)

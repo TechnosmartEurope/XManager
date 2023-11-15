@@ -4,16 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:X_Manager.Remote" Background="#FF242020"
-             mc:Ignorable="d" Width="148" 
-             d:DesignHeight="30" d:DesignWidth="148">
+             mc:Ignorable="d" Width="148" Height="26"
+             d:DesignHeight="26" d:DesignWidth="148">
     <Grid >
-		<Rectangle Fill="#00000000" Stroke="#FF181818" StrokeThickness="2" Margin="0" />
-		<!--<Button x:Name="settingsB" HorizontalAlignment="Right" Margin="2" MinHeight="10" Content="~" MinWidth="10" Width="20" Padding="0"/>-->
-		<Label x:Name="driveL" Content="PROVOLA" FontSize="10" VerticalAlignment="Center" Width="128" HorizontalAlignment="Left" Margin="5,0,0,0"/>
-		<Label x:Name="newNameL" Foreground="#FF242020" FontSize="8" Content="N" VerticalAlignment="Top" HorizontalAlignment="Right" 
-			Padding="0" Margin="0,2,5,0"/>
-		<Label x:Name="newConfL" Foreground="#FF242020" FontSize="8" Content="C" VerticalAlignment="Bottom" HorizontalAlignment="Right" 
-			Padding="0" Margin="0,0,5,2"/>
-		<!--<Rectangle x:Name="newConfRect" Fill="#FF242020" Width="10" Height="10" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,2,2,0"/>-->
+		<!--<Rectangle Fill="#00000000" Stroke="#FF181818" StrokeThickness="2" Margin="0" />-->
+		<Label x:Name="driveL" Background="#FF242020" Content="PROVOLA" FontSize="11" VerticalAlignment="Center" Width="110" Height="24" VerticalContentAlignment="Center" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+		<Label x:Name="newNameL" Foreground="#FF242020" Background="#FF242020" FontSize="10" Content="N" Height="24" Width="12" VerticalAlignment="Center"  
+			Padding="0" Margin="0,0,16,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" HorizontalAlignment="Right" FontWeight="Bold"/>
+		<Label x:Name="newConfL" Foreground="#FF242020" Background="#FF242020" FontWeight="Bold" FontSize="10" Content="C" Height="24" Width="12" VerticalAlignment="Center" HorizontalAlignment="Right" 
+			Padding="0" Margin="0,0,2,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 	</Grid>
 </UserControl>

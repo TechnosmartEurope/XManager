@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:X_Manager.Remote"
-        mc:Ignorable="d" Background="#FF181818"
+        mc:Ignorable="d" Background="#FF181818" MinHeight="330" MinWidth="330"
         Title="BASE STATION MANAGER" Height="450" Width="800" WindowStartupLocation="CenterOwner">
 	<!--<Window.Resources>
 		<Style TargetType="GroupBox">
@@ -23,12 +23,12 @@
 		</Grid.ColumnDefinitions>
 		<GroupBox Margin="5,10,5,5" Header="Drive selection" Padding="0" ClipToBounds="True" SnapsToDevicePixels="True" Foreground="#FF00AADE" >
 			<ListView x:Name="driveLV"  Margin="0,20,0,0"  Background="#FF181818" BorderThickness="0" Padding="0"
-					SelectionMode="Single" MouseUp="driveLV_MouseUp" />
+					SelectionMode="Single" MouseUp="driveLV_MouseUp"  />
 		</GroupBox>
 
 		<GroupBox x:Name="channelListGB" Grid.Column="1" Header="Channel List" Margin="5,10,5,35" Foreground="#FF00AADE">
 			<ListView x:Name="channelLV"  Margin="0,20,0,0"  Background="#FF181818" BorderThickness="0" Padding="0" MouseDoubleClick="channelLV_MouseDoubleClick"
-				MouseRightButtonUp="channelLV_MouseRightClick"/>
+				MouseRightButtonUp="channelLV_MouseRightClick" ScrollViewer.HorizontalScrollBarVisibility="Disabled" />
 		</GroupBox>
 		<Button x:Name="plusB" Grid.Column="1" VerticalAlignment="Bottom" Width="40" Content="+" Margin="5,2,0,5" MinHeight="0" HorizontalAlignment="Left" Click="plusB_Click"/>
 		<Button x:Name="plusPlusB" Grid.Column="1" VerticalAlignment="Bottom" Width="40" Content="++" Margin="55,2,0,5" MinHeight="0" HorizontalAlignment="Left" Click="plusPlusB_Click"/>

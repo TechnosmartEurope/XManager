@@ -6,6 +6,8 @@
 	<!-- *********************************  COLORS  ********************************* -->
 	<Color x:Key="Background_General_Color">#FF181818</Color>
 	<SolidColorBrush x:Key="Background_General" Color="{StaticResource Background_General_Color}" />
+	<Color x:Key="Background_Transparent">#FF181818</Color>
+	<SolidColorBrush x:Key="Background_Transparent_Color" Color="{StaticResource Background_Transparent}" />
 	<Color x:Key="Background_MouseOver_Color">#FF002430</Color>
 	<SolidColorBrush x:Key="Background_MouseOver" Color="{StaticResource Background_MouseOver_Color}" />
 	<Color x:Key="Background_ComboBox_Disabled_Color">#FF404040</Color>
@@ -122,14 +124,15 @@
 		<Setter Property="FontSize" Value="14.5" />
 		<Setter Property="FontFamily" Value="Segoe UI" />
 		<Setter Property="Foreground" Value="{StaticResource Foreground_Text}"/>
+		<Setter Property="Background" Value="{StaticResource Background_General}"/>
 		<Setter Property="HorizontalContentAlignment"
           Value="Left" />
 		<Setter Property="VerticalContentAlignment"
           Value="Top" />
 		<Setter Property="Template">
 			<Setter.Value>
-				<ControlTemplate TargetType="Label">
-					<Border>
+				<ControlTemplate TargetType="{x:Type Label}">
+					<Border Background="{TemplateBinding Background}">
 						<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                             RecognizesAccessKey="True" />

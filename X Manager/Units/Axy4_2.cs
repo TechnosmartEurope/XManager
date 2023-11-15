@@ -634,7 +634,7 @@ namespace X_Manager.Units
 				}
 			}
 			catch { }
-			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
 		public override void convert(string fileName, string[] prefs)
@@ -811,7 +811,7 @@ namespace X_Manager.Units
 			csv.Close();
 			ard.Close();
 
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile()));
+			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
 		private double[] extractGroup(ref MemoryStream ard, ref timeStamp tsc)
