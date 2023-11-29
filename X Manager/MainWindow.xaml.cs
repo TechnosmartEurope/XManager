@@ -1568,7 +1568,15 @@ namespace X_Manager
 			}
 			else
 			{
-				oUnit.disconnect();
+				if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.LeftShift))
+				{
+					oUnit.shutDown();
+				}
+				else
+				{
+					oUnit.disconnect();
+				}
+
 				oUnit.Dispose();
 				uiDisconnected();
 				oUnit = null;
@@ -1686,7 +1694,7 @@ namespace X_Manager
 							Thread.Sleep(200);
 							oUnit.setAccSchedule(confForm.axyScheduleOut);
 
-							Ok okf = new Ok("Movement configuration succesfully updated.");
+							Ok okf = new Ok("Movement configuration successfully updated.");
 							okf.Top = Top + (Height / 3);
 							okf.Left = Left + (Width / 3);
 							okf.ShowDialog();
@@ -2474,6 +2482,7 @@ namespace X_Manager
 			string fileName = "";
 			string fileNameCsv;
 			string fileNametxt;
+			string fileNameRaw;
 			string fileNameKml;
 			string fileNamePlaceMark;
 			string[] nomiFile = new string[] { "" };
@@ -2568,9 +2577,10 @@ namespace X_Manager
 				}
 				fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + ".csv";
 				fileNametxt = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + ".txt";
+				fileNameRaw = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + ".json";
 				fileNameKml = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + "_temp" + ".kml";
 				fileNamePlaceMark = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(convertingFilePathAndName) + addOn + ".kml";
-				nomiFile = new string[] { fileNameCsv, fileNametxt, fileNamePlaceMark };
+				nomiFile = new string[] { fileNameCsv, fileNametxt, fileNamePlaceMark, fileNameKml, fileNameRaw };
 
 				if (fileType != FILETYPE.FILETYPE_BS6 || stDebugLevel > 0 || deleteExistingFile)
 				{
@@ -2625,7 +2635,7 @@ namespace X_Manager
 			{
 				if (fs.Length == 0)
 				{
-					nextFile(fileType==FILETYPE.FILETYPE_GP6);
+					nextFile(fileType == FILETYPE.FILETYPE_GP6);
 					return;
 				}
 				fs.Position = fs.Length - 2;
@@ -2794,9 +2804,6 @@ namespace X_Manager
 				FTDI.Close();
 			}
 		}
-
-
-
 
 		#endregion
 

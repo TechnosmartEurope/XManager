@@ -345,7 +345,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			//MessageBox.Show("Configuration read.");
-			var w = new Warning("Configuration succesfully read");
+			var w = new Warning("Configuration successfully read");
 			w.ShowDialog();
 
 		}
@@ -483,8 +483,7 @@ namespace X_Manager.ConfigurationWindows
 				return;
 			}
 
-			//MessageBox.Show("Configuration succesfully updated.");
-			var w = new Warning("Configuration succesfully updated.");
+			var w = new Warning("Configuration successfully updated.");
 			w.ShowDialog();
 
 		}

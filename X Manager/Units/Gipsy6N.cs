@@ -13,6 +13,7 @@ using System.IO.Ports;
 using System.ComponentModel;
 using Windows.Security.Cryptography.Core;
 using System.Xml.Linq;
+using X_Manager.ConfigurationWindows;
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -140,6 +141,7 @@ namespace X_Manager.Units.Gipsy6
 			public DateTime dateTime;
 			public byte[] infoAr;
 			public byte[] eventAr;
+			public byte[] raw;
 			public bool isEvent;
 			public int stopEvent;
 			public int inWater;
@@ -159,11 +161,18 @@ namespace X_Manager.Units.Gipsy6
 				}
 			}
 			public int txtAllowed;
+			public bool rawPreset;
 			public void resetPos(int initVal)
 			{
 				_pos = initVal;
 			}
 
+			public byte[] cloneRaw()
+			{
+				var rawOut = new byte[raw.Length];
+				Array.Copy(raw, rawOut, raw.Length);
+				return rawOut;
+			}
 			public TimeStamp clone()
 			{
 				var tout = new TimeStamp();
@@ -209,10 +218,19 @@ namespace X_Manager.Units.Gipsy6
 				tout.proximityPower = proximityPower;
 				tout.rfAddressString = rfAddressString;
 				tout.unitNameTxt = unitNameTxt;
+				tout.rawPreset = rawPreset;
 				tout.resetPos(this.pos);
 
 				return tout;
 			}
+		}
+
+		struct Satellite
+		{
+			public double codePhase;
+			public double doppler;
+			public int sv;
+			public int constellation;
 		}
 
 		const int RETRY_MAX = 4;
@@ -273,10 +291,13 @@ namespace X_Manager.Units.Gipsy6
 
 		BackgroundWorker txtBGW;
 		BackgroundWorker kmlBGW;
+		BackgroundWorker rawBGW;
 		private static Semaphore txtSem;
 		private static Semaphore kmlSem;
+		private static Semaphore rawSem;
 		private static Semaphore txtSemBack;
 		private static Semaphore kmlSemBack;
+		private static Semaphore rawSemBack;
 		//private static long lastTimestamp = 0;
 		//private static long conversionDone = 0;
 
@@ -1151,6 +1172,12 @@ namespace X_Manager.Units.Gipsy6
 			connected = false;
 		}
 
+		public override void shutDown()
+		{
+			base.shutDown();
+			ask("S");
+		}
+
 		public unsafe override void download(string fileName, uint fromMemory, uint toMemory, int baudrate)
 		{
 
@@ -1745,6 +1772,18 @@ namespace X_Manager.Units.Gipsy6
 					kmlBGW.RunWorkerAsync();
 				}
 
+				//Crea e avvia il thread per la scrittura del file raw
+				string rawName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".json";
+				List<byte[]> rawList = new List<byte[]>();
+				rawSem = new Semaphore(0, 1);
+				rawSemBack = new Semaphore(1, 1);
+				rawBGW = new BackgroundWorker();
+				rawBGW.DoWork += (s, args) =>
+				{
+					rawBGW_doWork(ref rawList, rawName);
+				};
+				rawBGW.RunWorkerAsync();
+
 				//Inizializza le variabili
 				int pos = 0;
 				int end = gp6.Length;
@@ -1823,6 +1862,13 @@ namespace X_Manager.Units.Gipsy6
 						kmlSem.Release();
 					}
 
+					if (timeStamp.rawPreset)
+					{
+						rawSemBack.WaitOne();
+						rawList.Add(timeStamp.cloneRaw());
+						rawSem.Release();
+					}
+
 					if (noStampBuffer.Count == 1)
 					{
 						break;
@@ -1864,6 +1910,10 @@ namespace X_Manager.Units.Gipsy6
 					parent.kmlProgressBar.Height = 0;
 					parent.statusProgressBar.Margin = new Thickness(10, 5, 10, 10);
 				}));
+
+				rawSemBack.WaitOne();
+				rawSem.Release();
+				rawSemBack.WaitOne();
 
 				if (fileType == FileType.FILE_GP6)
 				{
@@ -2130,6 +2180,156 @@ namespace X_Manager.Units.Gipsy6
 			//Interlocked.Increment(ref conversionDone);
 		}
 
+		private void rawBGW_doWork(ref List<byte[]> tL, string rawName)
+		{
+			bool firstFix = true;
+			DateTime startTime = DateTime.Now;
+
+			StreamWriter raw;
+			raw = new StreamWriter(rawName, true);
+
+			const string shortIndent = "            ";
+			const string longIndent = "                ";
+
+			byte[] t;
+			while (true)
+			{
+				rawSem.WaitOne();
+				if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
+				{
+					break;
+				}
+				t = tL[0];
+				tL.RemoveAt(0);
+				if (firstFix)
+				{
+					firstFix = false;
+					startTime = new DateTime(t[6] * 256 + t[5], t[4], t[3], t[2], t[1], t[0]);
+					raw.Write("{\r\n    \"fixes\": [\r\n");
+				}
+				else
+				{
+					raw.Write(",\r\n");
+				}
+
+				DateTime actTime = new DateTime(t[6] * 256 + t[5], t[4], t[3], t[2], t[1], t[0]);
+
+				int nSat = t[34 + 11];
+				if (nSat == 0)
+				{
+					rawSemBack.Release();
+					continue;
+				}
+				var sats = new List<Satellite>();
+
+				for (int i = 0; i < nSat; i++)
+				{
+					int actPos = 24 * i + 11;
+					if ((t[actPos + 44] > 0) || (t[actPos + 45] > 32)) continue;
+					var sat = new Satellite();
+					sat.sv = t[actPos + 45];
+					sat.doppler = BitConverter.ToInt32(t.Skip(actPos + 52).Take(4).ToArray(), 0) * .2;
+					sat.codePhase = BitConverter.ToInt32(t.Skip(actPos + 60).Take(4).ToArray(), 0) / 2097152.0;
+					sats.Add(sat);
+				}
+				if (sats.Count == 0)
+				{
+					rawSemBack.Release();
+					continue;
+				}
+
+				//Elimina i satelliti non validi
+				//bool clean = false;
+				//while (!clean)
+				//{
+				//	for (int i = 0; i < sats.Count; i++)
+				//	{
+				//		clean = true;
+				//		if (sats[i].sv > 32)
+				//		{
+				//			sats.RemoveAt(i);
+				//			clean = false;
+				//			break;
+				//		}
+				//	}
+				//	continue;
+				//}
+
+				//Riordina i satelliti per SV number
+				bool ordered = false;
+				while (!ordered)
+				{
+					ordered = true;
+					for (int i = 1; i < sats.Count; i++)
+					{
+						if (sats[i].sv < sats[i - 1].sv)
+						{
+							Satellite s = sats[i];
+							sats.Insert(i - 1, s);
+							sats.RemoveAt(i + 1);
+							ordered = false;
+							break;
+						}
+					}
+					continue;
+				}
+
+				//CODEPHASE
+				raw.Write("        {\r\n");
+				raw.Write(shortIndent + "\"codephase\": [\r\n");
+				string comma = ",";
+				for (int i = 0; i < sats.Count; i++)
+				{
+					if (i == sats.Count - 1) comma = "";
+					raw.Write(longIndent + sats[i].codePhase.ToString(nfi) + comma + "\r\n");
+				}
+				raw.Write(shortIndent + "],\r\n");
+
+				//DOPPLER
+				raw.Write(shortIndent + "\"doppler\": [\r\n");
+				comma = ",";
+				for (int i = 0; i < sats.Count; i++)
+				{
+					if (i == sats.Count - 1) comma = "";
+					raw.Write(longIndent + sats[i].doppler.ToString(nfi) + comma + "\r\n");
+				}
+				raw.Write(shortIndent + "],\r\n");
+
+				//ALTRI
+				raw.Write(shortIndent + "\"inifile\": \"/luigino/thekitchen/carnezzeria.pastalluovo\",\r\n");
+				raw.Write(shortIndent + "\"rtc\": " + (actTime - startTime).TotalSeconds.ToString() + ",\r\n");
+				raw.Write(shortIndent + "\"sample_ms\": 4,\r\n" + shortIndent + "\"sampling_rate\": 8183833,\r\n");
+
+				//SV
+				raw.Write(shortIndent + "\"sv\": [\r\n");
+				comma = ",";
+				for (int i = 0; i < sats.Count; i++)
+				{
+					if (i == sats.Count - 1) comma = "";
+					raw.Write(longIndent + sats[i].sv.ToString() + comma + "\r\n");
+				}
+				raw.Write(shortIndent + "],\r\n");
+
+				//CORRELAZIONE
+				raw.Write(shortIndent + "\"x_max\": [\r\n");
+				comma = ",";
+				for (int i = 0; i < sats.Count; i++)
+				{
+					if (i == sats.Count - 1) comma = "";
+					raw.Write(longIndent + "60.19112014" + comma + "\r\n");
+				}
+				raw.Write(shortIndent + "]\r\n");
+				raw.Write("        }");
+
+				rawSemBack.Release();
+			}
+			//\"start\": \"" + startTime.ToString("yyyy-MM-ddThh:mm:ss") + "\",\r\n
+			raw.Write("\r\n    ],\r\n");
+			raw.Write("    \"start\": \"" + startTime.ToString("yyyy-MM-ddTHH:mm:ss") + "\"\r\n}");
+			raw.Close();
+			rawSemBack.Release();
+		}
+
 		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t, ref int pos)
 		{
 
@@ -2138,6 +2338,7 @@ namespace X_Manager.Units.Gipsy6
 			byte test = gp6[pos];
 			int max = gp6.Length - 1;
 			t.txtAllowed = 0;
+			t.rawPreset = false;
 			//if (pref_debugLevel > 0) t.txtAllowed++;
 			while (true)
 			{
@@ -2273,6 +2474,16 @@ namespace X_Manager.Units.Gipsy6
 			//{
 			//	return bufferNoStamp;
 			//}
+
+			//Raw
+			if ((t.tsTypeExt1 & ts_raw) == ts_raw)
+			{
+				int rawLenght = gp6[pos + 9] * 256 + gp6[pos + 10] + 11;
+				t.raw = new byte[rawLenght];
+				Array.Copy(gp6, pos, t.raw, 0, rawLenght);
+				pos += rawLenght;
+				t.rawPreset = true;
+			}
 
 			//Info
 			if ((t.tsTypeExt1 & ts_info) == ts_info)

@@ -2,7 +2,7 @@
 1.1.0	Bugfix: corretta aqcuisizione del nome da unità connessa. Si fermava al primo spazio invece che all'ultimo carattere diverso da spazio.
 	Bugfix: corretto schedule axyTrek, rimaneva tutto su Continuous.
 	Inserimento grafica pulsante "Remote" e finestra "Remote Connector".
-	Migliorate finestre "Configuration read" e "Congiuration succesfully updated" nella lettura e scrittura schedule.
+	Migliorate finestre "Configuration read" e "Congiuration successfully updated" nella lettura e scrittura schedule.
 	Inizio supporto per GiPSy-6.
 1.2.0	Doppia release x86 e x64
 	Ottimizzazione conversione mediante covnersione di variabili in int e caching esclusivo su ram in lettura e parziale in scirttura (solo axy trek)
@@ -312,3 +312,4 @@
 	Rimossa richiesta "overwrite" in fase di conversione
 	Basemanager: migliorata visibilità dei flag di nuovo nome e nuova configurazione
 	Bugifx: il software crashava se premeva import nello schedule aperto dal basemanager
+	GIpsy6: implementato comando per modalità shutdown

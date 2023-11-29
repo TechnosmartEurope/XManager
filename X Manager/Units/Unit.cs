@@ -56,6 +56,7 @@ namespace X_Manager.Units
 		//Maschere timestamp1
 		public const byte ts_ext2 = 0b_0000_0001;
 		public const byte ts_adcValue = 0b0000_0010;
+		public const byte ts_raw = 0b0000_0010;
 		public const byte ts_adcThreshold = 0b0000_0100;
 		public const byte ts_info = 0b0000_0100;
 		public const byte ts_mag = 0b_0000_1000;
@@ -348,6 +349,11 @@ namespace X_Manager.Units
 		}
 
 		public virtual void disconnect()
+		{
+			connected = false;
+		}
+
+		public virtual void shutDown()
 		{
 			connected = false;
 		}

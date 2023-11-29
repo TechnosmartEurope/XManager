@@ -1873,7 +1873,7 @@ namespace X_Manager.Remote
 				}
 				else
 				{
-					MessageBox.Show("Basestation succesfully renamed.");
+					MessageBox.Show("Basestation successfully renamed.");
 				}
 			}
 		}

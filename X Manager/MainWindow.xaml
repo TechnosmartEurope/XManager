@@ -117,7 +117,24 @@
 					<StackPanel x:Name="ST1" Margin="0" Grid.Column="0" >
 						<StackPanel x:Name="portsCommandsStackPanel" Margin="10,25,0,0">
 							<!--<Label Content="PORT COMMANDS" Foreground="#FF00AADE" Padding="0" />-->
-							<Button x:Name="connectButton" Content="Connect" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick"/>
+							<!--<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="3.6*"/>
+									<ColumnDefinition Width="0*" Name="shutDownColumn"/>
+								</Grid.ColumnDefinitions>-->
+								<Button x:Name="connectButton" Content="Connect" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick"/>
+								<!--<Button x:Name="shutDownButton" Grid.Column="1" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick" 
+									Foreground="Red" Padding="0" IsEnabled="False" Visibility="Hidden">
+									<Button.Content>
+										<Grid>
+											<Path Stroke="Red" StrokeThickness="3" Data="M 8,3 A 9,9 45 1 0 18,3" />
+											<Path Stroke="Red" StrokeThickness="3" Data="M 13,0 T 13,9" />
+										</Grid>
+										
+									</Button.Content>
+								</Button>
+							</Grid>-->
+
 							<Button x:Name="remoteButton" Content="Remote Management" Margin="0,5,0,0" Height="40" MinHeight="0" TabIndex="1" Click="remoteManagementClick" Padding="0"/>
 						</StackPanel>
 						<StackPanel x:Name="unitCommandsStackPanel" Margin="10,20,0,0">
