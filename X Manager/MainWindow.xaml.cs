@@ -19,7 +19,6 @@ using X_Manager.ConfigurationWindows;
 using X_Manager.Remote;
 using X_Manager.Units.AxyTreks;
 using X_Manager.Units.Gipsy6;
-using System.Windows.Controls.Primitives;
 
 namespace X_Manager
 {
@@ -495,6 +494,10 @@ namespace X_Manager
 			unitNameTextBox.IsEnabled = false;
 			unitNameButton.IsEnabled = false;
 			comPortComboBox.IsEnabled = true;
+			KeyUp -= MainWindowKeyUp;
+			KeyDown -= ctrlManager;
+			KeyDown += ctrlManager;
+			connectButton.Foreground = new SolidColorBrush(Color.FromArgb(0xff, 0xe0, 0xe0, 0xe0));
 			connectButton.Content = "Connect";
 			scanButton.IsEnabled = true;
 			downloadButton.IsEnabled = false;
@@ -645,7 +648,6 @@ namespace X_Manager
 						FTDI.Write("TTTTTTTTTTTTTGGAr");
 						Console.Beep();
 					}
-
 				}
 
 				//Trek o Quattrok remoto
@@ -698,6 +700,15 @@ namespace X_Manager
 					}
 				}
 
+				//else if (Keyboard.IsKeyDown(Key.LeftShift))
+				//{
+				//	if (((string)connectButton.Content).Contains("Disconnect"))
+				//	{
+				//		connectButton.Content = "SHUT DOWN";
+				//		KeyUp += MainWindowKeyUp;
+				//	}
+				//}
+
 				//Pubblicazione help
 				else
 				{
@@ -712,6 +723,34 @@ namespace X_Manager
 					startUpMonitor.Text += "\tC: AxyQuattrok: imposta coefficienti";
 					startUpMonitor.Text += "\tB: GiPSy6 Bootloader";
 				}
+			}
+			else
+			{
+				if (Keyboard.IsKeyDown(Key.LeftCtrl))
+				{
+					if (((string)connectButton.Content).Contains("Disconnect") && oUnit is Gipsy6)
+					{
+						connectButton.Content = "SHUT DOWN";
+						connectButton.Foreground = new SolidColorBrush(Color.FromArgb(255, 0xff, 0x0, 0x0));
+						KeyDown -= ctrlManager;
+						KeyUp -= MainWindowKeyUp;
+						KeyUp += MainWindowKeyUp;
+						e.Handled = true;
+					}
+				}
+			}
+		}
+
+		public void MainWindowKeyUp(object sender, KeyEventArgs e)
+		{
+			if (((string)connectButton.Content).Contains("SHUT DOWN"))
+			{
+				connectButton.Content = "Disconnect";
+				connectButton.Foreground = new SolidColorBrush(Color.FromArgb(255, 0xe0, 0xe0, 0xe0));
+				KeyUp -= MainWindowKeyUp;
+				KeyDown -= ctrlManager;
+				KeyDown += ctrlManager;
+				e.Handled = true;
 			}
 		}
 
@@ -1555,8 +1594,8 @@ namespace X_Manager
 				}
 				else
 				{
-					badShow(STR_unitNotReady + " (ERR_CODE = " + errCode.ToString("000") + ")");
-					uiDisconnected();
+					//	badShow(STR_unitNotReady + " (ERR_CODE = " + errCode.ToString("000") + ")");
+					//	uiDisconnected();
 				}
 
 				if (!esito)
@@ -1566,21 +1605,22 @@ namespace X_Manager
 					return;
 				}
 			}
-			else
+			else if ((string)connectButton.Content == "SHUT DOWN")
 			{
-				if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.LeftShift))
-				{
-					oUnit.shutDown();
-				}
-				else
-				{
-					oUnit.disconnect();
-				}
-
+				oUnit.shutDown();
 				oUnit.Dispose();
 				uiDisconnected();
 				oUnit = null;
 			}
+			else
+			{
+				oUnit.disconnect();
+				oUnit.Dispose();
+				uiDisconnected();
+				oUnit = null;
+			}
+
+
 
 		}
 

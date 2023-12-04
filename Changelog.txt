@@ -312,4 +312,5 @@
 	Rimossa richiesta "overwrite" in fase di conversione
 	Basemanager: migliorata visibilità dei flag di nuovo nome e nuova configurazione
 	Bugifx: il software crashava se premeva import nello schedule aperto dal basemanager
-	GIpsy6: implementato comando per modalità shutdown
+	Bugfix: la conversione da memdump a agm non convertiva bene mdp da firmware minori di 4.0.0
+	Gipsy6: implementato comando per modalità shutdown

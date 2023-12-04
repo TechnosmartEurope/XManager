@@ -389,7 +389,7 @@ namespace X_Manager.Units
 			int sectorLength = 1024;
 			if (firmTotA < 3000000)
 			{
-				sectorLength = 255;
+				sectorLength = 256;
 			}
 
 			while (mdp.BaseStream.Position < mdp.BaseStream.Length)
