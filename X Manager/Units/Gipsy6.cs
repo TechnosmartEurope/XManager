@@ -95,7 +95,7 @@ namespace X_Manager.Units.Gipsy6
 
 		}
 
-		protected void placeHeader(StreamWriter txtBW)//, ref byte[] columnPlace)
+		protected void placeHeader(StreamWriter txtBW, bool writeHeader)//, ref byte[] columnPlace)
 		{
 
 			var headers = new List<string>() { "Name", "RF address", "Date", "Time", "Latitude", "Longitude", "Horizontal Acc.", "Altitude", "Vertical Acc.", "Speed", "Course", "Battery", "Nearby device",
@@ -163,11 +163,14 @@ namespace X_Manager.Units.Gipsy6
 			//	heads.RemoveAt(3);
 			//	heads[2] = "Timestamp";
 			//}
-			for (int i = 0; i < headers.Count - 1; i++)
+			if (writeHeader)
 			{
-				txtBW.Write(headers[i] + "\t");
+				for (int i = 0; i < headers.Count - 1; i++)
+				{
+					txtBW.Write(headers[i] + "\t");
+				}
+				txtBW.Write(headers[headers.Count - 1] + "\r\n");
 			}
-			txtBW.Write(headers[headers.Count - 1] + "\r\n");
 		}
 	}
 }

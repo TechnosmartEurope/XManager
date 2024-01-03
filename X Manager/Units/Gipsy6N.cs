@@ -1931,10 +1931,10 @@ namespace X_Manager.Units.Gipsy6
 		private void txtBGW_doWork(ref List<TimeStamp> tL, string txtName)
 		{
 
-			bool fileExisting = File.Exists(txtName);
+			//bool fileExisting = File.Exists(txtName);
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Append));
 
-			if (!fileExisting) placeHeader(txtBW);//, ref columnPlace);
+			placeHeader(txtBW, !File.Exists(txtName));//, ref columnPlace);
 
 			string[] tabs = new string[p_fileCsv_length];
 			tabs[p_fileCsv_name] = lastKnownUnitName;
@@ -2327,6 +2327,8 @@ namespace X_Manager.Units.Gipsy6
 			raw.Write("\r\n    ],\r\n");
 			raw.Write("    \"start\": \"" + startTime.ToString("yyyy-MM-ddTHH:mm:ss") + "\"\r\n}");
 			raw.Close();
+			var length = new FileInfo(rawName).Length;
+			if (length < 200) File.Delete(rawName);
 			rawSemBack.Release();
 		}
 

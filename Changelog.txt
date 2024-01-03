@@ -314,3 +314,4 @@
 	Bugifx: il software crashava se premeva import nello schedule aperto dal basemanager
 	Bugfix: la conversione da memdump a agm non convertiva bene mdp da firmware minori di 4.0.0
 	Gipsy6: implementato comando per modalità shutdown
+	Gipsy6: predisposizione per timestamp Far Location

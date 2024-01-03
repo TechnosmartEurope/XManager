@@ -2552,13 +2552,17 @@ namespace X_Manager
 				if (Path.GetExtension(fileName).Contains("bs6"))
 				{
 					if (compFileName.Length > 8) compFileName = compFileName.Substring(0, 8);
-					string add = Path.GetFileNameWithoutExtension(compFileName);
-					if (add.Length > 8) add = add.Substring(0, 8);
-					while ((add[0] == '0') && add.Length > 1)
+					while ((compFileName[0] == '0') && compFileName.Length > 1)
 					{
-						add = add.Substring(1, add.Length - 1);
+						compFileName = compFileName.Substring(1, compFileName.Length - 1);
 					}
-					compFileName = Path.GetDirectoryName(compFileName) + "\\" + add;
+					//string add = Path.GetFileNameWithoutExtension(compFileName);
+					//if (add.Length > 8) add = add.Substring(0, 8);
+					//while ((add[0] == '0') && add.Length > 1)
+					//{
+					//	add = add.Substring(1, add.Length - 1);
+					//}
+					//compFileName = Path.GetDirectoryName(compFileName) + "\\" + add;
 					if (!compFileName.Equals(convertingFileName))
 					{
 						convertingFileName = compFileName;
@@ -2663,7 +2667,7 @@ namespace X_Manager
 
 			statusLabel.Content = fileHeader + "File " + convFile.ToString() + "/" + convFileTot.ToString() + ": " + Path.GetFileName(fileName) + " ";
 			convFiles.RemoveAt(0);
-			bool kmlClose = false;
+			bool kmlClose = true;
 			FileStream fs = File.OpenRead(fileName);
 			byte model;
 			uint fw = 0; //Controllare cosa succede in caso di ardfile=false alla riga 1555 e poi al caso successivo (Depth)
@@ -2682,14 +2686,15 @@ namespace X_Manager
 				model = (byte)fs.ReadByte();
 				if (fileType == FILETYPE.FILETYPE_BS6)
 				{
-					if (convFiles.Count == 0)
+					if (convFiles.Count > 0)
 					{
-						kmlClose = true;
-					}
-					else
-					{
+						kmlClose = false;
 						string nextFileName = Path.GetFileNameWithoutExtension(convFiles[0]);
 						if (nextFileName.Length > 8) nextFileName = nextFileName.Substring(0, 8);
+						while ((nextFileName[0] == '0') && nextFileName.Length > 1)
+						{
+							nextFileName = nextFileName.Substring(1, nextFileName.Length - 1);
+						}
 						if (!nextFileName.Equals(convertingFileName)) kmlClose = true;
 					}
 				}

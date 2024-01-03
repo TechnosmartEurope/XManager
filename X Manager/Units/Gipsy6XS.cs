@@ -1157,7 +1157,7 @@ namespace X_Manager.Units.Gipsy6
 		{
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 
-			placeHeader(txtBW);
+			placeHeader(txtBW, !File.Exists(txtName));
 
 			string[] tabs = new string[p_fileCsv_length];
 			tabs[p_fileCsv_name] = unitName;
