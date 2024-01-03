@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using X_Manager.Units.Gipsy6;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -74,7 +75,7 @@ namespace X_Manager.ConfigurationWindows
 
 			sch[0] = BitConverter.ToUInt16(conf, 52);
 			sch[1] = BitConverter.ToUInt16(conf, 54);
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				sch[2] = BitConverter.ToUInt16(conf, 84);
 				sch[3] = BitConverter.ToUInt16(conf, 86);
@@ -94,7 +95,7 @@ namespace X_Manager.ConfigurationWindows
 			//Caselle orari A/B e C/D
 			int offset1 = 58;
 			int offset2 = 90;
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				offset1 = 60;
 				offset2 = 92;
@@ -126,7 +127,7 @@ namespace X_Manager.ConfigurationWindows
 
 			//Mesi ABCD
 			offset1 = 114;
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				offset1 = 116;
 			}
@@ -211,7 +212,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			int offset = 82;
-			if (unit is Units.Gipsy6.Gipsy6N) offset = 84;
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium)) offset = 84;
 
 			conf[52] = (byte)(sch[0] & 0xff);
 			conf[53] = (byte)(sch[0] >> 8);
@@ -227,7 +228,7 @@ namespace X_Manager.ConfigurationWindows
 
 			offset = 58;
 			int offset2 = 92;
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				offset = 60;
 				offset2 = 92;
@@ -249,7 +250,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			//Mesi validità schedule C/D
-			if (unit.firmTotA > 1005000)
+			if ((unit.firmTotA > 1005000) || (unit is Gipsy6Iridium))
 			{
 				UInt16 monthSched = 0;
 				for (int i = 0; i < 12; i++)
@@ -261,7 +262,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 				monthSched += 0b1000_0000_0000_0000;
 				offset = 114;
-				if (unit is Units.Gipsy6.Gipsy6N)
+				if ((unit is Gipsy6N) || (unit is Gipsy6Iridium))
 				{
 					offset = 116;
 				}

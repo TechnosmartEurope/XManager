@@ -597,7 +597,7 @@ namespace X_Manager.ConfigurationWindows
 			squareAr = new Square[10];
 			int squareOffset;
 			int scheduleOffset;
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				squareOffset = 128;
 				scheduleOffset = 288;
@@ -616,7 +616,7 @@ namespace X_Manager.ConfigurationWindows
 				schAL.Text = "Schedule G:";
 				schBL.Text = "Schedule H:";
 				titleL.Text = "Geofencing 2";
-				if (unit is Units.Gipsy6.Gipsy6N)
+				if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 				{
 					squareOffset = 320;
 					scheduleOffset = 480;
@@ -1890,7 +1890,7 @@ namespace X_Manager.ConfigurationWindows
 			GeoSquare m;
 
 			int offset;
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				offset = 128;
 				if (index == 2) offset = 320;
@@ -1980,7 +1980,7 @@ namespace X_Manager.ConfigurationWindows
 			conf[offset + 2] = (byte)sch[1];
 			conf[offset + 3] = (byte)(sch[1] >> 8);
 
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				offset += 8;
 			}

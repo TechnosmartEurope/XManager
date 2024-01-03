@@ -16,24 +16,27 @@
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="40" />
 			<RowDefinition Height="40" />
+			<RowDefinition Height="20" />
+			<RowDefinition Height="40" />
+			<RowDefinition Height="40" />
+			<RowDefinition Height="40" />
+			<RowDefinition Height="20" />
+			<RowDefinition Height="40" />
+			<RowDefinition Height="40" />
+			<RowDefinition Height="40" />
+			<RowDefinition Height="20" />
 			<RowDefinition Height="40" />
 			<RowDefinition Height="40" />
 			<RowDefinition Height="40" />
 			<RowDefinition Height="40" />
+			<RowDefinition Height="20" />
 			<RowDefinition Height="40" />
-			<RowDefinition Height="40" />
-			<RowDefinition Height="40" />
-			<RowDefinition Height="40" />
-			<RowDefinition Height="40" />
-			<RowDefinition Height="40" />
-			<RowDefinition Height="40" />
-			<RowDefinition Height="40" />
-			<RowDefinition Height="56" />
+			<RowDefinition Height="20" />
 			<RowDefinition />
 		</Grid.RowDefinitions>
 		<TextBlock Grid.Row="0" Text="Basics" Foreground="White" FontSize="35" Margin="0,0,0,0" Background="#FF303030"/>
 
-		<TextBlock Grid.Row="1" Text="ACQUISITION options:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" />
+		<TextBlock Grid.Row="1" Text="ACQUISITION options:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" VerticalAlignment="Center"/>
 		<TextBlock Grid.Row="2" Text="First Fix ON time: " Foreground="White" FontSize="25" Margin="80,0,0,0" />
 		<TextBox Grid.Row="2" x:Name="acqOnTB" Margin="420,0,0,0" FontSize="20" Foreground="White" Width="180" KeyDown="validate" LostFocus="validate" TabIndex="100" GotFocus="onTB_GotFocus" />
 		<TextBlock Grid.Row="2" Text="(sec)" Margin="800,0,0,0" FontSize="25" Foreground="White" />
@@ -92,15 +95,42 @@
 			<TextBox x:Name="pxLastTB" Width="104" HorizontalAlignment="Right" Margin="10,0,0,0" FontSize="18" Text="0X000000" MinHeight="0" Height="34"/>
 			<TextBlock Text="Proximity Power:" Foreground="White" VerticalAlignment="Center" FontSize="16" HorizontalAlignment="Right" Margin="42,0,0,0"/>
 			<ComboBox x:Name="proximityPowerCB" Margin="30,0,0,0" Width="122" Height="40" SelectedIndex="0">
-				<ComboBoxItem>-20dBm</ComboBoxItem><ComboBoxItem>-18dBm</ComboBoxItem><ComboBoxItem>-15dBm</ComboBoxItem><ComboBoxItem>-12dBm</ComboBoxItem>
-				<ComboBoxItem>-10dBm</ComboBoxItem><ComboBoxItem>-9dBm</ComboBoxItem><ComboBoxItem>-6dBm</ComboBoxItem><ComboBoxItem>-5dBm</ComboBoxItem>
-				<ComboBoxItem>-3dBm</ComboBoxItem><ComboBoxItem>0dBm</ComboBoxItem><ComboBoxItem>1dBm</ComboBoxItem><ComboBoxItem>2dBm</ComboBoxItem>
-				<ComboBoxItem>3dBm</ComboBoxItem><ComboBoxItem>4dBm</ComboBoxItem><ComboBoxItem>5dBm</ComboBoxItem><ComboBoxItem>14dBm</ComboBoxItem>
-				<ComboBoxItem>15dBm</ComboBoxItem><ComboBoxItem>16dBm</ComboBoxItem><ComboBoxItem>17dBm</ComboBoxItem><ComboBoxItem>18dBm</ComboBoxItem>
-				<ComboBoxItem>19dBm</ComboBoxItem><ComboBoxItem>20dBm</ComboBoxItem>
+				<ComboBoxItem>-20dBm</ComboBoxItem>
+				<ComboBoxItem>-18dBm</ComboBoxItem>
+				<ComboBoxItem>-15dBm</ComboBoxItem>
+				<ComboBoxItem>-12dBm</ComboBoxItem>
+				<ComboBoxItem>-10dBm</ComboBoxItem>
+				<ComboBoxItem>-9dBm</ComboBoxItem>
+				<ComboBoxItem>-6dBm</ComboBoxItem>
+				<ComboBoxItem>-5dBm</ComboBoxItem>
+				<ComboBoxItem>-3dBm</ComboBoxItem>
+				<ComboBoxItem>0dBm</ComboBoxItem>
+				<ComboBoxItem>1dBm</ComboBoxItem>
+				<ComboBoxItem>2dBm</ComboBoxItem>
+				<ComboBoxItem>3dBm</ComboBoxItem>
+				<ComboBoxItem>4dBm</ComboBoxItem>
+				<ComboBoxItem>5dBm</ComboBoxItem>
+				<ComboBoxItem>14dBm</ComboBoxItem>
+				<ComboBoxItem>15dBm</ComboBoxItem>
+				<ComboBoxItem>16dBm</ComboBoxItem>
+				<ComboBoxItem>17dBm</ComboBoxItem>
+				<ComboBoxItem>18dBm</ComboBoxItem>
+				<ComboBoxItem>19dBm</ComboBoxItem>
+				<ComboBoxItem>20dBm</ComboBoxItem>
 			</ComboBox>
 		</StackPanel>
 
-
+		<TextBlock Grid.Row="19" x:Name="iridiumScheduleTitleTB" Text="IRIDIUM SCHEDULE:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" VerticalAlignment="Center"/>
+		<ComboBox Grid.Row="19" x:Name="iridiumScheduleCB" Margin="280,0,0,0" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center">
+			<ComboBoxItem>OFF</ComboBoxItem>
+			<ComboBoxItem>1</ComboBoxItem>
+			<ComboBoxItem>4</ComboBoxItem>
+			<ComboBoxItem>8</ComboBoxItem>
+			<ComboBoxItem>20</ComboBoxItem>
+			<ComboBoxItem>40</ComboBoxItem>
+			<ComboBoxItem>60</ComboBoxItem>
+		</ComboBox>
+		<Label Grid.Row="19" x:Name="iridiumHoursL" Content="Hours" Margin="400,0,0,0" VerticalContentAlignment="Center" Width="100" HorizontalAlignment="Left" FontSize="25" Background="#FF202020"/>
+		<TextBlock Grid.Row="19" x:Name="imeiTB" Text="IMEI: " Foreground="#FF00DEAA" FontSize="25" Margin="0,0,30,0" HorizontalAlignment="Right" />
 	</Grid>
 </local:PageCopy>

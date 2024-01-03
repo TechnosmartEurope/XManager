@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using Microsoft.VisualBasic;
+using X_Manager.Units.Gipsy6;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -25,6 +26,7 @@ namespace X_Manager.ConfigurationWindows
 		List<TextBox> ctrAr;
 		static readonly int[] maxs = new int[7] { 65000, 65000, 65000, 8, 200, 0x7ffffff, 60 };
 		static readonly int[] mins = new int[7] { 10, 2, 2, 0, 5, 0, 1 };
+		static readonly byte[] iridiumSched = new byte[7] { 0, 1, 4, 8, 20, 40, 60 };
 
 		//CheckBox[] remSchAr = new CheckBox[24];
 		byte[] conf;
@@ -69,7 +71,7 @@ namespace X_Manager.ConfigurationWindows
 
 			//Secondi enhanced accuracy (indirizzo 57 gipsy6xs, 58 gipsy6n)
 			byte enAccPointer = 57;
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Gipsy6N) || (unit is Gipsy6Iridium))
 			{
 				enAccPointer++;
 			}
@@ -85,7 +87,7 @@ namespace X_Manager.ConfigurationWindows
 			}
 			//Selezione valore in memoria unità connessa
 			enAccSelCB.SelectedItem = conf[enAccPointer].ToString();
-			if (unit.firmTotA < 1004007)        //Per firmware precedenti la funzionalità viene disabilitata
+			if (!(unit is Gipsy6Iridium) && (unit.firmTotA < 1004007))        //Per firmware precedenti la funzionalità viene disabilitata
 			{
 				enAccSelCB.IsEnabled = false;
 				enAccSelCB.Visibility = Visibility.Hidden;
@@ -107,7 +109,7 @@ namespace X_Manager.ConfigurationWindows
 			gsvTB.Text = gsv.ToString();
 
 			//Per unità gipsy6n carica indirizzo remoto e parametri di prossimità
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Gipsy6N) || (unit is Gipsy6Iridium))
 			{
 				remoteAddress = (conf[541] << 16) + (conf[542] << 8) + (conf[543]);
 				pxInterval = conf[523];
@@ -165,10 +167,10 @@ namespace X_Manager.ConfigurationWindows
 			sdDate = new DateTime(anno, mese, giorno);
 			startDelayDateDP.SelectedDate = sdDate;
 
-			if (unit is Units.Gipsy6.Gipsy6N && conf[540] == 1)
+			if (((unit is Gipsy6N) || (unit is Gipsy6Iridium)) && conf[540] == 1)
 			{
 				isRemote = true;
-				if (unit.firmTotA < 1005000)
+				if (!(unit is Gipsy6Iridium) && (unit.firmTotA < 1005000))
 				{
 					foreach (FrameworkElement fe in proximityControls)
 					{
@@ -185,7 +187,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Gipsy6N) || (unit is Gipsy6Iridium))
 			{
 				if (isRemote)
 				{
@@ -238,6 +240,23 @@ namespace X_Manager.ConfigurationWindows
 				debugEventsL.Text = "";
 			}
 
+			//Gestione Label IMEI e schedule Iridium
+			imeiTB.Visibility = Visibility.Hidden;
+			iridiumScheduleTitleTB.Visibility = Visibility.Hidden;
+			iridiumScheduleCB.Visibility = Visibility.Hidden;
+			iridiumHoursL.Visibility = Visibility.Hidden;
+			if (unit is Gipsy6Iridium)
+			{
+				imeiTB.Text += " " + ((Gipsy6Iridium)unit).IMEI;
+				imeiTB.Visibility = Visibility.Visible;
+				iridiumScheduleTitleTB.Visibility = Visibility.Visible;
+				iridiumScheduleCB.Visibility = Visibility.Visible;
+				iridiumHoursL.Visibility = Visibility.Visible;
+				iridiumScheduleCB.SelectedIndex = Array.IndexOf(iridiumSched, conf[120]);
+			}
+
+
+
 			Loaded += loaded;
 		}
 
@@ -278,7 +297,7 @@ namespace X_Manager.ConfigurationWindows
 						{
 							fe.Visibility = Visibility.Hidden;
 						}
-						if (unit is Units.Gipsy6.Gipsy6N)
+						if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 						{
 							byte schMode = conf[516];
 							for (int i = 516; i < 540; i++)
@@ -319,7 +338,7 @@ namespace X_Manager.ConfigurationWindows
 						//remoteAddressTB.Visibility = Visibility.Visible;
 						//remoteScheduleTB.Visibility = Visibility.Visible;
 						//remoteHB.Visibility = Visibility.Visible;
-						if (unit.firmTotA < 1005000)
+						if (!(unit is Gipsy6Iridium) && (unit.firmTotA < 1005000))
 						{
 							foreach (FrameworkElement fe in proximityControls)
 							{
@@ -342,7 +361,7 @@ namespace X_Manager.ConfigurationWindows
 						break;
 					case Key.D:
 						byte debugEventsPointer = 56;
-						if (unit is Units.Gipsy6.Gipsy6N)
+						if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 						{
 							debugEventsPointer++;
 						}
@@ -750,9 +769,13 @@ namespace X_Manager.ConfigurationWindows
 			conf[46] = (byte)(ddate >> 16);
 			conf[47] = (byte)(ddate >> 24);
 
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if (unit is Gipsy6N)
 			{
 				copyValues_N();
+			}
+			else if (unit is Gipsy6Iridium)
+			{
+				copyValues_IR();
 			}
 			else
 			{
@@ -812,6 +835,52 @@ namespace X_Manager.ConfigurationWindows
 			conf[543] = (byte)(remoteAddress & 0xff);
 		}
 
+		private void copyValues_IR()
+		{
+			conf[58] = byte.Parse(enAccSelCB.SelectedItem as string);
+			conf[59] = (byte)sbyte.Parse(proximityPowerCB.Text.Substring(0, proximityPowerCB.Text.Length - 3));
+
+			conf[120] = iridiumSched[iridiumScheduleCB.SelectedIndex];
+
+			conf[516] = 0xff;
+			Array.Copy(remoteHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 517, 3);
+			Array.Copy(proximityHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 520, 3);
+			conf[523] = byte.Parse(pxIntervalTB.Text);
+
+			conf[524] = (byte)(pxFirst >> 16);
+			conf[525] = (byte)(pxFirst >> 8);
+			conf[526] = (byte)(pxFirst & 0xff);
+
+			conf[527] = (byte)(pxLast >> 16);
+			conf[528] = (byte)(pxLast >> 8);
+			conf[529] = (byte)(pxLast & 0xff);
+
+			conf[540] = isRemote ? (byte)1 : (byte)0;
+			char rs = 't';
+			try
+			{
+				rs = remoteAddressTB.Text.Skip(1).Take(1).ToArray()[0];
+			}
+			catch { }
+			if (rs == 'x' || rs == 'X')
+			{
+				string s = remoteAddressTB.Text.Substring(2);
+				if (s.Length > 0)
+				{
+					Int32.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out remoteAddress);
+				}
+			}
+			else
+			{
+				if (remoteAddressTB.Text.Length > 0 && remoteAddressTB.Text != "0")
+				{
+					int.TryParse(remoteAddressTB.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out remoteAddress);
+				}
+			}
+			conf[541] = (byte)(remoteAddress >> 16);
+			conf[542] = (byte)(remoteAddress >> 8);
+			conf[543] = (byte)(remoteAddress & 0xff);
+		}
 		private void copyValues_XS()
 		{
 			conf[57] = byte.Parse(enAccSelCB.SelectedItem as string);

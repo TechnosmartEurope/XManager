@@ -405,6 +405,7 @@
     <Compile Include="Units\Gipsy6.cs" />
     <Compile Include="Units\Gipsy6N.cs" />
     <Compile Include="Units\Gipsy6XS.cs" />
+    <Compile Include="Units\Gipsy6Iridium.cs" />
     <Compile Include="Units\Unit.cs" />
     <Compile Include="Warning.xaml.cs">
       <DependentUpon>Warning.xaml</DependentUpon>

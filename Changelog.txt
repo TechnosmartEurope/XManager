@@ -309,6 +309,7 @@
 	Bugfix: la conversione di memDump precedentemente scaricati generava ard errati per le unità con nuove librerie memoria (tranne Axy5)
 	Bugfix - gipsy6: in conversione con CTRL+D il txt, se selezionato "Fill empty", generava numeri lunghissimi come posizione nell'ard
 1.23.0	Gipsy6: la conversione simultanea di più file bs6 crea una solo file txt e un solo file kml in uscita, senza ridondanze
+	Gipsy6: inzio supporto per unità Gips6_Iridium
 	Rimossa richiesta "overwrite" in fase di conversione
 	Basemanager: migliorata visibilità dei flag di nuovo nome e nuova configurazione
 	Bugifx: il software crashava se premeva import nello schedule aperto dal basemanager

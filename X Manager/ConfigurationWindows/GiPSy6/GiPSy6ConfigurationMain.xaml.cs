@@ -67,13 +67,13 @@ namespace X_Manager.ConfigurationWindows
 				unit.firmTotA = 999999999;
 			}
 
-			if (unit is Gipsy6N)
+			if ((unit is Gipsy6N) || (unit is Gipsy6Iridium))
 			{
 				if (conf[58] < 15 || conf[58] > 60)
 				{
 					conf[58] = 15;
 				}
-				if (unit.firmTotA < 1004007)
+				if (!(unit is Gipsy6Iridium) && (unit.firmTotA < 1004007))
 				{
 					conf[58] = 15;
 				}
@@ -419,7 +419,7 @@ namespace X_Manager.ConfigurationWindows
 			Array.Copy(oldRfAddress, 0, axyConfOut, 541, 3);
 			//}
 
-			if (unit.firmTotA < 1004007)
+			if (!(unit is Gipsy6Iridium) && (unit.firmTotA < 1004007))
 			{
 				axyConfOut[58] = 15;
 			}

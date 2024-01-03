@@ -32,6 +32,7 @@ namespace X_Manager.Units
 		public const int model_axy4 = 124;                  //0x7c
 		public const int model_Co2Logger = 123;             //0x7b
 		public const int model_axy5 = 122;                  //0x7a
+		public const int model_Gipsy6IR = 13;
 		public const int model_Gipsy6XS = 12;
 		public const int model_drop_off = 11;
 		public const int model_AGM1_calib = 10;

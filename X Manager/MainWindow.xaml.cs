@@ -563,6 +563,7 @@ namespace X_Manager
 					break;
 				case Unit.model_Gipsy6N:
 				case Unit.model_Gipsy6XS:
+				case Unit.model_Gipsy6IR:
 					unitNameTextBox.MaxLength = 27;
 					configureMovementButton.IsEnabled = true;
 					configurePositionButton.IsEnabled = true;
@@ -1542,6 +1543,10 @@ namespace X_Manager
 							case "GiPSy-6 XS":
 								oUnit = new Gipsy6XS(this);
 								break;
+							case "GiPSy-6_IR":
+								oUnit = new Gipsy6Iridium(this);
+								model = "Gipsy-6 Iridium";
+								break;
 							case "Drop-Off":
 								oUnit = new Drop_Off(this);
 								break;
@@ -2021,17 +2026,24 @@ namespace X_Manager
 			}
 
 			// sviluppo per remoto
-			if (remote)
-			{
-				baudrate = 115200;
-			}
-
+			//if (remote)
+			//{
+			//	baudrate = 115200;
+			//}
 			// /sviluppo
+
 			mainGrid.IsEnabled = false;
 			Thread downloadThread = new Thread(() => oUnit.download(saveRaw.FileName, fromMemory, toMemory, baudrate));
-			if (oUnit is Gipsy6N)
+			if (oUnit is Gipsy6N) 
 			{
 				if (((Gipsy6N)oUnit).remoteConnection)
+				{
+					downloadThread = new Thread(() => oUnit.downloadRemote(saveRaw.FileName, fromMemory, toMemory, baudrate));
+				}
+			}
+			else if (oUnit is Gipsy6Iridium)
+			{
+				if (((Gipsy6Iridium)oUnit).remoteConnection)
 				{
 					downloadThread = new Thread(() => oUnit.downloadRemote(saveRaw.FileName, fromMemory, toMemory, baudrate));
 				}
@@ -2782,6 +2794,9 @@ namespace X_Manager
 					break;
 				case Unit.model_Gipsy6XS:
 					cUnit = new Gipsy6XS(this);
+					break;
+				case Unit.model_Gipsy6IR:
+					cUnit = new Gipsy6Iridium(this);
 					break;
 				default:
 					cUnit = new AxyTrekN(this);

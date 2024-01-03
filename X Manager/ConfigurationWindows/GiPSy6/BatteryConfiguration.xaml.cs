@@ -87,7 +87,7 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 
 			clearButtons();
 
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				for (int i = 0; i < tbAr.Length; i++)
 				{
@@ -311,7 +311,7 @@ namespace X_Manager.ConfigurationWindows.GiPSy6
 			if (!update) return;
 
 			UInt16 val;
-			if (unit is Units.Gipsy6.Gipsy6N)
+			if ((unit is Units.Gipsy6.Gipsy6N) || (unit is Units.Gipsy6.Gipsy6Iridium))
 			{
 				for (int i = 0; i < vAr.Length; i++)
 				{

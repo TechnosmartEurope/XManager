@@ -1155,9 +1155,10 @@ namespace X_Manager.Units.Gipsy6
 
 		private void txtBGW_doWork(ref List<TimeStamp> tL, string txtName)
 		{
+			bool fileExisting = File.Exists(txtName);
 			StreamWriter txtBW = new StreamWriter(new FileStream(txtName, FileMode.Create));
 
-			placeHeader(txtBW, !File.Exists(txtName));
+			placeHeader(txtBW, !fileExisting);
 
 			string[] tabs = new string[p_fileCsv_length];
 			tabs[p_fileCsv_name] = unitName;

@@ -1,24 +1,18 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Diagnostics;
 using System.Threading;
-using System.IO;
 using System.Windows;
 using System.Windows.Threading;
-using System.Globalization;
-using System.ComponentModel;
-#if X64
-using FT_HANDLE = System.UInt64;
-#else
-using FT_HANDLE = System.UInt32;
-#endif
 
 namespace X_Manager.Units.Gipsy6
 {
-	class Gipsy6N : Gipsy6
+	internal class Gipsy6Iridium : Gipsy6
 	{
 
 		#region DEFCONF
@@ -58,8 +52,10 @@ namespace X_Manager.Units.Gipsy6
 		0x80, 0x00,
 		//118 Soglie batteria: batteryRefuseDownload
 		0x9a, 0x09,
-		//120 Disponibili
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		//120 Schedule Iridium
+		0x00,
+		//121 Disponibili
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		// 128 - G1: Vertici
 		0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -104,9 +100,11 @@ namespace X_Manager.Units.Gipsy6
 		0x66, 0x0a,     //3.90V		batteryRestartLogging
 		0x33, 0x09,     //3.45V		batteryLowRfStart
 		0x77, 0x09,	 	//3.55V		batteryLowRfLog
-		//554
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+		//554	IMEI
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		//569
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 		//600
 		};
 
@@ -232,6 +230,7 @@ namespace X_Manager.Units.Gipsy6
 		const int RETRY_MAX = 4;
 		int rfAddress = -1;
 		string lastKnownRfAddressString = "N.A.";
+		public string IMEI = "";
 
 		FileType fileType;
 		enum FileType : byte
@@ -253,7 +252,8 @@ namespace X_Manager.Units.Gipsy6
 			E_MEM_FULL,
 			E_POWER_OFF,
 			E_RESET,
-			E_REMOTE_CONNECTION
+			E_REMOTE_CONNECTION,
+			E_IRIDIUM_TRANSMISSION
 		}
 
 		static readonly int[] accuracySteps = { 1, 2, 5, 10, 15, 50, 100 };
@@ -271,7 +271,23 @@ namespace X_Manager.Units.Gipsy6
 			"Memory Full.",
 			"Power OFF",
 			"Reset",
-			"Remote Connection."
+			"Remote Connection.",
+			"Iridium transmission: "
+		};
+
+		static readonly string[] iridiumTxType = {
+			"Start",
+			"Low battery",
+			"No data",
+			"Communication failed",
+			"Configuration failed",
+			"No visible satellite",
+			"Loading buffer failed",
+			"Short transmission attempt",
+			"Satellite coverage failed",
+			"Connection lost",
+			"Transmission failed",
+			"Transmission done"
 		};
 
 		static readonly string[] scheduleEventTimings = {
@@ -299,10 +315,10 @@ namespace X_Manager.Units.Gipsy6
 
 		new byte[] firmwareArray = new byte[3];
 
-		public Gipsy6N(object p)
+		public Gipsy6Iridium(object p)
 			: base(p)
 		{
-			modelCode = model_Gipsy6N;
+			modelCode = model_Gipsy6IR;
 			configureMovementButtonEnabled = true;
 			configurePositionButtonEnabled = false;
 			defaultArdExtension = "gp6";
@@ -506,17 +522,6 @@ namespace X_Manager.Units.Gipsy6
 							}
 							break;
 						}
-						//nIn = ft.ReadByte();
-						//if (nIn != 0)
-						//{
-						//	name += Convert.ToChar(nIn).ToString();
-						//}
-						//else
-						//{
-						//	Thread.Sleep(100);
-						//	int p = ft.ReadExisting();
-						//	break;
-						//}
 					}
 					break;
 				}
@@ -555,9 +560,6 @@ namespace X_Manager.Units.Gipsy6
 				{
 					if (retry == retryMax - 1) throw new Exception(unitNotReady);
 				}
-				//battLevel = battLevel + (battLevel - 3) * .05 + .14;
-
-
 			}
 			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
 			return battery;
@@ -806,14 +808,24 @@ namespace X_Manager.Units.Gipsy6
 
 		public override byte[] getConf()
 		{
+			byte[] conf = new byte[600];
 			if (remoteConnection)
 			{
-				return getConfRemote();
+				conf = getConfRemote();
 			}
 			else
 			{
-				return getConfCable();
+				conf = getConfCable();
 			}
+			byte[] imeiAr = new byte[15];
+			Array.Copy(conf, 554, imeiAr, 0, 15);
+			char[] imeiChar = new char[15];
+			for (int i = 0; i < 15; i++)
+			{
+				imeiChar[i] = (char)imeiAr[i];
+			}
+			IMEI = new string(imeiChar);
+			return conf;
 		}
 
 		private byte[] getConfRemote()
@@ -960,23 +972,16 @@ namespace X_Manager.Units.Gipsy6
 				{
 					conf[i] = ft.ReadByte();
 				}
-				if (firmTotA > 1)
+				for (int i = 514; i < 514 + 14; i++)
 				{
-					for (int i = 514; i < 514 + 14; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
-					ft.Write(new byte[] { 8 }, 1);//***********************************************SYNC
-					int end = 12;
-					if (firmTotA >= 1000000)
-					{
-						end = 26;
-					}
-					for (int i = 528; i < 528 + end; i++)
-					{
-						conf[i] = ft.ReadByte();
-					}
+					conf[i] = ft.ReadByte();
 				}
+				ft.Write(new byte[] { 8 }, 1);//***********************************************SYNC
+				for (int i = 528; i < 528 + 41; i++)
+				{
+					conf[i] = ft.ReadByte();
+				}
+
 				ft.Write(new byte[] { 9 }, 1);//***********************************************SYNC
 			}
 			catch
@@ -1012,11 +1017,6 @@ namespace X_Manager.Units.Gipsy6
 				ft.ReadTimeout = 400;
 				uint packetLength = 28;
 				uint packetNumber = 17;
-				if (firmTotA < 1003001)
-				{
-					packetLength = 64;
-					packetNumber = 7;
-				}
 				try
 				{
 					ft.ReadByte();
@@ -1027,23 +1027,15 @@ namespace X_Manager.Units.Gipsy6
 					}
 
 					ft.Write(conf, 480, 20);
-					if (firmTotA > 1003000)
-					{
-						ft.ReadByte();
-					}
+					ft.ReadByte();
 
 					ft.Write(conf, 500, 16);
 					ft.ReadByte();
 
-					if (firmTotA > 1)
-					{
-						ft.Write(conf, 516, 24);
-					}
-					if (firmTotA >= 1000000)
-					{
-						Thread.Sleep(5);
-						ft.Write(conf, 540, 14);
-					}
+					ft.Write(conf, 516, 24);
+					Thread.Sleep(5);
+
+					ft.Write(conf, 540, 14);
 					ft.ReadByte();
 
 					break;
@@ -2627,6 +2619,22 @@ namespace X_Manager.Units.Gipsy6
 				case eventType.E_ALTON_TIMEOUT:
 					outs = String.Format(events[ts.eventAr[1]], ts.eventAr[2]);
 					break;
+				case eventType.E_IRIDIUM_TRANSMISSION:
+					string par = "";
+					if ((ts.eventAr[2] > 0) && (ts.eventAr[2] < 11))
+					{
+						if (ts.eventAr[3] == 1)
+						{
+							par = " (partial)";
+						}
+						else
+						{
+							par = " (failed)";
+						}
+					}
+					outs = events[ts.eventAr[1]] + par + ": " + iridiumTxType[ts.eventAr[2]];
+
+					break;
 				default:
 					outs = events[ts.eventAr[1]];
 					break;
@@ -2641,5 +2649,4 @@ namespace X_Manager.Units.Gipsy6
 
 
 	}
-
 }
