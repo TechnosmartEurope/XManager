@@ -26,7 +26,7 @@ namespace X_Manager.ConfigurationWindows
 		List<TextBox> ctrAr;
 		static readonly int[] maxs = new int[7] { 65000, 65000, 65000, 8, 200, 0x7ffffff, 60 };
 		static readonly int[] mins = new int[7] { 10, 2, 2, 0, 5, 0, 1 };
-		static readonly byte[] iridiumSched = new byte[7] { 0, 1, 4, 8, 20, 40, 60 };
+		static readonly byte[] iridiumSched = new byte[6] { 1, 4, 8, 20, 40, 60 };
 
 		//CheckBox[] remSchAr = new CheckBox[24];
 		byte[] conf;
@@ -252,6 +252,7 @@ namespace X_Manager.ConfigurationWindows
 				iridiumScheduleTitleTB.Visibility = Visibility.Visible;
 				iridiumScheduleCB.Visibility = Visibility.Visible;
 				iridiumHoursL.Visibility = Visibility.Visible;
+				if (conf[120] == 0) conf[120] = 1;		//Controllo di sicurezza, lo schedule non può mai essere messo in off (valore 0)
 				iridiumScheduleCB.SelectedIndex = Array.IndexOf(iridiumSched, conf[120]);
 			}
 
@@ -881,6 +882,7 @@ namespace X_Manager.ConfigurationWindows
 			conf[542] = (byte)(remoteAddress >> 8);
 			conf[543] = (byte)(remoteAddress & 0xff);
 		}
+
 		private void copyValues_XS()
 		{
 			conf[57] = byte.Parse(enAccSelCB.SelectedItem as string);

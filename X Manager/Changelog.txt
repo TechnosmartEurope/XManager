@@ -316,3 +316,4 @@
 	Bugfix: la conversione da memdump a agm non convertiva bene mdp da firmware minori di 4.0.0
 	Gipsy6: implementato comando per modalità shutdown
 	Gipsy6: predisposizione per timestamp Far Location
+1.23.1	Gipsy6-Iridium: rimossa possibilità di mettere lo schedule Iridium in OFF

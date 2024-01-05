@@ -122,7 +122,6 @@
 
 		<TextBlock Grid.Row="19" x:Name="iridiumScheduleTitleTB" Text="IRIDIUM SCHEDULE:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" VerticalAlignment="Center"/>
 		<ComboBox Grid.Row="19" x:Name="iridiumScheduleCB" Margin="280,0,0,0" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center">
-			<ComboBoxItem>OFF</ComboBoxItem>
 			<ComboBoxItem>1</ComboBoxItem>
 			<ComboBoxItem>4</ComboBoxItem>
 			<ComboBoxItem>8</ComboBoxItem>
