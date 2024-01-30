@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
+
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -45,6 +46,24 @@ namespace X_Manager.Units
 			public int metadataPresent;
 			//public long ardPosition;
 		}
+
+		struct DecodedEvent
+		{
+			public int stopType;
+			public string eventDescription;
+		}
+
+		enum Event : byte
+		{
+			EVENT_DAYOFF = 2,
+			EVENT_STARTDELAY,
+			EVENT_LOWBATTERY = 11,
+			EVENT_POWEROFF,
+			EVENT_MEMORYFULL,
+			EVENT_REMOTECONNECTION
+		}
+
+		static string[] Month = { "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 		string[] gruppoCON;// = new string[];
 		string[] gruppoSENZA;// = new string[];
@@ -86,7 +105,7 @@ namespace X_Manager.Units
 		int adcEn;
 		byte[] schedule = null;
 		byte[] remSched = null;
-		byte[] eventAr;
+		//byte[] eventAr;
 		double[] convCoeffs;
 		int rate;
 		int range;
@@ -300,24 +319,30 @@ namespace X_Manager.Units
 				//Legge rate e range per firmware senza schedule
 				if (firmTotA < 1000002)
 				{
-					for (int i = 15; i < 17; i++) { conf[i] = (byte)ft.ReadByte(); }
+					for (int i = 15; i < 17; i++) { conf[i] = ft.ReadByte(); }
+				}
+
+				//Legge lo start delay per firmware maggiori di 2.1.0
+				if (firmTotA >= 2001000)
+				{
+					for (int i = 2; i < 5; i++) { conf[i] = ft.ReadByte(); }
 				}
 
 				//Legge l'adcVal e un byte dummy per firmware >= 1.5.0
 				if (firmTotA >= 1005000)
 				{
-					for (int i = 15; i < 17; i++) { conf[i] = (byte)ft.ReadByte(); }
+					for (int i = 15; i < 17; i++) { conf[i] = ft.ReadByte(); }
 				}
 
-				//Legge la configura<ione comune a tutti i firmware
-				for (int i = 17; i <= 25; i++) { conf[i] = (byte)ft.ReadByte(); }
+				//Legge la configurazione comune a tutti i firmware
+				for (int i = 17; i <= 25; i++) { conf[i] = ft.ReadByte(); }
 
 				//Legge lo schedule remoto
 				if (firmTotA > 1001000)
 				{
 					for (int i = 26; i <= 28; i++)
 					{
-						conf[i] = (byte)ft.ReadByte();
+						conf[i] = ft.ReadByte();
 					}
 				}
 				else
@@ -350,15 +375,20 @@ namespace X_Manager.Units
 				{
 					ft.Write(conf, 15, 1);
 				}
+				if (firmTotA >= 2001000)
+				{
+					ft.Write(conf, 16, 1);
+					ft.Write(conf, 2, 3);
+				}
 				ft.Write(conf, 17, 9);
 				if (firmTotA > 1001000)
 				{
 					ft.Write(conf, 26, 3);
 				}
 				byteIn = ft.ReadByte();
-				int g = 0;
-				g++;
-				g--;
+				//int g = 0;
+				//g++;
+				//g--;
 			}
 			catch
 			{
@@ -1230,7 +1260,7 @@ namespace X_Manager.Units
 
 			writeInfo(fileNameInfo);
 
-			eventAr = new byte[5];
+			//eventAr = new byte[5];
 
 			timeStamp timeStampO = new timeStamp();
 			timeStampO.tsType = timeStampO.tsTypeExt1 = timeStampO.tsTypeExt2 = 0;
@@ -1777,19 +1807,28 @@ namespace X_Manager.Units
 			if ((tsc.tsType & ts_event) == ts_event)
 			{
 				tsc.metadataPresent = 1;
-				for (int i = 0; i < 5; i++)
+				byte eventType = (byte)ard.ReadByte();
+				byte eventLength = (byte)ard.ReadByte();
+				byte[] eventAr = new byte[eventLength + 2];
+				eventAr[0] = eventType;
+				eventAr[1] = eventLength;
+				for (int i = 0; i < eventLength; i++)
 				{
-					eventAr[i] = (byte)ard.ReadByte();
+					eventAr[i + 2] = (byte)ard.ReadByte();
 				}
+				DecodedEvent ev = decodeEvent(eventAr);
+				tsc.stopEvent = ev.stopType;
 				if (pref_metadata)
 				{
-					if (eventAr[0] == 11) { tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0; }
-					else if (eventAr[0] == 12) { tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; }
-					else if (eventAr[0] == 13)
-					{
-						tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0;
-					}
-					else if (eventAr[0] == 14) { tsc.stopEvent = 4; gruppoCON[meta] = "Remote connection established."; addMilli = 0; }
+					gruppoCON[meta] = ev.eventDescription;
+					//if (ev.stopType > 0) addMilli = 0;
+					//if (eventAr[0] == 11) { tsc.stopEvent = 1; gruppoCON[meta] = "Low battery."; addMilli = 0; }
+					//else if (eventAr[0] == 12) { tsc.stopEvent = 2; gruppoCON[meta] = "Power off command."; addMilli = 0; }
+					//else if (eventAr[0] == 13)
+					//{
+					//	tsc.stopEvent = 3; gruppoCON[meta] = "Memory full."; addMilli = 0;
+					//}
+					//else if (eventAr[0] == 14) { tsc.stopEvent = 4; gruppoCON[meta] = "Remote connection established."; addMilli = 0; }
 				}
 			}
 			else
@@ -2080,6 +2119,37 @@ namespace X_Manager.Units
 
 		}
 
+		private DecodedEvent decodeEvent(byte[] eventIn)
+		{
+			DecodedEvent decodedEvent = new DecodedEvent();
+			decodedEvent.stopType = 0;
+			switch (eventIn[0])
+			{
+				case (byte)Event.EVENT_DAYOFF:
+					decodedEvent.eventDescription = "Day off #" + eventIn[2].ToString() + ".";
+					break;
+				case (byte)Event.EVENT_STARTDELAY:
+					decodedEvent.eventDescription = string.Format("Start delayed to {0}-{1}-20{2}.", eventIn[4], Month[eventIn[3]], eventIn[2]);
+					break;
+				case (byte)Event.EVENT_LOWBATTERY:
+					decodedEvent.stopType = 1;
+					decodedEvent.eventDescription = "Low battery.";
+					break;
+				case (byte)Event.EVENT_POWEROFF:
+					decodedEvent.stopType = 2;
+					decodedEvent.eventDescription = "Power off.";
+					break;
+				case (byte)Event.EVENT_MEMORYFULL:
+					decodedEvent.stopType = 3;
+					decodedEvent.eventDescription = "Memory full.";
+					break;
+				case (byte)Event.EVENT_REMOTECONNECTION:
+					decodedEvent.stopType = 4;
+					decodedEvent.eventDescription = "Remote connection established.";
+					break;
+			}
+			return decodedEvent;
+		}
 		private void findSamplingRateLegacy(byte rateIn)
 		{
 			bit = 0;

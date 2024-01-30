@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using X_Manager.Themes;
 using System.Windows.Shapes;
+using Windows.Security.Authentication.Identity.Provider;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -20,13 +21,10 @@ namespace X_Manager.ConfigurationWindows
 	public partial class Axy5ConfigurationWindow : ConfigurationWindow
 	{
 
-		//public bool mustWrite = false;
 		public UInt32[] soglie = new UInt32[18];
 		byte mDebug = 0;
 		ushort[] c = new ushort[7];
 		uint firmTotA;
-		//bool evitaSoglieDepth = false;
-		//bool remoteHourEditing = false;
 		ConfigurationWindows.AccDayIntervals scheduleC;
 		volatile bool stopRender = false;
 
@@ -34,7 +32,7 @@ namespace X_Manager.ConfigurationWindows
 			: base()
 		{
 			InitializeComponent();
-			this.Loaded += loaded;
+			Loaded += loaded;
 			mustWrite = false;
 			axyConfOut = new byte[30];
 			axyScheduleOut = new byte[30];
@@ -109,12 +107,20 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			//Schedule
-			scheduleC = new ConfigurationWindows.AccDayIntervals();
+			scheduleC = new AccDayIntervals(firmTotA);
 			if (firmTotA >= 1004000)
 			{
 				scheduleC.enable12();
 			}
 			scheduleC.importSchedule(schedule);
+			if (firmTotA >= 2001000)
+			{
+				byte[] par = new byte[4];
+				Array.Copy(axyconf, 2, par, 1, 3);
+				par[0] = axyconf[16];
+				scheduleC.importParameters(par);
+
+			}
 			scheduleGB.Content = scheduleC;
 
 			//Remote Schedule
@@ -165,7 +171,7 @@ namespace X_Manager.ConfigurationWindows
 
 			var rend = new Thread(renderSummaryThread);
 			rend.Start();
-			
+
 		}
 
 		private void setThresholdUds()
@@ -277,42 +283,6 @@ namespace X_Manager.ConfigurationWindows
 				waterOnOff.Content = "Disabled";
 			}
 		}
-
-		//private void tempChecked(object sender, RoutedEventArgs e)
-		//{
-		//	if ((bool)temperatureOnOff.IsChecked)
-		//	{
-		//		temperatureOnOff.Content = "Enabled";
-		//	}
-		//	else
-		//	{
-		//		temperatureOnOff.Content = "Disabled";
-		//	}
-		//}
-
-		//private void depthChecked(object sender, RoutedEventArgs e)
-		//{
-		//	if ((bool)pressureOnOff.IsChecked)
-		//	{
-		//		pressureOnOff.Content = "Enabled";
-		//	}
-		//	else
-		//	{
-		//		pressureOnOff.Content = "Disabled";
-		//	}
-		//}
-
-		//private void adchChecked(object sender, RoutedEventArgs e)
-		//{
-		//	if ((bool)adcOnOff.IsChecked)
-		//	{
-		//		adcOnOff.Content = "Enabled";
-		//	}
-		//	else
-		//	{
-		//		adcOnOff.Content = "Disabled";
-		//	}
-		//}
 
 		private void cmdDown_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
@@ -452,6 +422,20 @@ namespace X_Manager.ConfigurationWindows
 					axyConfOut[28] = (byte)(bitMask & 0b1111_1111);
 				}
 			}
+			axyConfOut[16] = axyConfOut[2] = axyConfOut[3] = axyConfOut[4] = 0;
+			if (firmTotA >= 2001000)
+			{
+				if ((bool)scheduleC.startDelayEnableCB.IsChecked)
+				{
+					axyConfOut[2] = scheduleC.sdYear;
+					axyConfOut[3] = scheduleC.sdMonth;
+					axyConfOut[4] = scheduleC.sdDay;
+				}
+				if ((bool)scheduleC.daysOffEnableCB.IsChecked)
+				{
+					axyConfOut[16] = (byte)scheduleC.daysOffNUD.Value;
+				}
+			}
 
 			axyScheduleOut = scheduleC.exportSchedule();
 
@@ -565,17 +549,17 @@ namespace X_Manager.ConfigurationWindows
 				{
 					pl = "s";
 				}
-				summary = String.Format("Day is divided into {0} interval{1}:\r\n", nint, pl);
+				summary = string.Format("Day is divided into {0} interval{1}:\r\n", nint, pl);
 				for (int i = 0; i < nint; i++)
 				{
-					summary += String.Format("   - {0} starts at {1:x} and stops at {2:x}\r\n", card[i], orari[i], orari[i + 1]);
-					summary += String.Format("     The accelerometer {0}\r\n", accB[i]);
+					summary += string.Format("   - {0} starts at {1:x} and stops at {2:x}\r\n", card[i], orari[i], orari[i + 1]);
+					summary += string.Format("     The accelerometer {0}\r\n", accB[i]);
 				}
 			}
 			else
 			{
 				summary = "Day is not divided into any interval.\r\n\r\n";
-				summary += String.Format("The accelerometer {0}\r\n", accB[0]);
+				summary += string.Format("The accelerometer {0}\r\n", accB[0]);
 			}
 
 			//Remoto
@@ -637,9 +621,9 @@ namespace X_Manager.ConfigurationWindows
 			if (magOnOff.SelectedIndex > 0)
 			{
 				pl0 = "en";
-				pl1 = String.Format(" ({0} Hz)", magOnOff.SelectedIndex);
+				pl1 = string.Format(" ({0} Hz)", magOnOff.SelectedIndex);
 			}
-			summary += String.Format("\r\n Magnetometer is {0}abled{1}.\r\n", pl0, pl1);
+			summary += string.Format("\r\n Magnetometer is {0}abled{1}.\r\n", pl0, pl1);
 
 			//TD
 			summary += "\r\n Temperature/Depth logging is ";
@@ -648,7 +632,7 @@ namespace X_Manager.ConfigurationWindows
 				summary += "enabled ";
 				if (!(bool)pressureOnOff.IsChecked) summary += "\r\n  for temperature only";
 				if (!(bool)temperatureOnOff.IsChecked) summary += "\r\n  for pressure only";
-				summary += String.Format(" and set at\r\n  1 sample every {0} seconds.\r\n", tempDepthLogginUD.Text);
+				summary += string.Format(" and set at\r\n  1 sample every {0} seconds.\r\n", tempDepthLogginUD.Text);
 			}
 			else
 			{
@@ -662,13 +646,43 @@ namespace X_Manager.ConfigurationWindows
 				summary += "ADC logging is ";
 				if ((bool)adcOnOff.IsChecked)
 				{
-					summary += String.Format("enabled and set at\r\n  1 sample every {0} seconds.\r\n", tempDepthLogginUD.Text);
+					summary += string.Format("enabled and set at\r\n  1 sample every {0} seconds.\r\n", tempDepthLogginUD.Text);
 				}
 				else
 				{
 					summary += "disabled\r\n";
 				}
 				summary += "\r\n ";
+			}
+
+			if (firmTotA >= 2001000)
+			{
+				summary += "Start delay is ";
+				if (!(bool)scheduleC.startDelayEnableCB.IsChecked)
+				{
+					summary += "disabled.";
+				}
+				else
+				{
+					summary += "enabled and scheduled for " + ((DateTime)scheduleC.startDelayDateDP.SelectedDate).ToString("dd - MMM - yyy") + ".";
+				}
+
+				summary += "\r\n\r\nThe schedule will be executed every ";
+				int daysOff = scheduleC.daysOffNUD.Value + 1;
+				string day = "";
+				if (daysOff == 2)
+				{
+					day = "2nd ";
+				}
+				else if (daysOff == 3)
+				{
+					day = "3rd ";
+				}
+				else if (daysOff > 3)
+				{
+					day = daysOff.ToString() + "th ";
+				}
+				summary += day + "day\r\n";
 			}
 
 			summaryTB.Text = summary;
@@ -695,7 +709,7 @@ namespace X_Manager.ConfigurationWindows
 				try
 				{
 					s.ShowDialog();
-					if (String.IsNullOrEmpty(s.FileName)) return;
+					if (string.IsNullOrEmpty(s.FileName)) return;
 					break;
 				}
 				catch
@@ -717,7 +731,7 @@ namespace X_Manager.ConfigurationWindows
 			byte[] schedule = scheduleC.exportSchedule();
 			foreach (byte b in schedule)
 			{
-				System.IO.File.AppendAllText(s.FileName, (b.ToString() + "\r\n"));
+				System.IO.File.AppendAllText(s.FileName, b.ToString() + "\r\n");
 			}
 			for (int i = 0; i < 24; i++)
 			{
@@ -742,6 +756,14 @@ namespace X_Manager.ConfigurationWindows
 			}
 			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", tempDepthLogginUD.Text));
 			System.IO.File.AppendAllText(s.FileName, string.Format("{0}\r\n", firmTotA));
+			if (firmTotA >= 2001000)
+			{
+				byte[] pars = scheduleC.exportParameters();
+				foreach (byte b in pars)
+				{
+					System.IO.File.AppendAllText(s.FileName, b.ToString() + "\r\n");
+				}
+			}
 
 			string[] prefs = System.IO.File.ReadAllLines(MainWindow.iniFile);
 			prefs[10] = System.IO.Path.GetDirectoryName(s.FileName);
@@ -777,7 +799,7 @@ namespace X_Manager.ConfigurationWindows
 
 			string[] conf = System.IO.File.ReadAllLines(l.FileName);
 
-			newFirmTotA = uint.Parse(conf[conf.Length - 1]);
+			newFirmTotA = uint.Parse(conf[60]);
 			if (newFirmTotA >= 1004000)
 			{
 				scheduleC.enable12();
@@ -836,6 +858,16 @@ namespace X_Manager.ConfigurationWindows
 			{
 				tempDepthLogginUD.Text = conf[58];
 			}
+
+			byte[] pars = new byte[4];
+			if (newFirmTotA >= 2001000)
+			{
+				for (int i = 61; i < 65; i++)
+				{
+					pars[i - 61] = byte.Parse(conf[i]);
+				}
+			}
+			scheduleC.importParameters(pars);
 
 		}
 

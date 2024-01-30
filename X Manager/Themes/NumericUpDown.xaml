@@ -3,28 +3,36 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" Width="Auto" Height="Auto">
-    <Grid Width="Auto">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Label Name="header" Grid.Row="0" FontSize="12" MinWidth="0" Width="Auto" MinHeight="0" Height="Auto" Padding="0,0,0,0" />
-        <!-- Content="{Binding Path=HeaderContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" /> -->
+             xmlns:local="clr-namespace:X_Manager.Themes"
+             mc:Ignorable="d" Background="Black" MinHeight="20"
+             d:DesignHeight="20" d:DesignWidth="100" SizeChanged="UserControl_SizeChanged" IsEnabledChanged="UserControl_IsEnabledChanged">
+	<Grid >
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Name="valueColumn"/>
+			<ColumnDefinition Name="plusColumn"/>
+			<ColumnDefinition Name="minusColumn"/>
+		</Grid.ColumnDefinitions>
+		<!--<Border Grid.Column="0" BorderThickness="1" BorderBrush="#FF404040" />
+		<Border Grid.Column="1" BorderThickness="1" BorderBrush="#FF00AADE" />
+		<Border Grid.Column="2" BorderThickness="1" BorderBrush="#FF00AADE" />-->
+		<TextBox Name="valueTB" Background="Black" Text="Prova" FontSize="12" KeyDown="valueTB_KeyDown" LostFocus="valueTB_LostFocus" 
+				 MinHeight="0">
+		</TextBox>
+		<Button Grid.Column="1" Name="plusB" Click="plusB_Click" MinHeight="0" Padding="0" Background="Black" >
+			<Grid>
+				<Path StrokeThickness = "1" Stroke="#FF00AADE" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"
+					Data="M 5 10 L 15 10" Margin="0"/>
+				<Path StrokeThickness = "1" Stroke="#FF00AADE" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"
+				Data="M 10 5 L 10 15" Margin="0"/>
+			</Grid>
+		</Button>
+		<Button Grid.Column="2" Name="minusB" Background="Black" Click="minusB_Click" MinHeight="0" Padding="0">
+			<Path StrokeThickness = "1" Stroke="#FF00AADE" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center"
+				Data="M 5 10 L 15 10" Margin="0"/>
 
-        <Grid Grid.Row="1" Width="Auto">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="Auto" MaxWidth="60"/>
-                <ColumnDefinition Width="Auto" MaxWidth="60"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBox Name="valueTB" Grid.Column="0" MinWidth="50" FontSize="12" KeyDown="kdValidate" LostFocus="lsValidate" TabIndex="0" Grid.ColumnSpan="2" Width="Auto" Padding="0"/>
-            <Button Name="upButton" Grid.Column="1" Content="˄" FontSize="11" MaxWidth="60" Width="15" Height="Auto" MinWidth="10" 
-                    TabIndex="1" Click="upButtonClick" IsTabStop="False" Padding="0"/>
-            <Button Name="downButton" Grid.Column="2" Content="˅" FontSize="12" MaxWidth="60" Width="15" Height="Auto" 
-                    TabIndex="2" MinWidth="10" Padding="0" Click="downButtonClick" IsTabStop="False"/>
-            <Label x:Name ="footer" Grid.Column="3" MinHeight="0" FontSize="12" MinWidth="0" Height="Auto" VerticalAlignment="Center" Content="PROVA" Margin="3,0,0,0"/>
-        </Grid>
-    </Grid>
+		</Button>
+
+
+		<!--<Label Name="test" Content="Test" FontSize="8" Grid.Column="2" VerticalAlignment="Center" Margin="5,0,5,0"/>-->
+	</Grid>
 </UserControl>

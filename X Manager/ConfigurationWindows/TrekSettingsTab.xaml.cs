@@ -12,7 +12,7 @@ namespace X_Manager.ConfigurationWindows
 	public partial class TrekSettingsTab : UserControl
 	{
 		object parent;
-		public NumericUpDown batteryNud;
+		public NumericUpDown_old batteryNud;
 		Units.Unit unit;
 
 		public TrekSettingsTab(object p)

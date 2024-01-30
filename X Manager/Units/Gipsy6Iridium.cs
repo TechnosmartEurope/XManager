@@ -224,7 +224,7 @@ namespace X_Manager.Units.Gipsy6
 			public double codePhase;
 			public double doppler;
 			public int sv;
-			public int constellation;
+			//public int constellation;
 		}
 
 		const int RETRY_MAX = 4;

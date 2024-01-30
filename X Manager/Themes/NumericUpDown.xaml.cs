@@ -15,315 +15,125 @@ using System.Windows.Shapes;
 
 namespace X_Manager.Themes
 {
-    /// <summary>
-    /// Interaction logic for NumericUpDown.xaml
-    /// </summary>
-    public partial class NumericUpDown : UserControl
-    {
-        double inc = 1;
-        double maxValueCheck;
-        double minValueCheck;
-        byte rDigits;
-        double valore;
-        static readonly DependencyProperty headerContentProperty = DependencyProperty.Register("headerContent", typeof(String), typeof(NumericUpDown));
-        static readonly DependencyProperty headerHeightProperty = DependencyProperty.Register("headerHeight", typeof(string), typeof(NumericUpDown));
-        static readonly DependencyProperty footerContentProperty = DependencyProperty.Register("footerContent", typeof(string), typeof(NumericUpDown));
-        static readonly DependencyProperty footerWidthProperty = DependencyProperty.Register("footerWidth", typeof(string), typeof(NumericUpDown));
-        static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(double), typeof(NumericUpDown));
-        static readonly DependencyProperty maxValueProperty = DependencyProperty.Register("maxValue", typeof(double), typeof(NumericUpDown));
-        static readonly DependencyProperty minValueProperty = DependencyProperty.Register("minValue", typeof(double), typeof(NumericUpDown), new PropertyMetadata(null));
-        static readonly DependencyProperty roundDigitsProperty = DependencyProperty.Register("roundDigits", typeof(byte), typeof(NumericUpDown));
-        static readonly DependencyProperty increaseProperty = DependencyProperty.Register("Increase", typeof(double), typeof(NumericUpDown));
+	/// <summary>
+	/// Logica di interazione per NumericUpDown.xaml
+	/// </summary>
+	public partial class NumericUpDown : UserControl
+	{
 
-        public NumericUpDown()
-        {
-            InitializeComponent();
+		public event EventHandler ValueChanged;
 
-            this.Loaded += loaded;
-            headerContent = null;
-            headerHeight = "Auto";
-            footerContent = null;
-            footerWidth = "Auto";
-            Value = 0;
-            maxValue = 100;
-            minValue = 0;
-            roundDigits = 0;
-            Increase = 1;
-            validate();
-        }
+		int _maxValue = Int32.MaxValue;
+		int _minValue = Int32.MinValue;
+		int _value = 0;
+		public int MaxValue
+		{
+			get
+			{
+				return _maxValue;
+			}
+			set
+			{
+				if (value == Int32.MinValue) _minValue = Int32.MinValue;
+				else if (value < _minValue) _minValue = value - 1;
+				_maxValue = value;
+				Value = _value;
+			}
+		}
+		public int MinValue
+		{
+			get
+			{
+				return _minValue;
+			}
+			set
+			{
+				if (value == Int32.MaxValue) _maxValue = Int32.MaxValue;
+				else if (value > _maxValue) _maxValue = value + 1;
+				_minValue = value;
+				Value = _value;
+			}
+		}
+		public int Value
+		{
+			get
+			{
+				return _value;
+			}
+			set
+			{
+				int oldValue = _value;
+				if (value < _minValue) _value = _minValue;
+				else if (value > _maxValue) _value = _maxValue;
+				else _value = value;
+				valueTB.Text = _value.ToString();
+				if (oldValue != _value)
+				{
+					if (ValueChanged != null)
+					{
+						ValueChanged(this, EventArgs.Empty);
+					}
+				}
+			}
+		}
 
-        private void loaded(object sender, RoutedEventArgs e)
-        {
-            header.Content = headerContent;
-            setHeaderHeight(headerHeight);
-            setFooterWidth(footerWidth);
-            footer.Content = footerContent;
-            valore = Value;
-            maxValueCheck = maxValue;
-            minValueCheck = minValue;
-            rDigits = roundDigits;
-            inc = Increase;
-            validate();
-            Value = valore;
-        }
+		public NumericUpDown()
+		{
+			InitializeComponent();
+			Loaded += NumericUpDown_Loaded;
+			valueTB.Text = _value.ToString();
+		}
 
-        #region Proprietà
-        
-        public string headerContent
-        {
-            get
-            {
-                return (string)(base.GetValue(headerContentProperty));
-            }
-            set
-            {
-                SetValue(headerContentProperty, value);
-                header.Content = value;
-            }
+		private void NumericUpDown_Loaded(object sender, RoutedEventArgs e)
+		{
 
-        }
-        
-        public string headerHeight
-        {
-            get
-            {
-                return (string)(base.GetValue(headerHeightProperty));
-            }
-            set
-            {
-                SetValue(headerHeightProperty, value);
-                setHeaderHeight(value);
-            }
-        }
-        
-        public string footerContent
-        {
-            get
-            {
-                return (string)(base.GetValue(footerContentProperty));
-            }
-            set
-            {
-                base.SetValue(footerContentProperty, value);
-                footer.Content = value;
-            }
-        }
-                
-        public string footerWidth
-        {
-            get
-            {
-                return (string)(base.GetValue(footerWidthProperty));
-            }
-            set
-            {
-                SetValue(footerWidthProperty, value);
-                setFooterWidth(value);
-            }
-        }
+		}
 
-        public double Value
-        {
-            get
-            {
-                return (double)(base.GetValue(ValueProperty));
-            }
-            set
-            {
-                SetValue(ValueProperty, value);
-                valore = value;
-                if ((valore % 1) != 0)
-                {
-                    if (roundDigits == 0)
-                    {
-                        roundDigits = 1;
-                    }
-                }
-                validate();
-            }
-        }
+		private void UserControl_SizeChanged(object sender, SizeChangedEventArgs e)
+		{
+			var width = ((NumericUpDown)sender).ActualWidth;
+			if ((width / 5) < 20) width = 20;
+			else if ((width / 5) > 40) width = 40;
+			else width /= 5;
+			plusColumn.Width = new GridLength(width, GridUnitType.Pixel);
+			minusColumn.Width = new GridLength(width, GridUnitType.Pixel);
+			//test.Content = minusColumn.Width.ToString();
 
-        public double maxValue
-        {
-            get
-            {
-                return (double)(base.GetValue(maxValueProperty));
-            }
-            set
-            {
-                SetValue(maxValueProperty, value);
-                maxValueCheck = value;
-            }
-        }
+		}
 
-        public double minValue
-        {
-            get
-            {
-                return (double)(base.GetValue(minValueProperty));
-            }
-            set
-            {
-                SetValue(minValueProperty, value);
-                minValueCheck = value;
-            }
-        }
+		private void plusB_Click(object sender, RoutedEventArgs e)
+		{
+			Value++;
+		}
 
-        public byte roundDigits
-        {
-            get
-            {
-                return (byte)(base.GetValue(roundDigitsProperty));
-            }
-            set
-            {
-                SetValue(roundDigitsProperty, value);
-                rDigits = value;
-            }
-        }
+		private void minusB_Click(object sender, RoutedEventArgs e)
+		{
+			Value--;
+		}
 
-        public double Increase
-        {
-            get
-            {
-                return (double)(base.GetValue(increaseProperty));
-            }
-            set
-            {
-                if (value == 0) value = 1;
-                SetValue(increaseProperty, value);
-                inc = value;
-            }
-        }
+		private void valueTB_KeyDown(object sender, KeyEventArgs e)
+		{
+			validateInput();
+		}
 
-        #endregion
+		private void valueTB_LostFocus(object sender, RoutedEventArgs e)
+		{
+			validateInput();
+		}
 
-        private void upButtonClick(object sender, RoutedEventArgs e)
-        {
-            if ((valore + inc) <= maxValueCheck)
-            {
-                valore += inc;
-                validate();
-                Value = Convert.ToDouble(valueTB.Text);
-            }
-        }
+		private void validateInput()
+		{
+			int val = _value;
+			Int32.TryParse(valueTB.Text, out val);
+			Value = val;
+		}
 
-        private void downButtonClick(object sender, RoutedEventArgs e)
-        {
-            if ((valore - inc) >= minValueCheck)
-            {
-                valore -= inc;
-                validate();
-                Value = Convert.ToDouble(valueTB.Text);
-            }
-        }
+		private void UserControl_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+		{
+			valueTB.IsEnabled = IsEnabled;
+			plusB.IsEnabled = IsEnabled;
+			minusB.IsEnabled = IsEnabled;
 
-        private void kdValidate(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Return | e.Key == Key.Tab)
-            {
-
-                try
-                {
-                    valore = Convert.ToDouble(valueTB.Text);
-                }
-                catch
-                {
-                    valore = this.Value;
-                }
-
-                validate();
-                Value = valore;
-                if (e.Key == Key.Return)
-                {
-                    FocusNavigationDirection fnd = FocusNavigationDirection.Next;
-                    System.Windows.Input.TraversalRequest tr = new System.Windows.Input.TraversalRequest(fnd);
-                    UIElement el = Keyboard.FocusedElement as UIElement;
-                    if (el != null)
-                    {
-                        el.MoveFocus(tr);
-                    }
-                }
-                
-                //e.Handled = true;
-                //if (e.Key == Key.Return) this.select
-            }
-        }
-
-        private void lsValidate(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                valore = Convert.ToDouble(valueTB.Text);
-            }
-            catch
-            {
-                valore = this.Value;
-            }
-            validate();
-            Value = valore;
-        }
-
-        private void validate()
-        {
-            if (valore > maxValueCheck) valore = maxValueCheck;
-
-            if (valore < minValueCheck) valore = minValueCheck;
-
-            valueTB.Text = Math.Round(valore, rDigits).ToString();
-
-            onValidate(new RoutedEventArgs());
-            
-        }
-
-
-        public event RoutedEventHandler valueChanged;
-
-        protected virtual void onValidate(RoutedEventArgs e)
-        {
-            RoutedEventHandler handler = valueChanged;
-            if (handler != null)
-            {
-                handler(this, e);
-            }
-        }
-
-        private void setHeaderHeight(string v)
-        {
-            if (v == "Auto")
-            {
-                header.Height = Double.NaN;
-            }
-            else
-            {
-                try
-                {
-                    header.Height = Convert.ToInt16(v);
-                }
-                catch
-                {
-                    header.Height = 0;
-                }
-            }
-        }
-
-        private void setFooterWidth(string v)
-        {
-            if (v == "Auto")
-            {
-                header.Height = Double.NaN;
-            }
-            else
-            {
-                try
-                {
-                    footer.Width = Convert.ToInt16(v);
-                }
-                catch
-                {
-                    footer.Width = 0;
-                }
-            }
-        }
-    }
+		}
+	}
 }

@@ -4,32 +4,52 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="X_Manager.ConfigurationWindows.AccDayIntervals"
+			xmlns:dc="clr-namespace:X_Manager.Themes"
              mc:Ignorable="d" 
              d:DesignHeight="362" d:DesignWidth="520">
 	<Grid x:Name="mainGrid" KeyDown="uiKeyDown">
 		<Grid.RowDefinitions>
 			<RowDefinition/>
+			<!-- 0 -->
 			<RowDefinition Height="0.6*"/>
+			<!-- 1 -->
 			<RowDefinition/>
+			<!-- 2 -->
 			<RowDefinition/>
+			<!-- 3 -->
 			<RowDefinition/>
+			<!-- 4 -->
 			<RowDefinition/>
+			<!-- 5 -->
 			<RowDefinition/>
+			<!-- 6 -->
 			<RowDefinition Height="0.4*"/>
+			<!-- 7 -->
+			<RowDefinition Height="1.5*"/>
+			<!-- 8 -->
+			<RowDefinition Height="0.4*"/>
+			<!-- 9 -->
 		</Grid.RowDefinitions>
 
 		<StackPanel Grid.Row="0" Orientation="Horizontal">
-			<Label Content="Intervals: " VerticalAlignment="Center" FontSize="15" Margin="20,0,0,0"/>
-			<Button Height="35" Margin="20,0,0,0" Content="-" Click="minusB" TabIndex="1"/>
-			<Button Height="35" Margin="20,0,0,0" Content="+" Click="plusB" TabIndex="2"/>
+			<Label Content="Intervals: " VerticalAlignment="Center" FontSize="14" Margin="12,0,0,0"/>
+			<Button Height="20" Margin="20,0,0,0" Click="minusB" TabIndex="1" Width="20" Padding="0">
+				<Path StrokeThickness="2" Data="M 5 10 L 15 10" Stroke="#FF00AADE" Width="20" Height="20"/>
+			</Button>
+			<Button Height="20" Margin="20,0,0,0" Click="plusB" TabIndex="2" Width="20" Padding="0">
+				<Grid>
+					<Path StrokeThickness="2" Data="M 5 10 L 15 10" Stroke="#FF00AADE" Width="20" Height="20"/>
+					<Path StrokeThickness="2" Data="M 10 5 L 10 15" Stroke="#FF00AADE" Width="20" Height="20"/>
+				</Grid>
+			</Button>
 		</StackPanel>
 
-		<StackPanel Grid.Row="1" Orientation="Horizontal" >
-			<Label Content="Rate (Hz)" Margin="100,0,0,0"/>
-			<Label Content="Fullscale (g)" Margin="14,0,0,0"/>
-			<Label Content="Bit" Margin="26,0,0,0"/>
-			<Label Content="Seconds    /" Margin="50,0,0,0"/>
-			<Label Content="Minutes" Margin="0,0,0,0"/>
+		<StackPanel Grid.Row="1" Orientation="Horizontal"  >
+			<Label Content="Rate (Hz)" Margin="100,0,0,0" FontSize="14"/>
+			<Label Content="Fullscale (g)" Margin="20,0,0,0" FontSize="14"/>
+			<Label Content="Bit" Margin="40,0,0,0" FontSize="14"/>
+			<Label Content="Seconds   /" Margin="60,0,0,0" FontSize="14"/>
+			<Label Content="Minutes" Margin="10,0,0,0" FontSize="14"/>
 		</StackPanel>
 
 		<Grid Grid.Row="2" HorizontalAlignment="Left">
@@ -44,7 +64,7 @@
 			</Grid.ColumnDefinitions>
 			<TextBox Grid.Column="0" x:Name="d1" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="0" RenderTransformOrigin="0,0" BorderThickness="0" />
 			<TextBox Grid.Column="1" x:Name="e1" HorizontalAlignment="Left" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TextWrapping="Wrap" TabIndex="3" LostFocus="newH"/>
-			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="4" Height="42" >
+			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="4" Height="30" >
 				<System:String>OFF</System:String>
 				<System:String>1 Hz</System:String>
 				<System:String>10 Hz</System:String>
@@ -52,19 +72,19 @@
 				<System:String>50 Hz</System:String>
 				<System:String>100 Hz</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="5" Height="42">
+			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="5" Height="30">
 				<System:String>± 2g</System:String>
 				<System:String>± 4g</System:String>
 				<System:String>± 8g</System:String>
 				<System:String>± 16g</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="4" x:Name="bit1CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="6" Height="42">
+			<ComboBox Grid.Column="4" x:Name="bit1CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="6" Height="30">
 				<System:String>8</System:String>
 				<System:String>10</System:String>
 				<!--<System:String>12</System:String>-->
 			</ComboBox>
-			<ComboBox Grid.Column="5" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="7" VerticalAlignment="Center"/>
-			<ComboBox Grid.Column="6" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="8"/>
+			<ComboBox Grid.Column="5" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="7" VerticalAlignment="Center"/>
+			<ComboBox Grid.Column="6" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="8"/>
 		</Grid>
 
 		<Grid Grid.Row="3" HorizontalAlignment="Left">
@@ -79,7 +99,7 @@
 			</Grid.ColumnDefinitions>
 			<TextBox Grid.Column="0" x:Name="d2" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="1"/>
 			<TextBox Grid.Column="1" x:Name="e2" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TabIndex="9" LostFocus="newH"/>
-			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10" Height="42" >
+			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10" Height="30" >
 				<System:String>OFF</System:String>
 				<System:String>1 Hz</System:String>
 				<System:String>10 Hz</System:String>
@@ -87,19 +107,19 @@
 				<System:String>50 Hz</System:String>
 				<System:String>100 Hz</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11" Height="42">
+			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11" Height="30">
 				<System:String>± 2g</System:String>
 				<System:String>± 4g</System:String>
 				<System:String>± 8g</System:String>
 				<System:String>± 16g</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="4" x:Name="bit2CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12" Height="42">
+			<ComboBox Grid.Column="4" x:Name="bit2CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12" Height="30">
 				<System:String>8</System:String>
 				<System:String>10</System:String>
 				<!--<System:String>12</System:String>-->
 			</ComboBox>
-			<ComboBox Grid.Column="5" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
-			<ComboBox Grid.Column="6" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
+			<ComboBox Grid.Column="5" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
+			<ComboBox Grid.Column="6" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
 		</Grid>
 
 		<Grid Grid.Row="4" HorizontalAlignment="Left">
@@ -114,7 +134,7 @@
 			</Grid.ColumnDefinitions>
 			<TextBox Grid.Column="0" x:Name="d3" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="1"/>
 			<TextBox Grid.Column="1" x:Name="e3" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TabIndex="9" LostFocus="newH"/>
-			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10" Height="42" >
+			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10" Height="30" >
 				<System:String>OFF</System:String>
 				<System:String>1 Hz</System:String>
 				<System:String>10 Hz</System:String>
@@ -122,19 +142,19 @@
 				<System:String>50 Hz</System:String>
 				<System:String>100 Hz</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11" Height="42">
+			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11" Height="30">
 				<System:String>± 2g</System:String>
 				<System:String>± 4g</System:String>
 				<System:String>± 8g</System:String>
 				<System:String>± 16g</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="4" x:Name="bit3CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12" Height="42">
+			<ComboBox Grid.Column="4" x:Name="bit3CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12" Height="30">
 				<System:String>8</System:String>
 				<System:String>10</System:String>
 				<!--<System:String>12</System:String>-->
 			</ComboBox>
-			<ComboBox Grid.Column="5" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
-			<ComboBox Grid.Column="6" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
+			<ComboBox Grid.Column="5" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
+			<ComboBox Grid.Column="6" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
 		</Grid>
 
 		<Grid Grid.Row="5" HorizontalAlignment="Left">
@@ -149,7 +169,7 @@
 			</Grid.ColumnDefinitions>
 			<TextBox Grid.Column="0" x:Name="d4" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="1"/>
 			<TextBox Grid.Column="1" x:Name="e4" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TabIndex="9" LostFocus="newH"/>
-			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10" Height="42" >
+			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10" Height="30" >
 				<System:String>OFF</System:String>
 				<System:String>1 Hz</System:String>
 				<System:String>10 Hz</System:String>
@@ -157,19 +177,19 @@
 				<System:String>50 Hz</System:String>
 				<System:String>100 Hz</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11" Height="42">
+			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11" Height="30">
 				<System:String>± 2g</System:String>
 				<System:String>± 4g</System:String>
 				<System:String>± 8g</System:String>
 				<System:String>± 16g</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="4" x:Name="bit4CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12" Height="42">
+			<ComboBox Grid.Column="4" x:Name="bit4CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12" Height="30">
 				<System:String>8</System:String>
 				<System:String>10</System:String>
 				<!--<System:String>12</System:String>-->
 			</ComboBox>
-			<ComboBox Grid.Column="5" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
-			<ComboBox Grid.Column="6" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
+			<ComboBox Grid.Column="5" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="13"/>
+			<ComboBox Grid.Column="6" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="14"/>
 		</Grid>
 
 		<Grid Grid.Row="6" HorizontalAlignment="Left">
@@ -184,7 +204,7 @@
 			</Grid.ColumnDefinitions>
 			<TextBox Grid.Column="0" x:Name="d5" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,5,0,5" FontSize="14" IsEnabled="False" Padding="1"/>
 			<TextBox Grid.Column="1" x:Name="e5" Width="35" Text="25" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" Padding="1" TabIndex="9" LostFocus="newH"/>
-			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10" Height="42" >
+			<ComboBox Grid.Column="2" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="10" Height="30" >
 				<System:String>OFF</System:String>
 				<System:String>1 Hz</System:String>
 				<System:String>10 Hz</System:String>
@@ -192,20 +212,33 @@
 				<System:String>50 Hz</System:String>
 				<System:String>100 Hz</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11" Height="42">
+			<ComboBox Grid.Column="3" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="11" Height="30">
 				<System:String>± 2g</System:String>
 				<System:String>± 4g</System:String>
 				<System:String>± 8g</System:String>
 				<System:String>± 16g</System:String>
 			</ComboBox>
-			<ComboBox Grid.Column="4" x:Name="bit5CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12" Height="42">
+			<ComboBox Grid.Column="4" x:Name="bit5CB" Width="80" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" TabIndex="12" Height="30">
 				<System:String>8</System:String>
 				<System:String>10</System:String>
 				<!--<System:String>12</System:String>-->
 			</ComboBox>
-			<ComboBox Grid.Column="5" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="13" />
-			<ComboBox Grid.Column="6" Width="80" Height="42" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="14" /> 
-		</Grid>
+			<ComboBox Grid.Column="5" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="13" />
+			<ComboBox Grid.Column="6" Width="80" Height="30" Text="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="5,5,0,5" FontSize="14" IsEnabled="False" TabIndex="14" />
 
+		</Grid>
+		<GroupBox Grid.Row="8" Header="Start Delay" Margin="12,0,0,0" Width="238" HorizontalAlignment="Left" Name="startDelayGB">
+			<StackPanel Orientation="Horizontal">
+				<CheckBox Content="Enable" Name="startDelayEnableCB" VerticalAlignment="Center" Margin="14,0,0,0" 
+							Checked="startDelayEnableCB_Checked" Unchecked="startDelayEnableCB_Checked"/>
+				<DatePicker Margin="20,0,0,0" Name="startDelayDateDP" Width="120" SelectedDateChanged="startDelayDateDP_SelectedDateChanged" />
+			</StackPanel>
+		</GroupBox>
+		<GroupBox Grid.Row="8" Header="Days Off" Margin="0,0,12,0" Width="238" HorizontalAlignment="Right" Name="daysOffGB">
+			<StackPanel Orientation="Horizontal">
+				<CheckBox Content="Enable" Name="daysOffEnableCB" VerticalAlignment="Center" Margin="14,0,0,0" Checked="daysOffEnableCB_Checked" Unchecked="daysOffEnableCB_Checked"/>
+				<dc:NumericUpDown x:Name="daysOffNUD" Width="111" Height="20" Margin="24,0,0,0" MaxValue="100" />
+			</StackPanel>
+		</GroupBox>
 	</Grid>
 </UserControl>

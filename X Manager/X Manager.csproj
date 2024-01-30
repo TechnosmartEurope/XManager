@@ -347,6 +347,9 @@
     <Compile Include="Themes\NumericUpDown.xaml.cs">
       <DependentUpon>NumericUpDown.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Themes\NumericUpDown_old.xaml.cs">
+      <DependentUpon>NumericUpDown_old.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Ok.xaml.cs">
       <DependentUpon>Ok.xaml</DependentUpon>
     </Compile>
@@ -530,6 +533,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Themes\NumericUpDown.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\NumericUpDown_old.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

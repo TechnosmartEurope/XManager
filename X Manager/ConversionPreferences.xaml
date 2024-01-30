@@ -22,7 +22,7 @@
                 <StackPanel Orientation="Vertical" >
                     <RadioButton x:Name="Millibars" Content="MilliBar (MB)" Width="300" HorizontalAlignment="Left" FontSize="14" MinHeight="25" Checked="millibarsChecked"/>
                     <RadioButton x:Name="Meters" Content="Convert to meters" HorizontalAlignment="Left" FontSize="14" MinHeight="25" MinWidth="18" Checked="metersChecked" />
-                    <dc:NumericUpDown x:Name="groundLevelAirPressure" HorizontalAlignment="Left" Width="150" footerContent="mbar" headerContent="Air pressure at sea level:" FontSize="14"/>
+                    <dc:NumericUpDown_old x:Name="groundLevelAirPressure" HorizontalAlignment="Left" Width="150" footerContent="mbar" headerContent="Air pressure at sea level:" FontSize="14"/>
                 </StackPanel>
             </GroupBox>
             <Grid Grid.Column="1">
@@ -88,7 +88,7 @@
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Orientation="Horizontal" >
-                            <dc:NumericUpDown x:Name ="hUd" Grid.Column="0" headerContent="H" headerHeight="Auto" minValue="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="90" Height="Auto"/>
+                            <dc:NumericUpDown_old x:Name ="hUd" Grid.Column="0" headerContent="H" headerHeight="Auto" minValue="0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="90" Height="Auto"/>
                             <Grid x:Name="ampm" HorizontalAlignment="Left" VerticalAlignment="Top">
                                 <Grid.RowDefinitions >
                                     <RowDefinition/>
@@ -98,14 +98,14 @@
                                 <Label Name="pmLabel" Grid.Row="1" Content="pm" MouseLeftButtonUp="pmClick" FontSize="10" Padding="0" VerticalContentAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="0,0,0,3"/>
                             </Grid>
                         </StackPanel>
-                        <dc:NumericUpDown x:Name ="mUd" Grid.Column="1" headerContent="M" headerHeight="Auto" minValue="0" maxValue="59" HorizontalAlignment="Center" Width="90" VerticalAlignment="Top"/>
-                        <dc:NumericUpDown x:Name ="sUd" Grid.Column="2" headerContent="S" headerHeight="Auto" minValue="0" maxValue="59" HorizontalAlignment="Right" Width="90" VerticalAlignment="Top"/>
+                        <dc:NumericUpDown_old x:Name ="mUd" Grid.Column="1" headerContent="M" headerHeight="Auto" minValue="0" maxValue="59" HorizontalAlignment="Center" Width="90" VerticalAlignment="Top"/>
+                        <dc:NumericUpDown_old x:Name ="sUd" Grid.Column="2" headerContent="S" headerHeight="Auto" minValue="0" maxValue="59" HorizontalAlignment="Right" Width="90" VerticalAlignment="Top"/>
                     </Grid>
                     <!--<xctk:DateTimePicker x:Name="dateTimePicker" Height="Auto" Format="Custom" HorizontalContentAlignment="Left" Margin="0,15,0,10" TimePickerShowButtonSpinner="False" TimePickerAllowSpin="False" TimePickerVisibility="Hidden" />-->
 					<DatePicker x:Name="dateTimePicker" Margin="0,15,0,15" />
 					<StackPanel Orientation="Horizontal">
                         <Label Content="Leap Seconds:" VerticalContentAlignment="Center"/>
-                        <dc:NumericUpDown x:Name="leapSecondsUD"  Margin="10,0,0,0" maxValue="20" />
+                        <dc:NumericUpDown_old x:Name="leapSecondsUD"  Margin="10,0,0,0" maxValue="20" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

@@ -32,7 +32,7 @@
 						<RadioButton x:Name="ByTimeRB" Checked="byTimeRbChecked" Margin="10,0,0,0" VerticalAlignment="Center"/>
 						<!--<TextBox x:Name="startDelayNud" />-->
 						<!--<dc:NumericUpDown x:Name="startDelayNud" TabIndex="1" maxValue="65535" footerContent="Minutes" footerWidth="Auto" headerHeight="0" VerticalAlignment="Center" Margin="0,14,0,12" Height="30" Width="249"/>-->
-						<dc:NumericUpDown x:Name="startDelayNud"  TabIndex="1" maxValue="65535" footerContent="Minutes" footerWidth="Auto" headerHeight="0" VerticalAlignment="Center" 
+						<dc:NumericUpDown_old x:Name="startDelayNud"  TabIndex="1" maxValue="65535" footerContent="Minutes" footerWidth="Auto" headerHeight="0" VerticalAlignment="Center" 
 							Margin="0,14,0,12" Height="30" Width="249"/>
 
 					</StackPanel>
@@ -45,8 +45,8 @@
 			</GroupBox>
 			<GroupBox Grid.Row="1" Margin="10,5,5,10" Header="ACQUISITION" Foreground="#FF00AADE" Padding="0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" >
 				<StackPanel Orientation="Horizontal"  VerticalAlignment="Center" >
-					<dc:NumericUpDown x:Name="onTimeNud" Margin="10,0,0,5" TabIndex="2" maxValue="65535" footerContent="Sec" headerContent="ON Time" headerHeight="Auto" Value="300" Width="131"/>
-					<dc:NumericUpDown x:Name="offTimeNud" Margin="10,0,0,5" TabIndex="3" Value="300" footerContent="Sec" maxValue="65535" headerContent="OFF Time" Width="134"  />
+					<dc:NumericUpDown_old x:Name="onTimeNud" Margin="10,0,0,5" TabIndex="2" maxValue="65535" footerContent="Sec" headerContent="ON Time" headerHeight="Auto" Value="300" Width="131"/>
+					<dc:NumericUpDown_old x:Name="offTimeNud" Margin="10,0,0,5" TabIndex="3" Value="300" footerContent="Sec" maxValue="65535" headerContent="OFF Time" Width="134"  />
 				</StackPanel>
 			</GroupBox>
 		</Grid>
@@ -60,10 +60,10 @@
 			<!-- Content(Grid).Children[1](StackPanel).Children[0](groupBox) -->
 			<GroupBox x:Name="gsvGroupBox" Grid.Row="1" Margin="5,10,5,10" Header="GSV THRESHOLDS" Foreground="#FF00AADE" Padding="0" >
 				<StackPanel x:Name="gsvStackPanel" Orientation="Vertical" VerticalAlignment="Center">
-					<dc:NumericUpDown x:Name="nSatNud" Margin="0,0,0,10" TabIndex="4" headerContent="Satellites" maxValue="5" Value="1"/>
-					<dc:NumericUpDown x:Name="acqSumNud" Margin="0,0,0,10" TabIndex="5" headerContent="GSV Sum" maxValue="120" Value="20"/>
-					<dc:NumericUpDown x:Name="acq1Nud" Margin="0,0,0,10" TabIndex="6" headerContent="GSV Sum 1st" maxValue="120" Value="20"/>
-					<dc:NumericUpDown x:Name="acq2Nud" TabIndex="7" Value="20" maxValue="120" headerContent="GSV Sum 2nd"/>
+					<dc:NumericUpDown_old x:Name="nSatNud" Margin="0,0,0,10" TabIndex="4" headerContent="Satellites" maxValue="5" Value="1"/>
+					<dc:NumericUpDown_old x:Name="acqSumNud" Margin="0,0,0,10" TabIndex="5" headerContent="GSV Sum" maxValue="120" Value="20"/>
+					<dc:NumericUpDown_old x:Name="acq1Nud" Margin="0,0,0,10" TabIndex="6" headerContent="GSV Sum 1st" maxValue="120" Value="20"/>
+					<dc:NumericUpDown_old x:Name="acq2Nud" TabIndex="7" Value="20" maxValue="120" headerContent="GSV Sum 2nd"/>
 				</StackPanel>
 			</GroupBox>
 		</Grid>
@@ -89,7 +89,7 @@
                         <Button x:Name="magMinB"  Margin="12,5,0,5" BorderThickness="0" Content=">" 
                                 FontSize="12" Padding="0,0,0,2" HorizontalAlignment="Center" 
                                 MinWidth="10" MinHeight="10" Width="25" Height="20" VerticalAlignment="Center" Click="magMinClick"/>
-                        <dc:NumericUpDown x:Name="ADCValueUD" FontSize="10" Margin="12,0,0,0" minValue="0" maxValue="1023" Width="112"/>
+                        <dc:NumericUpDown_old x:Name="ADCValueUD" FontSize="10" Margin="12,0,0,0" minValue="0" maxValue="1023" Width="112"/>
                     </StackPanel>
 					<StackPanel Orientation="Horizontal" x:Name="radarSP1" Grid.Row="0" Margin="10" Visibility="Hidden">
 						<Label Content="On Time: " VerticalAlignment="Center"/>

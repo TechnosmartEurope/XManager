@@ -149,8 +149,8 @@
 							<ColumnDefinition Width="1*"/>
 							<ColumnDefinition Width="1*"/>
 						</Grid.ColumnDefinitions>
-						<dc:NumericUpDown x:Name="movThreshUd" Grid.Column="0" Margin="20,0,0,0" valueChanged="movChangedEvent"/>
-						<dc:NumericUpDown x:Name="latencyThreshUd" Grid.Column="2" Margin="5,0,0,0" valueChanged="latChangedEvent"/>
+						<dc:NumericUpDown_old x:Name="movThreshUd" Grid.Column="0" Margin="20,0,0,0" valueChanged="movChangedEvent"/>
+						<dc:NumericUpDown_old x:Name="latencyThreshUd" Grid.Column="2" Margin="5,0,0,0" valueChanged="latChangedEvent"/>
 						<Label Grid.Column="1" Margin="5,0,0,0" Name="movThresholdLabel" Content="eeee" />
 						<Label Grid.Column="3" Margin="5,0,0,0" Name="latThresholdLabel" Content="eeee"/>
 					</Grid>

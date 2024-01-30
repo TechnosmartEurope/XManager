@@ -75,8 +75,8 @@ namespace X_Manager.Remote
 		byte[] timestamp;
 		byte[] oldConf;
 		int oldAddress;
-		bool scrollBarPresent = false;
-		ScrollViewer addressSV;
+		//bool scrollBarPresent = false;
+		//ScrollViewer addressSV;
 
 		private enum DriveStatus
 		{
