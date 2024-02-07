@@ -2340,7 +2340,7 @@ namespace X_Manager.Units.Gipsy6
 			//if (pref_debugLevel > 0) t.txtAllowed++;
 			while (true)
 			{
-				while ((test != 0xab) & (pos < max) && (test != 0xac) && (test != 0x0a))
+				while ((test != 0xab) & (pos < max))
 				{
 					pos++;
 					test = gp6[pos];
@@ -2608,7 +2608,7 @@ namespace X_Manager.Units.Gipsy6
 					{
 						try
 						{
-							outs = String.Format(events[ts.eventAr[1]], ts.eventAr[3], scheduleEventTimings[ts.eventAr[2]]);
+							outs = string.Format(events[ts.eventAr[1]], ts.eventAr[3], scheduleEventTimings[ts.eventAr[2]]);
 						}
 						catch
 						{

@@ -267,6 +267,9 @@
     <Compile Include="Bootloader\Bootloader_Gipsy6.xaml.cs">
       <DependentUpon>Bootloader_Gipsy6.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Bootloader\Bootloader_Gipsy6_OTA.xaml.cs">
+      <DependentUpon>Bootloader_Gipsy6_OTA.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ChartClasses\ChartWindow.cs" />
     <Compile Include="ChartClasses\CustomChartArea.cs" />
     <Compile Include="ChartClasses\CustomSeries.cs" />
@@ -421,6 +424,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Bootloader\Bootloader_Gipsy6.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Bootloader\Bootloader_Gipsy6_OTA.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

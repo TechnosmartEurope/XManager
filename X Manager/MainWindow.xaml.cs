@@ -271,6 +271,9 @@ namespace X_Manager
 				//sviluppo
 				start_error_code = 15;
 				///sviluppo
+
+				configurePositionButton.Click += configurePositionClick;
+
 #if DEBUG
 				byte[] conf = new byte[514] { 0xCF, 0x55, 0x01, 0x00,
 					// 4	Nome unità: 27 caratteri + terminatore 0
@@ -844,7 +847,7 @@ namespace X_Manager
 			{
 				try
 				{
-					if (startUpMonitorBW != null & startUpMonitorBW.IsBusy) startUpMonitorBW.CancelAsync();
+					if (startUpMonitorBW != null && startUpMonitorBW.IsBusy) startUpMonitorBW.CancelAsync();
 				}
 				catch { }
 				uiDisconnected();
@@ -1814,15 +1817,27 @@ namespace X_Manager
 				}
 				else
 				{
-					var tg = new YesNo("WARNING: you are entering the GiPSy6 bootloader!\r\nPlease, " +
-										"proceed only if you have a new firmware to upload, " +
-										"else please leave or your unit could potentially get bricked.",
-										"GiPSy6 Bootloader", "", "Yes", "No");
-					tg.Owner = this;
-					if (tg.ShowDialog() == 2) return;
-					uiDisconnected();
-					var boot = new Bootloader.Bootloader_Gipsy6(true, "GiPSy-6");
-					boot.Owner = this;
+					Window boot;
+					if (((string)configurePositionButton.Content).Contains("OTA"))
+					{
+						var fileopen = new System.Windows.Forms.OpenFileDialog();
+						fileopen.ShowDialog();
+						if (fileopen.FileName == "") return;
+						boot = new Bootloader.Bootloader_Gipsy6_OTA(fileopen.FileName);
+					}
+					else
+					{
+						var tg = new YesNo("WARNING: you are entering the GiPSy6 bootloader!\r\nPlease, " +
+											"proceed only if you have a new firmware to upload, " +
+											"else please leave or your unit could potentially get bricked.",
+											"GiPSy6 Bootloader", "", "Yes", "No");
+						tg.Owner = this;
+						if (tg.ShowDialog() == 2) return;
+						uiDisconnected();
+						boot = new Bootloader.Bootloader_Gipsy6(true, "GiPSy-6");
+						boot.Owner = this;
+					}
+
 					boot.ShowDialog();
 					return;
 				}
@@ -2034,7 +2049,7 @@ namespace X_Manager
 
 			mainGrid.IsEnabled = false;
 			Thread downloadThread = new Thread(() => oUnit.download(saveRaw.FileName, fromMemory, toMemory, baudrate));
-			if (oUnit is Gipsy6N) 
+			if (oUnit is Gipsy6N)
 			{
 				if (((Gipsy6N)oUnit).remoteConnection)
 				{
@@ -2189,7 +2204,14 @@ namespace X_Manager
 				keepAliveTimer.Enabled = true;
 				if (oUnit is Gipsy6)    //In caso di gipsy6 remoto disabilita il pulsante per l'upload del firmware
 				{
-					configurePositionButton.IsEnabled = false;
+					if (oUnit.firmTotA < 2000000)
+					{
+						configurePositionButton.IsEnabled = false;
+					}
+					else
+					{
+						configurePositionButton.Content = "Upload new firmware (OTA)";
+					}
 				}
 			}
 			return connectButton.Content.Equals("Disconnect");
@@ -2305,7 +2327,7 @@ namespace X_Manager
 			}
 			catch
 			{
-				throw (new Exception());
+				throw new Exception();
 			}
 		}
 

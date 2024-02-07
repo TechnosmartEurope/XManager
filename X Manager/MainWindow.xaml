@@ -156,7 +156,7 @@
 						<StackPanel x:Name="configurationCommandsStackPanel" Margin="10,20,0,0">
 							<!--<Label Content="CONFIGURATION COMMANDS" Foreground="#FF00AADE" Margin="0,20,0,0" Padding="0" />-->
 							<Button x:Name="configureMovementButton" Content="Accelerometer configuration" Margin="0,5,0,0" Click="configureMovementButtonClick" TabIndex="11" Height="35" MinWidth="204"/>
-							<Button x:Name="configurePositionButton" Content="GPS configuration" Margin="0,5,0,0" TabIndex="12" Height="35" Click="configurePositionClick"/>
+							<Button x:Name="configurePositionButton" Content="GPS configuration" Margin="0,5,0,0" TabIndex="12" Height="35" />
 						</StackPanel>
 					</StackPanel>
 					<!-- Colonna 1 Picture-->

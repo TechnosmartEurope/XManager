@@ -318,3 +318,5 @@
 	Gipsy6: predisposizione per timestamp Far Location
 1.23.1	Gipsy6-Iridium: rimossa possibilità di mettere lo schedule Iridium in OFF
 1.23.2	Compatibilità con firmware Axy5 2.1.0 (settaggio start delay e schedule alterno)
+1.23.3	Bugfix: se selezionata virgola come separatore decimale, la conversione axy5 crashava a fine file
+	Bugfix: alcuni bs6 non venivano convertiti, o solo una piccola parte iniziale

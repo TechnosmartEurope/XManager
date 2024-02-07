@@ -2146,8 +2146,10 @@ namespace X_Manager.Units
 				case (byte)Event.EVENT_REMOTECONNECTION:
 					decodedEvent.stopType = 4;
 					decodedEvent.eventDescription = "Remote connection established.";
+
 					break;
 			}
+			if (decodedEvent.stopType > 0) gruppoCON[xAccPos] = gruppoCON[yAccPos] = gruppoCON[zAccPos] = "0";
 			return decodedEvent;
 		}
 		private void findSamplingRateLegacy(byte rateIn)
