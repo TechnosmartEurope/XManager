@@ -3,11 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:X_Manager.Bootloader"
-        mc:Ignorable="d"
-        Title="Bootloader_Gipsy6_OTA" Height="450" Width="800">
+        mc:Ignorable="d" Background="#FF181818"
+        Title="Gipsy6 OTA" Height="250" Width="400">
 	<Grid>
-		<Button Content="Button" HorizontalAlignment="Center" Margin="0,180,0,0" VerticalAlignment="Top" Height="85" Width="328" Click="Button_Click"/>
-
+		<Grid.RowDefinitions>
+			<RowDefinition Height="1.5*"/>
+			<RowDefinition Height="3*"/>
+			<RowDefinition Height="2*"/>
+			<RowDefinition Height="1*"/>
+		</Grid.RowDefinitions>
+		<Label Grid.Row="0" Content="GiPSy6 - Over The Air Firmware Upload" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FF00AADE"/>
+		<Label Grid.Row="1" Content="Options:"  Margin="60,20,0,0" FontSize="18"/>
+		<CheckBox Grid.Row="1" Content="Keep Current Configuration" Margin="180,26,0,0" Name="keepCurrentCB" IsChecked="True"/>
+		<CheckBox Grid.Row="1" Content="Overwrite BIM (if available)" Margin="180,56,0,0" Name="overwriteBimCB" IsChecked="True"/>
+		<Button Grid.Row="2" x:Name="startB" Content="START" VerticalAlignment="Center" Margin="20,0,0,0" HorizontalAlignment="Left"
+			Height="40" Width="140" Click="startB_Click"/>
+		<Button Grid.Row="2" Content="STOP" VerticalAlignment="Center" Margin="0,0,20,0" HorizontalAlignment="Right"
+			Height="40" Width="140" Click="stopB_Click"/>
+		<ProgressBar Grid.Row="3" Name="otaPB" Height="18" Margin="20,0,20,0" />
 	</Grid>
 </Window>

@@ -2379,6 +2379,7 @@ namespace X_Manager.Units.Gipsy6
 			//Inserire Temperatura
 
 			//Batteria
+
 			if ((t.tsType & ts_battery) == ts_battery)
 			{
 				t.batteryLevel = gp6[pos] * 256;

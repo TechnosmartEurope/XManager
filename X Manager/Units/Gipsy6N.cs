@@ -822,6 +822,7 @@ namespace X_Manager.Units.Gipsy6
 			byte[] conf = new byte[0x1000];
 			byte[] command = new byte[] { 84, 84, 84, 84, 84, 84, 84, 71, 71, 65, 67, 255 };
 			int size = 0;
+			int sizeOk = 522;
 
 			for (int retry = 0; retry < RETRY_MAX; retry++)
 			{
@@ -833,7 +834,7 @@ namespace X_Manager.Units.Gipsy6
 					size = ft.ReadByte();
 					size <<= 8;
 					size += ft.ReadByte();
-					if (size != 522)        //Questo poi andrà sistemato perché il software non sa a priori la dimensione del bufffer 
+					if (size != sizeOk)        //Questo poi andrà sistemato perché il software non sa a priori la dimensione del bufffer 
 					{                       //di configurazione
 						Debug.WriteLine("get-size=" + size.ToString() + " WRONG SIZE!");
 						Thread.Sleep(500);

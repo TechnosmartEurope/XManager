@@ -19,6 +19,7 @@ using X_Manager.ConfigurationWindows;
 using X_Manager.Remote;
 using X_Manager.Units.AxyTreks;
 using X_Manager.Units.Gipsy6;
+using X_Manager.Bootloader;
 
 namespace X_Manager
 {
@@ -1817,13 +1818,39 @@ namespace X_Manager
 				}
 				else
 				{
+					uint[] memoryPhysical = oUnit.askMaxMemory();
+					if (memoryPhysical[1] < 1000000)
+					{
+						var ww = new Warning("This remote unit doesn't support OTA firmware upgarding.");
+						ww.ShowDialog();
+						return;
+					}
 					Window boot;
+					Bootloader_Gipsy6_OTA.Result otaResult = Bootloader_Gipsy6_OTA.Result.RESULT_OPERATION_ABORTED;
 					if (((string)configurePositionButton.Content).Contains("OTA"))
 					{
+						var tg = new YesNo("WARNING: you are entering the GiPSy6 OTA bootloader!\r\n All data logged" +
+																	" will be erased. Do you want to continue?", "OTA Firmware Upgrade", "", "Yes", "No");
+						tg.Owner = this;
+						if (tg.ShowDialog() == 2) return;
 						var fileopen = new System.Windows.Forms.OpenFileDialog();
+						fileopen.Filter = ("BIN Files|*.bin");
 						fileopen.ShowDialog();
 						if (fileopen.FileName == "") return;
-						boot = new Bootloader.Bootloader_Gipsy6_OTA(fileopen.FileName);
+						if (keepAliveTimer != null) keepAliveTimer.Stop();
+						byte[] locConf = oUnit.getConf();
+						var nameShort = unitNameTextBox.Text.ToArray<char>();
+						int counter = 4;
+						foreach (char c in nameShort)
+						{
+							locConf[counter] = (byte)c;
+							counter++;
+						}
+						for (int i = counter; i < 32; i++)
+						{
+							locConf[i] = 0;
+						}
+						boot = new Bootloader_Gipsy6_OTA(fileopen.FileName, locConf);
 					}
 					else
 					{
@@ -1834,11 +1861,48 @@ namespace X_Manager
 						tg.Owner = this;
 						if (tg.ShowDialog() == 2) return;
 						uiDisconnected();
-						boot = new Bootloader.Bootloader_Gipsy6(true, "GiPSy-6");
+						boot = new Bootloader_Gipsy6(true, "GiPSy-6");
 						boot.Owner = this;
 					}
 
 					boot.ShowDialog();
+
+					if (boot is Bootloader_Gipsy6_OTA)
+					{
+						otaResult = ((Bootloader_Gipsy6_OTA)boot).result;
+						if (otaResult == Bootloader_Gipsy6_OTA.Result.RESULT_OPERATION_ABORTED)
+						{
+							if (keepAliveTimer != null) keepAliveTimer.Start();
+							var warn = new Warning("Operation Aborted.");
+							warn.ShowDialog();
+						}
+						else
+						{
+							string errorMsg = "";
+							if (otaResult == Bootloader_Gipsy6_OTA.Result.RESULT_CONNECTION_LOST) errorMsg = "Connection Lost. Please try again later.";
+							if (otaResult == Bootloader_Gipsy6_OTA.Result.RESULT_FLASH_OK)
+							{
+								errorMsg = "New firmware successfully uploaded.\r\nPlease wait until the fast led flashing is over.";
+							}
+							var warn = new Warning(errorMsg);
+							warn.ShowDialog();
+							uiDisconnected();
+						}
+
+						//if (otaResult == Bootloader_Gipsy6_OTA.Result.RESULT_FLASH_OK)
+						//{
+						//	var warn = new Warning("Firmware successfully updated.");
+						//	warn.ShowDialog();
+						//	uiDisconnected();
+						//}
+						//else
+						//{
+
+						//	if (keepAliveTimer != null) keepAliveTimer.Start();
+						//	var warn = new Warning(errorMsg);
+						//	warn.ShowDialog();
+						//}
+					}
 					return;
 				}
 			}

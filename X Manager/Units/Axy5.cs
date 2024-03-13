@@ -605,6 +605,7 @@ namespace X_Manager.Units
 
 			while (memCounter < toBeDownloaded)
 			{
+
 				//COSTRUZIONE COMANDO
 				if (firstLoop > 0)        //Inizio blocco o richiesta puntatore specifico, si invia 'A' con i tre byte di indirizzo (il quarto è assunto essere zero)
 				{
@@ -1921,7 +1922,7 @@ namespace X_Manager.Units
 
 				findBits(bit);
 
-				Array.Resize(ref lastGroup, (nOutputs * (3 + bit)));
+				Array.Resize(ref lastGroup, nOutputs * (3 + bit));
 
 			}
 
@@ -2152,6 +2153,7 @@ namespace X_Manager.Units
 			if (decodedEvent.stopType > 0) gruppoCON[xAccPos] = gruppoCON[yAccPos] = gruppoCON[zAccPos] = "0";
 			return decodedEvent;
 		}
+
 		private void findSamplingRateLegacy(byte rateIn)
 		{
 			bit = 0;
