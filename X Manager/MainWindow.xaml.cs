@@ -1818,17 +1818,17 @@ namespace X_Manager
 				}
 				else
 				{
-					uint[] memoryPhysical = oUnit.askMaxMemory();
-					if (memoryPhysical[1] < 1000000)
-					{
-						var ww = new Warning("This remote unit doesn't support OTA firmware upgarding.");
-						ww.ShowDialog();
-						return;
-					}
 					Window boot;
 					Bootloader_Gipsy6_OTA.Result otaResult = Bootloader_Gipsy6_OTA.Result.RESULT_OPERATION_ABORTED;
 					if (((string)configurePositionButton.Content).Contains("OTA"))
 					{
+						uint[] memoryPhysical = oUnit.askMaxMemory();
+						if (memoryPhysical[1] < 1000000)
+						{
+							var ww = new Warning("This remote unit doesn't support OTA firmware upgarding.");
+							ww.ShowDialog();
+							return;
+						}
 						var tg = new YesNo("WARNING: you are entering the GiPSy6 OTA bootloader!\r\n All data logged" +
 																	" will be erased. Do you want to continue?", "OTA Firmware Upgrade", "", "Yes", "No");
 						tg.Owner = this;

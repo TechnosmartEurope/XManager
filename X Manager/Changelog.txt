@@ -321,3 +321,4 @@
 1.23.3	Bugfix: se selezionata virgola come separatore decimale, la conversione axy5 crashava a fine file
 	Bugfix: alcuni bs6 non venivano convertiti, o solo una piccola parte iniziale
 1.24.0	Nuova funzionalità aggiornamento firmware OTA per gipsy6
+1.24.1	Bugfix-Gipsy6: in caso di unità senza memoria esterna riufiutava il firmware update, anche se effettuato via cavo
