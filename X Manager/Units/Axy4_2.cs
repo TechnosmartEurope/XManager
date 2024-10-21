@@ -48,7 +48,6 @@ namespace X_Manager.Units
 		//uint rendiNeg;
 		double gCoeff;
 		ushort addMilli;
-		CultureInfo dateCi;
 		//byte cifreDec;
 		string cifreDecString;
 		//string ardPos = "";
@@ -134,24 +133,21 @@ namespace X_Manager.Units
 			}
 		}
 
-		public override string askBattery()
+		public override void askBattery()
 		{
-			string battery = "";
-			double battLevel;
+			double bl;
 			ft.Write("TTTTGGAB");
 			try
 			{
-				battLevel = ft.ReadByte(); battLevel *= 256;
-				battLevel += ft.ReadByte();
-				battLevel *= 6;
-				battLevel /= 4096;
+				bl = ft.ReadByte(); bl *= 256;
+				bl += ft.ReadByte();
+				bl *= 6;
+				batteryLevel = bl / 4096;
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
-			return battery;
 		}
 
 		public override string askName()
@@ -506,7 +502,8 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
+				//if (Parent.getParameter("keepMdp").Equals("false"))
+				if (!Properties.Settings.Default.INI_KEEP_MDP)
 				{
 					try
 					{
@@ -615,7 +612,8 @@ namespace X_Manager.Units
 
 			try
 			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
+				//if (Parent.getParameter("keepMdp").Equals("false"))
+				if (!Properties.Settings.Default.INI_KEEP_MDP)
 				{
 					fDel(fileNameMdp);
 				}
@@ -637,15 +635,17 @@ namespace X_Manager.Units
 			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
-		public override void convert(string fileName, string[] prefs)
+		public override void convert(string fileName)
 		{
+			base.convert(fileName);
+
 			ardFileName = fileName;
 			timeStamp timeStampO = new timeStamp();
 			string barStatus = "";
 			string shortFileName;
 			string addOn = "";
 			string exten = Path.GetExtension(fileName);
-			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
+			if (exten.Length > 4) addOn = "_S" + exten.Remove(0, 4);
 			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
 			BinaryReader ardT = new BinaryReader(File.Open(fileName, FileMode.Open));
 			BinaryWriter csv = new BinaryWriter(File.OpenWrite(fileNameCsv));
@@ -670,45 +670,7 @@ namespace X_Manager.Units
 			//Imposta le preferenze di conversione
 			pref_debugLevel = parent.stDebugLevel;
 
-			if (prefs[p_filePrefs_fillEmpty] == "False") pref_repeatEmptyValues = false;
-
-			dateSeparator = csvSeparator;
-			if (prefs[p_filePrefs_sameColumn] == "True")
-			{
-				pref_sameColumn = true;
-				dateSeparator = " ";
-			}
-
-			if ((prefs[p_filePrefs_battery] == "True") || pref_debugLevel > 0) pref_battery = true;
-
-			dateCi = new CultureInfo("it-IT");
-			if (prefs[p_filePrefs_timeFormat] == "2")
-			{
-				pref_angloTime = true;
-				dateCi = new CultureInfo("en-US");
-			}
-
-			pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);
-			pref_timeFormat = byte.Parse(prefs[p_filePrefs_timeFormat]);
-			switch (pref_dateFormat)
-			{
-				case 1:
-					pref_dateFormatParameter = "dd/MM/yyyy";
-					break;
-				case 2:
-					pref_dateFormatParameter = "MM/dd/yyyy";
-					break;
-				case 3:
-					pref_dateFormatParameter = "yyyy/MM/dd";
-					break;
-				case 4:
-					pref_dateFormatParameter = "yyyy/dd/MM";
-					break;
-			}
-
-			if (prefs[p_filePrefs_overrideTime] == "True") pref_overrideTime = true;
-
-			if ((prefs[p_filePrefs_metadata] == "True") || pref_debugLevel > 0) pref_metadata = true;
+			if (pref_debugLevel > 0) pref_metadata = true;
 
 
 			//Legge i parametri di logging
@@ -741,7 +703,7 @@ namespace X_Manager.Units
 				//cifreDec = 4;
 				cifreDecString = "0.0000";
 			}
-			timeStampO.orario = findStartTime(ref prefs);
+			timeStampO.orario = findStartTime();
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => barStatus = (string)parent.statusLabel.Content));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
@@ -931,25 +893,12 @@ namespace X_Manager.Units
 			if (group.Length == 0) return ("");
 
 			double x, y, z;
-			string ampm = "";
-			string textOut, dateTimeS, additionalInfo, magAdditionalInfo;
-			string dateS = "";
-			ushort milli;
+			string textOut, additionalInfo, magAdditionalInfo, dateS;
 			NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 			ushort contoTab = 0;
 
-			dateS = tsLoc.orario.ToString(pref_dateFormatParameter);
-
-			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
-			if (pref_angloTime)
-			{
-				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
-				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
-			}
-
-			milli = 0;
-
-			textOut = "";
+			dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
+			textOut = unitName + csvSeparator + dateS;
 
 			x = group[0]; y = group[1]; z = group[2];
 
@@ -957,8 +906,6 @@ namespace X_Manager.Units
 			y *= gCoeff; //y = Math.Round(y, cifreDec);
 			z *= gCoeff; //z = Math.Round(z, cifreDec);
 
-			textOut = unitName + csvSeparator + dateTimeS + ".000";
-			if (pref_angloTime) textOut += " " + ampm;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			magAdditionalInfo = "";
@@ -995,12 +942,12 @@ namespace X_Manager.Units
 			}
 
 			//Inserisce la batteria
-			if (pref_battery)
-			{
-				contoTab += 1;
-				additionalInfo += csvSeparator;
-				if (((tsLoc.tsType & 8) == 8) | pref_repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString(nfi);
-			}
+			//if (pref_battery)
+			//{
+			contoTab += 1;
+			additionalInfo += csvSeparator;
+			if (((tsLoc.tsType & 8) == 8) | pref_repeatEmptyValues) additionalInfo += tsLoc.batteryLevel.ToString(nfi);
+			//}
 			//Inserisce i metadati
 			if (pref_metadata)
 			{
@@ -1047,7 +994,7 @@ namespace X_Manager.Units
 					return textOut;
 				}
 				tsLoc.orario = tsLoc.orario.AddSeconds(1);
-				dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
+				dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 			}
 
 			if (!pref_repeatEmptyValues)
@@ -1060,14 +1007,10 @@ namespace X_Manager.Units
 				for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
 			}
 
-			milli += addMilli;
+			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 
-			dateTimeS += ".";
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
-			//var iend1 = (short)((rateComp * 3) / 2);
-			//var iend2 = (short)(rateComp * 3);
-			//var iend1 = (((iend2 / 2) / 3) + 1) * 3;
 			var iend2 = (short)(rateComp * 3);
 			var iend1 = iend2 / 2;
 			iend1 -= (iend1 % 3);
@@ -1083,17 +1026,16 @@ namespace X_Manager.Units
 				z *= gCoeff; //z = Math.Round(z, cifreDec);
 
 
-				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
+				textOut += unitName + csvSeparator + dateS;
 
-				if (pref_angloTime) textOut += " " + ampm;
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 				textOut += magAdditionalInfo + additionalInfo + "\r\n";
-				milli += addMilli;
+				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 				if (rate == 1)
 				{
 					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+					dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 				}
 			}
 
@@ -1105,8 +1047,7 @@ namespace X_Manager.Units
 			y *= gCoeff; //y = Math.Round(y, cifreDec);
 			z *= gCoeff; //z = Math.Round(z, cifreDec);
 
-			textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
-			if (pref_angloTime) textOut += " " + ampm;
+			textOut += unitName + csvSeparator + dateS;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			if (magen == 2)
@@ -1124,7 +1065,7 @@ namespace X_Manager.Units
 					magAdditionalInfo = csvSeparator + csvSeparator + csvSeparator;
 				}
 			}
-			milli += addMilli;
+			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 
 			for (int i = iend1 + 3; i < iend2; i += 3)
 			{
@@ -1139,33 +1080,32 @@ namespace X_Manager.Units
 				if (rate == 1)
 				{
 					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+					dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 				}
-				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
+				textOut += unitName + csvSeparator + dateS;
 
-				if (pref_angloTime) textOut += " " + ampm;
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 				textOut += magAdditionalInfo + additionalInfo + "\r\n";
-				milli += addMilli;
+				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 			}
 
 
 			return textOut;
 		}
 
-		private DateTime findStartTime(ref string[] prefs)
+		private DateTime findStartTime()
 		{
-			const int pref_h = 9;
-			const int pref_m = 10;
-			const int pref_s = 11;
-			const int pref_date_year = 12;
-			const int pref_date_month = 13;
-			const int pref_date_day = 14;
+			//const int pref_h = 9;
+			//const int pref_m = 10;
+			//const int pref_s = 11;
+			//const int pref_date_year = 12;
+			//const int pref_date_month = 13;
+			//const int pref_date_day = 14;
 
-			DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
-				int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]));
-
+			//DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
+			//	int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]));
+			DateTime dt = orDateTime;
 			dt.AddSeconds(29);
 
 			return dt;
@@ -1477,10 +1417,10 @@ namespace X_Manager.Units
 			{
 				csvHeader += csvSeparator + "Analog";
 			}
-			if (pref_battery || pref_debugLevel > 0)
-			{
-				csvHeader = csvHeader + csvSeparator + "Battery Voltage (V)";
-			}
+			//if (pref_battery || pref_debugLevel > 0)
+			//{
+			csvHeader = csvHeader + csvSeparator + "Battery Voltage (V)";
+			//}
 
 			if (pref_metadata || pref_debugLevel > 0)
 			{

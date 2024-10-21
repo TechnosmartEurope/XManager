@@ -206,7 +206,8 @@ namespace X_Manager.Bootloader
 				return;
 			}
 
-			firmwareFile = X_Manager.Parent.getParameter("gipsy6FirmwareFile", "");
+			//firmwareFile = X_Manager.Parent.getParameter("gipsy6FirmwareFile", "");
+			firmwareFile = Properties.Settings.Default.PATH_GIPSY6_FIRMWARE_FILE;
 			fileTB.Text = firmwareFile;
 			if (!File.Exists(firmwareFile))
 			{
@@ -218,12 +219,14 @@ namespace X_Manager.Bootloader
 
 			}
 			wipeDataCB.IsChecked = false;
-			if (X_Manager.Parent.getParameter("gipsy6BootloaderWipeData", "true") == "true")
+			//if (X_Manager.Parent.getParameter("gipsy6BootloaderWipeData", "true") == "true")
+			if (Properties.Settings.Default.INI_GIPSY6_BOOTLOADER_WIPE_DATA)
 			{
 				wipeDataCB.IsChecked = true;
 			}
 			wipeSettingsCB.IsChecked = false;
-			if (X_Manager.Parent.getParameter("gipsy6BootloaderWipeSettings", "true") == "true")
+			//if (X_Manager.Parent.getParameter("gipsy6BootloaderWipeSettings", "true") == "true")
+			if (Properties.Settings.Default.INI_GIPSY6_BOOTLOADER_WIPE_SETTINGS)
 			{
 				wipeSettingsCB.IsChecked = true;
 			}
@@ -235,19 +238,20 @@ namespace X_Manager.Bootloader
 
 		private void closing(object sender, CancelEventArgs e)
 		{
-			string b = "false";
-			if ((bool)wipeSettingsCB.IsChecked)
-			{
-				b = "true";
-			}
-			X_Manager.Parent.updateParameter("gipsy6BootloaderWipeSettings", b);
-			b = "false";
-			if ((bool)wipeDataCB.IsChecked)
-			{
-				b = "true";
-			}
-			X_Manager.Parent.updateParameter("gipsy6BootloaderWipeData", b);
-
+			//string b = "false";
+			//if ((bool)wipeSettingsCB.IsChecked)
+			//{
+			//	b = "true";
+			//}
+			//X_Manager.Parent.updateParameter("gipsy6BootloaderWipeSettings", b);
+			//b = "false";
+			//if ((bool)wipeDataCB.IsChecked)
+			//{
+			//	b = "true";
+			//}
+			//X_Manager.Parent.updateParameter("gipsy6BootloaderWipeData", b);
+			Properties.Settings.Default.INI_GIPSY6_BOOTLOADER_WIPE_SETTINGS = (bool)wipeSettingsCB.IsChecked;
+			Properties.Settings.Default.INI_GIPSY6_BOOTLOADER_WIPE_DATA = (bool)wipeDataCB.IsChecked;
 			ft.BaudRate = 115200;
 		}
 
@@ -343,7 +347,8 @@ namespace X_Manager.Bootloader
 			open.Filter = "BIN flash image|*.bin";
 			try
 			{
-				open.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile")));
+				//open.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile")));
+				open.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(Properties.Settings.Default.PATH_GIPSY6_FIRMWARE_FILE));
 			}
 			catch { }
 			for (int i = 0; i < 2; i++)
@@ -353,7 +358,8 @@ namespace X_Manager.Bootloader
 					if ((open.ShowDialog() == System.Windows.Forms.DialogResult.OK) & (open.FileName != ""))
 					{
 						firmwareFile = open.FileName;
-						X_Manager.Parent.updateParameter("gipsy6FirmwareFile", firmwareFile);
+						//X_Manager.Parent.updateParameter("gipsy6FirmwareFile", firmwareFile);
+						Properties.Settings.Default.PATH_GIPSY6_FIRMWARE_FILE = firmwareFile;
 						fileTB.Text = firmwareFile;
 						filePropertiesTB.Text = "Firmware date: " + File.GetLastWriteTime(firmwareFile);
 					}
@@ -420,7 +426,8 @@ namespace X_Manager.Bootloader
 			save.Filter = "BIN flash image|*.bin";
 			try
 			{
-				save.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile")));
+				//save.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(X_Manager.Parent.getParameter("gipsy6FirmwareFile")));
+				save.InitialDirectory = System.IO.Path.GetFullPath(System.IO.Path.GetDirectoryName(Properties.Settings.Default.PATH_GIPSY6_FIRMWARE_FILE));
 			}
 			catch { }
 			for (int i = 0; i < 2; i++)
@@ -430,7 +437,8 @@ namespace X_Manager.Bootloader
 					if ((save.ShowDialog() == System.Windows.Forms.DialogResult.OK) & (save.FileName != ""))
 					{
 						exportFile = save.FileName;
-						X_Manager.Parent.updateParameter("gipsy6FirmwareFile", exportFile);
+						//X_Manager.Parent.updateParameter("gipsy6FirmwareFile", exportFile);
+						Properties.Settings.Default.PATH_GIPSY6_FIRMWARE_FILE = exportFile;
 					}
 					else
 					{
@@ -904,7 +912,8 @@ namespace X_Manager.Bootloader
 					}
 				}
 			}
-			firmwareFile = X_Manager.Parent.getParameter("gipsy6FirmwareFile", "");
+			//firmwareFile = X_Manager.Parent.getParameter("gipsy6FirmwareFile", "");
+			firmwareFile = Properties.Settings.Default.PATH_GIPSY6_FIRMWARE_FILE;
 			fileTB.Text = firmwareFile;
 			connectB.IsEnabled = false;
 			getChipId();

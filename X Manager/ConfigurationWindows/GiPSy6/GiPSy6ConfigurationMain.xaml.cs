@@ -2,20 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Runtime.Remoting.Channels;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using System.Windows.Interop;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using X_Manager.Units.Gipsy6;
+using System.IO;
 
 namespace X_Manager.ConfigurationWindows
 {
@@ -83,7 +76,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			expertCB.IsChecked = bool.Parse(X_Manager.Parent.getParameter("gipsy6ConfigurationExpertMode", "false"));
+			expertCB.IsChecked = Properties.Settings.Default.UI_GIPSY6_CONFIGURATION_EXPERT_MODE;
 
 			appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\TechnoSmArt Europe\\X Manager\\map cache\\";
 			System.IO.Directory.CreateDirectory(appDataPath);
@@ -296,7 +289,7 @@ namespace X_Manager.ConfigurationWindows
 
 		private void expertCB_Checked(object sender, RoutedEventArgs e)
 		{
-			MainWindow.updateParameter("gipsy6ConfigurationExpertMode", "true");
+			Properties.Settings.Default.UI_GIPSY6_CONFIGURATION_EXPERT_MODE = true;
 
 			pagesEnabled = new bool[] { true, true, true, true };
 			for (int i = pagesEnabled.Length - 1; i >= 0; i--)
@@ -325,7 +318,8 @@ namespace X_Manager.ConfigurationWindows
 
 		private void expertCB_Unchecked(object sender, RoutedEventArgs e)
 		{
-			MainWindow.updateParameter("gipsy6ConfigurationExpertMode", "false");
+			//MainWindow.updateParameter("gipsy6ConfigurationExpertMode", "false");
+			Properties.Settings.Default.UI_GIPSY6_CONFIGURATION_EXPERT_MODE = false;
 
 			pagesEnabled = new bool[] { true, false, false, false };
 
@@ -379,7 +373,8 @@ namespace X_Manager.ConfigurationWindows
 			byte[] oldRfAddress = axyConfOut.Skip(541).Take(3).ToArray();
 
 			var fopen = new System.Windows.Forms.OpenFileDialog();
-			fopen.InitialDirectory = X_Manager.Parent.getParameter("gipsy6ConfigurationsFolder", System.IO.Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+			//fopen.InitialDirectory = X_Manager.Parent.getParameter("gipsy6ConfigurationsFolder", System.IO.Path.GetFullPath(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+			fopen.InitialDirectory = System.IO.Path.GetFullPath(Properties.Settings.Default.PATH_SCHEDULE);
 			fopen.Filter = "Gipsy6 Configuration File | *.cfg";
 			for (int i = 0; i < 2; i++)
 			{
@@ -399,8 +394,9 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			var fp = fopen.FileName;
-			var newConf = System.IO.File.ReadAllBytes(fp);
-			X_Manager.Parent.updateParameter(MainWindow.INI_GIPSY6_SCHEDULE_PATH, System.IO.Path.GetDirectoryName(fp));
+			var newConf = File.ReadAllBytes(fp);
+			//X_Manager.Parent.updateParameter(MainWindow.INI_GIPSY6_SCHEDULE_PATH, System.IO.Path.GetDirectoryName(fp));
+			Properties.Settings.Default.PATH_SCHEDULE = Path.GetDirectoryName(fp);
 			if (!Encoding.ASCII.GetString(newConf.Take(16).ToArray()).Equals("--gipsy6Config--"))
 			{
 				MessageBox.Show("Invalid configuration file.");
@@ -449,7 +445,7 @@ namespace X_Manager.ConfigurationWindows
 		private void exportB_Click(object sender, RoutedEventArgs e)
 		{
 			var fsave = new System.Windows.Forms.SaveFileDialog();
-			fsave.InitialDirectory = System.IO.Path.GetFullPath(MainWindow.getParameter("gipsy6ConfigurationsFolder", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+			fsave.InitialDirectory = Path.GetFullPath(Properties.Settings.Default.PATH_SCHEDULE);
 			fsave.Filter = "Gipsy6 Configuration File | *.cfg";
 
 			for (int i = 0; i < 2; i++)
@@ -469,6 +465,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
+			Properties.Settings.Default.PATH_SCHEDULE = Path.GetDirectoryName(fsave.InitialDirectory);
 			var cf = Gipsy6ConfigurationBrowser.Content as PageCopy;
 			cf.copyValues();
 
@@ -476,7 +473,7 @@ namespace X_Manager.ConfigurationWindows
 			Array.Copy(Encoding.ASCII.GetBytes("--gipsy6Config--"), newConf, 16);
 			Array.Copy(axyConfOut, 0, newConf, 16, axyConfOut.Length);
 
-			System.IO.File.WriteAllBytes(fsave.FileName, newConf);
+			File.WriteAllBytes(fsave.FileName, newConf);
 		}
 	}
 }

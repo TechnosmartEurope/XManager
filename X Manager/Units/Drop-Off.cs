@@ -20,24 +20,21 @@ namespace X_Manager.Units
 
 		}
 
-		public override string askBattery()
+		public override void askBattery()
 		{
-			string battery = "";
-			double battLevel;
+			double bl;
 			ft.Write("TTTTGGAB");
 			try
 			{
-				battLevel = ft.ReadByte(); battLevel *= 256;
-				battLevel += ft.ReadByte();
-				battLevel *= 6;
-				battLevel /= 4096;
+				bl = ft.ReadByte(); bl *= 256;
+				bl += ft.ReadByte();
+				bl *= 6;
+				batteryLevel = bl / 4096;
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
-			return battery;
 		}
 
 		public override string askFirmware()

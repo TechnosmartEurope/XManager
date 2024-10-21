@@ -27,14 +27,12 @@ namespace X_Manager
         {
             InitializeComponent();
             if (string.IsNullOrEmpty(question)) question = "";
-            this.Loaded += loaded;
+            Loaded += loaded;
             labelMex.Content = question;
-            this.Title = "";
-            this.yesB.Content = "Yes";
-            this.noB.Content = "No";
-            this.choiceCB.Content = "";
-            mainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Pixel);
-            
+            Title = "";
+            yesB.Content = "Yes";
+            noB.Content = "No";
+            choiceCB.Content = "";
         }
 
         public YesNo(string question, string title)
@@ -42,13 +40,12 @@ namespace X_Manager
             InitializeComponent();
             if (string.IsNullOrEmpty(question)) question = "";
             if (string.IsNullOrEmpty(title)) title = "";
-            this.Loaded += loaded;
+            Loaded += loaded;
             labelMex.Content = question;
-            this.Title = title;
-            this.yesB.Content = "Yes";
-            this.noB.Content = "No";
-            this.choiceCB.Content = "";
-            mainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Pixel);
+            Title = title;
+            yesB.Content = "Yes";
+            noB.Content = "No";
+            choiceCB.Content = "";
         }
 
         public YesNo(string question, string title, string checkBoxContent)
@@ -57,17 +54,12 @@ namespace X_Manager
             if (string.IsNullOrEmpty(question)) question = "";
             if (string.IsNullOrEmpty(title)) title = "";
             if (string.IsNullOrEmpty(checkBoxContent)) checkBoxContent = "";
-            this.Loaded += loaded;
+            Loaded += loaded;
             labelMex.Content = question;
-            this.Title = title;
-            this.yesB.Content = "Yes";
-            this.noB.Content = "No";
-            this.choiceCB.Content = checkBoxContent;
-            if (checkBoxContent == "")
-            {
-                mainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Pixel);
-            }
-            
+            Title = title;
+            yesB.Content = "Yes";
+            noB.Content = "No";
+            choiceCB.Content = checkBoxContent;           
         }
 
         public YesNo(string question, string title, string checkBoxContent, string yesButtonContent)
@@ -77,17 +69,12 @@ namespace X_Manager
             if (string.IsNullOrEmpty(title)) title = "";
             if (string.IsNullOrEmpty(checkBoxContent)) checkBoxContent = "";
             if (string.IsNullOrEmpty(yesButtonContent)) yesButtonContent = "";
-            this.Loaded += loaded;
+            Loaded += loaded;
             labelMex.Content = question;
-            this.Title = title;
-            this.yesB.Content = yesButtonContent;
-            this.noB.Content = "No";
-            this.choiceCB.Content = checkBoxContent;
-            if (checkBoxContent == "")
-            {
-                mainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Pixel);
-            }
-
+            Title = title;
+            yesB.Content = yesButtonContent;
+            noB.Content = "No";
+            choiceCB.Content = checkBoxContent;
         }
 
         public YesNo(string question, string title, string checkBoxContent, string yesButtonContent, string noButtonContent)
@@ -98,22 +85,21 @@ namespace X_Manager
             if (string.IsNullOrEmpty(checkBoxContent)) checkBoxContent = "";
             if (string.IsNullOrEmpty(yesButtonContent)) yesButtonContent = "";
             if (string.IsNullOrEmpty(noButtonContent)) noButtonContent = "";
-            this.Loaded += loaded;
+            Loaded += loaded;
             labelMex.Content = question;
-            this.Title = title;
-            this.yesB.Content = yesButtonContent;
-            this.noB.Content = noButtonContent;
-            this.choiceCB.Content = checkBoxContent;
-            if (checkBoxContent == "")
-            {
-                mainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Pixel);
-            }
-
+            Title = title;
+            yesB.Content = yesButtonContent;
+            noB.Content = noButtonContent;
+            choiceCB.Content = checkBoxContent;
         }
 
         private void loaded(object sender, RoutedEventArgs e)
         {
-            yesB.Focus();
+			if ((string)choiceCB.Content == "")
+			{
+				mainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Pixel);
+			}
+			yesB.Focus();
         }
 
         public new int ShowDialog()
@@ -126,14 +112,14 @@ namespace X_Manager
         {
             extraRes = 1;
             if (choice) extraRes += 10;
-            this.Close();
+            Close();
         }
 
         private void noClick(object sender, RoutedEventArgs e)
         {
             extraRes = 2;
             if (choice) extraRes += 10;
-            this.Close();
+            Close();
         }
 
         private void choiceChecked(object sender, RoutedEventArgs e)

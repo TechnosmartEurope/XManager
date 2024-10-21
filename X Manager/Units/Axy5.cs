@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using System.Threading;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-
 
 #if X64
 using FT_HANDLE = System.UInt64;
@@ -96,7 +89,6 @@ namespace X_Manager.Units
 
 		double gCoeff = 0.01563;
 		int addMilli;
-		CultureInfo dateCi;
 		const string cifreDecString = "0.00000";
 		int temperatureEn;
 		int pressureEn;
@@ -112,7 +104,6 @@ namespace X_Manager.Units
 		int bit;
 		//double x, y, z;
 		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
-		string dateTimeFormat;
 		bool schedTs = false;
 		byte[] group;
 
@@ -199,24 +190,21 @@ namespace X_Manager.Units
 			}
 		}
 
-		public override string askBattery()
+		public override void askBattery()
 		{
-			string battery = "";
-			double battLevel;
+			double bl;
 			ft.Write("TTTTGGAB");
 			try
 			{
-				battLevel = ft.ReadByte(); battLevel *= 256;
-				battLevel += ft.ReadByte();
-				battLevel *= 6;
-				battLevel /= 4096;
+				bl = ft.ReadByte(); bl *= 256;
+				bl += ft.ReadByte();
+				bl *= 6;
+				batteryLevel = bl / 4096;
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
-			return battery;
 		}
 
 		public override string askName()
@@ -794,7 +782,8 @@ namespace X_Manager.Units
 			if (position > 0) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
+				//if (Parent.getParameter("keepMdp").Equals("false"))
+				if (!Properties.Settings.Default.INI_KEEP_MDP)
 				{
 					try
 					{
@@ -1111,7 +1100,8 @@ namespace X_Manager.Units
 			{
 				try
 				{
-					if (Parent.getParameter("keepMdp").Equals("false"))
+					//if (Parent.getParameter("keepMdp").Equals("false"))
+					if (!Properties.Settings.Default.INI_KEEP_MDP)
 					{
 						fDel(fileNameMdp);
 					}
@@ -1133,71 +1123,17 @@ namespace X_Manager.Units
 			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
-		public override void convert(string fileName, string[] prefs)
+		public override void convert(string fileName)
 		{
-
+			base.convert(fileName);
 			string barStatus = "";
 
-			//Imposta le preferenze di conversione
-			if (Parent.getParameter("pressureRange") == "air") pref_isDepth = false;
-
-			if (prefs[p_filePrefs_fillEmpty] == "False") pref_repeatEmptyValues = false;
-
-			if ((prefs[p_filePrefs_battery] == "True") || pref_debugLevel > 0) pref_battery = true;
-
-			switch (int.Parse(prefs[p_filePrefs_dateFormat]))
-			{
-				case 1:
-					dateTimeFormat = "dd/MM/yyyy";
-					break;
-				case 2:
-					dateTimeFormat = "MM/dd/yyyy";
-					break;
-				case 3:
-					dateTimeFormat = "yyyy/MM/dd";
-					break;
-				case 4:
-					dateTimeFormat = "yyyy/dd/MM";
-					break;
-			}
-
-			if (prefs[p_filePrefs_sameColumn] == "True")
-			{
-				pref_sameColumn = true;
-				dateTimeFormat += " ";
-			}
-			else
-			{
-				dateTimeFormat += csvSeparator;
-			}
-
-
-			if (prefs[p_filePrefs_timeFormat] == "2")
-			{
-				dateCi = new CultureInfo("en-US");
-				dateTimeFormat += "hh:mm:ss.fff tt";
-			}
-			else
-			{
-				dateCi = new CultureInfo("it-IT");
-				dateTimeFormat += "HH:mm:ss.fff";
-			}
-
-			if (prefs[p_filePrefs_pressMetri] == "meters")
-			{
-				pref_inMeters = true;
-			}
-			pref_pressOffset = double.Parse(prefs[p_filePrefs_millibars]);
-
-			if (prefs[p_filePrefs_overrideTime] == "True") pref_overrideTime = true;
-
-			if ((prefs[p_filePrefs_metadata] == "True") || pref_debugLevel > 0) pref_metadata = true;
 
 			//Imposta i file di lettura e di scrittura
 			string shortFileName;
 			string addOn = "";
 			string exten = Path.GetExtension(fileName);
-			if ((exten.Length > 4)) addOn = ("_S" + exten.Remove(0, 4));
+			if (exten.Length > 4) addOn = ("_S" + exten.Remove(0, 4));
 			string fileNameCsv = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".csv";
 			string fileNameInfo = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + addOn + ".txt";
 			BinaryReader ardFile = new BinaryReader(File.Open(fileName, FileMode.Open));
@@ -1269,7 +1205,7 @@ namespace X_Manager.Units
 			timeStampO.magX = new double[2];
 			timeStampO.magY = new double[2];
 			timeStampO.magZ = new double[2];
-			timeStampO.orario = findStartTime(ref prefs);
+			timeStampO.orario = findStartTime();
 
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => barStatus = (string)parent.statusLabel.Content));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
@@ -1282,7 +1218,7 @@ namespace X_Manager.Units
 
 			ard.ReadByte();
 
-			csvPlaceHeader(ref csv, prefs);
+			csvPlaceHeader(ref csv);
 
 			gruppoCON[0] = shortFileName + csvSeparator;
 			gruppoSENZA[0] = shortFileName + csvSeparator;
@@ -1500,6 +1436,7 @@ namespace X_Manager.Units
 				}
 			}
 
+
 			tsc.timeStampLength = position / (3 + bit);
 			if (position == 0)
 			{
@@ -1552,9 +1489,16 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					group = new double[3] { double.Parse(gruppoCON[xAccPos], new CultureInfo("en-US")) / gCoeff,
-											double.Parse(gruppoCON[yAccPos], new CultureInfo("en-US")) / gCoeff,
-											double.Parse(gruppoCON[zAccPos], new CultureInfo("en-US")) / gCoeff };
+					try
+					{
+						group = new double[3] { double.Parse(gruppoCON[xAccPos].Remove(gruppoCON[xAccPos].Length - 1, 1), new CultureInfo("en-US")) / gCoeff,
+											double.Parse(gruppoCON[yAccPos].Remove(gruppoCON[yAccPos].Length - 1, 1), new CultureInfo("en-US")) / gCoeff,
+											double.Parse(gruppoCON[zAccPos].Remove(gruppoCON[zAccPos].Length - 1, 1), new CultureInfo("en-US")) / gCoeff };
+					}
+					catch
+					{
+						group = new double[3] { 0, 0, 0 };
+					}
 					iend1 = 3;
 					iend2 = 0;
 				}
@@ -1562,7 +1506,7 @@ namespace X_Manager.Units
 
 			//******************************************************** PRIMO HEADER
 			fOut.Write(gruppoCON[0]);
-			fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
+			fOut.Write(tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture) + csvSeparator);
 			gruppoCON[xAccPos] = (group[0] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator;
 			gruppoCON[yAccPos] = (group[1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator;
 			gruppoCON[zAccPos] = (group[2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator;
@@ -1592,7 +1536,7 @@ namespace X_Manager.Units
 			{
 				fOut.Write(gruppoCON[0]);
 				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
-				fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
+				fOut.Write(tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture) + csvSeparator);
 				fOut.Write((group[i] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 				fOut.Write((group[i + 1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 				fOut.Write((group[i + 2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
@@ -1607,7 +1551,7 @@ namespace X_Manager.Units
 			//******************************************************** SECONDO HEADER
 			fOut.Write(gruppoCON[0]);
 			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
-			fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
+			fOut.Write(tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture) + csvSeparator);
 			fOut.Write((group[iend1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			fOut.Write((group[iend1 + 1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 			fOut.Write((group[iend1 + 2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
@@ -1646,14 +1590,10 @@ namespace X_Manager.Units
 			{
 				fOut.Write(gruppo[0]);
 				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
-				fOut.Write(tsLoc.orario.ToString(dateTimeFormat) + csvSeparator);
+				fOut.Write(tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture) + csvSeparator);
 				fOut.Write((group[i] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 				fOut.Write((group[i + 1] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
 				fOut.Write((group[i + 2] * gCoeff).ToString(cifreDecString, nfi) + csvSeparator);
-				//gruppo[1] = tsLoc.orario.ToString(dateTimeFormat);
-				//gruppo[2] = (group[i] * gCoeff).ToString(cifreDecString, nfi);
-				//gruppo[3] = (group[i + 1] * gCoeff).ToString(cifreDecString, nfi);
-				//gruppo[4] = (group[i + 2] * gCoeff).ToString(cifreDecString, nfi);
 
 				//textOut += string.Join(csvSeparator, gruppo) + "\r\n";
 				for (int j = temp; j < gLen; j++)
@@ -1796,11 +1736,13 @@ namespace X_Manager.Units
 				if ((tsc.tsType & ts_battery) == ts_battery)
 				{
 					tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
-					if (pref_battery) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+					//if (pref_battery) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+					gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
 				}
 				else
 				{
-					if (!pref_repeatEmptyValues & pref_battery) gruppoCON[batt] = "";
+					//if (!pref_repeatEmptyValues & pref_battery) gruppoCON[batt] = "";
+					if (!pref_repeatEmptyValues) gruppoCON[batt] = "";
 				}
 			}
 
@@ -2038,11 +1980,13 @@ namespace X_Manager.Units
 			if ((tsc.tsType & ts_battery) == ts_battery)
 			{
 				tsc.batteryLevel = (((ard.ReadByte() * 256.0 + ard.ReadByte()) * 6) / 4096);
-				if (pref_battery) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+				//if (pref_battery) gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
+				gruppoCON[batt] = tsc.batteryLevel.ToString("0.00", nfi);
 			}
 			else
 			{
-				if (!pref_repeatEmptyValues & pref_battery) gruppoCON[batt] = "";
+				//if (!pref_repeatEmptyValues & pref_battery) gruppoCON[batt] = "";
+				if (!pref_repeatEmptyValues) gruppoCON[batt] = "";
 			}
 
 
@@ -2227,7 +2171,7 @@ namespace X_Manager.Units
 
 		}
 
-		private void csvPlaceHeader(ref StreamWriter csv, string[] prefs)
+		private void csvPlaceHeader(ref StreamWriter csv)
 		{
 
 			int contoPlace = 1;
@@ -2319,16 +2263,16 @@ namespace X_Manager.Units
 				ardPosition--;
 			}
 
-			if (pref_battery)
-			{
-				csvHeader = csvHeader + csvSeparator + "Batt. V. (V)";
-				contoPlace++;
-			}
-			else
-			{
-				meta--;
-				ardPosition--;
-			}
+			//if (pref_battery)
+			//{
+			csvHeader = csvHeader + csvSeparator + "Batt. V. (V)";
+			contoPlace++;
+			//}
+			//else
+			//{
+			//	meta--;
+			//	ardPosition--;
+			//}
 
 			if (pref_metadata)
 			{
@@ -2360,7 +2304,8 @@ namespace X_Manager.Units
 					gruppoCON[magz] = 0.ToString("#0.0", nfi);
 				}
 				if (adcEn > 0) gruppoCON[adcVal] = 0.ToString("0000");
-				if (pref_battery) gruppoCON[batt] = 0.ToString("0.00", nfi);
+				//if (pref_battery) gruppoCON[batt] = 0.ToString("0.00", nfi);
+				gruppoCON[batt] = 0.ToString("0.00", nfi);
 			}
 
 
@@ -2452,18 +2397,18 @@ namespace X_Manager.Units
 			File.AppendAllText(fileNameInfo, descSched);
 		}
 
-		private DateTime findStartTime(ref string[] prefs)
+		private DateTime findStartTime()
 		{
-			const int pref_h = 9;
-			const int pref_m = 10;
-			const int pref_s = 11;
-			const int pref_date_year = 12;
-			const int pref_date_month = 13;
-			const int pref_date_day = 14;
+			//const int pref_h = 9;
+			//const int pref_m = 10;
+			//const int pref_s = 11;
+			//const int pref_date_year = 12;
+			//const int pref_date_month = 13;
+			//const int pref_date_day = 14;
 
-			DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
-				int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]));
-
+			//DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
+			//	int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]));
+			DateTime dt = orDateTime;
 			dt.AddSeconds(19);
 
 			return dt;
@@ -2480,7 +2425,7 @@ namespace X_Manager.Units
 		{
 			temperatureEn = 0;
 			adcEn = 0;
-			temperatureEn = (td & 0b11);
+			temperatureEn = td & 0b11;
 			pressureEn = (td & 0b10000) >> 4;
 			adcEn = (td & 0b1000) >> 3;
 		}

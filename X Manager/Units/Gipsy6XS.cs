@@ -101,89 +101,87 @@ namespace X_Manager.Units.Gipsy6
 
 		#endregion
 
-		struct TimeStamp
-		{
-			private int _pos;
+		//struct TimeStamp
+		//{
+		//	private int _pos;
 
-			public int tsType;
-			public int tsTypeExt1;
-			public int tsTypeExt2;
-			public int ore;
-			public double batteryLevel;
-			public double altitude;
-			public double lat;
-			public double lon;
-			public double speed;
-			public int hAcc;
-			public int vAcc;
-			public int cog;
-			public int sat;
-			public int gsvSum;
-			public int timeStampLength;
-			public DateTime dateTime;
-			public byte[] infoAr;
-			public byte[] eventAr;
-			public bool isEvent;
-			public int stopEvent;
-			public int GPS_second;
-			public string unitNameTxt;
-			public int pos
-			{
-				get => _pos;
-				set
-				{
-					_pos = value + ((value / 0x1fe) + 1) * 2;
-				}
-			}
-			public int txtAllowed;
-			public void resetPos(int initVal)
-			{
-				_pos = initVal;
-			}
+		//	public int tsType;
+		//	public int tsTypeExt1;
+		//	public int tsTypeExt2;
+		//	public int ore;
+		//	public double batteryLevel;
+		//	public double altitude;
+		//	public double lat;
+		//	public double lon;
+		//	public double speed;
+		//	public int hAcc;
+		//	public int vAcc;
+		//	public int cog;
+		//	public int sat;
+		//	public int gsvSum;
+		//	public int timeStampLength;
+		//	public DateTime dateTime;
+		//	public byte[] infoAr;
+		//	public byte[] eventAr;
+		//	public bool isEvent;
+		//	public int stopEvent;
+		//	public int GPS_second;
+		//	public string unitNameTxt;
+		//	public int pos
+		//	{
+		//		get => _pos;
+		//		set
+		//		{
+		//			_pos = value + ((value / 0x1fe) + 1) * 2;
+		//		}
+		//	}
+		//	public int txtAllowed;
+		//	public void resetPos(int initVal)
+		//	{
+		//		_pos = initVal;
+		//	}
 
-			public TimeStamp clone()
-			{
-				var tout = new TimeStamp();
-				tout.tsType = this.tsType;
-				tout.tsTypeExt1 = this.tsTypeExt1;
-				tout.tsTypeExt2 = this.tsTypeExt2;
-				tout.ore = this.ore;
-				tout.batteryLevel = this.batteryLevel;
-				tout.altitude = altitude;
-				//tout.altSegno = this.altSegno;
-				//tout.eo = this.eo;
-				//tout.ns = this.ns;
-				tout.lat = lat;
-				tout.lon = lon;
-				tout.speed = speed;
-				tout.hAcc = hAcc;
-				tout.vAcc = vAcc;
-				tout.cog = cog;
-				tout.sat = sat;
-				tout.gsvSum = gsvSum;
-				tout.timeStampLength = timeStampLength;
-				tout.dateTime = dateTime;
-				if (infoAr != null)
-				{
-					tout.infoAr = new byte[infoAr.Length];
-					Array.Copy(infoAr, tout.infoAr, infoAr.Length);
-				}
-				if (eventAr != null)
-				{
-					tout.eventAr = new byte[eventAr.Length];
-					Array.Copy(eventAr, tout.eventAr, eventAr.Length);
-				}
-				tout.isEvent = isEvent;
-				tout.stopEvent = stopEvent;
-				tout.GPS_second = GPS_second;
-				tout.unitNameTxt = unitNameTxt;
-				tout.resetPos(pos);
+		//	public TimeStamp clone()
+		//	{
+		//		var tout = new TimeStamp();
+		//		tout.tsType = this.tsType;
+		//		tout.tsTypeExt1 = this.tsTypeExt1;
+		//		tout.tsTypeExt2 = this.tsTypeExt2;
+		//		tout.ore = this.ore;
+		//		tout.batteryLevel = this.batteryLevel;
+		//		tout.altitude = altitude;
+		//		//tout.altSegno = this.altSegno;
+		//		//tout.eo = this.eo;
+		//		//tout.ns = this.ns;
+		//		tout.lat = lat;
+		//		tout.lon = lon;
+		//		tout.speed = speed;
+		//		tout.hAcc = hAcc;
+		//		tout.vAcc = vAcc;
+		//		tout.cog = cog;
+		//		tout.sat = sat;
+		//		tout.gsvSum = gsvSum;
+		//		tout.timeStampLength = timeStampLength;
+		//		tout.dateTime = dateTime;
+		//		if (infoAr != null)
+		//		{
+		//			tout.infoAr = new byte[infoAr.Length];
+		//			Array.Copy(infoAr, tout.infoAr, infoAr.Length);
+		//		}
+		//		if (eventAr != null)
+		//		{
+		//			tout.eventAr = new byte[eventAr.Length];
+		//			Array.Copy(eventAr, tout.eventAr, eventAr.Length);
+		//		}
+		//		tout.isEvent = isEvent;
+		//		tout.stopEvent = stopEvent;
+		//		tout.GPS_second = GPS_second;
+		//		tout.unitNameTxt = unitNameTxt;
+		//		tout.resetPos(pos);
 
-				return tout;
-			}
-		}
-
-		const int RETRY_MAX = 4;
+		//		return tout;
+		//	}
+		//}
 
 		FileType fileType;
 		enum FileType : byte
@@ -235,14 +233,12 @@ namespace X_Manager.Units.Gipsy6
 
 		//bool repeatEmptyValues = false;
 
-		NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
-
-		BackgroundWorker txtBGW;
-		BackgroundWorker kmlBGW;
-		private static Semaphore txtSem;
-		private static Semaphore kmlSem;
-		private static Semaphore txtSemBack;
-		private static Semaphore kmlSemBack;
+		//BackgroundWorker txtBGW;
+		//BackgroundWorker kmlBGW;
+		//private static Semaphore txtSem;
+		//private static Semaphore kmlSem;
+		//private static Semaphore txtSemBack;
+		//private static Semaphore kmlSemBack;
 		//private static long lastTimestamp = 0;
 		//private static long conversionDone = 0;
 
@@ -257,7 +253,7 @@ namespace X_Manager.Units.Gipsy6
 			defaultArdExtension = "gp6";
 		}
 
-		private bool ask(string command)
+		protected override bool ask(string command)
 		{
 			ft.Open();
 			ft.ReadExisting();
@@ -424,10 +420,9 @@ namespace X_Manager.Units.Gipsy6
 			return name;
 		}
 
-		public override string askBattery()
+		public override void askBattery()
 		{
-			string battery = "";
-			double battLevel = 0;
+			double bl = 0;
 			if (!ask("B"))
 			{
 				throw new Exception(unitNotReady);
@@ -435,19 +430,15 @@ namespace X_Manager.Units.Gipsy6
 			try
 			{
 				ft.ReadTimeout = 500;
-				battLevel = ft.ReadByte(); battLevel *= 256;
-				battLevel += ft.ReadByte();
-				battLevel *= 6;
-				battLevel /= 4096;
+				bl = ft.ReadByte(); bl *= 256;
+				bl += ft.ReadByte();
+				bl *= 6;
+				batteryLevel = bl / 4096;
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			//battLevel = battLevel + (battLevel - 3) * .05 + .14;
-
-			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
-			return battery;
 		}
 
 		public override void setPcTime()
@@ -872,7 +863,8 @@ namespace X_Manager.Units.Gipsy6
 
 			try
 			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
+				//if (Parent.getParameter("keepMdp").Equals("false"))
+				if (!Properties.Settings.Default.INI_KEEP_MDP)
 				{
 					File.Delete(fileNameMdp);
 				}
@@ -891,9 +883,9 @@ namespace X_Manager.Units.Gipsy6
 			if (!fromDownload) Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.nextFile(true)));
 		}
 
-		public override void convert(string fileName, string[] prefs)
+		public override void convert(string fileName)
 		{
-			base.convert(fileName, prefs);
+			base.convert(fileName);
 
 			//Stabilisce se è un download diretto o da basestation
 			if (Path.GetExtension(fileName).IndexOf("bs6", StringComparison.InvariantCultureIgnoreCase) != -1)
@@ -1184,17 +1176,9 @@ namespace X_Manager.Units.Gipsy6
 					tabs = new string[p_fileCsv_length];
 					tabs[p_fileCsv_name] = t.unitNameTxt;
 				}
-				tabs[p_fileCsv_date] = t.dateTime.Day.ToString("00") + "/" + t.dateTime.Month.ToString("00") + "/" + t.dateTime.Year.ToString("0000");
-				if (pref_sameColumn)
-				{
-					tabs[p_fileCsv_date] += " " + t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
-				}
-				else
-				{
-					tabs[p_fileCsv_time] = t.dateTime.Hour.ToString("00") + ":" + t.dateTime.Minute.ToString("00") + ":" + t.dateTime.Second.ToString("00");
-				}
+				tabs[p_fileCsv_date] = t.dateTime.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 
-				if (((t.tsType & ts_battery) == ts_battery) && pref_battery)
+				if ((t.tsType & ts_battery) == ts_battery)
 				{
 					tabs[p_fileCsv_battery] = t.batteryLevel.ToString("0.00") + "V";
 				}
@@ -1250,139 +1234,139 @@ namespace X_Manager.Units.Gipsy6
 			//Interlocked.Increment(ref conversionDone);
 		}
 
-		private void kmlBGW_doWork(ref List<TimeStamp> tL, string kmlName)
-		{
-			//								data   ora    lon   lat   alt   eve   batt
+		//private void kmlBGW_doWork(ref List<TimeStamp> tL, string kmlName)
+		//{
+		//	//								data   ora    lon   lat   alt   eve   batt
 
-			//BinaryWriter placeMark;
-			//placeMark = new BinaryWriter(new FileStream(kmlName + ".kml", FileMode.Create));
-			//BinaryWriter kml;
-			//kml = new BinaryWriter(new FileStream(kmlName + "_temp.kml", FileMode.Create));
-			StreamWriter placeMark;
-			placeMark = new StreamWriter(kmlName + ".kml");
-			StreamWriter kml;
-			kml = new StreamWriter(kmlName + "_temp.kml");
+		//	//BinaryWriter placeMark;
+		//	//placeMark = new BinaryWriter(new FileStream(kmlName + ".kml", FileMode.Create));
+		//	//BinaryWriter kml;
+		//	//kml = new BinaryWriter(new FileStream(kmlName + "_temp.kml", FileMode.Create));
+		//	StreamWriter placeMark;
+		//	placeMark = new StreamWriter(kmlName + ".kml");
+		//	StreamWriter kml;
+		//	kml = new StreamWriter(kmlName + "_temp.kml");
 
-			//string kmlS = Properties.Resources.Folder_Path_Top + Properties.Resources.Path_Top;
-			//string placeS = Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2;
+		//	//string kmlS = Properties.Resources.Folder_Path_Top + Properties.Resources.Path_Top;
+		//	//string placeS = Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2;
 
-			kml.Write(Properties.Resources.Folder_Path_Top + Properties.Resources.Path_Top);
-			placeMark.Write(Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2);
+		//	kml.Write(Properties.Resources.Folder_Path_Top + Properties.Resources.Path_Top);
+		//	placeMark.Write(Properties.Resources.Final_Top_1 + Path.GetFileNameWithoutExtension(kmlName) + Properties.Resources.Final_Top_2);
 
-			int contoCoord = 0;
-			int pbmax = 0;
-			bool primaCoordinata = true;
-			string lonS = "", latS = "", altS = "";
+		//	int contoCoord = 0;
+		//	int pbmax = 0;
+		//	bool primaCoordinata = true;
+		//	string lonS = "", latS = "", altS = "";
 
-			var t = new TimeStamp();
-			while (true)
-			{
-				//if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
-				//{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
-				//	kmlSem.WaitOne();
-				//}
-				kmlSem.WaitOne();
-				if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
-				{
-					break;
-				}
-				t = tL[0];
-				tL.RemoveAt(0);
+		//	var t = new TimeStamp();
+		//	while (true)
+		//	{
+		//		//if (Interlocked.Read(ref lastTimestamp) == 0)   //Se il thread principale sta ancora aggiungendo timestamp alla pila
+		//		//{                                               //aspetta che il thread principale abbia aggiunto un nuovo timestamp alla lista
+		//		//	kmlSem.WaitOne();
+		//		//}
+		//		kmlSem.WaitOne();
+		//		if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
+		//		{
+		//			break;
+		//		}
+		//		t = tL[0];
+		//		tL.RemoveAt(0);
 
-				if (t.sat > 0) //Si scrive il timestmap nel kml
-				{
-					if (contoCoord == 10000)
-					{
-						kml.Write(Properties.Resources.Path_Bot + Properties.Resources.Path_Top);
-						contoCoord = 0;
-					}
+		//		if (t.sat > 0) //Si scrive il timestmap nel kml
+		//		{
+		//			if (contoCoord == 10000)
+		//			{
+		//				kml.Write(Properties.Resources.Path_Bot + Properties.Resources.Path_Top);
+		//				contoCoord = 0;
+		//			}
 
-					kml.Write("\t\t\t\t\t");
-					lonS = t.lon.ToString("00.0000000", nfi) + ",";
-					kml.Write(lonS);
-					latS = t.lat.ToString("00.0000000", nfi) + ",";
-					kml.Write(latS);
-					altS = t.altitude.ToString("0000.0", nfi);
-					kml.Write(altS);
+		//			kml.Write("\t\t\t\t\t");
+		//			lonS = t.lon.ToString("00.0000000", nfi) + ",";
+		//			kml.Write(lonS);
+		//			latS = t.lat.ToString("00.0000000", nfi) + ",";
+		//			kml.Write(latS);
+		//			altS = t.altitude.ToString("0000.0", nfi);
+		//			kml.Write(altS);
 
-					if (primaCoordinata)
-					{
-						primaCoordinata = false;
-						//Segnaposto di start
-						placeMark.Write(Properties.Resources.lookat1);
-						placeMark.Write(t.lon.ToString("00.0000000", nfi));
-						placeMark.Write(Properties.Resources.lookat2);
-						placeMark.Write(t.lat.ToString("00.0000000", nfi));
-						placeMark.Write(Properties.Resources.lookat3);
-						placeMark.Write(t.altitude.ToString("0000.0", nfi));
-						placeMark.Write(Properties.Resources.lookat4);
-						//Coordinata placemark
-						placeMark.Write(Properties.Resources.Placemarks_Start_Top + "\r\n\t\t\t\t<coordinates>");
-						placeMark.Write(lonS);
-						placeMark.Write(latS);
-						placeMark.Write(altS);
-						placeMark.Write("</coordinates>\r\n");
-						placeMark.Write(Properties.Resources.Placemarks_Start_Bot + Properties.Resources.Folder_Generics_Top);
-					}
+		//			if (primaCoordinata)
+		//			{
+		//				primaCoordinata = false;
+		//				//Segnaposto di start
+		//				placeMark.Write(Properties.Resources.lookat1);
+		//				placeMark.Write(t.lon.ToString("00.0000000", nfi));
+		//				placeMark.Write(Properties.Resources.lookat2);
+		//				placeMark.Write(t.lat.ToString("00.0000000", nfi));
+		//				placeMark.Write(Properties.Resources.lookat3);
+		//				placeMark.Write(t.altitude.ToString("0000.0", nfi));
+		//				placeMark.Write(Properties.Resources.lookat4);
+		//				//Coordinata placemark
+		//				placeMark.Write(Properties.Resources.Placemarks_Start_Top + "\r\n\t\t\t\t<coordinates>");
+		//				placeMark.Write(lonS);
+		//				placeMark.Write(latS);
+		//				placeMark.Write(altS);
+		//				placeMark.Write("</coordinates>\r\n");
+		//				placeMark.Write(Properties.Resources.Placemarks_Start_Bot + Properties.Resources.Folder_Generics_Top);
+		//			}
 
-					char cl = (char)(49 + (t.speed / 10));
-					if (cl > 55)
-					{
-						cl = '9';
-					}
+		//			char cl = (char)(49 + (t.speed / 10));
+		//			if (cl > 55)
+		//			{
+		//				cl = '9';
+		//			}
 
-					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_1);
-					placeMark.Write(t.dateTime.ToString("dd/MM/yyyy HH:mm:ss"));
-					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_2 + cl.ToString());
-					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_3);
-					placeMark.Write(t.altitude.ToString());
-					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_4);
-					placeMark.Write(t.speed.ToString());
-					placeMark.Write(Properties.Resources.Placemarks_Generic_Top_5);
-					placeMark.Write("\r\n\t\t\t\t\t<coordinates>");
-					placeMark.Write(lonS);
-					placeMark.Write(latS);
-					placeMark.Write(altS);
-					placeMark.Write("</coordinates>\r\n");
-					placeMark.Write(X_Manager.Properties.Resources.Placemarks_Generic_Bot);
-					contoCoord++;
-					//kml.Write(kmlS);
-					//kmlS = "";
-					//placeMark.Write(placeS);
-					//placeS = "";
-				}
-				//kmlSem.Release();
-				kmlSemBack.Release();
-			}
-			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Value = pbmax));
-			//kml.Write(kmlS);
-			//placeMark.Write(placeS);
-			//Scrive il segnaposto di stop nel fime kml dei placemarks
-			//placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
-			//placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
-			//	"\r\n\t\t\t\t\t+<coordinates>" + temp + "</coordinates>\r\n" + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
-			placeMark.Write(X_Manager.Properties.Resources.Folder_Bot);
-			placeMark.Write(X_Manager.Properties.Resources.Placemarks_Stop_Top +
-				"\r\n\t\t\t\t\t+<coordinates>" + lonS + latS + altS + "</coordinates>\r\n" + X_Manager.Properties.Resources.Placemarks_Stop_Bot);
+		//			placeMark.Write(Properties.Resources.Placemarks_Generic_Top_1);
+		//			placeMark.Write(t.dateTime.ToString("dd/MM/yyyy HH:mm:ss"));
+		//			placeMark.Write(Properties.Resources.Placemarks_Generic_Top_2 + cl.ToString());
+		//			placeMark.Write(Properties.Resources.Placemarks_Generic_Top_3);
+		//			placeMark.Write(t.altitude.ToString());
+		//			placeMark.Write(Properties.Resources.Placemarks_Generic_Top_4);
+		//			placeMark.Write(t.speed.ToString());
+		//			placeMark.Write(Properties.Resources.Placemarks_Generic_Top_5);
+		//			placeMark.Write("\r\n\t\t\t\t\t<coordinates>");
+		//			placeMark.Write(lonS);
+		//			placeMark.Write(latS);
+		//			placeMark.Write(altS);
+		//			placeMark.Write("</coordinates>\r\n");
+		//			placeMark.Write(X_Manager.Properties.Resources.Placemarks_Generic_Bot);
+		//			contoCoord++;
+		//			//kml.Write(kmlS);
+		//			//kmlS = "";
+		//			//placeMark.Write(placeS);
+		//			//placeS = "";
+		//		}
+		//		//kmlSem.Release();
+		//		kmlSemBack.Release();
+		//	}
+		//	Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.kmlProgressBar.Value = pbmax));
+		//	//kml.Write(kmlS);
+		//	//placeMark.Write(placeS);
+		//	//Scrive il segnaposto di stop nel fime kml dei placemarks
+		//	//placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Folder_Bot));
+		//	//placeMark.Write(System.Text.Encoding.ASCII.GetBytes(X_Manager.Properties.Resources.Placemarks_Stop_Top +
+		//	//	"\r\n\t\t\t\t\t+<coordinates>" + temp + "</coordinates>\r\n" + X_Manager.Properties.Resources.Placemarks_Stop_Bot));
+		//	placeMark.Write(X_Manager.Properties.Resources.Folder_Bot);
+		//	placeMark.Write(X_Manager.Properties.Resources.Placemarks_Stop_Top +
+		//		"\r\n\t\t\t\t\t+<coordinates>" + lonS + latS + altS + "</coordinates>\r\n" + X_Manager.Properties.Resources.Placemarks_Stop_Bot);
 
-			kml.Close();
-			placeMark.Close();
+		//	kml.Close();
+		//	placeMark.Close();
 
-			//Scrive l'header finale nel file kml string
-			File.AppendAllText(kmlName + "_temp.kml", X_Manager.Properties.Resources.Path_Bot);
-			File.AppendAllText(kmlName + "_temp.kml", X_Manager.Properties.Resources.Folder_Bot);
+		//	//Scrive l'header finale nel file kml string
+		//	File.AppendAllText(kmlName + "_temp.kml", X_Manager.Properties.Resources.Path_Bot);
+		//	File.AppendAllText(kmlName + "_temp.kml", X_Manager.Properties.Resources.Folder_Bot);
 
-			//Accorpa kml placemark e string
-			File.AppendAllText(kmlName + ".kml", System.IO.File.ReadAllText(kmlName + "_temp.kml"));
+		//	//Accorpa kml placemark e string
+		//	File.AppendAllText(kmlName + ".kml", System.IO.File.ReadAllText(kmlName + "_temp.kml"));
 
-			//Chiude il kml placemark
-			File.AppendAllText(kmlName + ".kml", X_Manager.Properties.Resources.Final_Bot);
-			//Elimina il kml string temporaneo
-			fDel(kmlName + "_temp.kml");
+		//	//Chiude il kml placemark
+		//	File.AppendAllText(kmlName + ".kml", X_Manager.Properties.Resources.Final_Bot);
+		//	//Elimina il kml string temporaneo
+		//	fDel(kmlName + "_temp.kml");
 
-			kmlSemBack.Release();
-			//Interlocked.Increment(ref conversionDone);
-		}
+		//	kmlSemBack.Release();
+		//	//Interlocked.Increment(ref conversionDone);
+		//}
 
 		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t, ref int pos)
 		{

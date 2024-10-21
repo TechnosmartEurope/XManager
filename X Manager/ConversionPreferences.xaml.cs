@@ -1,16 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 
 namespace X_Manager
@@ -22,9 +13,9 @@ namespace X_Manager
 	public partial class ConversionPreferences : Window
 	{
 
-		string prefFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + MainWindow.companyFolder + MainWindow.appFolder + "\\convPrefs.ini";
+		//string prefFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + MainWindow.companyFolder + MainWindow.appFolder + "\\convPrefs.ini";
 		// "\\TecnoSmArt Europe\\X Manager\\convPresf.ini";
-		string[] lastPrefs;
+		//string[] lastPrefs;
 		public bool OldUnitDebug = false;
 		public bool goOn;
 		public bool debugEvents = false;
@@ -37,26 +28,26 @@ namespace X_Manager
 		public bool proximity = false;
 		//bool removeNonGps = false;
 
-		const int pref_pressMetri = 0;
-		const int pref_millibars = 1;
-		const int pref_dateFormat = 2;
-		const int pref_timeFormat = 3;
-		const int pref_fillEmpty = 4;
-		const int pref_sameColumn = 5;
-		const int pref_battery = 6;
-		const int pref_txt = 7;
-		const int pref_kml = 8;
-		const int pref_h = 9;
-		const int pref_m = 10;
-		const int pref_s = 11;
-		const int pref_date_year = 12;
-		const int pref_date_month = 13;
-		const int pref_date_day = 14;
-		const int pref_time_override = 15;
-		const int pref_metadata = 16;
-		const int pref_leapSeconds = 17;
-		const int pref_nonGps = 18;
-		const int pref_proximity = 19;
+		//const int pref_pressMetri = 0;
+		//const int pref_millibars = 1;
+		//const int pref_dateFormat = 2;
+		//const int pref_timeFormat = 3;
+		//const int pref_fillEmpty = 4;
+		//const int pref_sameColumn = 5;
+		//const int pref_battery = 6;
+		//const int pref_txt = 7;
+		//const int pref_kml = 8;
+		//const int pref_h = 9;
+		//const int pref_m = 10;
+		//const int pref_s = 11;
+		//const int pref_date_year = 12;
+		//const int pref_date_month = 13;
+		//const int pref_date_day = 14;
+		//const int pref_time_override = 15;
+		//const int pref_metadata = 16;
+		//const int pref_leapSeconds = 17;
+		//const int pref_nonGps = 18;
+		//const int pref_proximity = 19;
 
 		string fileName;
 		public ConversionPreferences(string fileName)
@@ -72,60 +63,14 @@ namespace X_Manager
 			Closing += closing;
 			this.fileName = fileName;
 
-			if (System.IO.Path.GetExtension(fileName).Contains("6"))
-			{
-				//eventsCB.Visibility = Visibility.Visible;
-				proximityCB.Visibility = Visibility.Visible;
-			}
-			else
-			{
-				//eventsCB.Visibility = Visibility.Hidden;
-				proximityCB.Visibility = Visibility.Hidden;
-			}
+			proximityCB.Visibility = System.IO.Path.GetExtension(fileName).Contains("6") ? Visibility.Visible : Visibility.Hidden;
+
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
-			try
-			{
-				lastPrefs = System.IO.File.ReadAllLines(prefFile);
-				string s = lastPrefs[16];
 
-				if (s == "" | string.IsNullOrEmpty(s) | lastPrefs.Length != 20)
-				{
-					throw new Exception("");
-				}
-
-			}
-			catch
-			{
-				var dt = DateTime.Now;
-				string newPrefs = "millibars\r\n";              //pressione in millibar o metri
-				newPrefs += "1016\r\n";                         //millibar a livello del mare
-				newPrefs += "1\r\n";                            //formato data
-				newPrefs += "1\r\n";                            //formato ora
-				newPrefs += "False\r\n";                        //Fill empty fields
-				newPrefs += "False\r\n";                        //Date and Time on the same column
-				newPrefs += "False\r\n";                        //Battery
-				newPrefs += "True\r\n";                         //TXT
-				newPrefs += "True\r\n";                         //KML
-				newPrefs += dt.Hour.ToString() + "\r\n";        //Ore
-				newPrefs += dt.Minute.ToString() + "\r\n";      //Minuti
-				newPrefs += dt.Second.ToString() + "\r\n";      //Secondi
-				newPrefs += dt.Date.Year.ToString() + "\r\n";   //Anno
-				newPrefs += dt.Date.Month.ToString() + "\r\n";  //Mese
-				newPrefs += dt.Date.Day.ToString() + "\r\n";    //Giorno
-				newPrefs += "False\r\n";                        //Override date time
-				newPrefs += "True\r\n";                         //Metadata
-				newPrefs += "2\r\n";                            //Leap seconds
-				newPrefs += "False\r\n";                        //Sessioni senza gps
-				newPrefs += "True\r\n";                         //Prossimità (gipsy6)
-
-				System.IO.File.WriteAllText(prefFile, newPrefs);
-			}
-
-			lastPrefs = System.IO.File.ReadAllLines(prefFile);
-			if (lastPrefs[pref_pressMetri] == "millibars")
+			if (Properties.Settings.Default.CONV_PRESSURE_UNIT == "millibars")
 			{
 				Millibars.IsChecked = true;
 			}
@@ -133,53 +78,39 @@ namespace X_Manager
 			{
 				Meters.IsChecked = true;
 			}
-			groundLevelAirPressure.Value = Convert.ToDouble(lastPrefs[pref_millibars]);
-			switch (lastPrefs[pref_dateFormat])
+			groundLevelAirPressure.Value = Properties.Settings.Default.CONV_PRESSURE_OFFSET;
+			switch (Properties.Settings.Default.CONV_DATE_FORMAT)
 			{
-				case "1":
+				case 1:
 					date1.IsChecked = true;
 					//dateTimePicker.FormatString = "dd/MM/yyyy";
 					break;
-				case "2":
+				case 2:
 					date2.IsChecked = true;
 					//dateTimePicker.FormatString = "MM/dd/yyyy";
 					break;
-				case "3":
+				case 3:
 					date3.IsChecked = true;
 					//dateTimePicker.FormatString = "yyyy/MM/dd";
 					break;
-				case "4":
+				case 4:
 					date4.IsChecked = true;
 					//dateTimePicker.FormatString = "yyyy/dd/MM";
 					break;
 			}
-			switch (lastPrefs[pref_timeFormat])
+			switch (Properties.Settings.Default.CONV_TIME_FORMAT)
 			{
-				case "1":
+				case 1:
 					time1.IsChecked = true;
 					break;
-				case "2":
+				case 2:
 					time2.IsChecked = true;
 					break;
 			}
-			fill.IsChecked = false;
-			if (lastPrefs[pref_fillEmpty] == "True") fill.IsChecked = true;
-			same.IsChecked = false;
-			if (lastPrefs[pref_sameColumn] == "True") same.IsChecked = true;
-			batteryCB.IsChecked = false;
-			if (lastPrefs[pref_battery] == "True") batteryCB.IsChecked = true;
-			txt.IsChecked = false;
-			if (lastPrefs[pref_txt] == "True") txt.IsChecked = true;
-			kml.IsChecked = false;
-			if (lastPrefs[pref_kml] == "True") kml.IsChecked = true;
+			fill.IsChecked = Properties.Settings.Default.CONV_FILL_EMPTY;
+			same.IsChecked = Properties.Settings.Default.CONV_SAME_COLUMN;
 
-			if (System.IO.Path.GetExtension(fileName).Contains("6"))
-			{
-				txt.IsChecked = true;
-				txt.IsEnabled = false;
-			}
-
-			byte p = Convert.ToByte(lastPrefs[pref_h]);
+			byte p = (byte)Properties.Settings.Default.CONV_TIME.Hour;
 			if ((bool)time1.IsChecked)
 			{
 				hUd.footerContent = "";
@@ -209,23 +140,30 @@ namespace X_Manager
 			}
 
 			hUd.footer.Width = 0;
-			mUd.Value = Convert.ToDouble(lastPrefs[pref_m]);
-			sUd.Value = Convert.ToDouble(lastPrefs[pref_s]);
-			DateTime dd = new DateTime(Convert.ToInt16(lastPrefs[pref_date_year]), Convert.ToInt16(lastPrefs[pref_date_month]), Convert.ToInt16(lastPrefs[pref_date_day]));
+			mUd.Value = Properties.Settings.Default.CONV_TIME.Minute;
+			sUd.Value = Properties.Settings.Default.CONV_TIME.Second;
+			var dd = Properties.Settings.Default.CONV_TIME;
 			dateTimePicker.SelectedDate = dd;
 
-			OverrideTime.IsChecked = false;
-			if (lastPrefs[pref_time_override] == "True") OverrideTime.IsChecked = true;
-
-			metadataCB.IsChecked = false;
-			if (lastPrefs[pref_metadata] == "True") metadataCB.IsChecked = true;
-
-			leapSecondsUD.Value = int.Parse(lastPrefs[pref_leapSeconds]);
-
-			removeNonGps.IsChecked = bool.Parse(lastPrefs[pref_nonGps]);
-
-			proximityCB.IsChecked = bool.Parse(lastPrefs[pref_proximity]);
-
+			OverrideTime.IsChecked = Properties.Settings.Default.CONV_TIME_OVERRIDE;
+			metadataCB.IsChecked = Properties.Settings.Default.CONV_METADATA;
+			leapSecondsUD.Value = (double)Properties.Settings.Default.CONV_LEAP_SECONDS;
+			removeNonGps.IsChecked = Properties.Settings.Default.CONV_NON_GPS;
+			proximityCB.IsChecked = Properties.Settings.Default.CONV_PROXIMITY;
+			splitKmlCB.IsChecked = Properties.Settings.Default.CONV_SPLIT_KML;
+			switch (Properties.Settings.Default.CONV_SPLIT_KML_EVERY)
+			{
+				case 100:
+					splitKmlCBB.SelectedIndex = 0;
+					break;
+				case 1000:
+					splitKmlCBB.SelectedIndex = 1;
+					break;
+				case 10000:
+					splitKmlCBB.SelectedIndex = 2;
+					break;
+			}
+			splitKmlCBB.SelectionChanged += splitKmlCBB_SelectionChanged;
 		}
 
 		private void ctrlManager(object sender, KeyEventArgs e)
@@ -242,14 +180,14 @@ namespace X_Manager
 						MessageBox.Show(testo);
 						break;
 					case Key.D:
-						string testo1 = "Generate additional Text file with positions";
+						string testo1 = "CONVERSION SETTINGS";
 
 						switch (debugLevel)
 						{
 							case 0:
 								//if (System.IO.Path.GetExtension(fileName).Contains("6"))
 								//{
-								txt.Content = testo1 + " (D)";
+								convSettingsGB.Header = testo1 + " (D)";
 								//}
 								//else
 								//{
@@ -260,7 +198,7 @@ namespace X_Manager
 							case 1:
 								//if (System.IO.Path.GetExtension(fileName).Contains("6"))
 								//{
-								txt.Content = testo1;
+								convSettingsGB.Header = testo1;
 								debugLevel = 0;
 								//}
 								//else
@@ -269,14 +207,14 @@ namespace X_Manager
 								//	debugLevel = 2;
 								//}
 								break;
-							case 2:
-								txt.Content = testo1 + " (d3)";
-								debugLevel = 3;
-								break;
-							case 3:
-								txt.Content = testo1;
-								debugLevel = 0;
-								break;
+								//case 2:
+								//	txt.Content = testo1 + " (d3)";
+								//	debugLevel = 3;
+								//	break;
+								//case 3:
+								//	txt.Content = testo1;
+								//	debugLevel = 0;
+								//	break;
 						}
 						break;
 					case Key.A:
@@ -319,40 +257,38 @@ namespace X_Manager
 
 		private void closing(object sender, System.ComponentModel.CancelEventArgs e)
 		{
-			string[] lastPrefs = new string[20];
+			if (!goOn) return;
+
 			if ((bool)Millibars.IsChecked)
 			{
-				lastPrefs[pref_pressMetri] = "millibars";
+				Properties.Settings.Default.CONV_PRESSURE_UNIT = "millibars";
 			}
 			else
 			{
-				lastPrefs[pref_pressMetri] = "meters";
+				Properties.Settings.Default.CONV_PRESSURE_UNIT = "meters";
 			}
-			lastPrefs[pref_millibars] = groundLevelAirPressure.Value.ToString();
+			Properties.Settings.Default.CONV_PRESSURE_OFFSET = groundLevelAirPressure.Value;
 			if ((bool)date1.IsChecked)
 			{
-				lastPrefs[pref_dateFormat] = "1";
+				Properties.Settings.Default.CONV_DATE_FORMAT = 1;
 			}
 			else if ((bool)date2.IsChecked)
 			{
-				lastPrefs[pref_dateFormat] = "2";
+				Properties.Settings.Default.CONV_DATE_FORMAT = 2;
 			}
 			else if ((bool)date3.IsChecked)
 			{
-				lastPrefs[pref_dateFormat] = "3";
+				Properties.Settings.Default.CONV_DATE_FORMAT = 3;
 			}
 			else if ((bool)date4.IsChecked)
 			{
-				lastPrefs[pref_dateFormat] = "4";
+				Properties.Settings.Default.CONV_DATE_FORMAT = 4;
 			}
-			lastPrefs[pref_timeFormat] = "2";
-			if ((bool)time1.IsChecked) lastPrefs[pref_timeFormat] = "1";
-			lastPrefs[pref_fillEmpty] = fill.IsChecked.ToString();
-			lastPrefs[pref_sameColumn] = same.IsChecked.ToString();
-			lastPrefs[pref_battery] = batteryCB.IsChecked.ToString();
-			lastPrefs[pref_txt] = txt.IsChecked.ToString();
-			lastPrefs[pref_kml] = kml.IsChecked.ToString();
-			overrideTime = (bool)OverrideTime.IsChecked;
+			Properties.Settings.Default.CONV_TIME_FORMAT = 2;
+			if ((bool)time1.IsChecked) Properties.Settings.Default.CONV_TIME_FORMAT = 1;
+			Properties.Settings.Default.CONV_FILL_EMPTY = (bool)fill.IsChecked;
+			Properties.Settings.Default.CONV_SAME_COLUMN = (bool)same.IsChecked;
+			Properties.Settings.Default.CONV_TIME_OVERRIDE = (bool)OverrideTime.IsChecked;
 
 			double p = hUd.Value;
 			if ((bool)time2.IsChecked)
@@ -366,20 +302,14 @@ namespace X_Manager
 					if (p != 12) p += 12;
 				}
 			}
-			lastPrefs[pref_h] = p.ToString();
-			lastPrefs[pref_m] = mUd.Value.ToString();
-			lastPrefs[pref_s] = sUd.Value.ToString();
-			lastPrefs[pref_date_year] = dateTimePicker.SelectedDate.Value.Year.ToString();
-			lastPrefs[pref_date_month] = dateTimePicker.SelectedDate.Value.Month.ToString();
-			lastPrefs[pref_date_day] = dateTimePicker.SelectedDate.Value.Day.ToString();
-			lastPrefs[pref_time_override] = OverrideTime.IsChecked.ToString();
-			lastPrefs[pref_metadata] = metadataCB.IsChecked.ToString();
-			lastPrefs[pref_leapSeconds] = leapSecondsUD.Value.ToString();
-			lastPrefs[pref_nonGps] = removeNonGps.IsChecked.ToString();
-			lastPrefs[pref_proximity] = proximityCB.IsChecked.ToString();
-
-			if (System.IO.File.Exists(prefFile)) System.IO.File.Delete(prefFile);
-			System.IO.File.WriteAllLines(prefFile, lastPrefs);
+			DateTime pdt = (DateTime)dateTimePicker.SelectedDate;
+			Properties.Settings.Default.CONV_TIME = new DateTime(pdt.Year, pdt.Month, pdt.Day, (int)hUd.Value, (int)mUd.Value, (int)sUd.Value);
+			Properties.Settings.Default.CONV_METADATA = (bool)metadataCB.IsChecked;
+			Properties.Settings.Default.CONV_LEAP_SECONDS = (int)leapSecondsUD.Value;
+			Properties.Settings.Default.CONV_NON_GPS = (bool)removeNonGps.IsChecked;
+			Properties.Settings.Default.CONV_PROXIMITY = (bool)proximityCB.IsChecked;
+			Properties.Settings.Default.CONV_SPLIT_KML = (bool)splitKmlCB.IsChecked;
+			Properties.Settings.Default.CONV_SPLIT_KML_EVERY = (int)Math.Pow(10, splitKmlCBB.SelectedIndex + 2);
 		}
 
 		private void metersChecked(object sender, RoutedEventArgs e)
@@ -490,10 +420,19 @@ namespace X_Manager
 			time1.IsChecked = true;
 			fill.IsChecked = false;
 			same.IsChecked = true;
-			batteryCB.IsChecked = false;
+			//batteryCB.IsChecked = false;
 			metadataCB.IsChecked = false;
 		}
 
+		private void splitKmlCB_Checked(object sender, RoutedEventArgs e)
+		{
+			Properties.Settings.Default.CONV_SPLIT_KML = (bool)splitKmlCB.IsChecked;
+		}
+
+		private void splitKmlCBB_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+		{
+			Properties.Settings.Default.CONV_SPLIT_KML_EVERY = (int)Math.Pow(10, splitKmlCBB.SelectedIndex + 2);
+		}
 	}
 
 

@@ -10,6 +10,10 @@ using Microsoft.VisualBasic.FileIO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
+using System.Globalization;
+using Windows.Security.Cryptography.Core;
+
+
 #if X64
 using FT_HANDLE = System.UInt64;
 #else
@@ -74,22 +78,6 @@ namespace X_Manager.Units
 		public const byte ts_blockEnd = 0b0100_0000;
 
 
-		//Puntatori array preferenze conversione
-		public const int p_filePrefs_pressMetri = 0;
-		public const int p_filePrefs_millibars = 1;
-		public const int p_filePrefs_dateFormat = 2;
-		public const int p_filePrefs_timeFormat = 3;
-		public const int p_filePrefs_fillEmpty = 4;
-		public const int p_filePrefs_sameColumn = 5;
-		public const int p_filePrefs_battery = 6;
-		public const int p_filePrefs_txt = 7;
-		public const int p_filePrefs_kml = 8;
-		public const int p_filePrefs_overrideTime = 15;
-		public const int p_filePrefs_metadata = 16;
-		public const int p_filePrefs_leapSeconds = 17;
-		public const int p_filePrefs_removeNonGps = 18;
-		public const int p_filePrefs_proximity = 19;
-
 		//Preferenze conversione
 		protected bool pref_angloTime = false;
 		protected string pref_dateFormatParameter;
@@ -97,11 +85,8 @@ namespace X_Manager.Units
 		protected byte pref_timeFormat;
 		protected bool pref_overrideTime = false;
 		protected bool pref_inMeters = false;
-		protected bool pref_battery = false;
 		protected bool pref_repeatEmptyValues = true;
 		protected bool pref_sameColumn = false;
-		protected bool pref_makeTxt = false;
-		protected bool pref_makeKml = false;
 		protected double pref_pressOffset;
 		protected bool pref_addGpsTime;
 		protected bool pref_isDepth = true;
@@ -109,9 +94,12 @@ namespace X_Manager.Units
 		protected int pref_leapSeconds;
 		protected bool pref_removeNonGps = false;
 		protected bool pref_proximity = false;
+		protected bool pref_splitKml = false;
+		protected int pref_splitKmlEvery = 1000;
 		protected byte pref_debugLevel;
 
 		protected string _modelName = "";
+		//protected CultureInfo dateCi;
 		public virtual string modelName
 		{
 			get { return _modelName; }
@@ -143,8 +131,8 @@ namespace X_Manager.Units
 		protected FTDI_Device ft;
 
 		protected string csvSeparator;
-		protected string dateSeparator;
-
+		//protected string dateSeparator;
+		protected DateTime orDateTime;
 		protected const string unitNotReady = "Unit not ready";
 
 		protected long progVal = 0;
@@ -152,6 +140,43 @@ namespace X_Manager.Units
 		protected double progMax = 1;
 
 		public string defaultArdExtension = "ard";
+
+		public static readonly double[,] batteryLevels = new double[,]
+		{
+			{100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0},
+			{4.20, 4.15, 4.11, 4.08, 4.02, 3.98, 3.95, 3.91, 3.87, 3.85, 3.84, 3.82, 3.80, 3.79, 3.77, 3.75, 3.73, 3.71, 3.69, 3.61, 3.27}
+		};
+
+		public double _batteryLevel;
+		public double batteryLevel
+		{
+			get
+			{
+				return _batteryLevel;
+			}
+			set
+			{
+				_batteryLevel = value;
+				batteryPercentage = 100;
+				int counter = 0;
+				while ((counter < 20) && (batteryLevel < batteryLevels[1, counter]))
+				{
+					counter++;
+				}
+				if (_batteryLevel < 3.27)
+				{
+					batteryPercentage = 0;
+					return;
+				}
+				if (counter > 0)
+				{
+					double coeff = (batteryLevels[0, counter] - batteryLevels[0, counter - 1]) / (batteryLevels[1, counter] - batteryLevels[1, counter - 1]);
+					batteryPercentage = batteryLevels[0, counter] + coeff * (value - batteryLevels[1, counter]);
+				}
+			}
+		}
+		public double batteryPercentage;
+
 
 #if X64
 		[DllImport(@"resampleLib_x64.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -179,9 +204,159 @@ namespace X_Manager.Units
 			parent = (Parent)p;
 			ft = MainWindow.FTDI;
 			connected = false;
-			csvSeparator = parent.csvSeparator;
 			progressWorker.DoWork += prog_doWork;
 			progressWorker.RunWorkerCompleted += prog_endWork;
+		}
+
+		public void loadConversionSettings()
+		{
+			csvSeparator = Properties.Settings.Default.CONV_CSV_SEPARATOR;
+
+			if (Properties.Settings.Default.CONV_PRESSURE_UNIT == "meters") pref_inMeters = true;
+			if (Properties.Settings.Default.CONV_PRESSURE_RANGE == "air") pref_isDepth = false;
+
+			pref_repeatEmptyValues = Properties.Settings.Default.CONV_FILL_EMPTY;
+
+			pref_timeFormat = Properties.Settings.Default.CONV_TIME_FORMAT;
+			pref_dateFormat = Properties.Settings.Default.CONV_DATE_FORMAT;
+			if (pref_timeFormat == 2) pref_angloTime = true;
+			switch (pref_dateFormat)
+			{
+				case 1:
+					pref_dateFormatParameter = "dd/MM/yyyy";
+					break;
+				case 2:
+					pref_dateFormatParameter = "MM/dd/yyyy";
+					break;
+				case 3:
+					pref_dateFormatParameter = "yyyy/MM/dd";
+					break;
+				case 4:
+					pref_dateFormatParameter = "yyyy/dd/MM";
+					break;
+			}
+			pref_sameColumn = Properties.Settings.Default.CONV_SAME_COLUMN;
+			if (Properties.Settings.Default.CONV_SAME_COLUMN)
+			{
+				pref_sameColumn = true;
+				pref_dateFormatParameter += " ";
+			}
+			else
+			{
+				pref_dateFormatParameter += csvSeparator;
+			}
+
+			string centesimiDiSecondo = ".fff";
+			//Rimuove dal formata data e ora i centesimi di secondo perché per ora non sono utilizzati dal gipsy6. Togliere in caso di accelerometro
+			if (this is Gipsy6.Gipsy6) centesimiDiSecondo = "";
+
+			if (Properties.Settings.Default.CONV_TIME_FORMAT == 2)
+			{
+				pref_dateFormatParameter += "hh:mm:ss" + centesimiDiSecondo + " tt";
+			}
+			else
+			{
+				pref_dateFormatParameter += "HH:mm:ss" + centesimiDiSecondo;
+			}
+
+			pref_pressOffset = Properties.Settings.Default.CONV_PRESSURE_OFFSET;
+			pref_overrideTime = Properties.Settings.Default.CONV_TIME_OVERRIDE;
+			pref_metadata = Properties.Settings.Default.CONV_METADATA;
+
+			pref_leapSeconds = Properties.Settings.Default.CONV_LEAP_SECONDS;
+			pref_removeNonGps = Properties.Settings.Default.CONV_NON_GPS;
+			pref_proximity = Properties.Settings.Default.CONV_PROXIMITY;
+			if (Properties.Settings.Default.CONV_SAME_COLUMN)
+			{
+				pref_sameColumn = true;
+			}
+			orDateTime = Properties.Settings.Default.CONV_TIME;
+
+			pref_splitKml = Properties.Settings.Default.CONV_SPLIT_KML;
+			pref_splitKmlEvery = Properties.Settings.Default.CONV_SPLIT_KML_EVERY;
+		}
+
+		public void loadTempConversionSettings(string[] prefs, DateTime dt)
+		{
+
+			const int c_pref_pressMetri = 0;
+			const int c_pref_millibars = 1;
+			const int c_pref_dateFormat = 2;
+			const int c_pref_timeFormat = 3;
+			const int c_pref_fillEmpty = 4;
+			const int c_pref_sameColumn = 5;
+			//const int c_pref_dateTime = 7;
+			const int c_pref_overrideTime = 8;
+			const int c_pref_metadata = 9;
+			const int c_pref_leapSeconds = 10;
+			const int c_pref_removeNonGps = 11;
+			const int c_pref_proximity = 12;
+
+			if (prefs[c_pref_pressMetri] == "meters") pref_inMeters = true;
+			if (prefs[c_pref_pressMetri] == "air") pref_isDepth = false;
+
+			pref_repeatEmptyValues = false;
+			if (prefs[c_pref_fillEmpty].Equals("True")) pref_repeatEmptyValues = true;
+
+
+			pref_timeFormat = byte.Parse(prefs[c_pref_timeFormat]);
+			pref_dateFormat = byte.Parse(prefs[c_pref_dateFormat]);
+			if (pref_timeFormat == 2) pref_angloTime = true;
+			switch (pref_dateFormat)
+			{
+				case 1:
+					pref_dateFormatParameter = "dd/MM/yyyy";
+					break;
+				case 2:
+					pref_dateFormatParameter = "MM/dd/yyyy";
+					break;
+				case 3:
+					pref_dateFormatParameter = "yyyy/MM/dd";
+					break;
+				case 4:
+					pref_dateFormatParameter = "yyyy/dd/MM";
+					break;
+			}
+			pref_sameColumn = false;
+			if (prefs[c_pref_sameColumn].Equals("True"))
+			{
+				pref_sameColumn = true;
+			}
+
+			if (pref_sameColumn)
+			{
+				pref_sameColumn = true;
+				pref_dateFormatParameter += " ";
+			}
+			else
+			{
+				pref_dateFormatParameter += csvSeparator;
+			}
+
+			if (int.Parse(prefs[c_pref_timeFormat]) == 2)
+			{
+				pref_dateFormatParameter += "hh:mm:ss.fff tt";
+			}
+			else
+			{
+				pref_dateFormatParameter += "HH:mm:ss.fff";
+			}
+
+			pref_pressOffset = int.Parse(prefs[c_pref_millibars]);
+			pref_overrideTime = false;
+			if (prefs[c_pref_overrideTime].Equals("True")) pref_overrideTime = true;
+			pref_metadata = false;
+			if (prefs[c_pref_metadata].Equals("True")) pref_metadata = true;
+
+			pref_leapSeconds = int.Parse(prefs[c_pref_leapSeconds]);
+			pref_metadata = false;
+			if (prefs[c_pref_metadata].Equals("True")) pref_metadata = true;
+			pref_removeNonGps = false;
+			if (prefs[c_pref_removeNonGps].Equals("True")) pref_removeNonGps = true;
+			pref_proximity = false;
+			if (prefs[c_pref_proximity].Equals("True")) pref_proximity = true;
+			orDateTime = dt;
+
 		}
 
 		public virtual void changeBaudrate(int newBaudrate)
@@ -263,7 +438,7 @@ namespace X_Manager.Units
 
 		public abstract string askFirmware();
 
-		public abstract string askBattery();
+		public abstract void askBattery();
 
 		public abstract string askName();
 
@@ -337,7 +512,7 @@ namespace X_Manager.Units
 
 		public abstract void extractArds(string fileNameMdp, string fileName, bool fromDownload);
 
-		public virtual void convert(string fileName, string[] prefsIn)
+		public virtual void convert(string fileName)
 		{
 
 		}
@@ -352,6 +527,11 @@ namespace X_Manager.Units
 		public virtual void disconnect()
 		{
 			connected = false;
+		}
+
+		public virtual void powerOff()
+		{
+
 		}
 
 		public virtual void shutDown()

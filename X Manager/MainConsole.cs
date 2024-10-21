@@ -19,53 +19,50 @@ namespace X_Manager
 		//X_Manager.App app = null;
 		Unit cUnit;
 		string fileName = "";
-		string[] newPrefs;
+		//string[] newPrefs;
 
 		bool stop = false;
 
-		//const int pref_pressMetri = 0;
-		//const int pref_millibars = 1;
-		//const int pref_dateFormat = 2;
-		//const int pref_timeFormat = 3;
-		//const int pref_fillEmpty = 4;
-		//const int pref_sameColumn = 5;
-		//const int pref_battery = 6;
-		//const int pref_txt = 7;
-		//const int pref_kml = 8;
-		//const int pref_metadata = 16;
-		//const int pref_leapSeconds = 17;
-		//const int pref_removeNonGps = 18;
+		const int pref_pressMetri = 0;
+		const int pref_millibars = 1;
+		const int pref_dateFormat = 2;
+		const int pref_timeFormat = 3;
+		const int pref_fillEmpty = 4;
+		const int pref_sameColumn = 5;
+		const int pref_battery = 6;
+		const int pref_dateTime = 7;
+		const int pref_overrideTime = 8;
+		const int pref_metadata = 9;
+		const int pref_leapSeconds = 10;
+		const int pref_removeNonGps = 11;
+		const int pref_proximity = 12;
+
+		string[] newPrefs = new string[13];
+		DateTime orDT;
 
 		public MainConsole()
 		{
-			csvSeparator = "\t";
 			MainWindow.FTDI = null;
 			var dt = DateTime.Now;
-			newPrefs = new string[19];
-			newPrefs[Unit.p_filePrefs_pressMetri] = "millibars";
-			newPrefs[Unit.p_filePrefs_millibars] = "1016";
-			newPrefs[Unit.p_filePrefs_dateFormat] = "1";   //Date format
-			newPrefs[Unit.p_filePrefs_timeFormat] = "1";   //Time format
-			newPrefs[Unit.p_filePrefs_fillEmpty] = "False";
-			newPrefs[Unit.p_filePrefs_sameColumn] = "False";
-			newPrefs[Unit.p_filePrefs_battery] = "True";
-			newPrefs[Unit.p_filePrefs_txt] = "True";
-			newPrefs[Unit.p_filePrefs_kml] = "True";
-			newPrefs[9] = dt.Hour.ToString() + "";
-			newPrefs[10] = dt.Minute.ToString() + "";
-			newPrefs[11] = dt.Second.ToString() + "";
-			newPrefs[12] = dt.Date.Year.ToString() + "";
-			newPrefs[13] = dt.Date.Month.ToString() + "";
-			newPrefs[14] = dt.Date.Day.ToString() + "";
-			newPrefs[Unit.p_filePrefs_overrideTime] = "False";
-			newPrefs[Unit.p_filePrefs_metadata] = "True";
-			newPrefs[Unit.p_filePrefs_leapSeconds] = "2";
-			newPrefs[Unit.p_filePrefs_removeNonGps] = "False";
+
+			newPrefs[pref_pressMetri] = "millibars";
+			newPrefs[pref_millibars] = "1016";
+			newPrefs[pref_dateFormat] = "1";   //Date format
+			newPrefs[pref_timeFormat] = "1";   //Time format
+			newPrefs[pref_fillEmpty] = "False";
+			newPrefs[pref_sameColumn] = "False";
+			newPrefs[pref_battery] = "True";
+			newPrefs[pref_dateTime] = dt.Hour.ToString() + "";
+			newPrefs[pref_overrideTime] = "False";
+			newPrefs[pref_metadata] = "True";
+			newPrefs[pref_leapSeconds] = "2";
+			newPrefs[pref_removeNonGps] = "False";
+			newPrefs[pref_proximity] = "True";
 
 			statusLabel = new Label();
 			statusLabel.Content = "Console";
 			etaLabel = new Label();
-
+			orDT = DateTime.Now;
 			statusProgressBar = new ProgressBar();
 		}
 
@@ -100,26 +97,27 @@ namespace X_Manager
 						}
 						break;
 
-					case "-txt":
-						pref = false;
-						if (args.Count == 0 || (!bool.TryParse(lRead(args), out pref)))
-						{
-							Console.WriteLine("TXT parameter missing. Exiting...");
-							res = false;
-							break;
-						}
-						newPrefs[Unit.p_filePrefs_txt] = pref.ToString();
-						break;
-					case "-kml":
-						pref = false;
-						if (args.Count == 0 || (!bool.TryParse(lRead(args), out pref)))
-						{
-							Console.WriteLine("KML parameter missing. Exiting...");
-							res = false;
-							break;
-						}
-						newPrefs[Unit.p_filePrefs_kml] = pref.ToString();
-						break;
+					//case "-txt":
+					//	pref = false;
+					//	if (args.Count == 0 || (!bool.TryParse(lRead(args), out pref)))
+					//	{
+					//		Console.WriteLine("TXT parameter missing. Exiting...");
+					//		res = false;
+					//		break;
+					//	}
+					//	//newPrefs[Unit.p_filePrefs_txt] = pref.ToString();
+					//	newPrefs[Unit.p_filePrefs_txt] = pref.ToString();
+					//	break;
+					//case "-kml":
+					//	pref = false;
+					//	if (args.Count == 0 || (!bool.TryParse(lRead(args), out pref)))
+					//	{
+					//		Console.WriteLine("KML parameter missing. Exiting...");
+					//		res = false;
+					//		break;
+					//	}
+					//	newPrefs[Unit.p_filePrefs_kml] = pref.ToString();
+					//	break;
 					case "-pressUnit":
 						if (args.Count == 0)
 						{
@@ -130,11 +128,11 @@ namespace X_Manager
 						arg = lRead(args);
 						if (arg.Contains("meter"))
 						{
-							newPrefs[Unit.p_filePrefs_pressMetri] = "meters";
+							newPrefs[pref_pressMetri] = "meters";
 						}
 						else if (arg.Contains("bar"))
 						{
-							newPrefs[Unit.p_filePrefs_pressMetri] = "millibars";
+							newPrefs[pref_pressMetri] = "millibars";
 						}
 						else
 						{
@@ -159,7 +157,7 @@ namespace X_Manager
 						}
 						else
 						{
-							newPrefs[Unit.p_filePrefs_millibars] = arg;
+							newPrefs[pref_millibars] = arg;
 						}
 						break;
 					case "-dateFormat":
@@ -189,7 +187,7 @@ namespace X_Manager
 								res = false;
 								break;
 						}
-						newPrefs[Unit.p_filePrefs_dateFormat] = arg;
+						newPrefs[pref_dateFormat] = arg;
 						break;
 					case "-timeFormat":
 						if (args.Count == 0)
@@ -203,10 +201,10 @@ namespace X_Manager
 						{
 							case "ampm":
 							case "12":
-								newPrefs[Unit.p_filePrefs_timeFormat] = "2";
+								newPrefs[pref_timeFormat] = "2";
 								break;
 							case "24":
-								newPrefs[Unit.p_filePrefs_timeFormat] = "1";
+								newPrefs[pref_timeFormat] = "1";
 								break;
 							default:
 								Console.WriteLine("Bad Time format value. Exiting...");
@@ -228,7 +226,7 @@ namespace X_Manager
 							res = false;
 							break;
 						}
-						newPrefs[Unit.p_filePrefs_fillEmpty] = pref.ToString();
+						newPrefs[pref_fillEmpty] = pref.ToString();
 						break;
 					case "-sameColumn":
 						if (args.Count == 0)
@@ -244,7 +242,7 @@ namespace X_Manager
 							res = false;
 							break;
 						}
-						newPrefs[Unit.p_filePrefs_sameColumn] = pref.ToString();
+						newPrefs[pref_sameColumn] = pref.ToString();
 						break;
 					case "-battery":
 						if (args.Count == 0)
@@ -260,7 +258,7 @@ namespace X_Manager
 							res = false;
 							break;
 						}
-						newPrefs[Unit.p_filePrefs_battery] = pref.ToString();
+						newPrefs[pref_battery] = pref.ToString();
 						break;
 					case "-newTime":
 						if (args.Count == 0)
@@ -271,13 +269,19 @@ namespace X_Manager
 						}
 						arg = lRead(args);
 						var dt = new DateTime();
-						DateTime.TryParse(arg, out dt);
-						newPrefs[9] = dt.Hour.ToString() + "";
-						newPrefs[10] = dt.Minute.ToString() + "";
-						newPrefs[11] = dt.Second.ToString() + "";
-						newPrefs[12] = dt.Date.Year.ToString() + "";
-						newPrefs[13] = dt.Date.Month.ToString() + "";
-						newPrefs[14] = dt.Date.Day.ToString() + "";
+						if (!DateTime.TryParse(arg, out dt))
+						{
+							Console.WriteLine("Wrong date/time format.");
+							res = false;
+							break;
+						}
+						orDT = dt;
+						//newPrefs[9] = dt.Hour.ToString() + "";
+						//newPrefs[10] = dt.Minute.ToString() + "";
+						//newPrefs[11] = dt.Second.ToString() + "";
+						//newPrefs[12] = dt.Date.Year.ToString() + "";
+						//newPrefs[13] = dt.Date.Month.ToString() + "";
+						//newPrefs[14] = dt.Date.Day.ToString() + "";
 						break;
 					case "-overrideTime":
 						if (args.Count == 0)
@@ -293,7 +297,7 @@ namespace X_Manager
 							res = false;
 							break;
 						}
-						newPrefs[Unit.p_filePrefs_overrideTime] = pref.ToString();
+						newPrefs[pref_overrideTime] = pref.ToString();
 						break;
 					case "-metadata":
 						if (args.Count == 0)
@@ -309,7 +313,7 @@ namespace X_Manager
 							res = false;
 							break;
 						}
-						newPrefs[Unit.p_filePrefs_metadata] = pref.ToString();
+						newPrefs[pref_metadata] = pref.ToString();
 						break;
 					case "-removeNonGPS":
 						if (args.Count == 0)
@@ -325,7 +329,7 @@ namespace X_Manager
 							res = false;
 							break;
 						}
-						newPrefs[Unit.p_filePrefs_removeNonGps] = pref.ToString();
+						newPrefs[pref_removeNonGps] = pref.ToString();
 						break;
 					case "-leapSeconds":
 						if (args.Count == 0)
@@ -341,7 +345,7 @@ namespace X_Manager
 							res = false;
 							break;
 						}
-						newPrefs[Unit.p_filePrefs_leapSeconds] = val.ToString();
+						newPrefs[pref_leapSeconds] = val.ToString();
 						break;
 
 				}
@@ -387,8 +391,8 @@ namespace X_Manager
 				exit();
 			}
 
-			string exten = System.IO.Path.GetExtension(fileName);
-			if ((exten.Length > 4))
+			string exten = Path.GetExtension(fileName);
+			if (exten.Length > 4)
 			{
 				addOn = ("_S" + exten.Remove(0, 4));
 			}
@@ -473,9 +477,6 @@ namespace X_Manager
 				case Unit.model_AGM1:
 					cUnit = new AGM(this);
 					break;
-				case Unit.model_Co2Logger:
-					cUnit = new CO2_Logger(this);
-					break;
 				case Unit.model_Gipsy6N:
 					cUnit = new Gipsy6N(this);
 					break;
@@ -485,11 +486,12 @@ namespace X_Manager
 			}
 
 			UInt32 FileLength = (UInt32)fs.Length;
+			cUnit.loadTempConversionSettings(newPrefs, orDT);
 			fs.Close();
 			Thread conversionThread;
 			if ((fileType == type_ard) | (fileType == type_rem))
 			{
-				conversionThread = new Thread(() => cUnit.convert(fileName, newPrefs));
+				conversionThread = new Thread(() => cUnit.convert(fileName));
 			}
 			else
 			{

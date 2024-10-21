@@ -20,6 +20,8 @@ using X_Manager.Remote;
 using X_Manager.Units.AxyTreks;
 using X_Manager.Units.Gipsy6;
 using X_Manager.Bootloader;
+using System.Text;
+//using System.Drawing;
 
 namespace X_Manager
 {
@@ -27,9 +29,7 @@ namespace X_Manager
 	{
 
 		public static Random random = new Random();
-		//sviluppo
 		private int start_error_code = 0;
-		///sviluppo
 		#region Dichiarazioni
 
 		Unit oUnit;
@@ -69,22 +69,6 @@ namespace X_Manager
 		const string STR_Restart = "Restart";
 		const string STR_memoryEMpty = "Memory is empty.";
 
-		public const string INI_BACKGROUND_IMAGE_PATH = "backgroundImagePath";
-		public const string INI_DATA_SAVE_PATH = "dataSavePath";
-		public const string INI_CONVERT_OPEN_PATH = "convertPath";
-		public const string INI_PRESSURE_RANGE = "pressureRange";
-		public const string INI_KEEP_MDP = "keepMdp";
-		public const string INI_DOWNLOAD_SPEED = "downloadSpeed";
-		public const string INI_CSV_SEPARATOR = "csvSeparator";
-		public const string INI_DOWNLOAD_MDOE = "downloadMode";
-		public const string INI_TREK_SCHEDULE_SAVE_PATH = "trekScheduleSavePath";
-		public const string INI_TREK_SCHEDULE_OPEN_PATH = "trekScheduleOpenPath";
-		public const string INI_AXY5_SCHEDULE_PATH = "axy5SchedulePath";
-		public const string INI_GIPSY6_SCHEDULE_PATH = "gipsy6ConfigurationsFolder";
-		public const string INI_GIPSY6_EXPERT_MODE = "gipsy6ConfigurationExpertMode";
-		public const string INI_GIPSY6_BOOTLOADER_WIPE_DATA = "gipsy6BootloaderWipeData";
-		public const string INI_GIPSY6_BOOTLOADER_WIPE_SETTINGS = "gipsy6BootloaderWipeSettings";
-
 		enum FILETYPE
 		{
 			FILETYPE_ARD = 1,
@@ -98,8 +82,8 @@ namespace X_Manager
 		public static string appFolder = "\\" + System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetEntryAssembly().Location).ProductName;
 
 		string iniPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-		public static string iniFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder + "\\settings.ini";
-		public static string prefFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder + "\\convPrefs.ini";
+		//public static string iniFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder + "\\settings.ini";
+		//public static string prefFile = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder + "\\convPrefs.ini";
 
 		List<string> convFiles = new List<string>();
 
@@ -136,6 +120,14 @@ namespace X_Manager
 			LocationChanged += locationChanged;
 			windowMovingTimer.Tick += windowMovingEnded;
 			windowMovingTimer.Interval = new TimeSpan(3000000);
+			if (Properties.Settings.Default.PATH_BACKGROUND_IMAGE == "") Properties.Settings.Default.PATH_BACKGROUND_IMAGE = iniPath + "\\test.png";
+			if (Properties.Settings.Default.PATH_SCHEDULE == "") Properties.Settings.Default.PATH_SCHEDULE = iniPath;
+			if (Properties.Settings.Default.PATH_DATA_SAVE == "") Properties.Settings.Default.PATH_DATA_SAVE = iniPath;
+			if (Properties.Settings.Default.PATH_CONVERT == "") Properties.Settings.Default.PATH_CONVERT = iniPath;
+			if (Properties.Settings.Default.PATH_GIPSY6_FIRMWARE_FILE == "") Properties.Settings.Default.PATH_GIPSY6_FIRMWARE_FILE = iniPath + "\\*.hex";
+			if (Properties.Settings.Default.CONV_CSV_SEPARATOR == "") Properties.Settings.Default.CONV_CSV_SEPARATOR = ";";
+			if (Properties.Settings.Default.CONV_CSV_SEPARATOR == "t") Properties.Settings.Default.CONV_CSV_SEPARATOR = "\t";
+
 		}
 
 		private void parseArgIn()
@@ -184,30 +176,26 @@ namespace X_Manager
 
 		private void mainWindowLoaded(object sender, EventArgs e)
 		{
+
 			try
 			{
-				Console.WriteLine("Loaded.");
-				//sviluppo
+
+				powerOffButton.Visibility = Visibility.Hidden;
+				PowerButtonGrid.ColumnDefinitions[1].Width = new GridLength(0);
+
 				start_error_code = 0;
-				///sviluppo
-				loadUserPrefs();
-				//sviluppo
-				start_error_code = 1;
-				///sviluppo
 				uiDisconnected();
-				//sviluppo
-				start_error_code = 2;
-				///sviluppo
+				start_error_code = 1;
 				initPicture();
-				//sviluppo
-				start_error_code = 3;
-				///sviluppo
-				//scanButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+				start_error_code = 2;
 				scanPorts(true);
-				//sviluppo
 				start_error_code = 8;
-				///sviluppo
-				string press = getParameter("pressureRange", "depth");
+				voltSubItem.IsChecked = Properties.Settings.Default.UI_DEFAULT_BATTERY_UNIT == "voltage";
+				percSubItem.IsChecked = Properties.Settings.Default.UI_DEFAULT_BATTERY_UNIT == "percentage";
+				voltSubItem.Checked += batteryUnitsChecked;
+				percSubItem.Checked += batteryUnitsChecked;
+
+				string press = Properties.Settings.Default.CONV_PRESSURE_RANGE;
 				switch (press)
 				{
 					case "depth":
@@ -219,25 +207,18 @@ namespace X_Manager
 						airSubItem.IsChecked = true;
 						break;
 				}
-				keepMdpItem.IsChecked = bool.Parse(getParameter("keepMdp", "true"));
-				//sviluppo
+				keepMdpItem.IsChecked = Properties.Settings.Default.INI_KEEP_MDP;
 				start_error_code = 9;
-				///sviluppo
-				//keepMdpItem.IsChecked = false;
-				//if (lastSettings[6] == "true") keepMdpItem.IsChecked = true;
-				//selectDownloadSpeed(lastSettings[7]);
-				//csvSeparatorChanged(lastSettings[8]);
-				selectDownloadSpeed(getParameter("downloadSpeed", "3"));
-				//sviluppo
+				selectDownloadSpeed(Properties.Settings.Default.INI_DOWNLOAD_SPEED);
 				start_error_code = 10;
-				///sviluppo
-				csvSeparatorChanged(getParameter("csvSeparator", "\t"));
-				//sviluppo
+#if DEBUG
+				Properties.Settings.Default.CONV_CSV_SEPARATOR = "\t";
+#endif
+				csvSeparatorChanged(Properties.Settings.Default.CONV_CSV_SEPARATOR);
 				start_error_code = 11;
-				///sviluppo
 				normalViewTabItem.IsSelected = true;
 
-				switch (getParameter("downloadMode", "A"))
+				switch (Properties.Settings.Default.INI_DOWNLOAD_MODE)
 				{
 					case "A":
 						downloadAutomatic.IsChecked = true;
@@ -247,32 +228,21 @@ namespace X_Manager
 						break;
 				}
 
-				//if (lastSettings[9].Equals("A")) downloadAutomatic.IsChecked = true;
-				//if (lastSettings[9].Equals("M")) downloadManual.IsChecked = true;
-				//sviluppo
 				start_error_code = 12;
-				///sviluppo
 				downloadManual.Checked += downloadModeChecked;
 				downloadManual.Unchecked += downloadModeChecked;
 				downloadAutomatic.Checked += downloadModeChecked;
 				downloadAutomatic.Unchecked += downloadModeChecked;
-				//sviluppo
 				start_error_code = 13;
-				///sviluppo
 				progressBarStopButton.IsEnabled = false;
 				progressBarStopButtonColumn.Width = new GridLength(0);
-				//sviluppo
 				start_error_code = 14;
-				///sviluppo
 
 				if (convFiles.Count > 0)
 				{
 					convertDataLaunch(convFiles);
 				}
-				//sviluppo
 				start_error_code = 15;
-				///sviluppo
-
 				configurePositionButton.Click += configurePositionClick;
 
 #if DEBUG
@@ -349,12 +319,9 @@ namespace X_Manager
 					//514
 					};
 #endif
-				//var confForm = new GiPSy6ConfigurationMain(conf, Unit.model_Gipsy6);
-				//confForm.ShowDialog();
 				windowMovingEnded(this, new EventArgs());
-				//sviluppo
 				start_error_code = 16;
-				///sviluppo
+				Console.WriteLine("Loaded.");
 			}
 			catch (Exception ex)
 			{
@@ -362,6 +329,35 @@ namespace X_Manager
 				MessageBox.Show(mess);
 			}
 
+			Closing += MainWindow_Closing;
+
+		}
+
+		private void MainWindow_Closing(object sender, CancelEventArgs e)
+		{
+			if (Properties.Settings.Default.CONV_CSV_SEPARATOR == "\t") Properties.Settings.Default.CONV_CSV_SEPARATOR = "t";
+			Properties.Settings.Default.Save();
+		}
+
+		private void batteryUnitsChecked(object sender, EventArgs e)
+		{
+			voltSubItem.Checked -= batteryUnitsChecked;
+			percSubItem.Checked -= batteryUnitsChecked;
+			voltSubItem.IsChecked = false;
+			percSubItem.IsChecked = false;
+			if (((MenuItem)sender).Name.Contains("volt"))
+			{
+				Properties.Settings.Default.UI_DEFAULT_BATTERY_UNIT = "voltage";
+				voltSubItem.IsChecked = true;
+			}
+			else
+			{
+				Properties.Settings.Default.UI_DEFAULT_BATTERY_UNIT = "percentage";
+				percSubItem.IsChecked = true;
+			}
+			if (unitConnected) refreshBattery(new object(), new RoutedEventArgs());
+			voltSubItem.Checked += batteryUnitsChecked;
+			percSubItem.Checked += batteryUnitsChecked;
 		}
 
 		private void locationChanged(object sender, EventArgs e)
@@ -425,62 +421,6 @@ namespace X_Manager
 			scanPorts(false);
 		}
 
-		private void loadUserPrefs()
-		{
-			try
-			{
-				settings = File.ReadAllLines(iniFile);
-			}
-			catch
-			{
-				settings = new string[] { "\r\n" };
-			}
-
-			if (!File.Exists(iniFile) | !settings[0].Contains("="))
-			{
-				if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder))
-				{
-
-					Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + companyFolder + appFolder);
-				}
-
-				string fileBody = "";
-				//crea il file ini nella cartella e scrive la prima riga per l\\immagine di sfondo (0)
-				fileBody = "backgroundImagePath=null\r\n";
-				//Scrive la cartella per il salvataggio dei file di schedule (1)
-				fileBody += "trekScheduleSavePath=null\r\n";
-				//Scrive la cartella per l//apertura dei file di schedule (2)
-				fileBody += "trekScheduleOpenPath=null\r\n";
-				//scrive il file ini per la cartella file Save (3)
-				fileBody += "dataSavePath=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads\r\n";
-				if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads"))
-				{
-					Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads");
-				}
-				//Scrive il file ini per la cartella Convert (4)
-				fileBody += "convertPath=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Downloads\r\n";
-				//Scrive il tipo di conversione del sensore di pressione
-				fileBody += "pressureRange=depth\r\n";
-				//Scrive l//opzione per lasciare su disco il file mdp dopo il download
-				fileBody += "keepMdp=true\r\n";
-				//Scrive la velocità di download
-				fileBody += "downloadSpeed=3\r\n";
-				//Scrive il separatore csv
-				fileBody += "csvSeparator=\t\r\n";
-				//Scrive la modalità download
-				fileBody += "downloadMode=A\r\n";
-				//Scrive il percorso schedule Axy5
-				fileBody += "axy5SchedulePath=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule\r\n";
-				if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule"))
-				{
-					Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + companyFolder + "\\Axy5Schedule");
-				}
-				File.WriteAllText(iniFile, fileBody);
-			}
-
-			settings = File.ReadAllLines(iniFile);
-		}
-
 		private void uiDisconnected()
 		{
 			try
@@ -495,12 +435,15 @@ namespace X_Manager
 			firmwareLabel.Content = "";
 			unitNameTextBox.Text = "";
 			batteryLabel.Content = "";
+			batteryLabel.IsEnabled = false;
 			unitNameTextBox.IsEnabled = false;
 			unitNameButton.IsEnabled = false;
 			comPortComboBox.IsEnabled = true;
 			KeyUp -= MainWindowKeyUp;
 			KeyDown -= ctrlManager;
 			KeyDown += ctrlManager;
+			powerOffButton.Visibility = Visibility.Hidden;
+			PowerButtonGrid.ColumnDefinitions[1].Width = new GridLength(0);
 			connectButton.Foreground = new SolidColorBrush(Color.FromArgb(0xff, 0xe0, 0xe0, 0xe0));
 			connectButton.Content = "Connect";
 			scanButton.IsEnabled = true;
@@ -541,6 +484,7 @@ namespace X_Manager
 			unitNameButton.IsEnabled = true;
 			comPortComboBox.IsEnabled = false;
 			connectButton.Content = "Disconnect";
+			remoteButton.IsEnabled = false;
 			scanButton.IsEnabled = false;
 			downloadButton.IsEnabled = true;
 			eraseButton.IsEnabled = true;
@@ -573,6 +517,12 @@ namespace X_Manager
 					configurePositionButton.IsEnabled = true;
 					configureMovementButton.Content = "CONFIGURATION";
 					configurePositionButton.Content = "Upload new firmware";
+					if (oUnit.firmTotA >= 2001000)
+					{
+						connectButton.Content = "Keep Going";
+						PowerButtonGrid.ColumnDefinitions[1].Width = new GridLength(1, GridUnitType.Star);
+						powerOffButton.Visibility = Visibility.Visible;
+					}
 					break;
 				case Unit.model_drop_off:
 					configureMovementButton.Content = "Drop-off timer configuration";
@@ -581,11 +531,12 @@ namespace X_Manager
 					configureMovementButton.Content = "Accelerometer configuration";
 					break;
 			}
-			//sviluppo
+
 			realTimeSP.IsEnabled = true;
 			realTimeB.IsEnabled = true;
 			batteryRefreshB.Visibility = Visibility.Visible;
 			batteryRefreshB.Click += refreshBattery;
+			batteryLabel.IsEnabled = true;
 		}
 
 		void ctrlManager(object sender, KeyEventArgs e)
@@ -733,7 +684,7 @@ namespace X_Manager
 			{
 				if (Keyboard.IsKeyDown(Key.LeftCtrl))
 				{
-					if (((string)connectButton.Content).Contains("Disconnect") && oUnit is Gipsy6)
+					if (((string)connectButton.Content).Contains("Disconnect") && (oUnit is Gipsy6) && (oUnit.firmTotA < 2001000))
 					{
 						connectButton.Content = "SHUT DOWN";
 						connectButton.Foreground = new SolidColorBrush(Color.FromArgb(255, 0xff, 0x0, 0x0));
@@ -756,6 +707,30 @@ namespace X_Manager
 				KeyDown -= ctrlManager;
 				KeyDown += ctrlManager;
 				e.Handled = true;
+			}
+		}
+
+		public void batteryLevelSwitchUnits(object sender, EventArgs e)
+		{
+			if (Properties.Settings.Default.UI_DEFAULT_BATTERY_UNIT == "voltage")
+			{
+				batteryLabel.Content = oUnit.batteryPercentage.ToString("#0.0") + "%";
+			}
+			else
+			{
+				batteryLabel.Content = oUnit.batteryLevel.ToString("0.00") + "V";
+			}
+		}
+
+		public void batteryLevelRestoreUnits(object sender, EventArgs e)
+		{
+			if (Properties.Settings.Default.UI_DEFAULT_BATTERY_UNIT == "percentage")
+			{
+				batteryLabel.Content = oUnit.batteryPercentage.ToString("#0.0") + "%";
+			}
+			else
+			{
+				batteryLabel.Content = oUnit.batteryLevel.ToString("0.00") + "V";
 			}
 		}
 
@@ -838,8 +813,7 @@ namespace X_Manager
 
 		private void openDataFolder(object sender, RoutedEventArgs e)
 		{
-			//lastSettings = File.ReadAllLines(iniFile);
-			System.Diagnostics.Process.Start(getParameter(INI_DATA_SAVE_PATH));
+			System.Diagnostics.Process.Start(Properties.Settings.Default.PATH_DATA_SAVE);
 		}
 
 		void tabControlTabChanged(object sender, RoutedEventArgs e)
@@ -996,10 +970,10 @@ namespace X_Manager
 
 		#region Menù
 
-		void realTimeConfigurationClick(object sender, RoutedEventArgs e)
-		{
+		//void realTimeConfigurationClick(object sender, RoutedEventArgs e)
+		//{
 
-		}
+		//}
 
 		private void downloadModeChecked(object sender, RoutedEventArgs e)
 		{
@@ -1012,17 +986,15 @@ namespace X_Manager
 			{
 				downloadAutomatic.IsChecked = true;
 				downloadManual.IsChecked = false;
-				updateParameter("downloadMode", "A");
-				//lastSettings[9] = "A";
-				//System.IO.File.WriteAllLines(iniFile, lastSettings);
+				//updateParameter("downloadMode", "A");
+				Properties.Settings.Default.INI_DOWNLOAD_MODE = "A";
 			}
 			else
 			{
 				downloadManual.IsChecked = true;
 				downloadAutomatic.IsChecked = false;
-				updateParameter("downloadMode", "M");
-				//lastSettings[9] = "M";
-				//System.IO.File.WriteAllLines(iniFile, lastSettings);
+				//updateParameter("downloadMode", "M");
+				Properties.Settings.Default.INI_DOWNLOAD_MODE = "M";
 			}
 			downloadManual.Checked += downloadModeChecked;
 			downloadAutomatic.Checked += downloadModeChecked;
@@ -1030,10 +1002,10 @@ namespace X_Manager
 			downloadAutomatic.Unchecked += downloadModeChecked;
 		}
 
-		void unlockUnit_Click(object sender, RoutedEventArgs e)
-		{
+		//void unlockUnit_Click(object sender, RoutedEventArgs e)
+		//{
 
-		}
+		//}
 
 		void changePictureClick(object sender, RoutedEventArgs e)
 		{
@@ -1043,7 +1015,7 @@ namespace X_Manager
 			string path = "";
 			try
 			{
-				path = Path.GetFullPath(Path.GetDirectoryName(getParameter(INI_BACKGROUND_IMAGE_PATH)));
+				path = Path.GetFullPath(Path.GetDirectoryName(Properties.Settings.Default.PATH_BACKGROUND_IMAGE));
 			}
 			catch
 			{
@@ -1077,9 +1049,7 @@ namespace X_Manager
 					openPicture.InitialDirectory = "C:\\";
 				}
 			}
-			updateParameter(INI_BACKGROUND_IMAGE_PATH, openPicture.FileName);
-			//lastSettings[0] = openPicture.FileName;
-			//System.IO.File.WriteAllLines(iniFile, lastSettings);
+			Properties.Settings.Default.PATH_BACKGROUND_IMAGE = openPicture.FileName;
 			try
 			{
 				var bmp = new BitmapImage();
@@ -1109,40 +1079,34 @@ namespace X_Manager
 
 		void airSensorSelected(object sender, RoutedEventArgs e)
 		{
-			//loadUserPrefs();
-			//lastSettings = System.IO.File.ReadAllLines(iniFile);
-			//lastSettings[5] = "air";
-			//System.IO.File.WriteAllLines(iniFile, lastSettings);
-			updateParameter("pressureRange", "air");
+			Properties.Settings.Default.CONV_PRESSURE_RANGE = "air";
 			depthSubItem.IsChecked = false;
 			airSubItem.IsChecked = true;
 		}
 
 		void depthSensorSelected(object sender, RoutedEventArgs e)
 		{
-			//loadUserPrefs();
-			//lastSettings = System.IO.File.ReadAllLines(iniFile);
-			//lastSettings[5] = "depth";
-			//System.IO.File.WriteAllLines(iniFile, lastSettings);
-			updateParameter("pressureRange", "depth");
+			Properties.Settings.Default.CONV_PRESSURE_RANGE = "depth";
 			depthSubItem.IsChecked = true;
 			airSubItem.IsChecked = false;
 		}
 
 		void keepMdpClicked(object sender, RoutedEventArgs e)
 		{
-			//lastSettings = System.IO.File.ReadAllLines(iniFile);
 			if (keepMdpItem.IsChecked)
 			{
-				//lastSettings[6] = "true";
-				updateParameter("keepMdp", "true");
+				Properties.Settings.Default.INI_KEEP_MDP = true;
 			}
 			else
 			{
-				//lastSettings[6] = "false";
-				updateParameter("keepMdp", "false");
+				Properties.Settings.Default.INI_KEEP_MDP = false;
 			}
 			//System.IO.File.WriteAllLines(iniFile, lastSettings);
+		}
+
+		void menuExit_Click(object sender, RoutedEventArgs e)
+		{
+			Close();
 		}
 
 		void selectDownloadSpeed(string speed)
@@ -1166,9 +1130,8 @@ namespace X_Manager
 					speed3.IsChecked = true;
 					break;
 			}
-			updateParameter("downloadSpeed", speed);
-			//lastSettings[7] = speed;
-			//System.IO.File.WriteAllLines(iniFile, lastSettings);
+			//updateParameter("downloadSpeed", speed);
+			Properties.Settings.Default.INI_DOWNLOAD_SPEED = speed;
 		}
 
 		void speedLegacySelected(object sender, RoutedEventArgs e)
@@ -1193,7 +1156,6 @@ namespace X_Manager
 
 		void csvSeparatorChanged(string sep)
 		{
-			csvSeparator = sep;
 			commaSubItem.IsChecked = false;
 			semicolonSubItem.IsChecked = false;
 			tabSubItem.IsChecked = false;
@@ -1209,9 +1171,7 @@ namespace X_Manager
 					tabSubItem.IsChecked = true;
 					break;
 			}
-			updateParameter("csvSeparator", sep);
-			//lastSettings[8] = sep;
-			//File.WriteAllLines(iniFile, lastSettings);
+			Properties.Settings.Default.CONV_CSV_SEPARATOR = sep;
 		}
 
 		void tabSepSel(object sender, RoutedEventArgs e)
@@ -1516,9 +1476,6 @@ namespace X_Manager
 							case "AGM-1":
 								oUnit = new AGM(this);
 								break;
-							case "CO2 Logger":
-								oUnit = new CO2_Logger(this);
-								break;
 							case "Axy-Trek":
 								oUnit = new AxyTrekN(this);
 								break;
@@ -1550,6 +1507,7 @@ namespace X_Manager
 							case "GiPSy-6_IR":
 								oUnit = new Gipsy6Iridium(this);
 								model = "Gipsy-6 Iridium";
+								((Gipsy6Iridium)oUnit).remoteConnection = remoteConnection;
 								break;
 							case "Drop-Off":
 								oUnit = new Drop_Off(this);
@@ -1633,6 +1591,21 @@ namespace X_Manager
 
 		}
 
+		//POWER OFF (solo gipsy6 >= 2.1.0)
+		void powerOffClick(object sender, RoutedEventArgs e)
+		{
+			if (remoteConnection)
+			{
+				string warn = "WARNING: the unit will be turned off and can only be restarted using a magnet.\r\nAre you sure you want to proceed?";
+				var yn = new YesNo(warn, "Shut Down Unit");
+				if (yn.ShowDialog() == YesNo.NO) return;
+			}
+			oUnit.powerOff();
+			oUnit.Dispose();
+			uiDisconnected();
+			oUnit = null;
+		}
+
 		//NAME
 		void unitNameButtonClick(object sender, RoutedEventArgs e)
 		{
@@ -1712,7 +1685,14 @@ namespace X_Manager
 			}
 			else if (oUnit is Axy5)
 			{
-				confForm = new Axy5ConfigurationWindow(conf, accSchedule, oUnit.firmTotA);
+				try
+				{
+					confForm = new Axy5ConfigurationWindow(conf, accSchedule, oUnit.firmTotA);
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message);
+				}
 			}
 			else if (oUnit is AxyTrek)
 			{
@@ -1948,7 +1928,7 @@ namespace X_Manager
 			statusLabel.Content = "Downloading...";
 			//lastSettings = File.ReadAllLines(iniFile);
 
-			if (getParameter("downloadMode").Equals("A"))    //Controllo memoria vuota
+			if (Properties.Settings.Default.INI_DOWNLOAD_MODE.Equals("A"))    //Controllo memoria vuota
 			{
 				if (oUnit.mem_address == oUnit.mem_max_logical_address)
 				{
@@ -1976,9 +1956,9 @@ namespace X_Manager
 			}
 
 
-			if (Directory.Exists(Path.GetFullPath(getParameter(INI_DATA_SAVE_PATH))))
+			if (Directory.Exists(Path.GetFullPath(Properties.Settings.Default.PATH_DATA_SAVE)))
 			{
-				saveRaw.InitialDirectory = Path.GetFullPath(getParameter(INI_DATA_SAVE_PATH));
+				saveRaw.InitialDirectory = Path.GetFullPath(Properties.Settings.Default.PATH_DATA_SAVE);
 			}
 			else
 			{
@@ -2008,13 +1988,14 @@ namespace X_Manager
 				statusProgressBar.IsIndeterminate = false;
 				return;
 			}
-			updateParameter(INI_DATA_SAVE_PATH, Path.GetDirectoryName(saveRaw.FileName));
+			Properties.Settings.Default.PATH_DATA_SAVE = Path.GetDirectoryName(saveRaw.FileName);
+			//updateParameter(INI_DATA_SAVE_PATH, Path.GetDirectoryName(saveRaw.FileName));
 			//lastSettings[3] = System.IO.Path.GetDirectoryName(saveRaw.FileName);
 			//File.WriteAllLines(iniFile, lastSettings);
 			UInt32 fromMemory = 0;
 			UInt32 toMemory = 0;
 
-			if (getParameter("downloadMode").Equals("A"))
+			if (Properties.Settings.Default.INI_DOWNLOAD_MODE.Equals("A"))
 			{
 				if ((oUnit is Axy5) | (oUnit is Gipsy6))
 				{
@@ -2146,14 +2127,17 @@ namespace X_Manager
 
 			Microsoft.Win32.OpenFileDialog fOpen = new Microsoft.Win32.OpenFileDialog();
 			fOpen.Reset();
-			if (Directory.Exists(Path.GetFullPath(Path.GetFullPath(getParameter("convertPath")))))
+#if DEBUG
+			Properties.Settings.Default.PATH_CONVERT = "C:\\Users\\marco\\OneDrive\\Desktop\\files";
+#endif
+			if (Directory.Exists(Path.GetFullPath(Properties.Settings.Default.PATH_CONVERT)))
 			{
-				fOpen.InitialDirectory = Path.GetFullPath(getParameter("convertPath"));
+				fOpen.InitialDirectory = Path.GetFullPath(Properties.Settings.Default.PATH_CONVERT);
 			}
 
 			fOpen.Filter = "Sensor Raw Data | *.ard;*.rem;*.gp6;*.bs6;*.memDump;*.mdp";
-
 			fOpen.Multiselect = true;
+
 			for (int i = 0; i < 2; i++)
 			{
 				try
@@ -2170,10 +2154,34 @@ namespace X_Manager
 				}
 			}
 
-			updateParameter("convertPath", Path.GetFullPath(Path.GetDirectoryName(fOpen.FileName)));
-			//File.WriteAllLines(iniFile, lastSettings);
+			List<string> extensions = new List<string>();
+			foreach (string file in fOpen.FileNames)
+			{
+				if (extensions.IndexOf(Path.GetExtension(file)) < 0)
+				{
+					extensions.Add(Path.GetExtension(file));
+				}
+			}
+
 			convFiles = new List<string>();
-			convFiles.AddRange(fOpen.FileNames);
+			List<string> temp_files;
+			foreach (string extension in extensions)
+			{
+				temp_files = new List<string>();
+				foreach (string file in fOpen.FileNames)
+				{
+					if (Path.GetExtension(file).Equals(extension))
+					{
+						temp_files.Add(file);
+					}
+				}
+				temp_files.Sort();
+				convFiles.AddRange(temp_files);
+			}
+
+			Properties.Settings.Default.PATH_CONVERT = Path.GetFullPath(Path.GetDirectoryName(fOpen.FileName));
+			//convFiles = new List<string>();
+			//convFiles.AddRange(fOpen.FileNames);
 			convertDataLaunch(convFiles);
 		}
 
@@ -2278,7 +2286,7 @@ namespace X_Manager
 					}
 				}
 			}
-			return connectButton.Content.Equals("Disconnect");
+			return connectButton.Content.Equals("Disconnect") || connectButton.Content.Equals("Keep Going");
 		}
 
 		public void externBootloader()
@@ -2293,10 +2301,15 @@ namespace X_Manager
 		{
 			try
 			{
-				batteryLabel.Content = oUnit.askBattery();
-				//BackgroundWorker brBW = new BackgroundWorker();
-				//brBW.DoWork += new DoWorkEventHandler(rotateBattery);
-				//brBW.RunWorkerAsync();
+				oUnit.askBattery();
+				if (Properties.Settings.Default.UI_DEFAULT_BATTERY_UNIT == "percentage")
+				{
+					batteryLabel.Content = oUnit.batteryPercentage.ToString("##.0") + "%";
+				}
+				else
+				{
+					batteryLabel.Content = oUnit.batteryLevel.ToString("0.00") + "V";
+				}
 			}
 			catch (Exception ex)
 			{
@@ -2369,13 +2382,16 @@ namespace X_Manager
 				Thread.Sleep(10);
 				oUnit.changeBaudrate(1);
 				Thread.Sleep(10);
+				FTDI.ReadExisting();
 				firmwareLabel.Content = oUnit.askFirmware();
 				Thread.Sleep(10);
 				unitNameTextBox.Text = oUnit.askName();
 				Thread.Sleep(10);
 				FTDI.ReadExisting();
 				Thread.Sleep(10);
-				batteryLabel.Content = oUnit.askBattery();
+				refreshBattery(new object(), new RoutedEventArgs());
+				//oUnit.askBattery();
+				//batteryLabel.Content = oUnit.batteryPercentage.ToString("##.0") + "%";
 				Thread.Sleep(10);
 				uint[] maxM = oUnit.askMaxMemory();
 				Thread.Sleep(10);
@@ -2501,7 +2517,7 @@ namespace X_Manager
 		}
 		private void initPicture()
 		{
-			if (getParameter(INI_BACKGROUND_IMAGE_PATH).Contains("null") | !File.Exists(getParameter(INI_BACKGROUND_IMAGE_PATH)))
+			if (!File.Exists(Properties.Settings.Default.PATH_BACKGROUND_IMAGE))
 			{
 				var png = new BitmapImage();
 				png.BeginInit();
@@ -2516,7 +2532,7 @@ namespace X_Manager
 				//pictureBox.Source= ImageSourceForBitmap(new Uri(lastSettings[0]));
 				var png = new BitmapImage();
 				png.BeginInit();
-				png.UriSource = new Uri(getParameter(INI_BACKGROUND_IMAGE_PATH), UriKind.Absolute);
+				png.UriSource = new Uri(Properties.Settings.Default.PATH_BACKGROUND_IMAGE, UriKind.Absolute);
 				png.EndInit();
 				pictureBox.Source = png;
 			}
@@ -2541,8 +2557,7 @@ namespace X_Manager
 				{
 					if (Path.GetExtension(files[0]) == ".jpg" | Path.GetExtension(files[0]) == ".bmp" | Path.GetExtension(files[0]) == ".png")
 					{
-						updateParameter(INI_BACKGROUND_IMAGE_PATH, files[0]);
-						//File.WriteAllLines(iniFile, lastSettings);
+						Properties.Settings.Default.PATH_BACKGROUND_IMAGE = files[0];
 						var bmp = new BitmapImage();
 						bmp.BeginInit();
 						bmp.UriSource = new Uri(files[0], UriKind.Absolute);
@@ -2871,9 +2886,6 @@ namespace X_Manager
 				case Unit.model_AGM1:
 					cUnit = new AGM(this);
 					break;
-				case Unit.model_Co2Logger:
-					cUnit = new CO2_Logger(this);
-					break;
 				case Unit.model_Gipsy6N:
 					cUnit = new Gipsy6N(this);
 					((Gipsy6)cUnit).kmlClose = kmlClose;
@@ -2883,24 +2895,25 @@ namespace X_Manager
 					break;
 				case Unit.model_Gipsy6IR:
 					cUnit = new Gipsy6Iridium(this);
+					((Gipsy6)cUnit).kmlClose = kmlClose;
 					break;
 				default:
 					cUnit = new AxyTrekN(this);
 					break;
 			}
 			cUnit.firmTotA = fw;
-			UInt32 FileLength = (UInt32)fs.Length;
+			uint FileLength = (uint)fs.Length;
 			fs.Close();
 			mainGrid.IsEnabled = false;
 			cUnit.convertStop = false;
 			Thread conversionThread;
-			string[] prefsOut = File.ReadAllLines(prefFile);
+			cUnit.loadConversionSettings();
 			if ((fileType == FILETYPE.FILETYPE_ARD) || (fileType == FILETYPE.FILETYPE_REM) || (fileType == FILETYPE.FILETYPE_GP6) || (fileType == FILETYPE.FILETYPE_BS6))
 			{
 				statusProgressBar.Maximum = FileLength;
 				progressBarStopButton.IsEnabled = true;
 				progressBarStopButtonColumn.Width = new GridLength(80);
-				conversionThread = new Thread(() => cUnit.convert(fileName, prefsOut));
+				conversionThread = new Thread(() => cUnit.convert(fileName));
 			}
 			else
 			{

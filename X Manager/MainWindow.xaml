@@ -26,9 +26,14 @@
 				<Menu DockPanel.Dock="Top" Grid.Row="0" Height="Auto" Background="#FF181818">
 					<!--<MenuItem Header="_SETTINGS" Margin="5" Foreground="#FF00AADE" FontSize="16" FontWeight="Bold" IsTabStop="False" BorderThickness="0">-->
 					<MenuItem Header="_SETTINGS" Margin="5" FontSize="16" FontWeight="Bold" IsTabStop="False" BorderThickness="0" >
-						<MenuItem Header="_Real Time Configuration" FontSize="12" Click="realTimeConfigurationClick" IsTabStop="False" />
+						<!--<MenuItem Header="_Real Time Configuration" FontSize="12" Click="realTimeConfigurationClick" IsTabStop="False" />-->
 						<MenuItem Header="_Change Picture" FontSize="12" Click="changePictureClick" IsTabStop="False"/>
-						<MenuItem Header="_Unlock Unit" FontSize="12" Click="unlockUnit_Click" IsTabStop="False"/>
+						<!--<MenuItem Header="_Unlock Unit" FontSize="12" Click="unlockUnit_Click" IsTabStop="False"/>-->
+						<Separator />
+						<MenuItem Header="_Battery units" FontSize="12" IsTabStop="False">
+							<MenuItem Header="_Show percentage" x:Name="percSubItem" FontSize="12" IsCheckable="True" IsTabStop="False"/>
+							<MenuItem Header="_Show voltage" x:Name="voltSubItem" FontSize="12" IsCheckable="True" IsTabStop="False"/>
+						</MenuItem>
 						<Separator />
 						<MenuItem Header="_Pressure Range" FontSize="12" IsTabStop="False">
 							<MenuItem Header="_Air Sensor" x:Name="airSubItem" FontSize="12" Click="airSensorSelected" IsCheckable="True" IsTabStop="False"/>
@@ -51,6 +56,8 @@
 							<MenuItem x:Name="downloadManual" Header="Manual" IsCheckable="True"/>
 						</MenuItem>
 						<MenuItem Header="Keep MDP file after downloading" x:Name="keepMdpItem" FontSize="12" Click="keepMdpClicked" IsCheckable="True" IsChecked="False" IsTabStop="False"/>
+						<Separator />
+						<MenuItem x:Name="exit" Header="Exit" Click="menuExit_Click" FontSize="12"/>
 					</MenuItem>
 					<MenuItem Header="_?" Margin="5" FontSize="16" FontWeight="Bold" IsTabStop="False" BorderThickness="0">
 						<MenuItem Header="About" x:Name="aboutItem" FontSize="12" Click="aboutInfoClick" IsTabStop="False"/>
@@ -78,7 +85,8 @@
 					<Label Grid.Column="3" Margin="0,6,0,6" Width="66" Content="FIRMWARE:" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
 					<Label Grid.Column="4" Margin="0,6,0,6" x:Name="firmwareLabel" Width="120" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="A20.20.20B20.20.20" Padding="0" Height="18" />
 					<Label Grid.Column="5" Margin="0,6,0,6" Width="53" Content="BATTERY:" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#FF00AADE" FontSize="13" Padding="0" Height="18" />
-					<Label Grid.Column="6" Margin="5,6,0,6" x:Name="batteryLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="4.02 V" Padding="0" Width="40" Height="18" />
+					<Label Grid.Column="6" Margin="5,6,0,6" x:Name="batteryLabel" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="13" Content="4.02 V" Padding="0" 
+							Width="40" Height="18" MouseLeftButtonDown="batteryLevelSwitchUnits" MouseLeftButtonUp="batteryLevelRestoreUnits" IsEnabled="False"/>
 					<Border BorderThickness="0" Grid.Column="7" BorderBrush="#00000000">
 						<Button  x:Name="batteryRefreshB" Width="20" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
 							<Image x:Name="batteryRefreshI" Stretch="Fill" Margin="0" Source="pack://application:,,,/Resources/refresh.png" 
@@ -122,8 +130,16 @@
 									<ColumnDefinition Width="3.6*"/>
 									<ColumnDefinition Width="0*" Name="shutDownColumn"/>
 								</Grid.ColumnDefinitions>-->
-								<Button x:Name="connectButton" Content="Connect" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick"/>
-								<!--<Button x:Name="shutDownButton" Grid.Column="1" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick" 
+							<Grid x:Name ="PowerButtonGrid">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition />
+									<ColumnDefinition />
+								</Grid.ColumnDefinitions>
+								<Button Grid.Column="0" x:Name="connectButton" Content="Connect" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick"/>
+								<Button Grid.Column="1" x:Name="powerOffButton" Content="Power OFF" Margin="0,0,0,0" Height="40" MinHeight="0" 
+									Foreground="Red" TabIndex="1" Click="powerOffClick"/>
+							</Grid>
+							<!--<Button x:Name="shutDownButton" Grid.Column="1" Margin="0,0,0,0" Height="40" MinHeight="0" TabIndex="1" Click="connectClick" 
 									Foreground="Red" Padding="0" IsEnabled="False" Visibility="Hidden">
 									<Button.Content>
 										<Grid>

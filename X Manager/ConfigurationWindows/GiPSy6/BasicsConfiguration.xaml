@@ -121,15 +121,16 @@
 		</StackPanel>
 
 		<TextBlock Grid.Row="19" x:Name="iridiumScheduleTitleTB" Text="IRIDIUM SCHEDULE:" Foreground="#FF00AADE" FontSize="25" Margin="40,0,0,0" VerticalAlignment="Center"/>
-		<ComboBox Grid.Row="19" x:Name="iridiumScheduleCB" Margin="280,0,0,0" Width="100" HorizontalAlignment="Left" VerticalAlignment="Center">
-			<ComboBoxItem>1</ComboBoxItem>
-			<ComboBoxItem>4</ComboBoxItem>
-			<ComboBoxItem>8</ComboBoxItem>
-			<ComboBoxItem>20</ComboBoxItem>
-			<ComboBoxItem>40</ComboBoxItem>
-			<ComboBoxItem>60</ComboBoxItem>
+		<ComboBox Grid.Row="19" x:Name="iridiumScheduleCB" Margin="280,0,0,0" Width="160" HorizontalAlignment="Left" VerticalAlignment="Center">
+			<ComboBoxItem>10 Minutes</ComboBoxItem>
+			<ComboBoxItem>30 Minutes</ComboBoxItem>
+			<ComboBoxItem>1 Hours</ComboBoxItem>
+			<ComboBoxItem>4 Hours</ComboBoxItem>
+			<ComboBoxItem>8 Hours</ComboBoxItem>
+			<ComboBoxItem>20 Hours</ComboBoxItem>
+			<ComboBoxItem>40 Hours</ComboBoxItem>
+			<ComboBoxItem>60 Hours</ComboBoxItem>
 		</ComboBox>
-		<Label Grid.Row="19" x:Name="iridiumHoursL" Content="Hours" Margin="400,0,0,0" VerticalContentAlignment="Center" Width="100" HorizontalAlignment="Left" FontSize="25" Background="#FF202020"/>
 		<TextBlock Grid.Row="19" x:Name="imeiTB" Text="IMEI: " Foreground="#FF00DEAA" FontSize="25" Margin="0,0,30,0" HorizontalAlignment="Right" />
 	</Grid>
 </local:PageCopy>

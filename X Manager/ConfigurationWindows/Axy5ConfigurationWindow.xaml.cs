@@ -699,7 +699,8 @@ namespace X_Manager.ConfigurationWindows
 			var s = new System.Windows.Forms.SaveFileDialog();
 			try
 			{
-				s.InitialDirectory = System.IO.Path.GetFullPath(System.IO.File.ReadAllLines(MainWindow.iniFile)[10]);
+				//s.InitialDirectory = System.IO.Path.GetFullPath(System.IO.File.ReadAllLines(MainWindow.iniFile)[10]);
+				s.InitialDirectory = System.IO.Path.GetFullPath(Properties.Settings.Default.PATH_SCHEDULE);
 			}
 			catch { }
 			s.DefaultExt = ".sch";
@@ -765,9 +766,10 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 
-			string[] prefs = System.IO.File.ReadAllLines(MainWindow.iniFile);
-			prefs[10] = System.IO.Path.GetDirectoryName(s.FileName);
-			System.IO.File.WriteAllLines(MainWindow.iniFile, prefs);
+			Properties.Settings.Default.PATH_SCHEDULE = System.IO.Path.GetDirectoryName(s.FileName);
+			//string[] prefs = System.IO.File.ReadAllLines(MainWindow.iniFile);
+			//prefs[10] = System.IO.Path.GetDirectoryName(s.FileName);
+			//System.IO.File.WriteAllLines(MainWindow.iniFile, prefs);
 
 		}
 
@@ -778,7 +780,8 @@ namespace X_Manager.ConfigurationWindows
 			var l = new System.Windows.Forms.OpenFileDialog();
 			try
 			{
-				l.InitialDirectory = System.IO.Path.GetFullPath(System.IO.File.ReadAllLines(MainWindow.iniFile)[10]);
+				//l.InitialDirectory = System.IO.Path.GetFullPath(System.IO.File.ReadAllLines(MainWindow.iniFile)[10]);
+				l.InitialDirectory = System.IO.Path.GetFullPath(Properties.Settings.Default.PATH_SCHEDULE);
 			}
 			catch { }
 
@@ -796,6 +799,8 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			if (string.IsNullOrEmpty(l.FileName)) return;
+
+			Properties.Settings.Default.PATH_SCHEDULE = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(l.FileName));
 
 			string[] conf = System.IO.File.ReadAllLines(l.FileName);
 
@@ -868,7 +873,7 @@ namespace X_Manager.ConfigurationWindows
 				}
 			}
 			scheduleC.importParameters(pars);
-
+			
 		}
 
 	}

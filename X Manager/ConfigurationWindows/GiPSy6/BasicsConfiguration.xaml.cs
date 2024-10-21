@@ -244,20 +244,27 @@ namespace X_Manager.ConfigurationWindows
 			imeiTB.Visibility = Visibility.Hidden;
 			iridiumScheduleTitleTB.Visibility = Visibility.Hidden;
 			iridiumScheduleCB.Visibility = Visibility.Hidden;
-			iridiumHoursL.Visibility = Visibility.Hidden;
 			if (unit is Gipsy6Iridium)
 			{
 				imeiTB.Text += " " + ((Gipsy6Iridium)unit).IMEI;
 				imeiTB.Visibility = Visibility.Visible;
 				iridiumScheduleTitleTB.Visibility = Visibility.Visible;
 				iridiumScheduleCB.Visibility = Visibility.Visible;
-				iridiumHoursL.Visibility = Visibility.Visible;
-				if (conf[120] == 0) conf[120] = 1;		//Controllo di sicurezza, lo schedule non può mai essere messo in off (valore 0)
-				iridiumScheduleCB.SelectedIndex = Array.IndexOf(iridiumSched, conf[120]);
+				if (conf[120] == 0) conf[120] = 1;      //Controllo di sicurezza, lo schedule non può mai essere messo in off (valore 0)
+				if (conf[120] == 0x8a)
+				{
+					iridiumScheduleCB.SelectedIndex = 0;
+
+				}
+				else if (conf[120] == 0x9e)
+				{
+					iridiumScheduleCB.SelectedIndex = 1;
+				}
+				else
+				{
+					iridiumScheduleCB.SelectedIndex = Array.IndexOf(iridiumSched, conf[120]) + 2;
+				}
 			}
-
-
-
 			Loaded += loaded;
 		}
 
@@ -558,7 +565,12 @@ namespace X_Manager.ConfigurationWindows
 			//oldAdd = remoteAddressTB.Text;
 		}
 
-		private void rfAddressTB_TextChanged(object sender, TextChangedEventArgs e)
+        private void iridiumScheduleCB_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void rfAddressTB_TextChanged(object sender, TextChangedEventArgs e)
 		{
 			int newRfAddress = 0;
 			int index = 100;
@@ -841,7 +853,18 @@ namespace X_Manager.ConfigurationWindows
 			conf[58] = byte.Parse(enAccSelCB.SelectedItem as string);
 			conf[59] = (byte)sbyte.Parse(proximityPowerCB.Text.Substring(0, proximityPowerCB.Text.Length - 3));
 
-			conf[120] = iridiumSched[iridiumScheduleCB.SelectedIndex];
+			if (iridiumScheduleCB.SelectedIndex == 0)
+			{
+				conf[120] = 0x8a;
+			}
+			else if (iridiumScheduleCB.SelectedIndex == 1)
+			{
+				conf[120] = 0x9e;
+			}
+			else
+			{
+				conf[120] = iridiumSched[iridiumScheduleCB.SelectedIndex - 2];
+			}
 
 			conf[516] = 0xff;
 			Array.Copy(remoteHB.getStatus(GiPSy6.HourBar.MODE.MODE_NEW), 0, conf, 517, 3);

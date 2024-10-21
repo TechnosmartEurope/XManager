@@ -27,7 +27,7 @@ namespace X_Manager.Units
 			public byte tsType, tsTypeExt1, tsTypeExt2;
 			//public byte ore, secondi, minuti, anno, mese, giorno;
 			public float batteryLevel;
-			public double temp, press, pressOffset;
+			public double temp, press;
 			public DateTime orario;
 			public byte logEvent;
 			public bool agmSyncEventFlag;
@@ -49,7 +49,6 @@ namespace X_Manager.Units
 		bool bit16 = true;
 		byte sampleLength;
 		ushort addMilli;
-		CultureInfo dateCi;
 		new byte[] lastGroup;
 		byte cifreDec;
 		string cifreDecString;
@@ -70,24 +69,24 @@ namespace X_Manager.Units
 
 		}
 
-		public override string askBattery()
+		public override void askBattery()
 		{
-			string battery = "";
-			double battLevel;
+			//string battery = "";
+			//double battLevel;
 			ft.Write("TTTTGGAB");
+			double bl;
 			try
 			{
-				battLevel = ft.ReadByte(); battLevel *= 256;
-				battLevel += ft.ReadByte();
-				battLevel *= 6;
-				battLevel /= 4096;
+				bl = ft.ReadByte(); bl *= 256;
+				bl += ft.ReadByte();
+				bl *= 6;
+				batteryLevel = bl / 4096;
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
-			battery = Math.Round(battLevel, 2).ToString("0.00") + "V";
-			return battery;
+
 		}
 
 		public override string askFirmware()
@@ -350,8 +349,9 @@ namespace X_Manager.Units
 			if (!convertStop) extractArds(fileNameMdp, fileName, true);
 			else
 			{
-				if (Parent.getParameter("keepMdp").Equals("false"))
-					fDel(fileNameMdp);
+				//if (Parent.getParameter("keepMdp").Equals("false"))
+				//	fDel(fileNameMdp);
+				if (!Properties.Settings.Default.INI_KEEP_MDP) fDel(fileNameMdp);
 			}
 
 			Thread.Sleep(300);
@@ -461,7 +461,8 @@ namespace X_Manager.Units
 
 			try
 			{
-				if (Parent.getParameter("keepMdp").Equals("false")) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
+				//if (Parent.getParameter("keepMdp").Equals("false")) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
+				if (!Properties.Settings.Default.INI_KEEP_MDP) fDel(fileNameMdp); //System.IO.File.Delete(fileNameMdp);
 				else
 				{
 					if (!Path.GetExtension(fileNameMdp).Contains("Dump"))
@@ -522,9 +523,9 @@ namespace X_Manager.Units
 			ft.Write("TTTTTTTTTGGAO");
 		}
 
-		public override void convert(string fileName, string[] prefs)
+		public override void convert(string fileName)
 		{
-
+			base.convert(fileName);
 			timeStamp timeStampO = new timeStamp();
 			string barStatus = "";
 
@@ -568,61 +569,6 @@ namespace X_Manager.Units
 			while (ard.ReadByte() == 0) ;
 			ard.BaseStream.Position -= 1;
 
-			//Imposta le preferenze di conversione
-
-			dateSeparator = csvSeparator;
-			if (prefs[p_filePrefs_sameColumn] == "True")
-			{
-				pref_sameColumn = true;
-				dateSeparator = " ";
-			}
-
-			if (Parent.getParameter("pressureRange") == "air")
-			{
-				pref_isDepth = false;
-			}
-
-			if (prefs[p_filePrefs_pressMetri] == "meters")
-			{
-				pref_inMeters = true;
-			}
-
-			if (prefs[p_filePrefs_fillEmpty] == "False")
-			{
-				pref_repeatEmptyValues = false;
-			}
-
-			if (prefs[p_filePrefs_battery] == "True")
-			{
-				pref_battery = true;
-			}
-
-			dateCi = new CultureInfo("it-IT");
-			if (prefs[p_filePrefs_timeFormat] == "2")
-			{
-				dateCi = new CultureInfo("en-US");
-				pref_angloTime = true;
-			}
-
-			timeStampO.pressOffset = float.Parse(prefs[p_filePrefs_millibars]);
-			pref_dateFormat = byte.Parse(prefs[p_filePrefs_dateFormat]);
-			pref_timeFormat = byte.Parse(prefs[p_filePrefs_timeFormat]);
-			switch (pref_dateFormat)
-			{
-				case 1:
-					pref_dateFormatParameter = "dd/MM/yyyy";
-					break;
-				case 2:
-					pref_dateFormatParameter = "MM/dd/yyyy";
-					break;
-				case 3:
-					pref_dateFormatParameter = "yyyy/MM/dd";
-					break;
-				case 4:
-					pref_dateFormatParameter = "yyyy/dd/MM";
-					break;
-			}
-
 			cifreDec = 4;
 			cifreDecString = "0.0000";
 			if (!bit16)
@@ -632,7 +578,7 @@ namespace X_Manager.Units
 			}
 
 			pref_debugLevel = parent.stDebugLevel;
-			if (prefs[p_filePrefs_metadata] == "True" || pref_debugLevel == 1) pref_metadata = true;
+			if (pref_debugLevel == 1) pref_metadata = true;
 
 			//Legge i parametri di logging
 			//ard.BaseStream.Position = 7;
@@ -679,7 +625,7 @@ namespace X_Manager.Units
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.IsIndeterminate = false));
 			Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
 				new Action(() => parent.statusLabel.Content = barStatus + " - Converting"));
-			timeStampO.orario = findStartTime(fileName, ref prefs);
+			timeStampO.orario = findStartTime(fileName);
 
 			shortFileName = Path.GetFileNameWithoutExtension(fileName);
 
@@ -831,22 +777,11 @@ namespace X_Manager.Units
 			string metadataSep = "";
 			string metadataContent = "";
 
-			string ampm = "";
 			string textOut;
-			string dateTimeS;
-			string dateS = "";
-			UInt16 milli;
+			string dateS;
 			NumberFormatInfo nfi = (new CultureInfo("en-US", false).NumberFormat);
 
-			dateS = tsLoc.orario.ToString(pref_dateFormatParameter);
-			dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi);
-
-			if (pref_angloTime)
-			{
-				ampm = dateTimeS.Split(' ')[dateTimeS.Split(' ').Length - 1];
-				dateTimeS = dateTimeS.Remove(dateTimeS.Length - 3, 3);
-			}
-			milli = 0;
+			dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 
 			var oldLength = group.Length / sampleLength;
 			if (oldLength < rate)
@@ -871,7 +806,6 @@ namespace X_Manager.Units
 				}
 			}
 
-			textOut = "";
 
 			x = group[0] * 256 + group[1];
 			y = group[2] * 256 + group[3];
@@ -889,9 +823,7 @@ namespace X_Manager.Units
 			z *= gCoeff;
 			z = Math.Round(z, cifreDec);
 
-			textOut += unitName + csvSeparator + dateTimeS + ".000";
-
-			if (pref_angloTime) textOut += " " + ampm;
+			textOut = unitName + csvSeparator + dateS;
 
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
@@ -917,7 +849,6 @@ namespace X_Manager.Units
 				gyrox = x.ToString(cifreDecString, nfi);
 				gyroy = y.ToString(cifreDecString, nfi);
 				gyroz = z.ToString(cifreDecString, nfi);
-				// gyroSep = csvSeparator;
 				more += 6;
 			}
 			else if (gyroMode == 1)
@@ -989,14 +920,14 @@ namespace X_Manager.Units
 			temp = Math.Round(tsLoc.temp, 2).ToString(nfi);
 
 			//Inserisce la batteria
-			if (pref_battery)
+			//if (pref_battery)
+			//{
+			battSep = csvSeparator;
+			if (((tsLoc.tsType & 8) == 8) | pref_repeatEmptyValues)
 			{
-				battSep = csvSeparator;
-				if (((tsLoc.tsType & 8) == 8) | pref_repeatEmptyValues)
-				{
-					volt = tsLoc.batteryLevel.ToString(nfi);
-				}
+				volt = tsLoc.batteryLevel.ToString(nfi);
 			}
+			//}
 
 			//Inserisce i metadati
 			if (pref_metadata)
@@ -1066,8 +997,7 @@ namespace X_Manager.Units
 				volt = "";
 			}
 
-			milli += addMilli;
-			dateTimeS += ".";
+			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 
 			int iend = rate * sampleLength;
 			for (int i = sampleLength; i < iend; i += sampleLength)
@@ -1093,11 +1023,9 @@ namespace X_Manager.Units
 				if (rate == 1)
 				{
 					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateTimeS = dateS + dateSeparator + tsLoc.orario.ToString("T", dateCi) + ".";
+					dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 				}
-				textOut += unitName + csvSeparator + dateTimeS + milli.ToString("D3");
-
-				if (pref_angloTime) textOut += " " + ampm;
+				textOut += unitName + csvSeparator + dateS;
 
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
@@ -1171,7 +1099,7 @@ namespace X_Manager.Units
 				}
 				textOut += "\r\n";
 
-				milli += addMilli;
+				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 			}
 
 			return textOut;
@@ -1272,18 +1200,18 @@ namespace X_Manager.Units
 
 		}
 
-		private DateTime findStartTime(string fileName, ref string[] prefs)
+		private DateTime findStartTime(string fileName)
 		{
-			const int pref_h = 9;
-			const int pref_m = 10;
-			const int pref_s = 11;
-			const int pref_date_year = 12;
-			const int pref_date_month = 13;
-			const int pref_date_day = 14;
+			//const int pref_h = 9;
+			//const int pref_m = 10;
+			//const int pref_s = 11;
+			//const int pref_date_year = 12;
+			//const int pref_date_month = 13;
+			//const int pref_date_day = 14;
 
-			DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
-			   int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]), 0, DateTimeKind.Utc);
-
+			//DateTime dt = new DateTime(int.Parse(prefs[pref_date_year]), int.Parse(prefs[pref_date_month]), int.Parse(prefs[pref_date_day]),
+			//   int.Parse(prefs[pref_h]), int.Parse(prefs[pref_m]), int.Parse(prefs[pref_s]), 0, DateTimeKind.Utc);
+			DateTime dt = orDateTime;
 			dt.AddSeconds(19);
 
 			return dt;
@@ -1393,10 +1321,10 @@ namespace X_Manager.Units
 
 			csvHeader += csvSeparator + "Temp. (°C)";
 
-			if (pref_battery)
-			{
-				csvHeader += csvSeparator + "Battery Voltage (V)";
-			}
+			//if (pref_battery)
+			//{
+			csvHeader += csvSeparator + "Battery Voltage (V)";
+			//}
 
 			if (pref_metadata)
 			{
@@ -1515,7 +1443,7 @@ namespace X_Manager.Units
 		//		tsc.press = (float)Math.Round((((d1 * sens / 2097152) - off) / 81920), 1);
 		//		if (inMeters)
 		//		{
-		//			tsc.press -= tsc.pressOffset;
+		//			tsc.press -= pref_pressOffset
 		//			if (tsc.press <= 0) tsc.press = 0;
 		//			else
 		//			{
@@ -1578,7 +1506,7 @@ namespace X_Manager.Units
 				tsc.press = (((d1 * sens / 2_097_152) - off) / 81_920);
 				if (pref_inMeters)
 				{
-					tsc.press -= tsc.pressOffset;
+					tsc.press -= pref_pressOffset;
 					if (tsc.press <= 0) tsc.press = 0;
 					else
 					{
