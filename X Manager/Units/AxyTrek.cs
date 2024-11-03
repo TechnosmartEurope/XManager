@@ -1475,6 +1475,12 @@ namespace X_Manager.Units.AxyTreks
 				return new double[] { };
 			}
 
+			//sviluppo
+			if (timestamp.timeStampLength > 51)
+			{
+				int g = 0;
+			}
+
 			double[] doubleResult = new double[3 * nOutputs];
 			if (bits)
 			{
@@ -2066,7 +2072,7 @@ namespace X_Manager.Units.AxyTreks
 			string altSegno, eo, ns, coords;
 			var nfi = new CultureInfo("en-US", false).NumberFormat;
 			string dateS = timestamp.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
-			
+
 			if (((timestamp.tsType & 32) == 32) && pref_metadata)
 			{
 				//coords = dateTimeS + '\t';

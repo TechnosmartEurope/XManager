@@ -373,10 +373,9 @@ namespace X_Manager.Units.AxyTreks
 				if ((timestamp.tsTypeExt1 & 0x40) == 0x40)
 				{
 					secondAmount = (byte)ard.ReadByte();
+					timestamp.orario = timestamp.orario.AddSeconds(secondAmount);
 				}
 			}
-
-			timestamp.orario = timestamp.orario.AddSeconds(secondAmount);
 		}
 
 		protected override void groupConverter(double[] group, ref string textOut, long offset)
@@ -579,11 +578,11 @@ namespace X_Manager.Units.AxyTreks
 				y = group[i + 1] * gCoeff;
 				z = group[i + 2] * gCoeff;
 
-				if (rate == 1)
-				{
-					timestamp.orario = timestamp.orario.AddSeconds(1);
-					dateS = timestamp.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
-				}
+				//if (rate == 1)
+				//{
+				//	timestamp.orario = timestamp.orario.AddSeconds(1);
+				dateS = timestamp.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
+				//}
 				textOut += shortFileName + csvSeparator + dateS;
 
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);

@@ -347,11 +347,9 @@ namespace X_Manager.Units.AxyTreks
 				if ((timestamp.tsTypeExt1 & 0x40) == 0x40)
 				{
 					secondAmount = (byte)ard.ReadByte();
+					timestamp.orario = timestamp.orario.AddSeconds(secondAmount);
 				}
 			}
-
-			timestamp.orario = timestamp.orario.AddSeconds(secondAmount);
-
 		}
 
 		protected override double[] extractGroup()
@@ -463,7 +461,7 @@ namespace X_Manager.Units.AxyTreks
 			}
 
 			double x, y, z;
-			string  additionalInfo;
+			string additionalInfo;
 			string dateS;
 			NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 			string activityWater = "";
@@ -473,7 +471,7 @@ namespace X_Manager.Units.AxyTreks
 			dateS = timestamp.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 
 
-			textOut += shortFileName + csvSeparator + dateS; 
+			textOut += shortFileName + csvSeparator + dateS;
 			if (pref_addGpsTime)
 			{
 				if ((timestamp.tsType & 16) == 16)
@@ -628,11 +626,11 @@ namespace X_Manager.Units.AxyTreks
 				y = group[i + 1] * gCoeff;
 				z = group[i + 2] * gCoeff;
 
-				if (rate == 1)
-				{
-					timestamp.orario = timestamp.orario.AddSeconds(1);
-					dateS = timestamp.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
-				}
+				//if (rate == 1)
+				//{
+				//	timestamp.orario = timestamp.orario.AddSeconds(1);
+				dateS = timestamp.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
+				//}
 				textOut += shortFileName + csvSeparator + dateS;
 
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
