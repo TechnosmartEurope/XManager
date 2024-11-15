@@ -326,4 +326,5 @@
 	Conversione file multipla: i file in ingresso vengono raggruppati per estensione e messi in ordine di nome per evitare dati persi (conversione bs6 multipli)
 	Preferenze del software spostate da file ini a proprietà dell'eseguibile
 	Visualizzazione batteria sia come tensione che percentuale residua.
-1.52.1	Bugfix: gli ard provenienti dalle varianti del Trek venivano convertiti con i millisecondi sempre a zero, e ogni timestamp si incrementava di due secondi invece che 1
+1.25.1	Bugfix: gli ard provenienti dalle varianti del Trek venivano convertiti con i millisecondi sempre a zero, e ogni timestamp si incrementava di due secondi invece che 1
+1.25.2	Bugfix: i dati dell'axy4D in modalità Depth venivano scaricati con un model code errato, e quindi non potevano essere convertiti correttamente

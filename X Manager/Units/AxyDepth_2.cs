@@ -57,11 +57,7 @@ namespace X_Manager.Units
 			set
 			{
 				_modelName = value;
-				if (value == "Axy-Depth")
-				{
-					modelCode = model_axyDepth_legacy;
-				}
-				else if (value == "Axy-Depth.5")
+				if ((value == "Axy-Depth") || (value == "Axy-Depth.5"))
 				{
 					modelCode = model_axyDepth;
 				}

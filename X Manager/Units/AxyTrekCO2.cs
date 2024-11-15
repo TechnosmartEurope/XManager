@@ -445,6 +445,10 @@ namespace X_Manager.Units.AxyTreks
 			if (pref_debugLevel > 0)
 			{
 				additionalInfo += csvSeparator + (timestamp.ardPosition + offset).ToString("X") + csvSeparator + timestamp.timeStampLength.ToString();
+				if (timestamp.timeStampLength >= (rate + rate / 10))
+				{
+					additionalInfo += " freeze";
+				}
 			}
 			contoTab += 1;
 			if ((timestamp.tsType & 64) == 64) activityWater = "Active";

@@ -1475,12 +1475,6 @@ namespace X_Manager.Units.AxyTreks
 				return new double[] { };
 			}
 
-			//sviluppo
-			if (timestamp.timeStampLength > 51)
-			{
-				int g = 0;
-			}
-
 			double[] doubleResult = new double[3 * nOutputs];
 			if (bits)
 			{
