@@ -1268,7 +1268,7 @@ namespace X_Manager
 					}
 					catch (Exception ex)
 					{
-						MessageBox.Show(ex.Message);
+						MessageBox.Show(ex.Message + "\r\nError code: " + start_error_code.ToString());
 					}
 				}
 			}
@@ -1295,20 +1295,29 @@ namespace X_Manager
 			for (int i = 0; i < 3; i++)
 			{
 				FTDI = null;
+				start_error_code = 61;
 				string portShortName = (string)comPortComboBox.SelectedItem;
+				start_error_code = 62;
 				portShortName = portShortName.Substring(portShortName.IndexOf("(") + 1);
+				start_error_code = 63;
 				portShortName = portShortName.Remove(portShortName.IndexOf(")"), portShortName.Length - portShortName.IndexOf(")"));
+				start_error_code = 64;
 				if (portShortName.IndexOf("com", StringComparison.InvariantCultureIgnoreCase) >= 0)
 				{
 					try
 					{
+						start_error_code = 65;
 						FTDI = new FTDI_Device(portShortName);
+						start_error_code = 66;
 						FTDI.ReadTimeout = 550;
+						start_error_code = 67;
 						if (FTDI.Open()) break;
+						start_error_code = 68;
 						Thread.Sleep(150);
 					}
 					catch
 					{
+						MessageBox.Show("Internal error code: " + start_error_code.ToString());
 						break;
 					}
 				}
@@ -1327,6 +1336,7 @@ namespace X_Manager
 
 			//comPortComboBox.BorderBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x00, 0xaa, 0xde));
 			comPortComboBox.Foreground = new SolidColorBrush(Colors.LightGreen);
+
 		}
 
 		private void comPortComboBoxClear()

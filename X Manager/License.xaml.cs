@@ -22,6 +22,10 @@ namespace X_Manager
 		public License()
 		{
 			InitializeComponent();
+
+			string lic = Properties.Resources.LICENSE;
+
+			licenseTB.Text = lic;
 		}
 	}
 }

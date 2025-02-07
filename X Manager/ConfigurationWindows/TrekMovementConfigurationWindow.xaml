@@ -49,14 +49,16 @@
 					</GroupBox>
 				</Grid>
 
-				<GroupBox Grid.Row="2" Header="RESOLUTION" Foreground="#FF00AADE" Margin="10,0,10,5">
+				<GroupBox Grid.Row="2" Header="RESOLUTION" Foreground="#FF00AADE" Margin="10,0,10,5" Padding="0">
 					<Grid Margin="0,0,0,0" >
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="1*"/>
 							<ColumnDefinition Width="1*"/>
+							<ColumnDefinition x:Name="col3rd" Width="0"/>
 						</Grid.ColumnDefinitions>
-						<RadioButton Name="bits8RB" Grid.Column="0"  HorizontalAlignment="Left" Content="8 bit" TabIndex="9" Margin="20,5,0,0"   />
-						<RadioButton Name="bits10RB" Grid.Column="1" HorizontalAlignment="Left" Content="10 bit" TabIndex="10" Margin="32,5,0,1"/>
+						<RadioButton Name="bits8RB" Grid.Column="0"  HorizontalAlignment="Left" Content="8 bit" TabIndex="9" Margin="20,5,0,0" />
+						<RadioButton Name="bits10RB" Grid.Column="1" HorizontalAlignment="Left" Content="10 bit" TabIndex="10" Margin="26,5,0,0" />
+						<RadioButton Name="bits12RB" Grid.Column="2" HorizontalAlignment="Left" Content="12 bit" TabIndex="10" Margin="32,5,0,0" Visibility="Hidden" />
 					</Grid>
 				</GroupBox>
 

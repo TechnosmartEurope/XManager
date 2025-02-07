@@ -328,3 +328,6 @@
 	Visualizzazione batteria sia come tensione che percentuale residua.
 1.25.1	Bugfix: gli ard provenienti dalle varianti del Trek venivano convertiti con i millisecondi sempre a zero, e ogni timestamp si incrementava di due secondi invece che 1
 1.25.2	Bugfix: i dati dell'axy4D in modalità Depth venivano scaricati con un model code errato, e quindi non potevano essere convertiti correttamente
+1.25.3	Bugfix - Axy5: se selezionato "Override time" saltava i 6 byte della data anche se presenti, disallineando i dati
+	Bugfix: la risorsa Licenza non funzionava più se chiamata da XAML (??), spostata chiamata su codice.
+	Aumentati codici di errore per debug

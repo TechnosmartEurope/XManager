@@ -59,6 +59,12 @@ namespace X_Manager.ConfigurationWindows
 				axyConfOut[i] = axyconf[i];
 			}
 
+			if (unit.firmTotA >= 4001000)
+			{
+				bits12RB.Visibility = Visibility.Visible;
+				col3rd.Width = new GridLength(1, GridUnitType.Star);
+			}
+
 			if (unit is AxyTrekFT)
 			{
 				externalGrid2.RowDefinitions[2].Height = new GridLength(74);
@@ -219,14 +225,24 @@ namespace X_Manager.ConfigurationWindows
 					break;
 			}
 
-			bits8RB.IsChecked = true;
+			bits8RB.IsChecked = false;
 			bits10RB.IsChecked = false;
-			if (axyconf[16] > 7)
+			bits12RB.IsChecked = false;
+
+			int bitTest = axyconf[16] >> 2;
+			switch (axyconf[16] >> 2)
 			{
-				bits8RB.IsChecked = false;
-				bits10RB.IsChecked = true;
-				axyconf[16] -= 8;
+				case 0b00:
+					bits8RB.IsChecked = true;
+					break;
+				case 0b10:
+					bits10RB.IsChecked = true;
+					break;
+				case 0b11:
+					bits12RB.IsChecked = true;
+					break;
 			}
+			axyconf[16] &= 3;
 
 			byte ccount = 0;
 			foreach (RadioButton c in ranges.Children)
@@ -810,7 +826,8 @@ namespace X_Manager.ConfigurationWindows
 				catch { }
 			}
 
-			if ((bits10RB.IsChecked == true)) ccount += 8;
+			if (bits10RB.IsChecked == true) ccount += 0b1000;
+			if (bits12RB.IsChecked == true) ccount += 0b1100;
 
 			axyConfOut[16] = ccount;
 			axyConfOut[17] = 0;

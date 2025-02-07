@@ -9,7 +9,8 @@
 
 	<Grid>
 		<ScrollViewer>
-			<TextBlock Text="{x:Static resources:Resources.LICENSE}" Foreground="{StaticResource Foreground_Button_Enabled}" Margin="10" TextWrapping="Wrap"/>
+			<!--<TextBlock Text="{x:Static resources:Resources.LICENSE}" Foreground="{StaticResource Foreground_Button_Enabled}" Margin="10" TextWrapping="Wrap"/>-->
+			<TextBlock x:Name="licenseTB" Foreground="{StaticResource Foreground_Button_Enabled}" Margin="10" TextWrapping="Wrap"/>
 		</ScrollViewer>
 	</Grid>
 </Window>

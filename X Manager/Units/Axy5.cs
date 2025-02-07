@@ -1869,7 +1869,7 @@ namespace X_Manager.Units
 			}
 
 			//ORARIO
-			if (((tsc.tsTypeExt1 & ts_time) == ts_time) && (!pref_overrideTime))
+			if ((tsc.tsTypeExt1 & ts_time) == ts_time)
 			{
 				int anno, mese, giorno, ore, minuti, secondi;
 				byte[] dateArr = new byte[8];
@@ -1894,25 +1894,29 @@ namespace X_Manager.Units
 					minuti = dateArr[4];
 					secondi = dateArr[5];
 				}
-				anno = ((anno >> 4) * 10) + (anno & 15) + 2000;
-				mese = ((mese >> 4) * 10) + (mese & 15);
-				giorno = ((giorno >> 4) * 10) + (giorno & 15);
-				ore = ((ore >> 4) * 10) + (ore & 15);
-				minuti = ((minuti >> 4) * 10) + (minuti & 15);
-				secondi = ((secondi >> 4) * 10) + (secondi & 15);
 
-				try
+				if (!pref_overrideTime)
 				{
-					DateTime d = new DateTime(anno, mese, giorno, ore, minuti, secondi, 0);
-					tsc.orario = d;
-				}
-				catch
-				{
-					MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
-					tsc.stopEvent = 5;
-					gruppoCON[meta] = "DATA ERROR at Location 0x." + ard.Position.ToString("X"); addMilli = 0;
-					tsc.temperature = ard.Position;
-					tsc.tsTypeExt1 &= 0xfe;
+					anno = ((anno >> 4) * 10) + (anno & 15) + 2000;
+					mese = ((mese >> 4) * 10) + (mese & 15);
+					giorno = ((giorno >> 4) * 10) + (giorno & 15);
+					ore = ((ore >> 4) * 10) + (ore & 15);
+					minuti = ((minuti >> 4) * 10) + (minuti & 15);
+					secondi = ((secondi >> 4) * 10) + (secondi & 15);
+
+					try
+					{
+						DateTime d = new DateTime(anno, mese, giorno, ore, minuti, secondi, 0);
+						tsc.orario = d;
+					}
+					catch
+					{
+						MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
+						tsc.stopEvent = 5;
+						gruppoCON[meta] = "DATA ERROR at Location 0x." + ard.Position.ToString("X"); addMilli = 0;
+						tsc.temperature = ard.Position;
+						tsc.tsTypeExt1 &= 0xfe;
+					}
 				}
 			}
 

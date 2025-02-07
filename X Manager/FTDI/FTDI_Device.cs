@@ -153,6 +153,7 @@ namespace X_Manager
 		bool _isOpen = false;
 		uint _readTimeout = 0;
 		uint _baudrate = 115200;
+		int ftdi_error_code = 650;
 		#endregion
 
 		public bool IsOpen
@@ -196,9 +197,19 @@ namespace X_Manager
 
 		public FTDI_Device(string comPortName)
 		{
-			comPortName = comPortName.Substring(3);
-			UInt64.TryParse(comPortName, out comNumber);
-			stringCode = GetSerialCodeByComNumber(comNumber);
+			try
+			{
+				comPortName = comPortName.Substring(3);
+				ftdi_error_code = 6501;
+				UInt64.TryParse(comPortName, out comNumber);
+				ftdi_error_code = 6502;
+				stringCode = GetSerialCodeByComNumber(comNumber);
+				ftdi_error_code = 6513;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + "\r\nFTDI error code: ", ftdi_error_code.ToString());
+			}
 		}
 
 		public unsafe string GetSerialCodeByComNumber(FT_HANDLE targetComPort)
@@ -206,33 +217,41 @@ namespace X_Manager
 			int deviceCount = 0;
 			byte[] stringCodeBuffer = new byte[64];
 			string returnStringCode = "";
-
+			ftdi_error_code = 6503;
 			if (FT_ListDevices(ref deviceCount, null, FT_LIST_NUMBER_ONLY) != FT_STATUS.FT_OK) return returnStringCode;
-
+			ftdi_error_code = 6504;
 			for (int i = 0; i <= deviceCount; i++)
 			{
 				string stringCode;
 				//Ottiene il serial number
 				fixed (byte* pBuf = stringCodeBuffer)
 				{
+					ftdi_error_code = 6505;
 					if (FT_ListDevices((UInt32)i, pBuf, (FT_LIST_BY_INDEX | FT_OPEN_BY_SERIAL_NUMBER)) != FT_STATUS.FT_OK) continue;
+					ftdi_error_code = 6506;
 					StringBuilder sb = new StringBuilder();
+					ftdi_error_code = 6507;
 					for (int j = 0; stringCodeBuffer[j] != 0; j++)
 					{
 						sb.Append(Convert.ToChar(stringCodeBuffer[j]));
 					}
+					ftdi_error_code = 6508;
 					stringCode = sb.ToString();
 				}
 
 				//Apre il dispositivo identificato dallo StringCode
+				ftdi_error_code = 6509;
 				if (FT_OpenEx(stringCode, (UInt32)1, ref ftHandle) != FT_STATUS.FT_OK) continue;
 
 				//Chiede il numero di porta COM associata al dispositivo
+				ftdi_error_code = 6510;
 				if (FT_GetComPortNumber(ftHandle, ref comNumber) != FT_STATUS.FT_OK) continue;
 				//comPortName = "COM" + comNumber.ToString();
+				ftdi_error_code = 6511;
 				FT_Close(ftHandle);
 
 				//Se la porta è quella desiderata, imposta il tempo di latenza del buffer a 1ms
+				ftdi_error_code = 6512;
 				if (comNumber == targetComPort)
 				{
 					returnStringCode = stringCode;

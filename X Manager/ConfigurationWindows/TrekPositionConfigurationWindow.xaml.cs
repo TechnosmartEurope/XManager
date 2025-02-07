@@ -22,6 +22,7 @@ namespace X_Manager.ConfigurationWindows
 
 	public partial class TrekPositionConfigurationWindow : ConfigurationWindow
 	{
+		int conf_trek_errorCode = 0;
 		//public bool failure = false;
 		//bool setIdle = false;
 		public bool unitConnected = false;
@@ -31,92 +32,114 @@ namespace X_Manager.ConfigurationWindows
 		MainWindow mw;
 		public TrekPositionConfigurationWindow(MainWindow mw, Unit unitIn)
 		{
-			InitializeComponent();
-			Loaded += loaded;
-			Unloaded += unloaded;
-			if (unitIn != null)
+			try
 			{
-				unit = unitIn;
-				connected = true;
+				InitializeComponent();
+				conf_trek_errorCode = 1;
+				Loaded += loaded;
+				Unloaded += unloaded;
+				if (unitIn != null)
+				{
+					unit = unitIn;
+					connected = true;
+				}
+				else
+				{
+					unit = new AxyTrekN(mw);
+				}
+				conf_trek_errorCode = 2;
+				this.mw = mw;
+				if (!(unit == null))
+				{
+					readButton.IsEnabled = true;
+					sendButton.IsEnabled = true;
+					//setIdle = true;
+					unitConnected = true;
+					firmTotB_loc = unit.firmTotB;
+					res = true;
+				}
+				conf_trek_errorCode = 3;
+				for (UInt16 i = 1; i <= 9; i++)
+				{
+					TabItem t = new TabItem();
+					// With...
+					t.FontSize = 12;
+					t.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0xde));
+					t.Name = "day" + i.ToString() + "TabItem";
+					t.Header = "Day " + i.ToString();
+					t.Width = 65;
+					t.Height = 30;
+					t.Background = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
+					t.Margin = new Thickness(2);
+
+					ScheduleTab.Items.Add(t);
+				}
+				conf_trek_errorCode = 4;
+				((TabItem)ScheduleTab.Items.GetItemAt(7)).Header = "Settings";
+				((TabItem)ScheduleTab.Items.GetItemAt(7)).Name = "Settings";
+				((TabItem)ScheduleTab.Items.GetItemAt(8)).Header = "Remote";
+				((TabItem)ScheduleTab.Items.GetItemAt(8)).Name = "Remote";
+
+				defaultSettings();
 			}
-			else
+			catch (Exception ex)
 			{
-				unit = new AxyTrekN(mw);
+				MessageBox.Show(ex.Message + "\r\nConf - Trek - Error code: " + conf_trek_errorCode.ToString());
 			}
-			this.mw = mw;
-			if (!(unit == null))
-			{
-				readButton.IsEnabled = true;
-				sendButton.IsEnabled = true;
-				//setIdle = true;
-				unitConnected = true;
-				firmTotB_loc = unit.firmTotB;
-				res = true;
-			}
-
-			for (UInt16 i = 1; i <= 9; i++)
-			{
-				TabItem t = new TabItem();
-				// With...
-				t.FontSize = 12;
-				t.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 0xaa, 0xde));
-				t.Name = "day" + i.ToString() + "TabItem";
-				t.Header = "Day " + i.ToString();
-				t.Width = 65;
-				t.Height = 30;
-				t.Background = new SolidColorBrush(Color.FromArgb(255, 30, 30, 30));
-				t.Margin = new Thickness(2);
-
-				ScheduleTab.Items.Add(t);
-			}
-
-			((TabItem)ScheduleTab.Items.GetItemAt(7)).Header = "Settings";
-			((TabItem)ScheduleTab.Items.GetItemAt(7)).Name = "Settings";
-			((TabItem)ScheduleTab.Items.GetItemAt(8)).Header = "Remote";
-			((TabItem)ScheduleTab.Items.GetItemAt(8)).Name = "Remote";
-
-			defaultSettings();
 		}
 
 		private void loaded(object sender, RoutedEventArgs e)
 		{
+			conf_trek_errorCode = 5;
 			bool result = false;
-			while (!result)         //Sistemare, forse result non viene messo a true
+			try
 			{
-				if (!File.Exists(trekSchedFile))
+				while (!result)         //Sistemare, forse result non viene messo a true
 				{
-					exportSchedule(trekSchedFile);
-					result = true;
-				}
-				else
-				{
-					var br = new BinaryReader(File.OpenRead(trekSchedFile));
-					if (br.BaseStream.Length > 0x45a)
+					if (!File.Exists(trekSchedFile))
 					{
-						br.Close();
-						result = importSchedule(trekSchedFile, false);
-						if (!result)
-						{
-							try
-							{
-								File.Delete(trekSchedFile);
-							}
-							catch { }
-						}
-
-					}
-					else
-					{
-						br.Close();
-						File.Delete(trekSchedFile);
+						conf_trek_errorCode = 50;
 						exportSchedule(trekSchedFile);
 						result = true;
 					}
+					else
+					{
+						conf_trek_errorCode = 51;
+						var br = new BinaryReader(File.OpenRead(trekSchedFile));
+						if (br.BaseStream.Length > 0x45a)
+						{
+							conf_trek_errorCode = 52;
+							br.Close();
+							result = importSchedule(trekSchedFile, false);
+							if (!result)
+							{
+								try
+								{
+									File.Delete(trekSchedFile);
+								}
+								catch { }
+							}
+
+						}
+						else
+						{
+							conf_trek_errorCode = 53;
+							br.Close();
+							File.Delete(trekSchedFile);
+							exportSchedule(trekSchedFile);
+							result = true;
+						}
+					}
+				}
+				conf_trek_errorCode = 6;
+				if (unitConnected && (firmTotB_loc < 3004000))
+				{
+					((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
 				}
 			}
-			if (unitConnected && (firmTotB_loc < 3004000))
+			catch (Exception ex)
 			{
-				((TabItem)ScheduleTab.Items.GetItemAt(8)).Visibility = Visibility.Hidden;
+				MessageBox.Show(ex.Message + "\r\nConf - Trek - Error code: " + conf_trek_errorCode.ToString());
 			}
 		}
 
