@@ -1637,13 +1637,13 @@ namespace X_Manager.Units.Gipsy6
 
 				//Crea e avvia il thread per la scrittura del file raw
 				string rawName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".json";
-				List<byte[]> rawList = new List<byte[]>();
+				List<FarlocData> rawList = new List<FarlocData>();
 				rawSem = new Semaphore(0, 1);
 				rawSemBack = new Semaphore(1, 1);
 				rawBGW = new BackgroundWorker();
 				rawBGW.DoWork += (s, args) =>
 				{
-					rawBGW_doWork(ref rawList, rawName);
+					rawBGW_doWork(rawList, rawName);
 				};
 				rawBGW.RunWorkerAsync();
 
@@ -1714,14 +1714,16 @@ namespace X_Manager.Units.Gipsy6
 					if (timeStamp.txtAllowed > 0)
 					{
 						txtSemBack.WaitOne();
-						txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+						//txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+						txtList.Add(timeStamp); //aggiunge il timestamp alla pila txt
 						txtSem.Release();
 					}
 
 					if (kmlList != null)
 					{
 						kmlSemBack.WaitOne();
-						kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
+						//kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
+						kmlList.Add(timeStamp); //aggiunge il timestamp alla pila kml
 						kmlSem.Release();
 					}
 
@@ -2036,7 +2038,7 @@ namespace X_Manager.Units.Gipsy6
 		//	//Interlocked.Increment(ref conversionDone);
 		//}
 
-		private void rawBGW_doWork(ref List<byte[]> tL, string rawName)
+		private void rawBGW_doWork(List<FarlocData> tL, string rawName)
 		{
 			bool firstFix = true;
 			DateTime startTime = DateTime.Now;
@@ -2047,7 +2049,7 @@ namespace X_Manager.Units.Gipsy6
 			const string shortIndent = "            ";
 			const string longIndent = "                ";
 
-			byte[] t;
+			FarlocData fd;
 			while (true)
 			{
 				rawSem.WaitOne();
@@ -2055,12 +2057,12 @@ namespace X_Manager.Units.Gipsy6
 				{
 					break;
 				}
-				t = tL[0];
+				fd = tL[0];
 				tL.RemoveAt(0);
 				if (firstFix)
 				{
 					firstFix = false;
-					startTime = new DateTime(t[6] * 256 + t[5], t[4], t[3], t[2], t[1], t[0]);
+					startTime = fd.fixDateTime;
 					raw.Write("{\r\n    \"fixes\": [\r\n");
 				}
 				else
@@ -2068,9 +2070,9 @@ namespace X_Manager.Units.Gipsy6
 					raw.Write(",\r\n");
 				}
 
-				DateTime actTime = new DateTime(t[6] * 256 + t[5], t[4], t[3], t[2], t[1], t[0]);
+				DateTime actTime = fd.fixDateTime;
 
-				int nSat = t[34 + 11];
+				int nSat = fd.rawData[34 + 11];
 				if (nSat == 0)
 				{
 					rawSemBack.Release();
@@ -2081,11 +2083,11 @@ namespace X_Manager.Units.Gipsy6
 				for (int i = 0; i < nSat; i++)
 				{
 					int actPos = 24 * i + 11;
-					if ((t[actPos + 44] > 0) || (t[actPos + 45] > 32)) continue;
+					if ((fd.rawData[actPos + 44] > 0) || (fd.rawData[actPos + 45] > 32)) continue;
 					var sat = new Satellite();
-					sat.sv = t[actPos + 45];
-					sat.doppler = BitConverter.ToInt32(t.Skip(actPos + 52).Take(4).ToArray(), 0) * .2;
-					sat.codePhase = BitConverter.ToInt32(t.Skip(actPos + 60).Take(4).ToArray(), 0) / 2097152.0;
+					sat.sv = fd.rawData[actPos + 45];
+					sat.doppler = BitConverter.ToInt32(fd.rawData.Skip(actPos + 52).Take(4).ToArray(), 0) * .2;
+					sat.codePhase = BitConverter.ToInt32(fd.rawData.Skip(actPos + 60).Take(4).ToArray(), 0) / 2097152.0;
 					sats.Add(sat);
 				}
 				if (sats.Count == 0)

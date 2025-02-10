@@ -1084,12 +1084,12 @@ namespace X_Manager.Units.Gipsy6
 				if (timeStamp.txtAllowed > 0)
 				{
 					txtSemBack.WaitOne();
-					txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+					txtList.Add(timeStamp); //aggiunge il timestamp alla pila txt
 					txtSem.Release();
 				}
 
 				kmlSemBack.WaitOne();
-				kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
+				kmlList.Add(timeStamp); //aggiunge il timestamp alla pila kml
 				kmlSem.Release();
 
 				////Acquisisce l'acccesso alla pila txt

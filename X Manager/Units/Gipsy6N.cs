@@ -10,7 +10,16 @@ using System.Windows;
 using System.Windows.Threading;
 using System.Globalization;
 using System.ComponentModel;
+using System.Text.Json;
 using Microsoft.VisualBasic.Logging;
+using System.Net;
+using System.IO.Compression;
+using Microsoft.VisualBasic;
+
+//using static X_Manager.Units.AxyTreks.AxyTrek;
+
+
+
 
 #if X64
 using FT_HANDLE = System.UInt64;
@@ -23,6 +32,15 @@ namespace X_Manager.Units.Gipsy6
 	class Gipsy6N : Gipsy6
 	{
 
+		const double SEC_PER_DAY = 86400;
+		const double GM_GPS = 3.986005e14;  // earth's universal gravitational parameter m^3/s^2
+		const double GM_GAL = 3.986004418e14;  // earth's universal gravitational parameter m^3/s^2
+		const double GM_BDS = 3.986004418e14;  // earth's universal gravitational parameter m^3/s^2
+		const double PI2 = 6.2831853071795864;
+		const double WGS84_EARTH_ROTATION_RATE_GPS = 7.2921151467e-5;
+		const double WGS84_EARTH_ROTATION_RATE_GAL = 7.2921150e-5;
+		const double WGS84_EARTH_ROTATION_RATE_BDS = 7.2921151467e-5;
+		const double alpha = -5.0 * Math.PI / 180.0;
 		#region DEFCONF
 
 		public static readonly byte[] defConf = new byte[600] {    0xCF, 0x00, 0x00, 0x02,
@@ -114,121 +132,123 @@ namespace X_Manager.Units.Gipsy6
 
 		#endregion
 
-		//struct TimeStamp
-		//{
-		//	private int _pos;
-
-		//	public int tsType;
-		//	public int tsTypeExt1;
-		//	public int tsTypeExt2;
-		//	public int ore;
-		//	public double batteryLevel;
-		//	public double temperature;
-		//	public double press;
-		//	public double pressOffset;
-		//	public double altitude;
-		//	public double lat;
-		//	public double lon;
-		//	public double speed;
-		//	public int hAcc;
-		//	public int vAcc;
-		//	public int cog;
-		//	public int sat;
-		//	public int gsvSum;
-		//	public int timeStampLength;
-		//	public DateTime dateTime;
-		//	public byte[] infoAr;
-		//	public byte[] eventAr;
-		//	public byte[] raw;
-		//	public bool isEvent;
-		//	public int stopEvent;
-		//	public int inWater;
-		//	public int inAdc;
-		//	public int ADC;
-		//	public int GPS_second;
-		//	public int proximityAddress;
-		//	public sbyte proximityPower;
-		//	public string unitNameTxt;
-		//	public string rfAddressString;
-		//	public int pos
-		//	{
-		//		get => _pos;
-		//		set
-		//		{
-		//			_pos = value + ((value / 0x1fe) + 1) * 2;
-		//		}
-		//	}
-		//	public int txtAllowed;
-		//	public bool rawPreset;
-		//	public void resetPos(int initVal)
-		//	{
-		//		_pos = initVal;
-		//	}
-
-		//	public byte[] cloneRaw()
-		//	{
-		//		var rawOut = new byte[raw.Length];
-		//		Array.Copy(raw, rawOut, raw.Length);
-		//		return rawOut;
-		//	}
-		//	public TimeStamp clone()
-		//	{
-		//		var tout = new TimeStamp();
-		//		tout.tsType = this.tsType;
-		//		tout.tsTypeExt1 = this.tsTypeExt1;
-		//		tout.tsTypeExt2 = this.tsTypeExt2;
-		//		tout.ore = this.ore;
-		//		tout.batteryLevel = this.batteryLevel;
-		//		tout.temperature = this.temperature;
-		//		tout.press = this.press;
-		//		tout.pressOffset = pressOffset;
-		//		tout.altitude = altitude;
-		//		//tout.altSegno = this.altSegno;
-		//		//tout.eo = this.eo;
-		//		//tout.ns = this.ns;
-		//		tout.lat = lat;
-		//		tout.lon = lon;
-		//		tout.speed = speed;
-		//		tout.hAcc = hAcc;
-		//		tout.vAcc = vAcc;
-		//		tout.cog = cog;
-		//		tout.sat = this.sat;
-		//		tout.gsvSum = this.gsvSum;
-		//		tout.timeStampLength = this.timeStampLength;
-		//		tout.dateTime = dateTime;
-		//		if (this.infoAr != null)
-		//		{
-		//			tout.infoAr = new byte[this.infoAr.Length];
-		//			Array.Copy(this.infoAr, tout.infoAr, infoAr.Length);
-		//		}
-		//		if (this.eventAr != null)
-		//		{
-		//			tout.eventAr = new byte[this.eventAr.Length];
-		//			Array.Copy(this.eventAr, tout.eventAr, eventAr.Length);
-		//		}
-		//		tout.isEvent = this.isEvent;
-		//		tout.stopEvent = this.stopEvent;
-		//		tout.inWater = this.inWater;
-		//		tout.inAdc = this.inAdc;
-		//		tout.ADC = ADC;
-		//		tout.GPS_second = GPS_second;
-		//		tout.proximityAddress = proximityAddress;
-		//		tout.proximityPower = proximityPower;
-		//		tout.rfAddressString = rfAddressString;
-		//		tout.unitNameTxt = unitNameTxt;
-		//		tout.rawPreset = rawPreset;
-		//		tout.resetPos(this.pos);
-
-		//		return tout;
-		//	}
-		//}
-
-		struct Satellite
+		struct Satellite_JSON
 		{
-			public double codePhase;
-			public double doppler;
+			public int constellation;
 			public int sv;
-			//public int constellation;
+			public int cNo;
+			public double doppler;
+			public double codePhase;
+			public double[] positionFromEphemeris;
+			public double[] veloicyFromEphemeris;
+		}
+
+
+		class Ephemeris_GPS
+		{
+			public DateTime timestamp;
+			public int leapSecond;
+			public int m_week;
+			public Satellite_Ephemeris_GPS[] satellites;
+			public Ephemeris_GPS()
+			{
+				satellites = new Satellite_Ephemeris_GPS[33];
+			}
+		}
+
+		List<Ephemeris_GPS> Ephemerides_GPS = new List<Ephemeris_GPS>();
+		class Satellite_Ephemeris_GPS
+		{
+			public int svId;
+			public struct TimeInterval
+			{
+				public DateTime startTime_UTC;
+				public double af0, af1, af2;
+				public double crs, deltan, M0;
+				public double cuc, ecc, cus, roota;
+				public double toe, cic, Omega0, cis;
+				public double i0, crc, omega, Omegadot;
+				public double idot;
+			}
+			public List<TimeInterval> timeIntervals;
+			public Satellite_Ephemeris_GPS()
+			{
+				timeIntervals = new List<TimeInterval>();
+			}
+		}
+
+		class Ephemeris_GALILEO
+		{
+			public DateTime timestamp;
+			public int leapSecond;
+			public int m_week;
+			public Satellite_Ephemeris_GALILEO[] satellites;
+
+			public Ephemeris_GALILEO()
+			{
+				satellites = new Satellite_Ephemeris_GALILEO[37];
+			}
+		}
+
+		List<Ephemeris_GALILEO> Ephemerides_GALILEO = new List<Ephemeris_GALILEO>();
+		class Satellite_Ephemeris_GALILEO
+		{
+			public int svId;
+			public struct TimeInterval
+			{
+				public DateTime startTime_UTC;
+				public double af0, af1, af2;
+				public double crs, deltan, M0;
+				public double cuc, ecc, cus, roota;
+				public double toe, cic, Omega0, cis;
+				public double i0, crc, omega, Omegadot;
+				public double idot;
+			}
+			public List<TimeInterval> timeIntervals;
+			public Satellite_Ephemeris_GALILEO()
+			{
+				timeIntervals = new List<TimeInterval>();
+			}
+		}
+
+
+		class Ephemeris_BEIDOU
+		{
+			public DateTime timestamp;
+			public int leapSecond;
+			public int m_week;
+			public Satellite_Ephemeris_BEIDOU[] satellites;
+			public Ephemeris_BEIDOU()
+			{
+				satellites = new Satellite_Ephemeris_BEIDOU[63];
+			}
+		}
+
+		List<Ephemeris_BEIDOU> Ephemerides_BEIDOU = new List<Ephemeris_BEIDOU>();
+		class Satellite_Ephemeris_BEIDOU
+		{
+			public int svId;
+			public struct TimeInterval
+			{
+				public DateTime startTime_UTC;
+				public double af0, af1, af2;
+				public double crs, deltan, M0;
+				public double cuc, ecc, cus, roota;
+				public double toe, cic, Omega0, cis;
+				public double i0, crc, omega, Omegadot;
+				public double idot;
+			}
+			public List<TimeInterval> timeIntervals;
+			public Satellite_Ephemeris_BEIDOU()
+			{
+				timeIntervals = new List<TimeInterval>();
+			}
+		}
+
+		struct TTime
+		{
+			public int MJDN;
+			public double SoD;
 		}
 
 		int rfAddress = -1;
@@ -280,6 +300,8 @@ namespace X_Manager.Units.Gipsy6
 			"minute(s)",
 			"hour(s)",
 		};
+
+		static readonly DateTime gps_time = DateTime.SpecifyKind(new DateTime(1980, 1, 6, 0, 0, 0), DateTimeKind.Utc);   //Data inizio GPS in formato UTC
 
 		//bool repeatEmptyValues = false;
 		//public bool remoteConnection = false;
@@ -1646,19 +1668,20 @@ namespace X_Manager.Units.Gipsy6
 				//}
 
 				//Crea e avvia il thread per la scrittura del file raw
-				string rawName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + ".json";
-				List<byte[]> rawList = new List<byte[]>();
+				string rawName = Path.GetDirectoryName(fileName) + "\\" + Path.GetFileNameWithoutExtension(fileName) + "_";// + ".json";
+				List<FarlocData> rawList = new List<FarlocData>();
 				rawSem = new Semaphore(0, 1);
 				rawSemBack = new Semaphore(1, 1);
 				rawBGW = new BackgroundWorker();
 				rawBGW.DoWork += (s, args) =>
 				{
-					rawBGW_doWork(ref rawList, rawName);
+					rawBGW_doWork(rawList, rawName);
 				};
 				rawBGW.RunWorkerAsync();
 
 				//Inizializza le variabili
-				int pos = 0;
+				//int pos = 0;
+				ramPos = 0;
 				int end = gp6.Length;
 				TimeStamp timeStamp = new TimeStamp();
 				timeStamp.dateTime = new DateTime(2, 1, 1, 1, 0, 0);
@@ -1690,14 +1713,15 @@ namespace X_Manager.Units.Gipsy6
 
 				int progressBarCounter = 0;
 				//Cicla nel buffer decodificando i timestamp e aggiungendoli alla pila
-				int actPos = 0;
-				while (pos < end)
+				while (ramPos < end)
 				{
-					actPos = (((pos / 512) + 1) * 2) + pos;
+					//actPos = (((ramPos / 510) + 1) * 2) + ramPos;
 
 					try
 					{
-						noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp, ref pos);   //decodifica il timestamp
+
+						noStampBuffer = decodeTimeStamp(ref gp6, ref timeStamp);   //decodifica il timestamp
+
 					}
 					catch
 					{
@@ -1716,7 +1740,7 @@ namespace X_Manager.Units.Gipsy6
 					{
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
 						{
-							parent.statusProgressBar.Value = pos;
+							parent.statusProgressBar.Value = ramPos;
 						}));
 						progressBarCounter = 0;
 					}
@@ -1724,14 +1748,15 @@ namespace X_Manager.Units.Gipsy6
 					if (timeStamp.txtAllowed > 0)
 					{
 						txtSemBack.WaitOne();
-						txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+						//txtList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila txt
+						txtList.Add(timeStamp); //aggiunge il timestamp alla pila txt
 						txtSem.Release();
 					}
 
-					if (kmlList != null)
+					if ((kmlList != null) && timeStamp.kmlAllowed)
 					{
 						kmlSemBack.WaitOne();
-						kmlList.Add(timeStamp.clone()); //aggiunge il timestamp alla pila kml
+						kmlList.Add(timeStamp); //aggiunge il timestamp alla pila kml
 						kmlSem.Release();
 					}
 
@@ -1750,7 +1775,7 @@ namespace X_Manager.Units.Gipsy6
 				//Aggiorna per l'ultima volta la progress bar del producer
 				Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
 				{
-					parent.statusProgressBar.Value = pos;
+					parent.statusProgressBar.Value = ramPos;
 				}));
 
 				//if (pref_makeKml)
@@ -1817,7 +1842,7 @@ namespace X_Manager.Units.Gipsy6
 			//{
 			//	unitName = Path.GetFileNameWithoutExtension(txtName);
 			//}
-			var t = new TimeStamp();
+			//var t = new TimeStamp();
 			while (true)
 			{
 				txtSem.WaitOne();
@@ -1825,8 +1850,8 @@ namespace X_Manager.Units.Gipsy6
 				{
 					break;
 				}
-				t = tL[0];
-				tL.RemoveAt(0);
+				//t = tL[0];
+				//tL.RemoveAt(0);
 
 				//Si scrive il timestamp nel txt
 				if (!pref_repeatEmptyValues)
@@ -1834,52 +1859,52 @@ namespace X_Manager.Units.Gipsy6
 					tabs = new string[p_fileCsv_length];
 				}
 
-				tabs[p_fileCsv_name] = t.unitNameTxt;
-				tabs[p_fileCsv_rfAddress] = t.rfAddressString;
+				tabs[p_fileCsv_name] = tL[0].unitNameTxt;
+				tabs[p_fileCsv_rfAddress] = tL[0].rfAddressString;
 
-				tabs[p_fileCsv_date] = t.dateTime.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
+				tabs[p_fileCsv_date] = tL[0].dateTime.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 
-				if ((t.tsType & ts_battery) == ts_battery)
+				if ((tL[0].tsType & ts_battery) == ts_battery)
 				{
-					tabs[p_fileCsv_battery] = t.batteryLevel.ToString("0.00") + "V";
+					tabs[p_fileCsv_battery] = tL[0].batteryLevel.ToString("0.00") + "V";
 				}
-				if ((t.tsType & ts_coordinate) == ts_coordinate)
+				if ((tL[0].tsType & ts_coordinate) == ts_coordinate)
 				{
-					tabs[p_fileCsv_latitude] = t.lat.ToString("00.0000000", nfi);
-					tabs[p_fileCsv_longitude] = t.lon.ToString("000.0000000", nfi);
-					if (t.hAcc == 7)
+					tabs[p_fileCsv_latitude] = tL[0].lat.ToString("00.0000000", nfi);
+					tabs[p_fileCsv_longitude] = tL[0].lon.ToString("000.0000000", nfi);
+					if (tL[0].hAcc == 7)
 					{
 						tabs[p_fileCsv_horizontalAccuracy] = "200";
 					}
 					else
 					{
-						tabs[p_fileCsv_horizontalAccuracy] = String.Format("{0}", accuracySteps[t.hAcc]);
+						tabs[p_fileCsv_horizontalAccuracy] = String.Format("{0}", accuracySteps[tL[0].hAcc]);
 					}
 
-					tabs[p_fileCsv_altitude] = t.altitude.ToString();
-					if (t.vAcc == 7)
+					tabs[p_fileCsv_altitude] = tL[0].altitude.ToString();
+					if (tL[0].vAcc == 7)
 					{
 						tabs[p_fileCsv_verticalAccuracy] = "200";
 					}
 					else
 					{
-						tabs[p_fileCsv_verticalAccuracy] = String.Format("{0}", accuracySteps[t.vAcc]);
+						tabs[p_fileCsv_verticalAccuracy] = String.Format("{0}", accuracySteps[tL[0].vAcc]);
 					}
-					tabs[p_fileCsv_speed] = t.speed.ToString("0.0");
-					tabs[p_fileCsv_course] = t.cog.ToString("0.0");
+					tabs[p_fileCsv_speed] = tL[0].speed.ToString("0.0");
+					tabs[p_fileCsv_course] = tL[0].cog.ToString("0.0");
 				}
 
-				if (((t.tsTypeExt1 & ts_proximity) == ts_proximity) && pref_proximity)
+				if (((tL[0].tsTypeExt1 & ts_proximity) == ts_proximity) && pref_proximity)
 				{
-					tabs[p_fileCsv_proximity] = t.proximityAddress.ToString();
-					tabs[p_fileCsv_proximityPower] = t.proximityPower.ToString();
+					tabs[p_fileCsv_proximity] = tL[0].proximityAddress.ToString();
+					tabs[p_fileCsv_proximityPower] = tL[0].proximityPower.ToString();
 				}
 
 				if (pref_metadata)
 				{
-					if ((t.tsType & ts_event) == ts_event)
+					if ((tL[0].tsType & ts_event) == ts_event)
 					{
-						tabs[p_fileCsv_event] = decodeEvent(ref t);
+						tabs[p_fileCsv_event] = decodeEvent(tL[0].eventAr);
 					}
 					else
 					{
@@ -1889,8 +1914,10 @@ namespace X_Manager.Units.Gipsy6
 
 				if (pref_debugLevel > 0)
 				{
-					tabs[p_fileCsv_position] = t.pos.ToString("X8");
+					tabs[p_fileCsv_position] = tL[0].pos.ToString("X8");
 				}
+
+				tL.RemoveAt(0);
 
 				for (int i = 0; i < p_fileCsv_length - 1; i++)
 				{
@@ -1907,177 +1934,1160 @@ namespace X_Manager.Units.Gipsy6
 			//Interlocked.Increment(ref conversionDone);
 		}
 
-		private void rawBGW_doWork(ref List<byte[]> tL, string rawName)
+		private void rawBGW_doWork(List<FarlocData> tL, string rawName)
 		{
-			bool firstFix = true;
-			DateTime startTime = DateTime.Now;
 
 			StreamWriter raw;
-			raw = new StreamWriter(rawName, true);
 
-			const string shortIndent = "            ";
-			const string longIndent = "                ";
-
-			byte[] t;
 			while (true)
 			{
+
 				rawSem.WaitOne();
 				if (tL.Count == 0)  //Se non ci sono più timestamp nella pila, si esce dal loop
 				{
 					break;
 				}
-				t = tL[0];
-				tL.RemoveAt(0);
-				if (firstFix)
-				{
-					firstFix = false;
-					startTime = new DateTime(t[6] * 256 + t[5], t[4], t[3], t[2], t[1], t[0]);
-					raw.Write("{\r\n    \"fixes\": [\r\n");
-				}
-				else
-				{
-					raw.Write(",\r\n");
-				}
 
-				DateTime actTime = new DateTime(t[6] * 256 + t[5], t[4], t[3], t[2], t[1], t[0]);
-
-				int nSat = t[34 + 11];
-				if (nSat == 0)
-				{
-					rawSemBack.Release();
-					continue;
-				}
-				var sats = new List<Satellite>();
-
-				for (int i = 0; i < nSat; i++)
-				{
-					int actPos = 24 * i + 11;
-					if ((t[actPos + 44] > 0) || (t[actPos + 45] > 32)) continue;
-					var sat = new Satellite();
-					sat.sv = t[actPos + 45];
-					sat.doppler = BitConverter.ToInt32(t.Skip(actPos + 52).Take(4).ToArray(), 0) * .2;
-					sat.codePhase = BitConverter.ToInt32(t.Skip(actPos + 60).Take(4).ToArray(), 0) / 2097152.0;
-					sats.Add(sat);
-				}
-				if (sats.Count == 0)
+				if (tL[0].rawData[0] == 0)  //Non ci sono satelliti, si esce subito senza creare il json
 				{
 					rawSemBack.Release();
 					continue;
 				}
 
-				//Elimina i satelliti non validi
-				//bool clean = false;
-				//while (!clean)
-				//{
-				//	for (int i = 0; i < sats.Count; i++)
-				//	{
-				//		clean = true;
-				//		if (sats[i].sv > 32)
-				//		{
-				//			sats.RemoveAt(i);
-				//			clean = false;
-				//			break;
-				//		}
-				//	}
-				//	continue;
-				//}
+				//string rawNameComp = Path.GetDirectoryName(rawName) + "\\" + Path.GetFileNameWithoutExtension(rawName) + "_" + tL[0].fixDateTime.ToString("yyyyMMdd_HHmmss") + ".json";
+				string rawNameComp = rawName + tL[0].fixDateTime.ToString("yyyyMMdd_HHmmss") + ".json";
 
-				//Riordina i satelliti per SV number
-				bool ordered = false;
-				while (!ordered)
+				if (File.Exists(rawNameComp))
 				{
-					ordered = true;
-					for (int i = 1; i < sats.Count; i++)
+					File.Delete(rawNameComp);
+				}
+				raw = new StreamWriter(rawNameComp, true);
+
+				byte[] rawd = tL[0].rawData;
+				var rawFix = new RawFix();
+				var rawFixGps = rawFix.GPS_data;
+				var rawFixGalileo = rawFix.GALILEO_data;
+				var rawFixBeidou = rawFix.BEIDOU_data;
+				rawFix.timestamp = tL[0].fixDateTime.ToString("yyyy-MM-ddTHH:mm:ss");
+				rawFix.location = new Location(tL[0].position, tL[0].speed);
+
+				List<int> sv;
+				List<double> codePhase;
+				List<double> doppler;
+				List<int> cNo;
+				List<double[]> position;
+				List<double[]> velocity;
+				for (int i = 0; i < tL[0].rawData[0]; i++)
+				{
+					int pp = (i * 11) + 1;
+					if (rawd[pp + 1] == 255) continue; //In caso di satellite con svid 255 si scarta e si passa al satellite successivo
+					int constellation = rawd[pp];
+					//if (constellation == 3)				//In caso di satelliti Beidou GEO, per ora li salta perché non riusciamo a calcolare la pos.
+					//{
+					//	if ((rawd[pp + 1] <= 5) || (rawd[pp + 1] >= 59))
+					//	{
+					//		continue;
+					//	}
+					//}
+
+					switch (constellation)
 					{
-						if (sats[i].sv < sats[i - 1].sv)
-						{
-							Satellite s = sats[i];
-							sats.Insert(i - 1, s);
-							sats.RemoveAt(i + 1);
-							ordered = false;
+						case 0:
+							sv = rawFixGps.sv_gps;
+							codePhase = rawFixGps.codePhase_gps;
+							doppler = rawFixGps.doppler_gps;
+							cNo = rawFixGps.cNo_gps;
+							position = rawFixGps.position_gps;
+							velocity = rawFixGps.velocity_gps;
 							break;
-						}
+						case 2:
+							sv = rawFixGalileo.sv_galileo;
+							codePhase = rawFixGalileo.codePhase_galileo;
+							doppler = rawFixGalileo.doppler_galileo;
+							cNo = rawFixGalileo.cNo_galileo;
+							position = rawFixGalileo.position_galileo;
+							velocity = rawFixGalileo.velocity_galileo;
+							break;
+						case 3:
+							sv = rawFixBeidou.sv_beidou;
+							codePhase = rawFixBeidou.codePhase_beidou;
+							doppler = rawFixBeidou.doppler_beidou;
+							cNo = rawFixBeidou.cNo_beidou;
+							position = rawFixBeidou.position_beidou;
+							velocity = rawFixBeidou.velocity_beidou;
+							break;
+						default:
+							continue;
 					}
-					continue;
+
+					sv.Add(rawd[pp + 1]);
+					cNo.Add(rawd[pp + 2]);
+					doppler.Add(BitConverter.ToInt32(rawd.Skip(pp + 3).Take(4).ToArray(), 0) * .04);
+					codePhase.Add(BitConverter.ToInt32(rawd.Skip(pp + 7).Take(4).ToArray(), 0) / 2097152.0);
+
+					double[] posVel = new double[6];
+					switch (constellation)
+					{
+						case 0:
+							posVel = extractPositionFromEphemeris_GPS(tL[0].fixDateTime, rawd[pp + 1], rawName);
+							break;
+						case 2:
+							posVel = extractPositionFromEphemeris_GALILEO(tL[0].fixDateTime, rawd[pp + 1], rawName);
+							break;
+						case 3:
+							posVel = extractPositionFromEphemeris_BEIDOU(tL[0].fixDateTime, rawd[pp + 1], rawName);
+							break;
+					}
+					position.Add(posVel.Take(3).ToArray());
+					velocity.Add(posVel.Skip(3).Take(3).ToArray());
 				}
 
-				//CODEPHASE
-				raw.Write("        {\r\n");
-				raw.Write(shortIndent + "\"codephase\": [\r\n");
-				string comma = ",";
-				for (int i = 0; i < sats.Count; i++)
+
+
+				tL.RemoveAt(0);
+
+				var options = new JsonSerializerOptions
 				{
-					if (i == sats.Count - 1) comma = "";
-					raw.Write(longIndent + sats[i].codePhase.ToString(nfi) + comma + "\r\n");
-				}
-				raw.Write(shortIndent + "],\r\n");
+					WriteIndented = true,
+					Converters = { new JsonFloatConverter() }
+				};
+				string jsonString = JsonSerializer.Serialize(rawFix, options);
+				raw.Write(jsonString);
 
-				//DOPPLER
-				raw.Write(shortIndent + "\"doppler\": [\r\n");
-				comma = ",";
-				for (int i = 0; i < sats.Count; i++)
-				{
-					if (i == sats.Count - 1) comma = "";
-					raw.Write(longIndent + sats[i].doppler.ToString(nfi) + comma + "\r\n");
-				}
-				raw.Write(shortIndent + "],\r\n");
-
-				//ALTRI
-				raw.Write(shortIndent + "\"inifile\": \"/luigino/thekitchen/carnezzeria.pastalluovo\",\r\n");
-				raw.Write(shortIndent + "\"rtc\": " + (actTime - startTime).TotalSeconds.ToString() + ",\r\n");
-				raw.Write(shortIndent + "\"sample_ms\": 4,\r\n" + shortIndent + "\"sampling_rate\": 8183833,\r\n");
-
-				//SV
-				raw.Write(shortIndent + "\"sv\": [\r\n");
-				comma = ",";
-				for (int i = 0; i < sats.Count; i++)
-				{
-					if (i == sats.Count - 1) comma = "";
-					raw.Write(longIndent + sats[i].sv.ToString() + comma + "\r\n");
-				}
-				raw.Write(shortIndent + "],\r\n");
-
-				//CORRELAZIONE
-				raw.Write(shortIndent + "\"x_max\": [\r\n");
-				comma = ",";
-				for (int i = 0; i < sats.Count; i++)
-				{
-					if (i == sats.Count - 1) comma = "";
-					raw.Write(longIndent + "60.19112014" + comma + "\r\n");
-				}
-				raw.Write(shortIndent + "]\r\n");
-				raw.Write("        }");
-
+				raw.Close();
 				rawSemBack.Release();
 			}
-			//\"start\": \"" + startTime.ToString("yyyy-MM-ddThh:mm:ss") + "\",\r\n
-			raw.Write("\r\n    ],\r\n");
-			raw.Write("    \"start\": \"" + startTime.ToString("yyyy-MM-ddTHH:mm:ss") + "\"\r\n}");
-			raw.Close();
-			var length = new FileInfo(rawName).Length;
-			if (length < 200) File.Delete(rawName);
+
 			rawSemBack.Release();
 		}
 
-		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t, ref int pos)
+		private double[] extractPositionFromEphemeris_GPS(DateTime timestamp, int svId, string rawName)
+		{
+			CultureInfo cfi = CultureInfo.InvariantCulture;
+			Ephemeris_GPS ephemeris = new Ephemeris_GPS();
+			//sviluppo
+			//timestamp = new DateTime(2023, 10, 10, 15, 49, 09);
+			///sviluppo
+
+			bool addNewEphemeris = true;
+			if (Ephemerides_GPS.Count > 0)          //Controlla se l'effemeride è gia in memoria
+			{
+				for (int i = 0; i < Ephemerides_GPS.Count; i++)
+				{
+					if (Ephemerides_GPS[i].timestamp.Date == timestamp.Date)
+					{
+						ephemeris = Ephemerides_GPS[i];
+						addNewEphemeris = false;
+						break;
+					}
+				}
+			}
+
+			if (addNewEphemeris)        //Se non è in memoria la estrae dal relativo file (se il file non è presente, prima lo scarica da internet)
+			{
+				string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+								MainWindow.companyFolder + MainWindow.appFolder + "\\brdc_gps";
+				var outs = Directory.CreateDirectory(dir);
+				string fileName = dir + "\\" + timestamp.ToString("yyyyMMdd") + ".dat.gz";
+
+				//Controlla se esiste il file, in caso contrario lo scarica
+				if (!File.Exists(fileName))
+				{
+
+					//Se non esiste scarica l'effemeride nel file
+					byte[] data;
+					//string url = string.Format("ftp://gssc.esa.int/gnss/data/daily/{0}/brdc/brdc{1}0.{2}n.gz",
+					//							timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"), (timestamp.Year - 2000).ToString("00"));
+					string url = string.Format("https://igs.bkg.bund.de/root_ftp/IGS/BRDC/{0}/{1}/BRDC00WRD_R_{0}{1}0000_01D_GN.rnx.gz",
+												timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"));
+					using (WebClient request = new WebClient())     //effettua il download	
+					{
+						try
+						{
+							data = request.DownloadData(url);
+						}
+						catch
+						{
+							return new double[] { 0, 0, 0 };
+						}
+					}
+					using (FileStream file = File.Create(fileName))   //Salva l'array di byte in un file
+					{
+						file.Write(data, 0, data.Length);
+						file.Close();
+					}
+				}
+
+				//Il file è sicuramente presente, si estrae l'effemeride
+				List<byte> buff = new List<byte>();
+				ephemeris = new Ephemeris_GPS();
+				ephemeris.timestamp = new DateTime(timestamp.Date.Year, timestamp.Date.Month, timestamp.Date.Day);
+
+				using (FileStream gzStream = File.Open(fileName, FileMode.Open))
+				{
+					using (GZipStream gzDecompressor = new GZipStream(gzStream, CompressionMode.Decompress))
+					{
+						int b = gzDecompressor.ReadByte();
+						while (b > 0)
+						{
+							buff.Add((byte)b);
+							b = gzDecompressor.ReadByte();
+						}
+					}
+				}
+
+				//Crea uno stream dell'array di byte per leggere sequenzialmente le stringhe su cui fare il parsing
+				MemoryStream ms = new MemoryStream(buff.ToArray());
+				StreamReader ifs = new StreamReader(ms);
+				buff = null;
+				string str = null;
+
+				//Cerca i dati sulla ionosfera che saranno allegati a tutte le effemeridi del file
+				ephemeris.leapSecond = 18;
+				/*
+				 Bisogna convertire l'ora del punto in formato NTP (vedi https://weirdo.cloud/) e confrontarla con l'elenco che si trova qui:
+				https://data.iana.org/time-zones/data/leap-seconds.list. Per comodità vedere anche: 
+				https://www.cnmoc.usff.navy.mil/Our-Commands/United-States-Naval-Observatory/Precise-Time-Department/Global-Positioning-System/USNO-GPS-Time-Transfer/Leap-Seconds/
+				*/
+				ephemeris.m_week = -1;
+				for (int i = 0; i < 100; i++)
+				{
+					str = ifs.ReadLine();
+					//if (str != null && str.Contains("ION ALPHA"))
+					//{
+					//	ephemeris.ion[0] = double.Parse(str.Replace('D', 'E').Substring(3, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[1] = double.Parse(str.Replace('D', 'E').Substring(15, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[2] = double.Parse(str.Replace('D', 'E').Substring(27, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[3] = double.Parse(str.Replace('D', 'E').Substring(39, 12), CultureInfo.InvariantCulture);
+					//}
+					//if (str != null && str.Contains("ION BETA"))
+					//{
+					//	ephemeris.ion[4] = double.Parse(str.Replace('D', 'E').Substring(3, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[5] = double.Parse(str.Replace('D', 'E').Substring(15, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[6] = double.Parse(str.Replace('D', 'E').Substring(27, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[7] = double.Parse(str.Replace('D', 'E').Substring(39, 12), CultureInfo.InvariantCulture);
+					//}
+					//if (str != null && str.Contains("LEAP SECONDS"))
+					//{
+					//	ephemeris.leapSecond = int.Parse(str.Substring(3, 4));
+					//}
+					//if (str != null && str.Contains("DELTA-UTC: A0,A1,T,W")) ephemeris.m_week = int.Parse(str.Substring(54, 5));
+
+					if (str != null && str.Contains("END OF HEADER")) break;
+				}
+
+				while (str != null)
+				{
+					str = ifs.ReadLine();
+					if ((str == null) || (str.Length < 32)) break;
+					int prn = int.Parse(str.Substring(1, 2), cfi);
+					if (ephemeris.satellites[prn] == null) ephemeris.satellites[prn] = new Satellite_Ephemeris_GPS();
+
+					Satellite_Ephemeris_GPS sat = ephemeris.satellites[prn];
+					sat.svId = prn;
+
+					Satellite_Ephemeris_GPS.TimeInterval newTimeInterval = new Satellite_Ephemeris_GPS.TimeInterval();
+					int year = int.Parse(str.Substring(4, 4), cfi);
+					int month = int.Parse(str.Substring(9, 2), cfi);
+					int day = int.Parse(str.Substring(12, 2), cfi);
+					int hour = int.Parse(str.Substring(15, 2), cfi);
+					int minute = int.Parse(str.Substring(18, 2), cfi);
+					double second = double.Parse(str.Substring(21, 2), cfi);
+					newTimeInterval.startTime_UTC = new DateTime(year, month, day, hour, minute, (int)second);
+					newTimeInterval.startTime_UTC = newTimeInterval.startTime_UTC.AddSeconds(-ephemeris.leapSecond);
+					newTimeInterval.af0 = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.af1 = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.af2 = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 2
+					str = ifs.ReadLine(); if (str == null) break;
+					//newTimeInterval.IODE = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.crs = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.deltan = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.M0 = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 3
+					str = ifs.ReadLine(); if (str == null) break;
+					newTimeInterval.cuc = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.ecc = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.cus = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.roota = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 4
+					str = ifs.ReadLine(); if (str == null) break;
+					newTimeInterval.toe = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.cic = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.Omega0 = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.cis = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 5
+					str = ifs.ReadLine(); if (str == null) break;
+					newTimeInterval.i0 = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.crc = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.omega = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.Omegadot = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 6
+					str = ifs.ReadLine(); if (str == null) break;
+					newTimeInterval.idot = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.codes = double.Parse(str.Substring(23, 19), cfi);
+					//newTimeInterval.weekno = double.Parse(str.Substring(42, 19), cfi);
+					//newTimeInterval.L2flag = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 7
+					str = ifs.ReadLine(); if (str == null) break;
+					//newTimeInterval.svaccur = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.svhealth = double.Parse(str.Substring(23, 19), cfi);
+					//newTimeInterval.tgd = double.Parse(str.Substring(42, 19), cfi);
+
+					//Linea 8
+					str = ifs.ReadLine(); if (str == null) break;
+					//newTimeInterval.tom = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.fit = double.Parse(str.Substring(23, 19), cfi);
+
+					sat.timeIntervals.Add(newTimeInterval);
+				}
+				Ephemerides_GPS.Add(ephemeris);
+			}
+
+			//Ora abbiamo le effemeridi complete del giorno, possiamo prelevare quella relativa al satellite e all'orario e calcolare la posizione del satellite
+
+			//Estraiamo il timeinterval più migliore assai
+			//sviluppo
+			//svId = 5;
+			///sviluppo
+			Satellite_Ephemeris_GPS satellite = ephemeris.satellites[svId];
+			Satellite_Ephemeris_GPS.TimeInterval bestTimeInterval = new Satellite_Ephemeris_GPS.TimeInterval();
+			int leapSeconds = ephemeris.leapSecond;
+			int tmin = 86400;
+			for (int i = 0; i < satellite.timeIntervals.Count; i++)
+			{
+				int t = (int)Math.Abs((satellite.timeIntervals[i].startTime_UTC - timestamp).TotalSeconds);
+				if (t < tmin)
+				{
+					tmin = t;
+					bestTimeInterval = satellite.timeIntervals[i];
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			double[] position = getSatellitePosition_GPS(bestTimeInterval, timestamp, leapSeconds);
+			var loc1 = getSatellitePosition_GPS(bestTimeInterval, timestamp.AddMilliseconds(100), leapSeconds);
+			var loc2 = getSatellitePosition_GPS(bestTimeInterval, timestamp.AddMilliseconds(-100), leapSeconds);
+			var xv = (loc1[0] - loc2[0]) * 0.5 / 0.1;
+			var yv = (loc1[1] - loc2[1]) * 0.5 / 0.1;
+			var zv = (loc1[2] - loc2[2]) * 0.5 / 0.1;
+
+			return new double[6] { position[0], position[1], position[2], xv, yv, zv };
+
+		}
+
+		private double[] getSatellitePosition_GPS(Satellite_Ephemeris_GPS.TimeInterval ti, DateTime t, int leapSeconds)
+		{
+			//t = DateTime.SpecifyKind(new DateTime(t.Year, t.Month, t.Day, t.Hour, t.Minute, t.Second), DateTimeKind.Utc); //Data del fix in formato UTC
+
+			int m_day_of_year = t.DayOfYear;
+			double gps_sec = (t - gps_time).TotalSeconds + leapSeconds;  //GPOESSE valutare quanti secondi di offset ci sono dopo il 2018
+			double gps_days = Math.Floor(gps_sec / SEC_PER_DAY);
+			double m_week = Math.Floor(gps_days / 7.0);
+			var sow = gps_sec - m_week * 7 * SEC_PER_DAY;
+			sow = Math.Round(sow, 1);
+
+			var a = Math.Pow(ti.roota, 2);     // Semi major axis
+											   //var tk = Util.check_t(sow - ti.toe);          // tk = sow-@toe
+			double tk;
+			var tt = sow - ti.toe;
+			const double half_week = 302400.0;
+			if (tt > half_week) tk = tt - 2 * half_week;
+			else if (tt < -half_week) tk = tt + 2 * half_week;
+			else tk = tt;
+
+			var n0 = Math.Sqrt(GM_GPS / Math.Pow(a, 3));    // Computed mean motion 
+			var n = n0 + ti.deltan;                        // Corrected mean motion
+			var m = ti.M0 + n * tk;                        // Mean anomaly
+
+			m = (m + PI2) - PI2 * (int)Math.Floor((m + PI2) / PI2);
+			var e = m;
+			for (int j = 0; j < 15; j++)
+			{
+				var e_old = e;
+				e = m + ti.ecc * Math.Sin(e_old);
+				var dE = (e + e_old) - PI2 * (int)Math.Floor((e - e_old) / PI2);
+				if (Math.Abs(dE) < 1.0e-15) break;
+			}
+			e = (e + PI2) - PI2 * (int)Math.Floor((e + PI2) / PI2);
+			var v = Math.Atan2(Math.Sqrt(1.0 - Math.Pow(ti.ecc, 2)) * Math.Sin(e), Math.Cos(e) - ti.ecc);
+			var phi = v + ti.omega;
+			phi = phi - PI2 * (int)Math.Floor(phi / PI2);
+			var phi2 = 2.0 * phi;
+
+			var cosphi2 = Math.Cos(phi2);
+			var sinphi2 = Math.Sin(phi2);
+
+			var u = phi + ti.cuc * cosphi2 + ti.cus * sinphi2;
+			var r = a * (1.0 - ti.ecc * Math.Cos(e)) + ti.crc * cosphi2 + ti.crs * sinphi2;
+			var i = ti.i0 + ti.idot * tk + ti.cic * cosphi2 + ti.cis * sinphi2;
+			var om = ti.Omega0 + (ti.Omegadot - WGS84_EARTH_ROTATION_RATE_GPS) * tk - WGS84_EARTH_ROTATION_RATE_GPS * ti.toe;
+			//om = Util.rem2pi(om + Util.PI2);
+			om = (om + PI2) - PI2 * (int)Math.Floor((om + PI2) / PI2);
+			var x1 = Math.Cos(u) * r;
+			var y1 = Math.Sin(u) * r;
+
+			var x = x1 * Math.Cos(om) - y1 * Math.Cos(i) * Math.Sin(om);
+			var y = x1 * Math.Sin(om) + y1 * Math.Cos(i) * Math.Cos(om);
+
+			var z = y1 * Math.Sin(i);
+
+			return new double[3] { x, y, z };
+		}
+
+		private double[] extractPositionFromEphemeris_GALILEO(DateTime timestamp, int svId, string rawName)
+		{
+			CultureInfo cfi = CultureInfo.InvariantCulture;
+			Ephemeris_GALILEO ephemeris = new Ephemeris_GALILEO();
+			//sviluppo
+			//timestamp = new DateTime(2023, 10, 10, 15, 49, 09);
+			///sviluppo
+
+			bool addNewEphemeris = true;
+			if (Ephemerides_GALILEO.Count > 0)          //Controlla se l'effemeride è gia in memoria
+			{
+				for (int i = 0; i < Ephemerides_GALILEO.Count; i++)
+				{
+					if (Ephemerides_GALILEO[i].timestamp.Date == timestamp.Date)
+					{
+						ephemeris = Ephemerides_GALILEO[i];
+						addNewEphemeris = false;
+						break;
+					}
+				}
+			}
+
+			if (addNewEphemeris)        //Se non è in memoria la estrae dal relativo file (se il file non è presente, prima lo scarica da internet)
+			{
+				string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+								MainWindow.companyFolder + MainWindow.appFolder + "\\brdc_galileo";
+				var outs = Directory.CreateDirectory(dir);
+				string fileName = dir + "\\" + timestamp.ToString("yyyyMMdd") + ".dat.gz";
+
+				//Controlla se esiste il file, in caso contrario lo scarica
+				if (!File.Exists(fileName))
+				{
+
+					//Se non esiste scarica l'effemeride nel file
+					byte[] data;
+					string url = string.Format("https://igs.bkg.bund.de/root_ftp/IGS/BRDC/{0}/{1}/BRDC00WRD_R_{0}{1}0000_01D_EN.rnx.gz",
+												timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"));
+					using (WebClient request = new WebClient())     //effettua il download	
+					{
+						data = request.DownloadData(url);
+					}
+					using (FileStream file = File.Create(fileName))   //Salva l'array di byte in un file
+					{
+						file.Write(data, 0, data.Length);
+						file.Close();
+					}
+				}
+
+				//Il file è sicuramente presente, si estrae l'effemeride
+				List<byte> buff = new List<byte>();
+				ephemeris = new Ephemeris_GALILEO();
+				ephemeris.timestamp = new DateTime(timestamp.Date.Year, timestamp.Date.Month, timestamp.Date.Day);
+
+				using (FileStream gzStream = File.Open(fileName, FileMode.Open))
+				{
+					using (GZipStream gzDecompressor = new GZipStream(gzStream, CompressionMode.Decompress))
+					{
+						int b = gzDecompressor.ReadByte();
+						while (b > 0)
+						{
+							buff.Add((byte)b);
+							b = gzDecompressor.ReadByte();
+						}
+					}
+				}
+
+				//Crea uno stream dell'array di byte per leggere sequenzialmente le stringhe su cui fare il parsing
+				MemoryStream ms = new MemoryStream(buff.ToArray());
+				StreamReader ifs = new StreamReader(ms);
+				buff = null;
+				string str = null;
+
+				//Cerca i dati sulla ionosfera che saranno allegati a tutte le effemeridi del file
+				ephemeris.leapSecond = 18;
+				//Cercare un server che fornisca questa informazione perché già a giugno 2025
+				//i secondi intercalare potrebbero diventare 19	
+				ephemeris.m_week = -1;
+				for (int i = 0; i < 100; i++)
+				{
+					str = ifs.ReadLine();
+					//if (str != null && str.Contains("ION ALPHA"))
+					//{
+					//	ephemeris.ion[0] = double.Parse(str.Replace('D', 'E').Substring(3, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[1] = double.Parse(str.Replace('D', 'E').Substring(15, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[2] = double.Parse(str.Replace('D', 'E').Substring(27, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[3] = double.Parse(str.Replace('D', 'E').Substring(39, 12), CultureInfo.InvariantCulture);
+					//}
+					//if (str != null && str.Contains("ION BETA"))
+					//{
+					//	ephemeris.ion[4] = double.Parse(str.Replace('D', 'E').Substring(3, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[5] = double.Parse(str.Replace('D', 'E').Substring(15, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[6] = double.Parse(str.Replace('D', 'E').Substring(27, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[7] = double.Parse(str.Replace('D', 'E').Substring(39, 12), CultureInfo.InvariantCulture);
+					//}
+					//if (str != null && str.Contains("LEAP SECONDS"))
+					//{
+					//	ephemeris.leapSecond = int.Parse(str.Substring(3, 4));
+					//}
+					//if (str != null && str.Contains("DELTA-UTC: A0,A1,T,W")) ephemeris.m_week = int.Parse(str.Substring(54, 5));
+
+					if (str != null && str.Contains("END OF HEADER")) break;
+				}
+
+				while (str != null)
+				{
+					str = ifs.ReadLine();
+					if ((str == null) || (str.Length < 32)) break;
+					//str = str.Replace('D', 'E');
+					int prn = int.Parse(str.Substring(1, 2), cfi);
+					if (ephemeris.satellites[prn] == null) ephemeris.satellites[prn] = new Satellite_Ephemeris_GALILEO();
+
+					Satellite_Ephemeris_GALILEO sat = ephemeris.satellites[prn];
+					sat.svId = prn;
+
+					Satellite_Ephemeris_GALILEO.TimeInterval newTimeInterval = new Satellite_Ephemeris_GALILEO.TimeInterval();
+					int year = int.Parse(str.Substring(4, 4), cfi);
+					int month = int.Parse(str.Substring(9, 2), cfi);
+					int day = int.Parse(str.Substring(12, 2), cfi);
+					int hour = int.Parse(str.Substring(15, 2), cfi);
+					int minute = int.Parse(str.Substring(18, 2), cfi);
+					double second = double.Parse(str.Substring(21, 2), cfi);
+					newTimeInterval.startTime_UTC = new DateTime(year, month, day, hour, minute, (int)second);
+					newTimeInterval.startTime_UTC = newTimeInterval.startTime_UTC.AddSeconds(-ephemeris.leapSecond);
+					newTimeInterval.af0 = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.af1 = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.af2 = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 2
+					str = ifs.ReadLine(); if (str == null) break;
+					//str = str.Replace('D', 'E');
+					//newTimeInterval.IODE = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.crs = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.deltan = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.M0 = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 3
+					str = ifs.ReadLine(); if (str == null) break;
+					//str = str.Replace('D', 'E');
+					newTimeInterval.cuc = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.ecc = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.cus = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.roota = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 4
+					str = ifs.ReadLine(); if (str == null) break;
+					//str = str.Replace('D', 'E');
+					newTimeInterval.toe = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.cic = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.Omega0 = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.cis = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 5
+					str = ifs.ReadLine(); if (str == null) break;
+					//str = str.Replace('D', 'E');
+					newTimeInterval.i0 = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.crc = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.omega = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.Omegadot = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 6
+					str = ifs.ReadLine(); if (str == null) break;
+					//str = str.Replace('D', 'E');
+					newTimeInterval.idot = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.codes = double.Parse(str.Substring(23, 19), cfi);
+					//newTimeInterval.weekno = double.Parse(str.Substring(42, 19), cfi);
+					//newTimeInterval.L2flag = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 7
+					str = ifs.ReadLine(); if (str == null) break;
+					//str = str.Replace('D', 'E');
+					//newTimeInterval.svaccur = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.svhealth = double.Parse(str.Substring(23, 19), cfi);
+					//newTimeInterval.tgd = double.Parse(str.Substring(42, 19), cfi);
+
+					//Linea 8
+					str = ifs.ReadLine(); if (str == null) break;
+					//newTimeInterval.tom = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.fit = double.Parse(str.Substring(23, 19), cfi);
+
+					sat.timeIntervals.Add(newTimeInterval);
+				}
+				Ephemerides_GALILEO.Add(ephemeris);
+			}
+
+			//Ora abbiamo le effemeridi complete del giorno, possiamo prelevare quella relativa al satellite e all'orario e calcolare la posizione del satellite
+
+			//Estraiamo il timeinterval più migliore assai
+			//sviluppo
+			//svId = 5;
+			///sviluppo
+			Satellite_Ephemeris_GALILEO satellite = ephemeris.satellites[svId];
+			Satellite_Ephemeris_GALILEO.TimeInterval bestTimeInterval = new Satellite_Ephemeris_GALILEO.TimeInterval();
+			int leapSeconds = ephemeris.leapSecond;
+			int tmin = 86400;
+			for (int i = 0; i < satellite.timeIntervals.Count; i++)
+			{
+				int t = (int)Math.Abs((satellite.timeIntervals[i].startTime_UTC - timestamp).TotalSeconds);
+				if (t < tmin)
+				{
+					tmin = t;
+					bestTimeInterval = satellite.timeIntervals[i];
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			double[] position = getSatellitePosition_GALILEO(bestTimeInterval, timestamp, leapSeconds);
+			var loc1 = getSatellitePosition_GALILEO(bestTimeInterval, timestamp.AddMilliseconds(100), leapSeconds);
+			var loc2 = getSatellitePosition_GALILEO(bestTimeInterval, timestamp.AddMilliseconds(-100), leapSeconds);
+			var xv = (loc1[0] - loc2[0]) * 0.5 / 0.1;
+			var yv = (loc1[1] - loc2[1]) * 0.5 / 0.1;
+			var zv = (loc1[2] - loc2[2]) * 0.5 / 0.1;
+
+			return new double[6] { position[0], position[1], position[2], xv, yv, zv };
+		}
+
+		private double[] getSatellitePosition_GALILEO(Satellite_Ephemeris_GALILEO.TimeInterval ti, DateTime t, int leapSeconds)
+		{
+			//t = DateTime.SpecifyKind(new DateTime(t.Year, t.Month, t.Day, t.Hour, t.Minute, t.Second), DateTimeKind.Utc); //Data del fix in formato UTC
+
+			int m_day_of_year = t.DayOfYear;
+			double gps_sec = (t - gps_time).TotalSeconds + leapSeconds;  //GPOESSE valutare quanti secondi di offset ci sono dopo il 2018
+			double gps_days = Math.Floor(gps_sec / SEC_PER_DAY);
+			double m_week = Math.Floor(gps_days / 7.0);
+			var sow = gps_sec - m_week * 7 * SEC_PER_DAY;
+			sow = Math.Round(sow, 1);
+
+			var a = Math.Pow(ti.roota, 2);     // Semi major axis
+											   //var tk = Util.check_t(sow - ti.toe);          // tk = sow-@toe
+			double tk;
+			var tt = sow - ti.toe;
+			const double half_week = 302400.0;
+			if (tt > half_week) tk = tt - 2 * half_week;
+			else if (tt < -half_week) tk = tt + 2 * half_week;
+			else tk = tt;
+
+			var n0 = Math.Sqrt(GM_GAL / Math.Pow(a, 3));    // Computed mean motion 
+			var n = n0 + ti.deltan;                        // Corrected mean motion
+			var m = ti.M0 + n * tk;                        // Mean anomaly
+
+			m = (m + PI2) - PI2 * (int)Math.Floor((m + PI2) / PI2);
+			var e = m;
+			for (int j = 0; j < 15; j++)
+			{
+				var e_old = e;
+				e = m + ti.ecc * Math.Sin(e_old);
+				var dE = (e + e_old) - PI2 * (int)Math.Floor((e - e_old) / PI2);
+				if (Math.Abs(dE) < 1.0e-15) break;
+			}
+			e = (e + PI2) - PI2 * (int)Math.Floor((e + PI2) / PI2);
+			var v = Math.Atan2(Math.Sqrt(1.0 - Math.Pow(ti.ecc, 2)) * Math.Sin(e), Math.Cos(e) - ti.ecc);
+			var phi = v + ti.omega;
+			phi = phi - PI2 * (int)Math.Floor(phi / PI2);
+			var phi2 = 2.0 * phi;
+
+			var cosphi2 = Math.Cos(phi2);
+			var sinphi2 = Math.Sin(phi2);
+
+			var u = phi + ti.cuc * cosphi2 + ti.cus * sinphi2;
+			var r = a * (1.0 - ti.ecc * Math.Cos(e)) + ti.crc * cosphi2 + ti.crs * sinphi2;
+			var i = ti.i0 + ti.idot * tk + ti.cic * cosphi2 + ti.cis * sinphi2;
+			var om = ti.Omega0 + (ti.Omegadot - WGS84_EARTH_ROTATION_RATE_GAL) * tk - WGS84_EARTH_ROTATION_RATE_GAL * ti.toe;
+			//om = Util.rem2pi(om + Util.PI2);
+			om = (om + PI2) - PI2 * (int)Math.Floor((om + PI2) / PI2);
+			var x1 = Math.Cos(u) * r;
+			var y1 = Math.Sin(u) * r;
+
+			var x = x1 * Math.Cos(om) - y1 * Math.Cos(i) * Math.Sin(om);
+			var y = x1 * Math.Sin(om) + y1 * Math.Cos(i) * Math.Cos(om);
+
+			var z = y1 * Math.Sin(i);
+
+			return new double[3] { x, y, z };
+
+		}
+
+		private double[] extractPositionFromEphemeris_BEIDOU(DateTime timestamp, int svId, string rawName)
+		{
+			CultureInfo cfi = CultureInfo.InvariantCulture;
+			Ephemeris_BEIDOU ephemeris = new Ephemeris_BEIDOU();
+
+			bool addNewEphemeris = true;
+
+			if (Ephemerides_BEIDOU.Count > 0)          //Controlla se l'effemeride è gia in memoria
+			{
+				for (int i = 0; i < Ephemerides_BEIDOU.Count; i++)
+				{
+					if (Ephemerides_BEIDOU[i].timestamp.Date == timestamp.Date)
+					{
+						ephemeris = Ephemerides_BEIDOU[i];
+						addNewEphemeris = false;
+						break;
+					}
+				}
+			}
+
+			if (addNewEphemeris)        //Se non è in memoria la estrae dal relativo file (se il file non è presente, prima lo scarica da internet)
+			{
+				string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
+								MainWindow.companyFolder + MainWindow.appFolder + "\\brdc_beidou";
+				var outs = Directory.CreateDirectory(dir);
+				string fileName = dir + "\\" + timestamp.ToString("yyyyMMdd") + ".dat.gz";
+
+				//Controlla se esiste il file, in caso contrario lo scarica
+				if (!File.Exists(fileName))
+				{
+
+					//Se non esiste scarica l'effemeride nel file
+					byte[] data;
+					//string url = string.Format("ftp://gssc.esa.int/gnss/data/daily/{0}/brdc/brdc{1}0.{2}n.gz",
+					//							timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"), (timestamp.Year - 2000).ToString("00"));
+					string url = string.Format("https://igs.bkg.bund.de/root_ftp/IGS/BRDC/{0}/{1}/BRDC00WRD_R_{0}{1}0000_01D_CN.rnx.gz",
+												timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"));
+					using (WebClient request = new WebClient())     //effettua il download	
+					{
+						data = request.DownloadData(url);
+					}
+					using (FileStream file = File.Create(fileName))   //Salva l'array di byte in un file
+					{
+						file.Write(data, 0, data.Length);
+						file.Close();
+					}
+				}
+
+				//Il file è sicuramente presente, si estrae l'effemeride
+				List<byte> buff = new List<byte>();
+				ephemeris = new Ephemeris_BEIDOU();
+				ephemeris.timestamp = new DateTime(timestamp.Date.Year, timestamp.Date.Month, timestamp.Date.Day);
+
+				using (FileStream gzStream = File.Open(fileName, FileMode.Open))
+				{
+					using (GZipStream gzDecompressor = new GZipStream(gzStream, CompressionMode.Decompress))
+					{
+						int b = gzDecompressor.ReadByte();
+						while (b > 0)
+						{
+							buff.Add((byte)b);
+							b = gzDecompressor.ReadByte();
+						}
+					}
+				}
+
+				//Crea uno stream dell'array di byte per leggere sequenzialmente le stringhe su cui fare il parsing
+				MemoryStream ms = new MemoryStream(buff.ToArray());
+				StreamReader ifs = new StreamReader(ms);
+				buff = null;
+				string str = null;
+
+				//Cerca i dati sulla ionosfera che saranno allegati a tutte le effemeridi del file
+				ephemeris.leapSecond = 4;   //Nel BEIDOU i leap second sono solo 4. Per il confronto con gLab, nel programma bisogna comunque inserire
+				/*
+				 Bisogna convertire l'ora del punto in formato NTP (vedi https://weirdo.cloud/) e confrontarla con l'elenco che si trova qui:
+				https://data.iana.org/time-zones/data/leap-seconds.list. Per comodità vedere anche: 
+				https://www.cnmoc.usff.navy.mil/Our-Commands/United-States-Naval-Observatory/Precise-Time-Department/Global-Positioning-System/USNO-GPS-Time-Transfer/Leap-Seconds/
+				*/                        //18, perché glab vuole il tempo GPS, qualsiasi costellazione si calcoli
+				ephemeris.m_week = -1;
+				for (int i = 0; i < 100; i++)
+				{
+					str = ifs.ReadLine();
+					//if (str != null && str.Contains("ION ALPHA"))
+					//{
+					//	ephemeris.ion[0] = double.Parse(str.Replace('D', 'E').Substring(3, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[1] = double.Parse(str.Replace('D', 'E').Substring(15, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[2] = double.Parse(str.Replace('D', 'E').Substring(27, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[3] = double.Parse(str.Replace('D', 'E').Substring(39, 12), CultureInfo.InvariantCulture);
+					//}
+					//if (str != null && str.Contains("ION BETA"))
+					//{
+					//	ephemeris.ion[4] = double.Parse(str.Replace('D', 'E').Substring(3, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[5] = double.Parse(str.Replace('D', 'E').Substring(15, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[6] = double.Parse(str.Replace('D', 'E').Substring(27, 12), CultureInfo.InvariantCulture);
+					//	ephemeris.ion[7] = double.Parse(str.Replace('D', 'E').Substring(39, 12), CultureInfo.InvariantCulture);
+					//}
+					//if (str != null && str.Contains("LEAP SECONDS"))
+					//{
+					//	ephemeris.leapSecond = int.Parse(str.Substring(3, 4));
+					//}
+					//if (str != null && str.Contains("DELTA-UTC: A0,A1,T,W")) ephemeris.m_week = int.Parse(str.Substring(54, 5));
+
+					if (str != null && str.Contains("END OF HEADER")) break;
+				}
+
+				while (str != null)
+				{
+					//Linea 0
+					str = ifs.ReadLine();
+					if ((str == null) || (str.Length < 32)) break;
+					int prn = int.Parse(str.Substring(1, 2), cfi);
+					if (ephemeris.satellites[prn] == null) ephemeris.satellites[prn] = new Satellite_Ephemeris_BEIDOU();
+
+					Satellite_Ephemeris_BEIDOU sat = ephemeris.satellites[prn];
+					sat.svId = prn;
+
+					Satellite_Ephemeris_BEIDOU.TimeInterval newTimeInterval = new Satellite_Ephemeris_BEIDOU.TimeInterval();
+					int year = int.Parse(str.Substring(4, 4), cfi);
+					int month = int.Parse(str.Substring(9, 2), cfi);
+					int day = int.Parse(str.Substring(12, 2), cfi);
+					int hour = int.Parse(str.Substring(15, 2), cfi);
+					int minute = int.Parse(str.Substring(18, 2), cfi);
+					double second = double.Parse(str.Substring(21, 2), cfi);
+					newTimeInterval.startTime_UTC = new DateTime(year, month, day, hour, minute, (int)second);
+					newTimeInterval.startTime_UTC = newTimeInterval.startTime_UTC.AddSeconds(-ephemeris.leapSecond);
+					newTimeInterval.af0 = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.af1 = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.af2 = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 1
+					str = ifs.ReadLine(); if (str == null) break;
+					//newTimeInterval.IODE = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.crs = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.deltan = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.M0 = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 2
+					str = ifs.ReadLine(); if (str == null) break;
+					newTimeInterval.cuc = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.ecc = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.cus = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.roota = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 3
+					str = ifs.ReadLine(); if (str == null) break;
+					newTimeInterval.toe = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.cic = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.Omega0 = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.cis = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 4
+					str = ifs.ReadLine(); if (str == null) break;
+					newTimeInterval.i0 = double.Parse(str.Substring(4, 19), cfi);
+					newTimeInterval.crc = double.Parse(str.Substring(23, 19), cfi);
+					newTimeInterval.omega = double.Parse(str.Substring(42, 19), cfi);
+					newTimeInterval.Omegadot = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 5
+					str = ifs.ReadLine(); if (str == null) break;
+					newTimeInterval.idot = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.codes = double.Parse(str.Substring(23, 19), cfi);
+					//newTimeInterval.GPSweek = double.Parse(str.Substring(42, 19), cfi);
+					//newTimeInterval.L2flag = double.Parse(str.Substring(61, 19), cfi);
+
+					//Linea 6
+					str = ifs.ReadLine(); if (str == null) break;
+					//newTimeInterval.svaccur = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.svhealth = double.Parse(str.Substring(23, 19), cfi);
+					//newTimeInterval.tgd = double.Parse(str.Substring(42, 19), cfi);
+
+					//Linea 7
+					str = ifs.ReadLine(); if (str == null) break;
+					//newTimeInterval.tom = double.Parse(str.Substring(4, 19), cfi);
+					//newTimeInterval.fit = double.Parse(str.Substring(23, 19), cfi);
+
+					sat.timeIntervals.Add(newTimeInterval);
+				}
+
+				Ephemerides_BEIDOU.Add(ephemeris);
+			}
+
+			//Ora abbiamo le effemeridi complete del giorno, possiamo prelevare quella relativa al satellite e all'orario e calcolare la posizione del satellite
+
+			//Estraiamo il timeinterval più migliore assai
+			//sviluppo
+			//svId = 5;
+			///sviluppo
+			Satellite_Ephemeris_BEIDOU satellite = ephemeris.satellites[svId];
+			Satellite_Ephemeris_BEIDOU.TimeInterval bestTimeInterval = new Satellite_Ephemeris_BEIDOU.TimeInterval();
+			int leapSeconds = ephemeris.leapSecond;
+			int tmin = 86400;
+			for (int i = 0; i < satellite.timeIntervals.Count; i++)
+			{
+				int t = (int)Math.Abs((satellite.timeIntervals[i].startTime_UTC - timestamp).TotalSeconds);
+				if (t < tmin)
+				{
+					tmin = t;
+					bestTimeInterval = satellite.timeIntervals[i];
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			double[] loc1, loc2, position;
+			if ((svId <= 5) || (svId >= 59))
+			{
+				position = getSatellitePosition_BEIDOU_GEO(bestTimeInterval, timestamp, leapSeconds);
+				loc1 = getSatellitePosition_BEIDOU_GEO(bestTimeInterval, timestamp.AddMilliseconds(100), leapSeconds);
+				loc2 = getSatellitePosition_BEIDOU_GEO(bestTimeInterval, timestamp.AddMilliseconds(-100), leapSeconds);
+			}
+			else
+			{
+				position = getSatellitePosition_BEIDOU_IGSOMEO(bestTimeInterval, timestamp, leapSeconds);
+				loc1 = getSatellitePosition_BEIDOU_IGSOMEO(bestTimeInterval, timestamp.AddMilliseconds(100), leapSeconds);
+				loc2 = getSatellitePosition_BEIDOU_IGSOMEO(bestTimeInterval, timestamp.AddMilliseconds(-100), leapSeconds);
+			}
+
+			var xv = (loc1[0] - loc2[0]) * 0.5 / 0.1;
+			var yv = (loc1[1] - loc2[1]) * 0.5 / 0.1;
+			var zv = (loc1[2] - loc2[2]) * 0.5 / 0.1;
+
+			return new double[6] { position[0], position[1], position[2], xv, yv, zv };
+
+
+
+		}
+
+		private double[] getSatellitePosition_BEIDOU_GEO(Satellite_Ephemeris_BEIDOU.TimeInterval ti, DateTime t, int leapSeconds)
+		{
+			int m_day_of_year = t.DayOfYear;
+			double gps_sec = (t - gps_time).TotalSeconds + leapSeconds;  //GPOESSE valutare quanti secondi di offset ci sono dopo il 2018
+			double gps_days = Math.Floor(gps_sec / SEC_PER_DAY);
+			double m_week = Math.Floor(gps_days / 7.0);
+			var sow = gps_sec - m_week * 7 * SEC_PER_DAY;
+			sow = Math.Round(sow, 1);
+
+			var a = Math.Pow(ti.roota, 2);     // Semi major axis
+											   //var tk = Util.check_t(sow - ti.toe);          // tk = sow-@toe
+			double tk;
+			var tt = sow - ti.toe;
+			const double half_week = 302400.0;
+			if (tt > half_week) tk = tt - 2 * half_week;
+			else if (tt < -half_week) tk = tt + 2 * half_week;
+			else tk = tt;
+
+			var n0 = Math.Sqrt(GM_BDS / Math.Pow(a, 3));    // Computed mean motion 
+			var n = n0 + ti.deltan;                        // Corrected mean motion
+			var m = ti.M0 + n * tk;                        // Mean anomaly
+
+			m = (m + PI2) - PI2 * (int)Math.Floor((m + PI2) / PI2);
+			var e = m;
+			for (int j = 0; j < 15; j++)
+			{
+				var e_old = e;
+				e = m + ti.ecc * Math.Sin(e_old);
+				var dE = (e + e_old) - PI2 * (int)Math.Floor((e - e_old) / PI2);
+				if (Math.Abs(dE) < 1.0e-15) break;
+			}
+			e = (e + PI2) - PI2 * (int)Math.Floor((e + PI2) / PI2);
+			var v = Math.Atan2(Math.Sqrt(1.0 - Math.Pow(ti.ecc, 2)) * Math.Sin(e), Math.Cos(e) - ti.ecc);
+			var phi = v + ti.omega;
+			phi = phi - PI2 * (int)Math.Floor(phi / PI2);
+			var phi2 = 2.0 * phi;
+
+			var cosphi2 = Math.Cos(phi2);
+			var sinphi2 = Math.Sin(phi2);
+
+			var u = phi + ti.cuc * cosphi2 + ti.cus * sinphi2;
+			var r = a * (1.0 - ti.ecc * Math.Cos(e)) + ti.crc * cosphi2 + ti.crs * sinphi2;
+			var i = ti.i0 + ti.idot * tk + ti.cic * cosphi2 + ti.cis * sinphi2;
+			//var om = ti.Omega0 + (ti.Omegadot - WGS84_EARTH_ROTATION_RATE_GPS) * tk - WGS84_EARTH_ROTATION_RATE_GPS * ti.toe;
+			//OMk = block->OMEGA + (block->OMEGADOT - om_eB) * diff - om_eB * block->toe;
+			var om = ti.Omega0 + (ti.Omegadot * tk) - (WGS84_EARTH_ROTATION_RATE_BDS * ti.toe);
+			om = (om + PI2) - PI2 * (int)Math.Floor((om + PI2) / PI2);
+
+			var x1 = Math.Cos(u) * r;
+			var y1 = Math.Sin(u) * r;
+
+			var X = x1 * Math.Cos(om) - y1 * Math.Cos(i) * Math.Sin(om);
+			var Y = x1 * Math.Sin(om) + y1 * Math.Cos(i) * Math.Cos(om);
+			var Z = y1 * Math.Sin(i);
+			var beta = WGS84_EARTH_ROTATION_RATE_BDS * tk;
+
+			var x = X * Math.Cos(beta) + Y * Math.Sin(beta) * Math.Cos(alpha) + Z * Math.Sin(beta) * Math.Sin(alpha);
+			var y = X * (-Math.Sin(beta)) + Y * Math.Cos(beta) * Math.Cos(alpha) + Z * Math.Cos(beta) * Math.Sin(alpha);
+			var z = Y * (-Math.Sin(alpha)) + Z * Math.Cos(alpha);
+
+			return new double[3] { x, y, z };
+		}
+
+		//private double[] getSatellitePosition_BEIDOU_IGSOMEO(Satellite_Ephemeris_BEIDOU.TimeInterval ti, DateTime t, int leapSeconds)
+		////private double[] getSatellitePosition_BEIDOU(Satellite_Ephemeris_BEIDOU.TimeInterval ti, DateTime t, int leapSeconds)
+		//{
+		//	//t = DateTime.SpecifyKind(new DateTime(t.Year, t.Month, t.Day, t.Hour, t.Minute, t.Second), DateTimeKind.Utc); //Data del fix in formato UTC
+
+		//	//int m_day_of_year = t.DayOfYear;
+		//	////double bdt_sec = (t - gps_time).TotalSeconds + leapSeconds;
+		//	//double bdt_sec = (t - gps_time).TotalSeconds + 4;
+		//	//double bdt_days = Math.Floor(bdt_sec / SEC_PER_DAY);
+		//	//double m_week = Math.Floor(bdt_days / 7.0);
+		//	//var sow = bdt_sec - m_week * 7 * SEC_PER_DAY;
+		//	//sow = Math.Round(sow, 1);
+
+		//	var A0 = Math.Pow(ti.roota, 2);     // Semi major axis
+		//	double diff = 0;
+		//	if (ti.startTime_UTC > t)
+		//		diff = (ti.startTime_UTC - t).TotalSeconds;
+		//	else
+		//	{
+		//		diff = (t - ti.startTime_UTC).TotalSeconds;
+		//	}
+		//	diff += 118;
+		//	//TTime Ttoe;
+		//	//int DoW;
+		//	//if (ti.toe < 0)
+		//	//{
+		//	//	ti.toe += 604800;
+		//	//	ti.GPSweek--;
+		//	//}
+		//	//else if (ti.toe >= 604800)
+		//	//{
+		//	//	ti.toe -= 604800;
+		//	//	ti.GPSweek++;
+		//	//}
+		//	//DoW = (int)(ti.toe / 86400.0);
+		//	//Ttoe.MJDN = (int)(44244 + ti.GPSweek * 7.0 + DoW);
+		//	//Ttoe.SoD = ti.toe - DoW * 86400.0;
+
+		//	//double tk;
+		//	//var tt = sow - ti.toe;
+		//	//const double half_week = 302400.0;
+		//	//if (tt > half_week) tk = tt - 2 * half_week;
+		//	//else if (tt < -half_week) tk = tt + 2 * half_week;
+		//	//else tk = tt;
+		//	//var diff = tk;
+
+
+
+
+		//	//var diff = sow - ti.toe;
+		//	var Mk = ti.M0 + (Math.Sqrt(GM_BDS) / (A0 * ti.roota) + ti.deltan) * diff;                        // Mean anomaly
+		//	var OMk = ti.OMEGA + (ti.OMEGADOT - om_eB) * diff - om_eB * ti.toe;
+
+		//	const double tol = 1e-14;
+		//	double p, p0, p1, p2;
+		//	double dd;
+
+		//	Mk = Math.Atan2(Math.Sin(Mk), Math.Cos(Mk));
+		//	p = Mk;
+		//	while (true)
+		//	{
+		//		p0 = p;
+		//		p1 = Mk + ti.ecc * Math.Sin(p0);
+		//		p2 = Mk + ti.ecc * Math.Sin(p1);
+
+		//		dd = Math.Abs(p2 - 2 * p1 + p0);
+		//		if (dd < tol) break;
+		//		p = p0 - (p1 - p0) * (p1 - p0) / (p2 - 2 * p1 + p0);
+		//		if (Math.Abs(p - p0) <= tol) break;
+		//	}
+		//	var Ek = p;
+
+		//	if (Ek < 0) Ek += 2 * Math.PI;
+		//	if (Ek > 2 * Math.PI) Ek -= 2 * Math.PI;
+		//	var fk = Math.Atan2(Math.Sqrt(1 - ti.ecc * ti.ecc) * Math.Sin(Ek), Math.Cos(Ek) - ti.ecc);
+		//	if (fk < 0) fk += 2 * Math.PI;
+		//	if (fk > 2 * Math.PI) fk -= 2 * Math.PI;
+
+		//	var uk = ti.OMEGA + fk + ti.cuc * Math.Cos(2 * (ti.OMEGA + fk)) + ti.cus * Math.Sin(2 * (ti.OMEGA + fk));
+		//	var rk = A0 * (1.0 - ti.ecc * Math.Cos(Ek)) + ti.crc * Math.Cos(2.0 * (ti.OMEGA + fk)) + ti.crs * Math.Sin(2.0 * (ti.OMEGA + fk));
+		//	var ik = ti.i0 + ti.idot * diff + ti.cic * Math.Cos(2 * (ti.OMEGA + fk)) + ti.cis * Math.Sin(2 * (ti.OMEGA + fk));
+
+		//	var xp = rk * Math.Cos(uk);
+		//	var yp = rk * Math.Sin(uk);
+
+		//	var x = xp * Math.Cos(OMk) - yp * Math.Cos(ik) * Math.Sin(OMk);
+		//	var y = xp * Math.Sin(OMk) + yp * Math.Cos(ik) * Math.Cos(OMk);
+
+		//	var z = yp * Math.Sin(ik);
+
+		//	return new double[3] { x, y, z };
+		//}
+
+		private double[] getSatellitePosition_BEIDOU_IGSOMEO(Satellite_Ephemeris_BEIDOU.TimeInterval ti, DateTime t, int leapSeconds)
+		{
+			//t = DateTime.SpecifyKind(new DateTime(t.Year, t.Month, t.Day, t.Hour, t.Minute, t.Second), DateTimeKind.Utc); //Data del fix in formato UTC
+
+			int m_day_of_year = t.DayOfYear;
+			double gps_sec = (t - gps_time).TotalSeconds + leapSeconds;  //GPOESSE valutare quanti secondi di offset ci sono dopo il 2018
+			double gps_days = Math.Floor(gps_sec / SEC_PER_DAY);
+			double m_week = Math.Floor(gps_days / 7.0);
+			var sow = gps_sec - m_week * 7 * SEC_PER_DAY;
+			sow = Math.Round(sow, 1);
+
+			var a = Math.Pow(ti.roota, 2);     // Semi major axis
+											   //var tk = Util.check_t(sow - ti.toe);          // tk = sow-@toe
+			double tk;
+			var tt = sow - ti.toe;
+			const double half_week = 302400.0;
+			if (tt > half_week) tk = tt - 2 * half_week;
+			else if (tt < -half_week) tk = tt + 2 * half_week;
+			else tk = tt;
+
+			var n0 = Math.Sqrt(GM_BDS / Math.Pow(a, 3));    // Computed mean motion 
+			var n = n0 + ti.deltan;                        // Corrected mean motion
+			var m = ti.M0 + n * tk;                        // Mean anomaly
+
+			m = (m + PI2) - PI2 * (int)Math.Floor((m + PI2) / PI2);
+			var e = m;
+			for (int j = 0; j < 15; j++)
+			{
+				var e_old = e;
+				e = m + ti.ecc * Math.Sin(e_old);
+				var dE = (e + e_old) - PI2 * (int)Math.Floor((e - e_old) / PI2);
+				if (Math.Abs(dE) < 1.0e-15) break;
+			}
+			e = (e + PI2) - PI2 * (int)Math.Floor((e + PI2) / PI2);
+			var v = Math.Atan2(Math.Sqrt(1.0 - Math.Pow(ti.ecc, 2)) * Math.Sin(e), Math.Cos(e) - ti.ecc);
+			var phi = v + ti.omega;
+			phi = phi - PI2 * (int)Math.Floor(phi / PI2);
+			var phi2 = 2.0 * phi;
+
+			var cosphi2 = Math.Cos(phi2);
+			var sinphi2 = Math.Sin(phi2);
+
+			var u = phi + ti.cuc * cosphi2 + ti.cus * sinphi2;
+			var r = a * (1.0 - ti.ecc * Math.Cos(e)) + ti.crc * cosphi2 + ti.crs * sinphi2;
+			var i = ti.i0 + ti.idot * tk + ti.cic * cosphi2 + ti.cis * sinphi2;
+			var om = ti.Omega0 + (ti.Omegadot - WGS84_EARTH_ROTATION_RATE_BDS) * tk - WGS84_EARTH_ROTATION_RATE_BDS * ti.toe;
+			//om = Util.rem2pi(om + Util.PI2);
+			om = (om + PI2) - PI2 * (int)Math.Floor((om + PI2) / PI2);
+			var x1 = Math.Cos(u) * r;
+			var y1 = Math.Sin(u) * r;
+
+			var x = x1 * Math.Cos(om) - y1 * Math.Cos(i) * Math.Sin(om);
+			var y = x1 * Math.Sin(om) + y1 * Math.Cos(i) * Math.Cos(om);
+
+			var z = y1 * Math.Sin(i);
+
+			return new double[3] { x, y, z };
+		}
+
+		private List<byte> decodeTimeStamp(ref byte[] gp6, ref TimeStamp t)
 		{
 
 			//Cerca un timestamp o un nostamp
 			List<byte> bufferNoStamp = new List<byte>();
-			byte test = gp6[pos];
+			byte test = gp6[ramPos];
 			int max = gp6.Length - 1;
 			t.txtAllowed = 0;
+			t.kmlAllowed = false;
 			t.rawPreset = false;
+			t.pos = gp6Pos;
 			//if (pref_debugLevel > 0) t.txtAllowed++;
 			while (true)
 			{
-				while ((test != 0xab) & (pos < max))
+				while ((test != 0xab) & (ramPos < max))
 				{
-					pos++;
-					test = gp6[pos];
+					ramPos++;
+					test = gp6[ramPos];
 				}
 				//if (test == 0xff | test == 0x0a)
-				if (test == 0x0a | pos == max)
+				if (test == 0x0a | ramPos == max)
 				{
 					List<byte> lout = new List<byte>();
 					lout.Add(0xff);
@@ -2086,11 +3096,11 @@ namespace X_Manager.Units.Gipsy6
 				if (test == 0xac)
 				{
 					//no stamp: 0xAC seguito da due byte di buffersize b e b byte di buffer
-					int noSize = gp6[pos + 1] * 256 + gp6[pos + 2];
-					pos += 3;
-					bufferNoStamp.AddRange(gp6.Skip(pos).Take(noSize));
-					pos += noSize;
-					test = gp6[pos];
+					int noSize = gp6[ramPos + 1] * 256 + gp6[ramPos + 2];
+					ramPos += 3;
+					bufferNoStamp.AddRange(gp6.Skip(ramPos).Take(noSize));
+					ramPos += noSize;
+					test = gp6[ramPos];
 					continue;
 				}
 				else
@@ -2098,20 +3108,20 @@ namespace X_Manager.Units.Gipsy6
 					break;
 				}
 			}
-			t.pos = pos;
-			pos++;
-			t.tsType = gp6[pos];
-			pos++;
+
+			ramPos++;
+			t.tsType = gp6[ramPos];
+			ramPos++;
 			t.tsTypeExt1 = t.tsTypeExt2 = 0;
 			if ((t.tsType & ts_ext1) == ts_ext1)
 			{
-				t.tsTypeExt1 = gp6[pos];
-				pos++;
+				t.tsTypeExt1 = gp6[ramPos];
+				ramPos++;
 			}
 			if ((t.tsTypeExt1 & ts_ext2) == ts_ext2)
 			{
-				t.tsTypeExt2 = gp6[pos];
-				pos++;
+				t.tsTypeExt2 = gp6[ramPos];
+				ramPos++;
 			}
 
 			//Inserire Pressione
@@ -2120,10 +3130,10 @@ namespace X_Manager.Units.Gipsy6
 			//Batteria
 			if ((t.tsType & ts_battery) == ts_battery)
 			{
-				t.batteryLevel = gp6[pos] * 256;
-				t.batteryLevel += gp6[pos + 1];
+				t.batteryLevel = gp6[ramPos] * 256;
+				t.batteryLevel += gp6[ramPos + 1];
 				t.batteryLevel = (t.batteryLevel * 6) / 4096; //Rimettere *6 dopo sviluppo
-				pos += 2;
+				ramPos += 2;
 				//if (pref_battery)
 				//{
 				t.txtAllowed++;
@@ -2134,62 +3144,63 @@ namespace X_Manager.Units.Gipsy6
 			if ((t.tsType & ts_coordinate) == ts_coordinate)
 			{
 				int llon;
-				llon = (gp6[pos] & 0x7f) << 24;
-				llon += gp6[pos + 1] << 16;
-				llon += gp6[pos + 2] << 8;
-				llon += gp6[pos + 6] & 0xc0;
-				if ((gp6[pos] & 0x80) == 0x80)
+				llon = (gp6[ramPos] & 0x7f) << 24;
+				llon += gp6[ramPos + 1] << 16;
+				llon += gp6[ramPos + 2] << 8;
+				llon += gp6[ramPos + 6] & 0xc0;
+				if ((gp6[ramPos] & 0x80) == 0x80)
 				{
 					llon = -llon;
 				}
 				t.lon = llon / 10000000.0;
 
 				int llat;
-				llat = (gp6[pos + 3] & 0x3f) << 24;
-				llat += gp6[pos + 4] << 16;
-				llat += gp6[pos + 5] << 8;
-				llat += (gp6[pos + 6] & 0x30) << 2;
-				if ((gp6[pos + 3] & 0x40) == 0x40)
+				llat = (gp6[ramPos + 3] & 0x3f) << 24;
+				llat += gp6[ramPos + 4] << 16;
+				llat += gp6[ramPos + 5] << 8;
+				llat += (gp6[ramPos + 6] & 0x30) << 2;
+				if ((gp6[ramPos + 3] & 0x40) == 0x40)
 				{
 					llat = -llat;
 				}
 				t.lat = llat / 10000000.0;
 
-				t.altitude = (gp6[pos + 6] & 0x0f) << 8;
-				t.altitude = t.altitude + gp6[pos + 7] - 191;
+				t.altitude = (gp6[ramPos + 6] & 0x0f) << 8;
+				t.altitude = t.altitude + gp6[ramPos + 7] - 191;
 
-				t.hAcc = (gp6[pos + 8] & 0xe0) >> 5;
-				t.vAcc = (gp6[pos + 8] & 0x1c) >> 2;
+				t.hAcc = (gp6[ramPos + 8] & 0xe0) >> 5;
+				t.vAcc = (gp6[ramPos + 8] & 0x1c) >> 2;
 
-				t.speed = (gp6[pos + 8] & 3) << 6;
-				t.speed += (gp6[pos + 9] & 0xfc) >> 2;
+				t.speed = (gp6[ramPos + 8] & 3) << 6;
+				t.speed += (gp6[ramPos + 9] & 0xfc) >> 2;
 				t.speed *= 0.9;
 
-				t.cog = (gp6[pos + 9] & 3) << 2;
-				if ((gp6[pos + 10] & 0x80) == 0x80)
+				t.cog = (gp6[ramPos + 9] & 3) << 2;
+				if ((gp6[ramPos + 10] & 0x80) == 0x80)
 				{
 					t.cog += 2;
 				}
-				if ((gp6[pos + 3] & 0x80) == 0x80)
+				if ((gp6[ramPos + 3] & 0x80) == 0x80)
 				{
 					t.cog += 1;
 				}
 				t.cog *= 23;
 				t.cog += 11;
 
-				t.GPS_second = gp6[pos + 10] & 0x3f;
-				pos += 11;
+				t.GPS_second = gp6[ramPos + 10] & 0x3f;
+				ramPos += 11;
 				t.sat = 8;  //forzata per il kml
 				t.txtAllowed++;
+				t.kmlAllowed = true;
 			}
 
 			//Evento
 			if ((t.tsType & ts_event) == ts_event)
 			{
 				t.eventAr = new byte[10];
-				int evLength = gp6[pos] + 2;
-				Array.Copy(gp6, pos, t.eventAr, 0, evLength);
-				pos += evLength;
+				int evLength = gp6[ramPos] + 2;
+				Array.Copy(gp6, ramPos, t.eventAr, 0, evLength);
+				ramPos += evLength;
 				if (pref_metadata)
 				{
 					t.txtAllowed++;
@@ -2207,20 +3218,20 @@ namespace X_Manager.Units.Gipsy6
 			//Raw
 			if ((t.tsTypeExt1 & ts_raw) == ts_raw)
 			{
-				int rawLenght = gp6[pos + 9] * 256 + gp6[pos + 10] + 11;
-				t.raw = new byte[rawLenght];
-				Array.Copy(gp6, pos, t.raw, 0, rawLenght);
-				pos += rawLenght;
+				int length = (gp6[ramPos] * 11) + 1;
+				t.raw = new byte[length];
+				Array.Copy(gp6, ramPos, t.raw, 0, length);
+				ramPos += length;
 				t.rawPreset = true;
 			}
 
 			//Info
 			if ((t.tsTypeExt1 & ts_info) == ts_info)
 			{
-				byte infoLength = gp6[pos];
-				pos++;
+				byte infoLength = gp6[ramPos];
+				ramPos++;
 				t.infoAr = new byte[infoLength];
-				Array.Copy(gp6, pos, t.infoAr, 0, infoLength);
+				Array.Copy(gp6, ramPos, t.infoAr, 0, infoLength);
 				if (infoLength > 3)
 				{
 					rfAddress = t.infoAr[3] * 65536 + t.infoAr[4] * 256 + t.infoAr[5];
@@ -2238,7 +3249,7 @@ namespace X_Manager.Units.Gipsy6
 				}
 				t.unitNameTxt = lastKnownUnitName;
 				t.rfAddressString = lastKnownRfAddressString;
-				pos += infoLength;
+				ramPos += infoLength;
 			}
 
 			//Inserire Magnetometro
@@ -2247,29 +3258,29 @@ namespace X_Manager.Units.Gipsy6
 			if ((t.tsTypeExt1 & ts_time) == ts_time)
 			{
 				DateTime oldDate = t.dateTime;
-				byte second = gp6[pos];
+				byte second = gp6[ramPos];
 				int year, month, day, hour, minute;
 				bool timeAndDate = false;
 				if (second > 0x7f)
 				{
 					timeAndDate = true;
 					second -= 0x80;
-					year = gp6[pos + 6] * 256 + gp6[pos + 5];
-					month = gp6[pos + 4];
-					day = gp6[pos + 3];
-					hour = gp6[pos + 2];
-					minute = gp6[pos + 1];
-					pos += 7;
+					year = gp6[ramPos + 6] * 256 + gp6[ramPos + 5];
+					month = gp6[ramPos + 4];
+					day = gp6[ramPos + 3];
+					hour = gp6[ramPos + 2];
+					minute = gp6[ramPos + 1];
+					ramPos += 7;
 				}
 				else
 				{
 					year = t.dateTime.Year;
 					month = t.dateTime.Month;
 					day = t.dateTime.Day;
-					hour = gp6[pos + 2];
-					minute = gp6[pos + 1];
+					hour = gp6[ramPos + 2];
+					minute = gp6[ramPos + 1];
 					//t.dateTime = new DateTime(t.dateTime.Year, t.dateTime.Month, t.dateTime.Day, hour, minute, second);
-					pos += 3;
+					ramPos += 3;
 				}
 				try
 				{
@@ -2294,14 +3305,14 @@ namespace X_Manager.Units.Gipsy6
 			t.proximityAddress = 0;
 			if ((t.tsTypeExt1 & ts_proximity) == ts_proximity)
 			{
-				int proxLength = gp6[pos];
-				t.proximityAddress = gp6[pos + 1] * 65536 + gp6[pos + 2] * 256 + gp6[pos + 3];
+				int proxLength = gp6[ramPos];
+				t.proximityAddress = gp6[ramPos + 1] * 65536 + gp6[ramPos + 2] * 256 + gp6[ramPos + 3];
 				if (proxLength > 3)
 				{
-					t.proximityPower = (sbyte)gp6[pos + 4];
-					pos += 1;
+					t.proximityPower = (sbyte)gp6[ramPos + 4];
+					ramPos += 1;
 				}
-				pos += 4;
+				ramPos += 4;
 				if (pref_proximity)
 				{
 					t.txtAllowed++;
@@ -2326,14 +3337,14 @@ namespace X_Manager.Units.Gipsy6
 
 		}
 
-		private string decodeEvent(ref TimeStamp ts)
+		private string decodeEvent(byte[] eventAr)
 		{
 			string outs;
-			switch ((eventType)ts.eventAr[1])
+			switch ((eventType)eventAr[1])
 			{
 				case eventType.E_SCHEDULE:
 
-					if (ts.eventAr[2] == 3)
+					if (eventAr[2] == 3)
 					{
 						outs = "GPS Schedule: OFF";
 					}
@@ -2341,7 +3352,7 @@ namespace X_Manager.Units.Gipsy6
 					{
 						try
 						{
-							outs = string.Format(events[ts.eventAr[1]], ts.eventAr[3], scheduleEventTimings[ts.eventAr[2]]);
+							outs = string.Format(events[eventAr[1]], eventAr[3], scheduleEventTimings[eventAr[2]]);
 						}
 						catch
 						{
@@ -2349,19 +3360,19 @@ namespace X_Manager.Units.Gipsy6
 							break;
 						}
 					}
-					if ((ts.eventAr[2] != 3) && (ts.eventAr[0] == 3))
+					if ((eventAr[2] != 3) && (eventAr[0] == 3))
 					{
-						outs += " / Geofencing " + ts.eventAr[4].ToString();
+						outs += " / Geofencing " + eventAr[4].ToString();
 					}
 					break;
 				case eventType.E_SD_START:
-					outs = events[ts.eventAr[1]];
+					outs = events[eventAr[1]];
 					break;
 				case eventType.E_ALTON_TIMEOUT:
-					outs = String.Format(events[ts.eventAr[1]], ts.eventAr[2]);
+					outs = String.Format(events[eventAr[1]], eventAr[2]);
 					break;
 				default:
-					outs = events[ts.eventAr[1]];
+					outs = events[eventAr[1]];
 					break;
 			}
 			return outs;

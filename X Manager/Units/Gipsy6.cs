@@ -4,19 +4,122 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Windows.Threading;
-using Windows.Storage.Streams;
-using Windows.System.Profile;
 
 namespace X_Manager.Units.Gipsy6
 {
+
+	public class JsonFloatConverter : System.Text.Json.Serialization.JsonConverter<float>
+	{
+		public override float Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+		{
+			return (float)reader.GetDouble();
+		}
+
+		public override void Write(Utf8JsonWriter writer, float value, JsonSerializerOptions options)
+		{
+			writer.WriteRawValue(value.ToString("#0.00", CultureInfo.InvariantCulture), true);
+			//writer.WriteStringValue(value.ToString("F2")); // Formattazione con 2 decimali
+		}
+	}
+	public class Location
+	{
+		public double latitude { get; set; }
+		public double longitude { get; set; }
+		public double altitude { get; set; }
+		public float speed { get; set; }
+		public Location(double[] position, double speed)
+		{
+			latitude = position[0];
+			longitude = position[1];
+			altitude = position[2];
+			this.speed = (float)speed;
+		}
+	}
+
+	public class RawFix_GPS
+	{
+		public List<int> sv_gps { get; set; }
+		public List<double> codePhase_gps { get; set; }
+		public List<double> doppler_gps { get; set; }
+		public List<int> cNo_gps { get; set; }
+		public List<double[]> position_gps { get; set; }
+		public List<double[]> velocity_gps { get; set; }
+
+		public RawFix_GPS()
+		{
+			sv_gps = new List<int>();
+			codePhase_gps = new List<double>();
+			doppler_gps = new List<double>();
+			cNo_gps = new List<int>();
+			position_gps = new List<double[]>();
+			velocity_gps = new List<double[]>();
+		}
+	}
+
+	public class RawFix_GALILEO
+	{
+		public List<int> sv_galileo { get; set; }
+		public List<double> codePhase_galileo { get; set; }
+		public List<double> doppler_galileo { get; set; }
+		public List<int> cNo_galileo { get; set; }
+		public List<double[]> position_galileo { get; set; }
+		public List<double[]> velocity_galileo { get; set; }
+
+		public RawFix_GALILEO()
+		{
+			sv_galileo = new List<int>();
+			codePhase_galileo = new List<double>();
+			doppler_galileo = new List<double>();
+			cNo_galileo = new List<int>();
+			position_galileo = new List<double[]>();
+			velocity_galileo = new List<double[]>();
+		}
+
+	}
+
+	public class RawFix_BEIDOU
+	{
+		public List<int> sv_beidou { get; set; }
+		public List<double> codePhase_beidou { get; set; }
+		public List<double> doppler_beidou { get; set; }
+		public List<int> cNo_beidou { get; set; }
+		public List<double[]> position_beidou { get; set; }
+		public List<double[]> velocity_beidou { get; set; }
+
+		public RawFix_BEIDOU()
+		{
+			sv_beidou = new List<int>();
+			codePhase_beidou = new List<double>();
+			doppler_beidou = new List<double>();
+			cNo_beidou = new List<int>();
+			position_beidou = new List<double[]>();
+			velocity_beidou = new List<double[]>();
+		}
+
+	}
+
+	public class RawFix
+	{
+		public string timestamp { get; set; }
+		public Location location { get; set; }
+		public RawFix_GPS GPS_data { get; set; }
+		public RawFix_GALILEO GALILEO_data { get; set; }
+		public RawFix_BEIDOU BEIDOU_data { get; set; }
+		public RawFix()
+		{
+			GPS_data = new RawFix_GPS();
+			GALILEO_data = new RawFix_GALILEO();
+			BEIDOU_data = new RawFix_BEIDOU();
+		}
+	}
+
 	public abstract class Gipsy6 : Unit
 	{
 		protected struct TimeStamp
 		{
-			private int _pos;
-
 			public int tsType;
 			public int tsTypeExt1;
 			public int tsTypeExt2;
@@ -49,80 +152,111 @@ namespace X_Manager.Units.Gipsy6
 			public sbyte proximityPower;
 			public string unitNameTxt;
 			public string rfAddressString;
-			public int pos
-			{
-				get => _pos;
-				set
-				{
-					_pos = value + ((value / 0x1fe) + 1) * 2;
-				}
-			}
+			//public int pos
+			//{
+			//	get => _pos;
+			//	set
+			//	{
+			//		_pos = value + ((value / 0x1fe) + 1) * 2;
+			//	}
+			//}
+			public int pos;
 			public int txtAllowed;
+			public bool kmlAllowed;
 			public bool rawPreset;
-			public void resetPos(int initVal)
-			{
-				_pos = initVal;
-			}
+			//public void resetPos(int initVal)
+			//{
+			//	_pos = initVal;
+			//}
 
-			public byte[] cloneRaw()
+			public FarlocData cloneRaw()
 			{
-				var rawOut = new byte[raw.Length];
-				Array.Copy(raw, rawOut, raw.Length);
+				var rawOut = new FarlocData();
+				rawOut.rawData = new byte[raw.Length];
+				Array.Copy(raw, rawOut.rawData, raw.Length);
+				rawOut.fixDateTime = dateTime;
+				rawOut.position = new double[] { lat, lon, altitude };
+				rawOut.speed = speed;
 				return rawOut;
 			}
-			public TimeStamp clone()
-			{
-				var tout = new TimeStamp();
-				tout.tsType = this.tsType;
-				tout.tsTypeExt1 = this.tsTypeExt1;
-				tout.tsTypeExt2 = this.tsTypeExt2;
-				tout.ore = this.ore;
-				tout.batteryLevel = this.batteryLevel;
-				tout.temperature = this.temperature;
-				tout.press = this.press;
-				tout.pressOffset = pressOffset;
-				tout.altitude = altitude;
-				//tout.altSegno = this.altSegno;
-				//tout.eo = this.eo;
-				//tout.ns = this.ns;
-				tout.lat = lat;
-				tout.lon = lon;
-				tout.speed = speed;
-				tout.hAcc = hAcc;
-				tout.vAcc = vAcc;
-				tout.cog = cog;
-				tout.sat = this.sat;
-				tout.gsvSum = this.gsvSum;
-				tout.timeStampLength = this.timeStampLength;
-				tout.dateTime = dateTime;
-				if (this.infoAr != null)
-				{
-					tout.infoAr = new byte[this.infoAr.Length];
-					Array.Copy(this.infoAr, tout.infoAr, infoAr.Length);
-				}
-				if (this.eventAr != null)
-				{
-					tout.eventAr = new byte[this.eventAr.Length];
-					Array.Copy(this.eventAr, tout.eventAr, eventAr.Length);
-				}
-				tout.isEvent = this.isEvent;
-				tout.stopEvent = this.stopEvent;
-				tout.inWater = this.inWater;
-				tout.inAdc = this.inAdc;
-				tout.ADC = ADC;
-				tout.GPS_second = GPS_second;
-				tout.proximityAddress = proximityAddress;
-				tout.proximityPower = proximityPower;
-				tout.rfAddressString = rfAddressString;
-				tout.unitNameTxt = unitNameTxt;
-				tout.rawPreset = rawPreset;
-				tout.resetPos(this.pos);
+			//public TimeStamp clone()
+			//{
+			//	var tout = new TimeStamp();
+			//	tout.tsType = tsType;
+			//	tout.tsTypeExt1 = tsTypeExt1;
+			//	tout.tsTypeExt2 = tsTypeExt2;
+			//	tout.ore = ore;
+			//	tout.batteryLevel = batteryLevel;
+			//	tout.temperature = temperature;
+			//	tout.press = press;
+			//	tout.pressOffset = pressOffset;
+			//	tout.altitude = altitude;
+			//	//tout.altSegno = this.altSegno;
+			//	//tout.eo = this.eo;
+			//	//tout.ns = this.ns;
+			//	tout.lat = lat;
+			//	tout.lon = lon;
+			//	tout.speed = speed;
+			//	tout.hAcc = hAcc;
+			//	tout.vAcc = vAcc;
+			//	tout.cog = cog;
+			//	tout.sat = sat;
+			//	tout.gsvSum = gsvSum;
+			//	tout.timeStampLength = timeStampLength;
+			//	tout.dateTime = dateTime;
+			//	if (infoAr != null)
+			//	{
+			//		tout.infoAr = new byte[infoAr.Length];
+			//		Array.Copy(infoAr, tout.infoAr, infoAr.Length);
+			//	}
+			//	if (eventAr != null)
+			//	{
+			//		tout.eventAr = new byte[eventAr.Length];
+			//		Array.Copy(eventAr, tout.eventAr, eventAr.Length);
+			//	}
 
-				return tout;
-			}
+			//	tout.isEvent = isEvent;
+			//	tout.stopEvent = stopEvent;
+			//	tout.inWater = inWater;
+			//	tout.inAdc = inAdc;
+			//	tout.ADC = ADC;
+			//	tout.GPS_second = GPS_second;
+			//	tout.proximityAddress = proximityAddress;
+			//	tout.proximityPower = proximityPower;
+			//	tout.rfAddressString = rfAddressString;
+			//	tout.unitNameTxt = unitNameTxt;
+			//	tout.rawPreset = rawPreset;
+			//	tout.pos = pos;
+
+			//	return tout;
+			//}
+		}
+
+		protected struct FarlocData
+		{
+			public byte[] rawData;
+			public DateTime fixDateTime;
+			public double[] position;
+			public double speed;
 		}
 
 		public static int contoFix = 0;
+
+		protected int gp6Pos;
+		protected int _ramPos;
+		protected int ramPos
+		{
+			get
+			{
+				return _ramPos;
+			}
+			set
+			{
+				_ramPos = value;
+				gp6Pos = value + ((value / 0x1fe) + 1) * 2;
+			}
+		}
+
 
 		protected const int RETRY_MAX = 4;
 
@@ -391,7 +525,7 @@ namespace X_Manager.Units.Gipsy6
 					contoFile++;
 				}
 			}
-			kmlName = newKmlName;			
+			kmlName = newKmlName;
 
 			StreamWriter placeMark;
 			placeMark = new StreamWriter(kmlName + ".kml", true);

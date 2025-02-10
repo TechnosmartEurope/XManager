@@ -166,7 +166,6 @@ namespace X_Manager.Units.AxyTreks
 		{
 			timestamp.ardPosition = ard.Position;
 			timestamp.stopEvent = 0;
-			ushort secondAmount = 1;
 			timestamp.slowData = 0;
 			double mVmis;
 
@@ -327,6 +326,7 @@ namespace X_Manager.Units.AxyTreks
 			if ((timestamp.tsType & 128) == 128) timestamp.inWater = 1;
 
 			//Parametri estesi
+			timestamp.secondAmount = 1;
 			if ((timestamp.tsType & 1) == 1)
 			{
 				//ADC log
@@ -346,10 +346,10 @@ namespace X_Manager.Units.AxyTreks
 				//Timestamp multiplo
 				if ((timestamp.tsTypeExt1 & 0x40) == 0x40)
 				{
-					secondAmount = (byte)ard.ReadByte();
-					timestamp.orario = timestamp.orario.AddSeconds(secondAmount);
+					timestamp.secondAmount = (byte)ard.ReadByte();
 				}
 			}
+			timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
 		}
 
 		protected override double[] extractGroup()
@@ -414,13 +414,17 @@ namespace X_Manager.Units.AxyTreks
 			//IntPtr doubleResultArray = Marshal.AllocCoTaskMem(sizeof(double) * nOutputs * 3);
 
 			double[] doubleResult = new double[3 * nOutputs];
-			if (bits)
+			if (bits == 12)
 			{
-				resultCode = resample4(group, timestamp.timeStampLength, doubleResult, nOutputs);
+				resultCode = resample5(group.ToArray(), timestamp.timeStampLength, doubleResult, nOutputs);
+			}
+			else if (bits == 10)
+			{
+				resultCode = resample4(group.ToArray(), timestamp.timeStampLength, doubleResult, nOutputs);
 			}
 			else
 			{
-				resultCode = resample3(group, timestamp.timeStampLength, doubleResult, nOutputs);
+				resultCode = resample3(group.ToArray(), timestamp.timeStampLength, doubleResult, nOutputs);
 			}
 			//doubleResult = new double[(nOutputs * 3)];
 			//Marshal.Copy(doubleResultArray, doubleResult, 0, nOutputs * 3);
@@ -638,6 +642,7 @@ namespace X_Manager.Units.AxyTreks
 				textOut += additionalInfo + "\r\n";
 				timestamp.orario = timestamp.orario.AddMilliseconds(addMilli);
 			}
+			timestamp.orario = timestamp.orario.AddSeconds(-1);
 
 			//return textOut;
 		}

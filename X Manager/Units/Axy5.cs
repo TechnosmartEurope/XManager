@@ -526,8 +526,14 @@ namespace X_Manager.Units
 				}
 				else //((dieCount != 1) & (dieCount != 2))
 				{
-					Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
-					return;
+					dieCount = 1;
+					try
+					{
+						while (true) ft.ReadByte();
+					}
+					catch { }
+					//Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.downloadFailed()));
+					//return;
 				}
 			}
 			catch

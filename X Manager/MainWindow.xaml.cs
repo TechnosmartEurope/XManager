@@ -21,6 +21,8 @@ using X_Manager.Units.AxyTreks;
 using X_Manager.Units.Gipsy6;
 using X_Manager.Bootloader;
 using System.Text;
+using System.Text.Json;
+using Windows.Devices.PointOfService;
 //using System.Drawing;
 
 namespace X_Manager
@@ -2138,7 +2140,7 @@ namespace X_Manager
 			Microsoft.Win32.OpenFileDialog fOpen = new Microsoft.Win32.OpenFileDialog();
 			fOpen.Reset();
 #if DEBUG
-			Properties.Settings.Default.PATH_CONVERT = "C:\\Users\\marco\\OneDrive\\Desktop\\files";
+			Properties.Settings.Default.PATH_CONVERT = "C:\\Users\\marco\\OneDrive\\Desktop\\files\\farloc";
 #endif
 			if (Directory.Exists(Path.GetFullPath(Properties.Settings.Default.PATH_CONVERT)))
 			{

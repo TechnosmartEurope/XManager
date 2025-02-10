@@ -298,36 +298,38 @@
 	Gipsy6: OFF-time di default a 10 minuti
 	Gipsy6: rimossa richiesta password per modifica soglie batterie e remotizzazione unità
 	Gipsy6: quando si importa lo schedule l'indirizzo rf remoto non viene mai sovrascritto dallo schedule importato
-	X-Manager: aggiunto tracciamento errore ridimensionamento automatico finestra (ricerca errori in avvio)
-1.21.3	Compatibilità con AxyTrek con firmware_A uguale o inferiore a 4.0.0 (nuove librerie memoria)
-1.21.4	Compatibilità con AGM con firmware uguale o inferiore a 3.0.0 e Axy4.5 con firmware uguale o inferiore a 4.0.0 (nuove librerie memoria)
-1.21.5	Funzionalità "Keep Alive" anche per AxyTrek remoto
-1.21.6	Visualizzazione versione .NET installata in finestra About
-	AGM - bugfix: convertendo un mdp in ard il file mdp veniva comunque cancellato anche se abilitato "keep mdp"
-1.22.0	Basemanager: configurazione orario trasmissione dati in 4G
-	Basemanager: configurazione pause between attempts
-	Bugfix: la conversione di memDump precedentemente scaricati generava ard errati per le unità con nuove librerie memoria (tranne Axy5)
-	Bugfix - gipsy6: in conversione con CTRL+D il txt, se selezionato "Fill empty", generava numeri lunghissimi come posizione nell'ard
-1.23.0	Gipsy6: la conversione simultanea di più file bs6 crea una solo file txt e un solo file kml in uscita, senza ridondanze
-	Gipsy6: inzio supporto per unità Gips6_Iridium
-	Rimossa richiesta "overwrite" in fase di conversione
-	Basemanager: migliorata visibilità dei flag di nuovo nome e nuova configurazione
-	Bugifx: il software crashava se premeva import nello schedule aperto dal basemanager
-	Bugfix: la conversione da memdump a agm non convertiva bene mdp da firmware minori di 4.0.0
-	Gipsy6: implementato comando per modalità shutdown
-	Gipsy6: predisposizione per timestamp Far Location
-1.23.1	Gipsy6-Iridium: rimossa possibilità di mettere lo schedule Iridium in OFF
-1.23.2	Compatibilità con firmware Axy5 2.1.0 (settaggio start delay e schedule alterno)
+		X-Manager: aggiunto tracciamento errore ridimensionamento automatico finestra (ricerca errori in avvio)
+1.21.3		Compatibilità con AxyTrek con firmware_A uguale o inferiore a 4.0.0 (nuove librerie memoria)
+1.21.4		Compatibilità con AGM con firmware uguale o inferiore a 3.0.0 e Axy4.5 con firmware uguale o inferiore a 4.0.0 (nuove librerie memoria)
+1.21.5		Funzionalità "Keep Alive" anche per AxyTrek remoto
+1.21.6		Visualizzazione versione .NET installata in finestra About
+		AGM - bugfix: convertendo un mdp in ard il file mdp veniva comunque cancellato anche se abilitato "keep mdp"
+1.22.0		Basemanager: configurazione orario trasmissione dati in 4G
+		Basemanager: configurazione pause between attempts
+		Bugfix: la conversione di memDump precedentemente scaricati generava ard errati per le unità con nuove librerie memoria (tranne Axy5)
+		Bugfix - gipsy6: in conversione con CTRL+D il txt, se selezionato "Fill empty", generava numeri lunghissimi come posizione nell'ard
+1.23.0		Gipsy6: la conversione simultanea di più file bs6 crea una solo file txt e un solo file kml in uscita, senza ridondanze
+		Gipsy6: inzio supporto per unità Gips6_Iridium
+		Rimossa richiesta "overwrite" in fase di conversione
+		Basemanager: migliorata visibilità dei flag di nuovo nome e nuova configurazione
+		Bugifx: il software crashava se premeva import nello schedule aperto dal basemanager
+		Bugfix: la conversione da memdump a agm non convertiva bene mdp da firmware minori di 4.0.0
+		Gipsy6: implementato comando per modalità shutdown
+		Gipsy6: predisposizione per timestamp Far Location
+1.23.1		Gipsy6-Iridium: rimossa possibilità di mettere lo schedule Iridium in OFF
+1.23.2		Compatibilità con firmware Axy5 2.1.0 (settaggio start delay e schedule alterno)
 1.23.3	Bugfix: se selezionata virgola come separatore decimale, la conversione axy5 crashava a fine file
-	Bugfix: alcuni bs6 non venivano convertiti, o solo una piccola parte iniziale
-1.24.0	Nuova funzionalità aggiornamento firmware OTA per gipsy6
-1.24.1	Bugfix-Gipsy6: in caso di unità senza memoria esterna riufiutava il firmware update, anche se effettuato via cavo
-1.25.0	Gipsy6: Possibilità di schedule iridium anche a 10 e 30 minuti
-	Conversione file multipla: i file in ingresso vengono raggruppati per estensione e messi in ordine di nome per evitare dati persi (conversione bs6 multipli)
-	Preferenze del software spostate da file ini a proprietà dell'eseguibile
-	Visualizzazione batteria sia come tensione che percentuale residua.
-1.25.1	Bugfix: gli ard provenienti dalle varianti del Trek venivano convertiti con i millisecondi sempre a zero, e ogni timestamp si incrementava di due secondi invece che 1
-1.25.2	Bugfix: i dati dell'axy4D in modalità Depth venivano scaricati con un model code errato, e quindi non potevano essere convertiti correttamente
-1.25.3	Bugfix - Axy5: se selezionato "Override time" saltava i 6 byte della data anche se presenti, disallineando i dati
-	Bugfix: la risorsa Licenza non funzionava più se chiamata da XAML (??), spostata chiamata su codice.
-	Aumentati codici di errore per debug
+		Bugfix: alcuni bs6 non venivano convertiti, o solo una piccola parte iniziale
+1.24.0		Nuova funzionalità aggiornamento firmware OTA per gipsy6
+1.24.1		Bugfix-Gipsy6: in caso di unità senza memoria esterna riufiutava il firmware update, anche se effettuato via cavo
+1.25.0		Gipsy6: Possibilità di schedule iridium anche a 10 e 30 minuti
+		Conversione file multipla: i file in ingresso vengono raggruppati per estensione e messi in ordine di nome per evitare dati persi (conversione bs6 multipli)
+		Preferenze del software spostate da file ini a proprietà dell'eseguibile
+		Visualizzazione batteria sia come tensione che percentuale residua.
+1.25.1		Bugfix: gli ard provenienti dalle varianti del Trek venivano convertiti con i millisecondi sempre a zero, e ogni timestamp si incrementava di due secondi invece che 1
+1.25.2		Bugfix: i dati dell'axy4D in modalità Depth venivano scaricati con un model code errato, e quindi non potevano essere convertiti correttamente
+1.25.3	29-11-2024	Bugfix - Axy5: se selezionato "Override time" saltava i 6 byte della data anche se presenti, disallineando i dati
+		Bugfix: la risorsa Licenza non funzionava più se chiamata da XAML (??), spostata chiamata su codice.
+		Aumentati codici di errore per debug
+1.26.0	03-02-2025	Supporto 12 bit per Axy-Trek
+		Conversione dati farloc da Gipsy6 in JSON per machine learning

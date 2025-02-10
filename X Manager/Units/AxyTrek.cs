@@ -44,6 +44,7 @@ namespace X_Manager.Units.AxyTreks
 			public int slowData;
 			public long ardPosition;
 			public bool txtAllowed;
+			public int secondAmount;
 		}
 
 		protected ushort[] coeffs = new ushort[7];
@@ -56,7 +57,7 @@ namespace X_Manager.Units.AxyTreks
 		protected int pressureEnabled;
 		protected byte range;
 		protected ushort rate;
-		protected bool bits;
+		protected byte bits;
 		protected byte bitsDiv;
 		protected ushort addMilli;
 		protected double gCoeff;
@@ -1166,9 +1167,13 @@ namespace X_Manager.Units.AxyTreks
 				Array.Resize(ref lastGroup, rate * 3);
 
 				cifreDecString = "0.000";
-				if (bits)
+				if (bits == 10)
 				{
 					cifreDecString = "0.0000";
+				}
+				else if (bits == 12)
+				{
+					cifreDecString = "0.000000";
 				}
 
 				string sesInfo = "";
@@ -1476,7 +1481,11 @@ namespace X_Manager.Units.AxyTreks
 			}
 
 			double[] doubleResult = new double[3 * nOutputs];
-			if (bits)
+			if (bits == 12)
+			{
+				resultCode = resample5(group.ToArray(), timestamp.timeStampLength, doubleResult, nOutputs);
+			}
+			else if (bits == 10)
 			{
 				resultCode = resample4(group.ToArray(), timestamp.timeStampLength, doubleResult, nOutputs);
 			}
@@ -1672,11 +1681,8 @@ namespace X_Manager.Units.AxyTreks
 
 		private byte findRange(byte rangeIn)
 		{
-			rangeIn = unchecked((byte)(rangeIn & 15));
-			if (rangeIn > 7)
-			{
-				rangeIn -= 8;
-			}
+
+			rangeIn &= 0b11;
 
 			switch (rangeIn)
 			{
@@ -1691,14 +1697,17 @@ namespace X_Manager.Units.AxyTreks
 				default:
 					return 2;
 			}
+
 		}
 
-		private bool findBits(byte bitsIn)
+		private byte findBits(byte bitsIn)
 		{
-			bitsIn = unchecked((byte)(bitsIn & 15));
+			//bitsIn = unchecked((byte)(bitsIn & 15));
+			bitsIn &= 0b1100;
+			bitsIn >>= 2;
 			//sogliaNeg = 127;
 			//rendiNeg = 256;
-			if (bitsIn < 8)
+			if (bitsIn == 0b00)         //8 bit
 			{
 				switch (range)
 				{
@@ -1716,9 +1725,9 @@ namespace X_Manager.Units.AxyTreks
 						break;
 				}
 				gCoeff /= 1000;
-				return false;
+				return 8;
 			}
-			else
+			else if (bitsIn == 0b10)    //10 bit
 			{
 				switch (range)
 				{
@@ -1736,14 +1745,35 @@ namespace X_Manager.Units.AxyTreks
 						break;
 				}
 				gCoeff /= 1000;
-				return true;
+				return 10;
+			}
+			else                        //12 bit
+			{
+				switch (range)
+				{
+					case 2:
+						gCoeff = 0.977;
+						break;
+					case 4:
+						gCoeff = 1.953;
+						break;
+					case 8:
+						gCoeff = 3.9;
+						break;
+					case 16:
+						gCoeff = 11.72;
+						break;
+				}
+				gCoeff /= 1000;
+				return 12;
 			}
 		}
 
 		private byte findBytesPerSample()
 		{
 			byte bitsDiv = 3;
-			if (bits) bitsDiv = 4;
+			if (bits == 10) bitsDiv = 4;
+			else if (bits == 12) bitsDiv = 5;
 			return bitsDiv;
 		}
 

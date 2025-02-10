@@ -319,6 +319,7 @@ namespace X_Manager.Units.AxyTreks
 			if ((timestamp.tsType & 128) == 128) timestamp.inWater = 1;
 
 			//Parametri estesi
+			timestamp.secondAmount = 1;
 			if ((timestamp.tsType & 1) == 1)
 			{
 				//ADC log
@@ -338,11 +339,10 @@ namespace X_Manager.Units.AxyTreks
 				//Timestamp multiplo
 				if ((timestamp.tsTypeExt1 & 0x40) == 0x40)
 				{
-					byte secondAmount = (byte)ard.ReadByte();
-					timestamp.orario = timestamp.orario.AddSeconds(secondAmount);
+					timestamp.secondAmount = (byte)ard.ReadByte();
 				}
 			}
-
+			timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
 		}
 
 		protected override void groupConverter(double[] group, ref string textOut, long offset)
@@ -516,6 +516,10 @@ namespace X_Manager.Units.AxyTreks
 			textOut += additionalInfo + "\r\n";
 
 			if (timestamp.stopEvent > 0) return;// textOut;
+			if (iend == 0)
+			{
+				if (rate != 1) return;
+			}
 
 			if (!pref_repeatEmptyValues)
 			{
@@ -545,6 +549,7 @@ namespace X_Manager.Units.AxyTreks
 				textOut += additionalInfo + "\r\n";
 				timestamp.orario = timestamp.orario.AddMilliseconds(addMilli);
 			}
+			timestamp.orario = timestamp.orario.AddSeconds(-1);
 
 			//return textOut;
 		}
