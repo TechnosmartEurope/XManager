@@ -333,3 +333,4 @@
 		Aumentati codici di errore per debug
 1.26.0	03-02-2025	Supporto 12 bit per Axy-Trek
 		Conversione dati farloc da Gipsy6 in JSON per machine learning
+1.26.1	17-02-2025	Possibilità di conversione di sessioni gp6 con problematica dovuta a firmware pre 2.1.4

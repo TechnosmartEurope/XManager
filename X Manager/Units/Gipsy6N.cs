@@ -1628,9 +1628,10 @@ namespace X_Manager.Units.Gipsy6
 
 				for (int i = 0; i < ((gp6File.BaseStream.Length - headerLength) / 0x200); i++)
 				{
-					gp6File.ReadBytes(2);
+					var testByte = gp6File.ReadByte();
+					gp6File.ReadBytes(1);
 					gp6File.BaseStream.Read(gp6, filePointer, 510);
-					filePointer += 510;
+					if (testByte == 0x55) filePointer += 510;
 				}
 				if (gp6File.BaseStream.Length - gp6File.BaseStream.Position > 2)
 				{
