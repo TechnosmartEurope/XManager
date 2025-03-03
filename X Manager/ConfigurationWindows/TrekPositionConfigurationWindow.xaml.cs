@@ -98,6 +98,7 @@ namespace X_Manager.ConfigurationWindows
 				{
 					if (!File.Exists(trekSchedFile))
 					{
+						Directory.CreateDirectory(System.IO.Path.GetDirectoryName(trekSchedFile));
 						conf_trek_errorCode = 50;
 						exportSchedule(trekSchedFile);
 						result = true;
@@ -682,7 +683,7 @@ namespace X_Manager.ConfigurationWindows
 					importUnit = new AxyTrekN(mw);
 					break;
 				case "CO2":
-					importUnit = new AxyTrekCO2(mw);
+					importUnit = new AxyTrekCO2Small(mw);
 					break;
 				case "R":
 					importUnit = new AxyTrekR(mw);
@@ -814,6 +815,7 @@ namespace X_Manager.ConfigurationWindows
 
 		private void exportSchedule(string fileName)
 		{
+
 			var fo = new BinaryWriter(File.Open(fileName, FileMode.Create));
 
 			string header = "TSM-TREK";
@@ -821,7 +823,7 @@ namespace X_Manager.ConfigurationWindows
 			{
 				header += "N";
 			}
-			else if (unit is AxyTrekCO2)
+			else if (unit is AxyTrekCO2Small)
 			{
 				header += "CO2";
 			}

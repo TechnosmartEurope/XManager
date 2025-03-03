@@ -1,66 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Windows;
-using System.IO;
 
 namespace X_Manager.Units.AxyTreks
 {
-	internal class AxyTrekCO2 : AxyTrek
+	class AxyTrekCO2Small : AxyTrek
 	{
 
-		ushort[] reg_data = new ushort[32];
-		double dig_T1;
-		double dig_T2;
-		double dig_T3;
-		double dig_P1;
-		double dig_P2;
-		double dig_P3;
-		double dig_P4;
-		double dig_P5;
-		double dig_P6;
-		double dig_P7;
-		double dig_P8;
-		double dig_P9;
-		double dig_H1;
-		double dig_H2;
-		double dig_H3;
-		double dig_H4;
-		double dig_H5;
-		double dig_H6;
-		public AxyTrekCO2(object p)
+		public AxyTrekCO2Small(object p)
 			: base(p)
 		{
-			modelCode = model_axyTrekCO2;
+			modelCode = model_axyTrekCO2Small;
 		}
 
 		public override void getCoeffs()
 		{
+			if (firmTotA <= 1000009)
+			{
+				evitaSoglie = true;
+				return;
+			}
 
 			coeffs[0] = 0;
 			resetTimer();
 			ft.Write("TTTTTTTTTTTTTGGAg");
 			try
 			{
-				//coeffs[1] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
-				//coeffs[2] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
-				//coeffs[3] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
-				//coeffs[4] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
-				//coeffs[5] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
-				//coeffs[6] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
-				for (int i = 0; i < 32; i++)
-				{
-					reg_data[i] = ft.ReadByte();
-				}
-				readBME280coeff();
+				coeffs[1] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[2] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[3] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[4] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[5] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
+				coeffs[6] = (ushort)(ft.ReadByte() * 256 + ft.ReadByte());
 			}
 			catch
 			{
 				throw new Exception(unitNotReady);
 			}
 
+			int sommaSoglie = coeffs[1] + coeffs[2] + coeffs[3];
+			if ((sommaSoglie == 0) | (sommaSoglie == 0x2fd))
+			{
+				evitaSoglie = true;
+			}
 		}
 
 		public override byte[] getConf()
@@ -85,8 +74,6 @@ namespace X_Manager.Units.AxyTreks
 				{
 					conf[i] = ft.ReadByte();
 				}
-				conf[17] = 1;
-				conf[18] = 1;
 			}
 			catch
 			{
@@ -107,8 +94,7 @@ namespace X_Manager.Units.AxyTreks
 			{
 				throw new Exception(unitNotReady);
 			}
-			conf[17] = 1;
-			conf[18] = 1;
+
 			ft.Write(conf, 2, 3);
 			ft.Write(conf, 15, 7);
 			ft.Write(conf, 22, 2);
@@ -123,80 +109,84 @@ namespace X_Manager.Units.AxyTreks
 			{
 				throw new Exception(unitNotReady);
 			}
-			//if (!evitaSoglie)
-			//{
-			//	uint[] soglie = calcolaSoglieDepth();
-			//	ft.Write("TTTTTTTTTTGGAG");
-			//	try
-			//	{
-			//		ft.ReadByte();
-			//	}
-			//	catch
-			//	{
-			//		throw new Exception(unitNotReady);
-			//	}
-			//	for (int s = 0; s <= 16; s++)
-			//	{
-			//		ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[2] }, 0, 1);
-			//		ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[1] }, 0, 1);
-			//		ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[0] }, 0, 1);
-			//	}
-			//}
+			if (!evitaSoglie)
+			{
+				uint[] soglie = calcolaSoglieDepth();
+				ft.Write("TTTTTTTTTTGGAG");
+				try
+				{
+					ft.ReadByte();
+				}
+				catch
+				{
+					throw new Exception(unitNotReady);
+				}
+				for (int s = 0; s <= 16; s++)
+				{
+					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[2] }, 0, 1);
+					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[1] }, 0, 1);
+					ft.Write(new byte[] { BitConverter.GetBytes(soglie[s])[0] }, 0, 1);
+				}
+			}
 		}
 
 		protected override void importHeaderValuesFromArd()
 		{
-			//byte[] coeffCheck = new byte[32];// = ard.ReadBytes(12);
-			//ard.Read(coeffCheck, 0, 12);
+			byte[] coeffCheck = new byte[12];// = ard.ReadBytes(12);
+			ard.Read(coeffCheck, 0, 12);
 
 
-			//byte adcFlag = coeffCheck[0];
-			//int coeffSum12 = 0;
-			//foreach (byte b in coeffCheck) { coeffSum12 += b; }
-			////coeffChek = ard.ReadBytes(4);
-			//ard.Read(coeffCheck, 0, 4);
-			//int coeffSum16 = coeffSum12;
-			//foreach (byte b in coeffCheck) { coeffSum16 += b; }
-			////long pos = 0;
-			//bool adcPresence = false;
-			//if (adcFlag != 0)                   //Se il primo byte non è zero, sicuramente non c'è l'info adc
-			//{
-			//	adcPresence = false;                        //no adc
-			//}
-			//else
-			//{                                   //Altrimenti potrebbero essere a zero i coeff adc. In questo caso:
-			//	if (coeffSum16 == 0)                        //16 byte consecutivi a zero vuol dire PRESENZA di info adc e coefficienti a zero (4 + 12)
-			//	{
-			//		adcPresence = true;
-			//	}
-			//	else
-			//	{                                           //I 16 byte non sono tutti a zero: in questo caso:
-			//		if (coeffSum12 == 0)                        //Sono a zero tutti e solo i primi 12, vuol dire NO info adc e coefficienti a zero
-			//		{
-			//			adcPresence = false;                //no adc
-			//		}
-			//		else
-			//		{                                           //I primi 12 byte non sono tutti a zero: i primi 4 sono le info adc e successivamente ci sono i coefficienti
-			//			adcPresence = true;                 //si adc
-			//		}
-			//	}
-			//}
-			//ard.Position = 7;
-
-			ard.ReadByte();
-			//adcThreshold = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());
-			ard.ReadByte(); ard.ReadByte();
-			byte adcTemp = (byte)ard.ReadByte();
-			if ((adcTemp & 8) == 8) adcStop = true;
-			//if ((adcTemp & 4) == 4) adcMagmin = true;
-			if ((adcTemp & 2) == 2) adcLog = true;
-
-			//Legge i coefficienti dei sensori
-			for (int u = 0; u < 32; u++)
+			byte adcFlag = coeffCheck[0];
+			int coeffSum12 = 0;
+			foreach (byte b in coeffCheck) { coeffSum12 += b; }
+			//coeffChek = ard.ReadBytes(4);
+			ard.Read(coeffCheck, 0, 4);
+			int coeffSum16 = coeffSum12;
+			foreach (byte b in coeffCheck) { coeffSum16 += b; }
+			//long pos = 0;
+			bool adcPresence = false;
+			if (adcFlag != 0)                   //Se il primo byte non è zero, sicuramente non c'è l'info adc
 			{
-				reg_data[u] = (ushort)ard.ReadByte();
+				adcPresence = false;                        //no adc
 			}
-			readBME280coeff();
+			else
+			{                                   //Altrimenti potrebbero essere a zero i coeff adc. In questo caso:
+				if (coeffSum16 == 0)                        //16 byte consecutivi a zero vuol dire PRESENZA di info adc e coefficienti a zero (4 + 12)
+				{
+					adcPresence = true;
+				}
+				else
+				{                                           //I 16 byte non sono tutti a zero: in questo caso:
+					if (coeffSum12 == 0)                        //Sono a zero tutti e solo i primi 12, vuol dire NO info adc e coefficienti a zero
+					{
+						adcPresence = false;                //no adc
+					}
+					else
+					{                                           //I primi 12 byte non sono tutti a zero: i primi 4 sono le info adc e successivamente ci sono i coefficienti
+						adcPresence = true;                 //si adc
+					}
+				}
+			}
+			ard.Position = 7;
+
+			//Controlla se l'ard contiene le informazioni sul sensore Analogico
+			if (adcPresence)
+			{
+				ard.ReadByte();
+				//adcThreshold = (ushort)(ard.ReadByte() * 256 + ard.ReadByte());
+				ard.ReadByte(); ard.ReadByte();
+				byte adcTemp = (byte)ard.ReadByte();
+				if ((adcTemp & 8) == 8) adcStop = true;
+				//if ((adcTemp & 4) == 4) adcMagmin = true;
+				if ((adcTemp & 2) == 2) adcLog = true;
+			}
+			//Legge i coefficienti di profondità
+			//ard.BaseStream.Position = pos;
+			convCoeffs = new double[] { 0, 0, 0, 0, 0, 0 };
+			for (int u = 0; u <= 5; u++)
+			{
+				convCoeffs[u] = (ard.ReadByte() * 256) + ard.ReadByte();
+			}
 		}
 
 		public override void convert(string fileNameIn)
@@ -249,24 +239,24 @@ namespace X_Manager.Units.AxyTreks
 			{
 				timestamp.co2co2 = ard.ReadByte() * 256 + ard.ReadByte();
 				timestamp.co2temp = ard.ReadByte() * 256 + ard.ReadByte();
-				timestamp.co2temp = timestamp.co2temp / 100.0;
+				timestamp.co2temp = -45 + 175 * timestamp.co2temp / 65536.0;
 
-				//timestamp.co2hum = ard.ReadByte() * 256 + ard.ReadByte();
-				//timestamp.co2hum = 100 * timestamp.co2hum / 65536;
+				timestamp.co2hum = ard.ReadByte() * 256 + ard.ReadByte();
+				timestamp.co2hum = 100 * timestamp.co2hum / 65536;
 			}
 
-			//Pressione, temperatura e umidità sensore BME280
+			//Pressione e temperatura sensore MS5837
 			if ((timestamp.tsType & 4) == 4)
 			{
-				convertBME(ref timestamp, ref ard);
-				//if (pref_isDepth)
-				//{
-				//	if (pressureDepth5837()) return;
-				//}
-				//else
-				//{
-				//	if (pressureAir()) return;
-				//}
+
+				if (pref_isDepth)
+				{
+					if (pressureDepth5837()) return;
+				}
+				else
+				{
+					if (pressureAir()) return;
+				}
 			}
 
 			//Batteria
@@ -388,79 +378,6 @@ namespace X_Manager.Units.AxyTreks
 			timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
 		}
 
-		private void convertBME(ref TimeStamp t, ref MemoryStream ard)
-		{
-			double adc_P = (ard.ReadByte() << 12) + (ard.ReadByte() << 4) + (ard.ReadByte() >> 4);
-			double adc_T = (ard.ReadByte() << 12) + (ard.ReadByte() << 4) + (ard.ReadByte() >> 4);
-			double adc_H = (ard.ReadByte() << 8) + ard.ReadByte();
-
-			double var1 = ((adc_T / 16384.0) - (dig_T1 / 1024.0)) * dig_T2;
-			double var2 = (adc_T / 131072.0 - dig_T1 / 8192.0) * (adc_T / 131072.0 - dig_T1 / 8192.0) * dig_T3;
-			double t_fine = var1 + var2;
-			t.temperature = (var1 + var2) / 5120.0;
-
-			var1 = t_fine / 2.0 - 64000.0;
-			var2 = var1 * var1 * dig_P6 / 32768.0;
-			var2 = var2 + var1 * dig_P5 * 2.0;
-			var2 = (var2 / 4.0) + (dig_P4 * 65536.0);
-			var1 = (dig_P3 * var1 * var1 / 524288.0 + dig_P2 * var1) / 524288.0;
-			var1 = (1.0 + var1 / 32768.0) * dig_P1;
-			if (var1 == 0.0)
-			{
-				t.press = 0;
-			}
-			t.press = 1048576.0 - adc_P;
-			t.press = (t.press - (var2 / 4096.0)) * 6250.0 / var1;
-			var1 = dig_P9 * t.press * t.press / 2147483648.0;
-			var2 = t.press * dig_P8 / 32768.0;
-			t.press = t.press + (var1 + var2 + dig_P7) / 16.0;//valore in Pa
-			t.press = t.press / 100.0;//hPa
-
-			double var_H = (t_fine - 76800.0);
-			var_H = (adc_H - (dig_H4 * 64.0 + dig_H5 / 16384.0 * var_H)) * (dig_H2 / 65536.0 * (1.0 + dig_H6 / 67108864.0 * var_H *
-				(1.0 + dig_H3 / 67108864.0 * var_H)));
-			var_H = var_H * (1.0 - dig_H1 * var_H / 524288.0);
-			if (var_H > 100.0)
-			{
-				var_H = 100;
-			}
-			else if (var_H < 0.0)
-			{
-				var_H = 0;
-			}
-			t.co2hum = var_H;
-		}
-
-		private void readBME280coeff()
-		{
-			//byte[] reg_data = new byte[32];
-			//ard.Read(reg_data, 0, 32);
-
-			dig_T1 = BME280_CONCAT_BYTES(reg_data[1], reg_data[0]);
-			dig_T2 = (short)BME280_CONCAT_BYTES(reg_data[3], reg_data[2]);
-			dig_T3 = (short)BME280_CONCAT_BYTES(reg_data[5], reg_data[4]);
-			dig_P1 = BME280_CONCAT_BYTES(reg_data[7], reg_data[6]);
-			dig_P2 = (short)BME280_CONCAT_BYTES(reg_data[9], reg_data[8]);
-			dig_P3 = (short)BME280_CONCAT_BYTES(reg_data[11], reg_data[10]);
-			dig_P4 = (short)BME280_CONCAT_BYTES(reg_data[13], reg_data[12]);
-			dig_P5 = (short)BME280_CONCAT_BYTES(reg_data[15], reg_data[14]);
-			dig_P6 = (short)BME280_CONCAT_BYTES(reg_data[17], reg_data[16]);
-			dig_P7 = (short)BME280_CONCAT_BYTES(reg_data[19], reg_data[18]);
-			dig_P8 = (short)BME280_CONCAT_BYTES(reg_data[21], reg_data[20]);
-			dig_P9 = (short)BME280_CONCAT_BYTES(reg_data[23], reg_data[22]);
-			dig_H1 = reg_data[24];
-			dig_H2 = (short)BME280_CONCAT_BYTES(reg_data[26], reg_data[25]);
-			dig_H3 = reg_data[27];
-			dig_H4 = (reg_data[28] << 4) + (reg_data[29] & 0xf);
-			dig_H5 = (reg_data[30] << 4) + (reg_data[29] >> 4);
-			dig_H6 = (sbyte)reg_data[31];
-		}
-
-		private ushort BME280_CONCAT_BYTES(ushort h, ushort l)
-		{
-			return (ushort)((h << 8) + l);
-		}
-
 		protected override void groupConverter(double[] group, ref string textOut, long offset)
 		{
 			if (group == null) return;
@@ -538,28 +455,33 @@ namespace X_Manager.Units.AxyTreks
 			else activityWater = "Inactive";
 			if ((timestamp.tsType & 128) == 128) activityWater += "/Wet";
 			else activityWater += "/Dry";
+
 			additionalInfo += csvSeparator + activityWater;
 
-			contoTab += 3;
-			if (((timestamp.tsType & 4) == 4) | pref_repeatEmptyValues)
+			if (pressureEnabled > 0)
 			{
-				additionalInfo += csvSeparator + timestamp.temperature.ToString("0.0", nfi);
-				additionalInfo += csvSeparator + timestamp.press.ToString("0.00", nfi);
+				contoTab += 2;
+				if (((timestamp.tsType & 4) == 4) | pref_repeatEmptyValues)
+				{
+					additionalInfo += csvSeparator + timestamp.temperature.ToString("0.0", nfi);
+					additionalInfo += csvSeparator + timestamp.press.ToString("0.00", nfi);
+				}
+				else
+				{
+					additionalInfo += csvSeparator + csvSeparator;
+				}
+			}
+
+			contoTab += 3;
+			if (((timestamp.tsType & 2) == 2) | pref_repeatEmptyValues)
+			{
+				additionalInfo += csvSeparator + timestamp.co2co2.ToString();
+				additionalInfo += csvSeparator + timestamp.co2temp.ToString("0.00", nfi);
 				additionalInfo += csvSeparator + timestamp.co2hum.ToString("0.00", nfi);
 			}
 			else
 			{
 				additionalInfo += csvSeparator + csvSeparator + csvSeparator;
-			}
-
-			contoTab += 1;
-			if (((timestamp.tsType & 2) == 2) | pref_repeatEmptyValues)
-			{
-				additionalInfo += csvSeparator + timestamp.co2co2.ToString();
-			}
-			else
-			{
-				additionalInfo += csvSeparator;
 			}
 
 
@@ -823,15 +745,34 @@ namespace X_Manager.Units.AxyTreks
 			base.csvPlaceHeader();
 			string csvHeader = "";
 
-			csvHeader += csvSeparator + "Temp. (°C)" + csvSeparator + "Pressure" + csvSeparator + "Humidity";
+			if (pressureEnabled > 0)
+			{
+				csvHeader += csvSeparator + "Temp. (°C)";
+				if (pref_inMeters)
+				{
+					if (pref_isDepth)
+					{
+						csvHeader = csvHeader + csvSeparator + "Depth";
+					}
+					else
+					{
+						csvHeader = csvHeader + csvSeparator + "Altitude";
+					}
 
-			csvHeader = csvHeader + csvSeparator + "CO2";
+				}
+				else
+				{
+					csvHeader = csvHeader + csvSeparator + "Pressure";
+				}
+			}
+
+			csvHeader = csvHeader + csvSeparator + "CO2" + csvSeparator + "Temp (°C) - CO2" + csvSeparator + "Humidity";
 
 			csvHeader += csvSeparator + "location-lat" + csvSeparator + "location-lon" + csvSeparator + "height-msl"
 				+ csvSeparator + "ground-speed" + csvSeparator + "satellites" + csvSeparator + "hdop" + csvSeparator + "signal-strength";
 			if (adcLog) csvHeader += csvSeparator + "Sensor Raw";
 			if (adcStop) csvHeader += csvSeparator + "Sensor State";
-
+			//if (pref_battery) csvHeader += csvSeparator + "Battery (V)";
 			csvHeader += csvSeparator + "Battery (V)";
 			if (pref_metadata) csvHeader += csvSeparator + "Metadata";
 

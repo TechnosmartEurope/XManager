@@ -1607,7 +1607,7 @@ namespace X_Manager.Units.AxyTreks
 			temperatureEnabled = pressureEnabled;
 			pressureEnabled /= 16;
 			temperatureEnabled &= 15;
-			if (unit is AxyTrekFT || unit is AxyTrekCO2)
+			if (unit is AxyTrekFT || unit is AxyTrekCO2Small)
 			{
 				temperatureEnabled = 1;
 			}

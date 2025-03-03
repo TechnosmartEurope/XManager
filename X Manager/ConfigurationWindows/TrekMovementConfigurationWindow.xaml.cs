@@ -7,13 +7,9 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.IO.Ports;
 using X_Manager.Units;
-using X_Manager.ConfigurationWindows;
-using System.Windows.Shapes;
 using X_Manager.Units.AxyTreks;
 
 namespace X_Manager.ConfigurationWindows
@@ -96,7 +92,7 @@ namespace X_Manager.ConfigurationWindows
 				tdPeriodSP.IsEnabled = true;
 				tdGrid.RowDefinitions[0].Height = new GridLength(0);
 			}
-			else if (unit is AxyTrekCO2)
+			else if (unit is AxyTrekCO2Small)
 			{
 				externalGrid2.RowDefinitions[2].Height = new GridLength(74);
 				sendButton.Margin = new Thickness(10);
@@ -134,6 +130,54 @@ namespace X_Manager.ConfigurationWindows
 				tpgroupBox.Content = tdPeriodSP;
 				tdPeriodSP.IsEnabled = true;
 				tdGrid.RowDefinitions[0].Height = new GridLength(0);
+			}
+			else if (unit is AxyTrekCO2)
+			{
+				externalGrid2.RowDefinitions[2].Height = new GridLength(74);
+				sendButton.Margin = new Thickness(10);
+				WSGrid.ColumnDefinitions[1].Width = new GridLength(0);
+				WsHardwareRB.Visibility = Visibility.Hidden;
+				WsHardwareRB.IsEnabled = false;
+				WsEnabledRB.Content = "Enabled";
+				WsDisabledRB.Margin = new Thickness(30, 0, 0, 0);
+				WsEnabledRB.Margin = new Thickness(30, 0, 0, 0);
+				TDgroupBox.Header = "CO2 PERIOD";
+				tdLoggingHeaderSP.Visibility = Visibility.Hidden;
+				gridNN.Children.Remove(pressureCB);
+				gridNN.Children.Remove(tdPeriodSP);
+				TDgroupBox.Content = null;
+				ComboBox co2PeriodCB = new ComboBox();
+				string[] pp = new string[] { "5sec", "30sec", "1min", "5min", "10min", "20min", "30min", "40min", "50min", "60min" };
+				co2PeriodCB.Height = 40;
+				co2PeriodCB.Width = 90;
+				co2PeriodCB.HorizontalAlignment = HorizontalAlignment.Center;
+				co2PeriodCB.ItemsSource = pp;
+				TDgroupBox.Content = co2PeriodCB;
+				this.co2PeriodCB = co2PeriodCB;
+				TDgroupBox.Width = 190;
+				tdGrid.HorizontalAlignment = HorizontalAlignment.Left;
+				TDgroupBox.HorizontalAlignment = HorizontalAlignment.Left;
+				var tpgroupBox = new GroupBox();
+				tpgroupBox.Header = "T-P-H PERIOD";
+				tpgroupBox.Foreground = new SolidColorBrush(Color.FromArgb(255, 0x00, 0xaa, 0xde));
+				tpgroupBox.HorizontalAlignment = HorizontalAlignment.Right;
+				tpgroupBox.Margin = new Thickness(0, 0, 10, 5);
+				tpgroupBox.Width = 190;
+				//tdPeriodSP.HorizontalAlignment = HorizontalAlignment.Right;
+				Grid.SetRow(tpgroupBox, 0);
+
+				externalGrid2.Children.Add(tpgroupBox);
+
+				//tdPeriodSP.Children.Add(pressureCB);
+				tdPeriodSP.Margin=new Thickness(20, 0, 0, 0);
+				tdPeriodSP.HorizontalAlignment = HorizontalAlignment.Left;
+				tpgroupBox.Content = tdPeriodSP;
+				tdPeriodSP.IsEnabled = true;
+				tdGrid.RowDefinitions[0].Height = new GridLength(0);
+				temperatureCB.Visibility = Visibility.Hidden;
+				pressureCB.Visibility = Visibility.Hidden;
+				temperatureCB.IsEnabled = false;
+				pressureCB.IsEnabled = false;
 			}
 			else
 			{
@@ -304,7 +348,7 @@ namespace X_Manager.ConfigurationWindows
 				LogEndown.IsEnabled = true;
 				LogEnup.IsEnabled = true;
 			}
-			else if (unit is AxyTrekCO2)
+			else if (unit is AxyTrekCO2Small)
 			{
 				int co2Period = axyconf[3] * 256 + axyconf[4];
 				int index = 1;
@@ -350,6 +394,48 @@ namespace X_Manager.ConfigurationWindows
 				{
 					pressureCB.IsChecked = false;
 				}
+			}
+			else if (unit is AxyTrekCO2)
+			{
+				int co2Period = axyconf[3] * 256 + axyconf[4];
+				int index = 1;
+				switch (co2Period)
+				{
+					case 5:
+						index = 0;
+						break;
+					case 30:
+						index = 1;
+						break;
+					case 60:
+						index = 2;
+						break;
+					case 300:
+						index = 3;
+						break;
+					case 600:
+						index = 4;
+						break;
+					case 1200:
+						index = 5;
+						break;
+					case 1800:
+						index = 6;
+						break;
+					case 2400:
+						index = 7;
+						break;
+					case 3000:
+						index = 8;
+						break;
+					case 3600:
+						index = 9;
+						break;
+				}
+				co2PeriodCB.SelectedIndex = index;
+				axyconf[18] = 1;
+				pressureCB.IsChecked = true;
+				temperatureCB.IsChecked = true;
 			}
 
 			switch (axyconf[22])
@@ -554,7 +640,7 @@ namespace X_Manager.ConfigurationWindows
 				pressureCB.IsChecked = temperatureCB.IsChecked;
 			}
 
-			if (unit is AxyTrekCO2 && c.Name == "pressureCB")
+			if (unit is AxyTrekCO2Small && c.Name == "pressureCB")
 			{
 				tempDepthLogginUD.IsEnabled = (bool)pressureCB.IsChecked;
 				LogEnup.IsEnabled = (bool)pressureCB.IsChecked;
@@ -834,7 +920,7 @@ namespace X_Manager.ConfigurationWindows
 			axyConfOut[18] = 0;
 			if (temperatureCB.IsChecked == true)
 			{
-				if (!(unit is AxyTrekCO2) && !(unit is AxyTrekFT))
+				if (!(unit is AxyTrekCO2Small) && !(unit is AxyTrekFT))
 				{
 					axyConfOut[17] = 1;
 				}
@@ -893,7 +979,7 @@ namespace X_Manager.ConfigurationWindows
 				axyConfOut[28] = (byte)(burstPeriod & 0xff);
 			}
 
-			if (unit is AxyTrekCO2)
+			if ((unit is AxyTrekCO2Small) || (unit is AxyTrekCO2))
 			{
 				int perCo2 = 1800;
 				switch (co2PeriodCB.SelectedIndex)

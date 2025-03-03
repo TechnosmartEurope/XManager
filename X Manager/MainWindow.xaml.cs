@@ -1499,6 +1499,9 @@ namespace X_Manager
 								oUnit = new AxyTrekFT(this);
 								break;
 							case "Axy-Trek CO2":
+								oUnit = new AxyTrekCO2Small(this);
+								break;
+							case "Axy-Trek CO2L":
 								oUnit = new AxyTrekCO2(this);
 								break;
 							case "Axy-Trek R":
@@ -2888,6 +2891,9 @@ namespace X_Manager
 					break;
 				case Unit.model_axyTrekFT:
 					cUnit = new AxyTrekFT(this);
+					break;
+				case Unit.model_axyTrekCO2Small:
+					cUnit = new AxyTrekCO2Small(this);
 					break;
 				case Unit.model_axyTrekCO2:
 					cUnit = new AxyTrekCO2(this);
