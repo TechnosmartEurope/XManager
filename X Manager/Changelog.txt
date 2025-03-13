@@ -335,3 +335,5 @@
 		Conversione dati farloc da Gipsy6 in JSON per machine learning
 1.26.1	17-02-2025	Possibilità di conversione di sessioni gp6 con problematica dovuta a firmware pre 2.1.4
 1.26.2	03-03-2025	Supporto per nuova unità CO2 con sensore grosso
+1.26.3	13-03-2025	Bugfix: conversione dati da CO2 con sensore grosso (errato rilevamento data primo fix)
+		Cambio server per download effemeridi farloc

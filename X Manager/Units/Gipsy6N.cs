@@ -11,10 +11,16 @@ using System.Windows.Threading;
 using System.Globalization;
 using System.ComponentModel;
 using System.Text.Json;
-using Microsoft.VisualBasic.Logging;
+using System.Net.Http;
 using System.Net;
 using System.IO.Compression;
 using Microsoft.VisualBasic;
+using System.Security.Policy;
+using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+
+
+
 
 //using static X_Manager.Units.AxyTreks.AxyTrek;
 
@@ -1938,7 +1944,7 @@ namespace X_Manager.Units.Gipsy6
 		private void rawBGW_doWork(List<FarlocData> tL, string rawName)
 		{
 
-			StreamWriter raw;
+			StreamWriter rawFileStream;
 
 			while (true)
 			{
@@ -1962,7 +1968,6 @@ namespace X_Manager.Units.Gipsy6
 				{
 					File.Delete(rawNameComp);
 				}
-				raw = new StreamWriter(rawNameComp, true);
 
 				byte[] rawd = tL[0].rawData;
 				var rawFix = new RawFix();
@@ -1978,6 +1983,7 @@ namespace X_Manager.Units.Gipsy6
 				List<int> cNo;
 				List<double[]> position;
 				List<double[]> velocity;
+				bool jsonok = true;
 				for (int i = 0; i < tL[0].rawData[0]; i++)
 				{
 					int pp = (i * 11) + 1;
@@ -2026,42 +2032,115 @@ namespace X_Manager.Units.Gipsy6
 					doppler.Add(BitConverter.ToInt32(rawd.Skip(pp + 3).Take(4).ToArray(), 0) * .04);
 					codePhase.Add(BitConverter.ToInt32(rawd.Skip(pp + 7).Take(4).ToArray(), 0) / 2097152.0);
 
-					double[] posVel = new double[6];
-					switch (constellation)
+					try
 					{
-						case 0:
-							posVel = extractPositionFromEphemeris_GPS(tL[0].fixDateTime, rawd[pp + 1], rawName);
-							break;
-						case 2:
-							posVel = extractPositionFromEphemeris_GALILEO(tL[0].fixDateTime, rawd[pp + 1], rawName);
-							break;
-						case 3:
-							posVel = extractPositionFromEphemeris_BEIDOU(tL[0].fixDateTime, rawd[pp + 1], rawName);
-							break;
+						double[] posVel = new double[6];
+						switch (constellation)
+						{
+							case 0:
+								posVel = extractPositionFromEphemeris_GPS(tL[0].fixDateTime, rawd[pp + 1], rawName);
+								break;
+							case 2:
+								posVel = extractPositionFromEphemeris_GALILEO(tL[0].fixDateTime, rawd[pp + 1], rawName);
+								break;
+							case 3:
+								posVel = extractPositionFromEphemeris_BEIDOU(tL[0].fixDateTime, rawd[pp + 1], rawName);
+								break;
+						}
+						position.Add(posVel.Take(3).ToArray());
+						velocity.Add(posVel.Skip(3).Take(3).ToArray());
 					}
-					position.Add(posVel.Take(3).ToArray());
-					velocity.Add(posVel.Skip(3).Take(3).ToArray());
+					catch
+					{
+						jsonok = false;
+					}
 				}
-
-
 
 				tL.RemoveAt(0);
 
-				var options = new JsonSerializerOptions
+				if (jsonok == true)
 				{
-					WriteIndented = true,
-					Converters = { new JsonFloatConverter() }
-				};
-				string jsonString = JsonSerializer.Serialize(rawFix, options);
-				raw.Write(jsonString);
+					rawFileStream = new StreamWriter(rawNameComp, true);
+					var options = new JsonSerializerOptions
+					{
+						WriteIndented = true,
+						Converters = { new JsonFloatConverter() }
+					};
+					string jsonString = JsonSerializer.Serialize(rawFix, options);
+					rawFileStream.Write(jsonString);
+					rawFileStream.Close();
+				}
 
-				raw.Close();
 				rawSemBack.Release();
 			}
+
 
 			rawSemBack.Release();
 		}
 
+		private bool downloadRinex(DateTime timestamp, string localFileName)
+		{
+			string year = timestamp.Year.ToString("0000");
+			string day = timestamp.DayOfYear.ToString("000");
+			string effDayUrl = string.Format("https://igs.bkg.bund.de/root_ftp/IGS/BRDC/{0}/{1}/", year, day);
+
+			bool result = false;
+			List<string> remoteFileNames = new List<string>();
+			using (HttpClient client = new HttpClient())
+			{
+				try
+				{
+					string html = client.GetStringAsync(effDayUrl).Result;
+					Regex regex = new Regex(@"<a href=""([^""]+\.\w+)"">", RegexOptions.IgnoreCase);
+					MatchCollection matches = regex.Matches(html);
+					foreach (Match match in matches)
+					{
+						remoteFileNames.Add(match.Groups[1].Value);
+					}
+				}
+				catch
+				{
+					return false;
+				}
+			}
+
+			string remoteFileName = "";
+			foreach (string f in remoteFileNames)
+			{
+				if (f.Contains("BRD") && f.Contains("MN") && f.Contains(year) && f.Contains(day))
+				{
+					remoteFileName = f;
+					break;
+				}
+			}
+			if (remoteFileName == "") return false;
+
+			byte[] data;
+			effDayUrl += remoteFileName;
+			try
+			{
+				using (WebClient request = new WebClient())     //effettua il download	
+				{
+					data = request.DownloadData(effDayUrl);
+				}
+			}
+			catch
+			{
+				return false;
+			}
+
+			//string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + MainWindow.companyFolder + MainWindow.appFolder + "\\brdc";
+			//var outs = Directory.CreateDirectory(dir);
+			//string localFileName = dir + "\\" + timestamp.ToString("yyyyMMdd") + ".dat.gz";
+
+			using (FileStream file = File.Create(localFileName))   //Salva l'array di byte in un file
+			{
+				file.Write(data, 0, data.Length);
+				file.Close();
+			}
+
+			return true;
+		}
 		private double[] extractPositionFromEphemeris_GPS(DateTime timestamp, int svId, string rawName)
 		{
 			CultureInfo cfi = CultureInfo.InvariantCulture;
@@ -2087,36 +2166,20 @@ namespace X_Manager.Units.Gipsy6
 			if (addNewEphemeris)        //Se non è in memoria la estrae dal relativo file (se il file non è presente, prima lo scarica da internet)
 			{
 				string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-								MainWindow.companyFolder + MainWindow.appFolder + "\\brdc_gps";
+								MainWindow.companyFolder + MainWindow.appFolder + "\\brdc";
 				var outs = Directory.CreateDirectory(dir);
 				string fileName = dir + "\\" + timestamp.ToString("yyyyMMdd") + ".dat.gz";
 
 				//Controlla se esiste il file, in caso contrario lo scarica
 				if (!File.Exists(fileName))
 				{
-
 					//Se non esiste scarica l'effemeride nel file
-					byte[] data;
-					//string url = string.Format("ftp://gssc.esa.int/gnss/data/daily/{0}/brdc/brdc{1}0.{2}n.gz",
-					//							timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"), (timestamp.Year - 2000).ToString("00"));
-					string url = string.Format("https://igs.bkg.bund.de/root_ftp/IGS/BRDC/{0}/{1}/BRDC00WRD_R_{0}{1}0000_01D_GN.rnx.gz",
-												timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"));
-					using (WebClient request = new WebClient())     //effettua il download	
+					bool result = downloadRinex(timestamp, fileName);
+					if (!result)
 					{
-						try
-						{
-							data = request.DownloadData(url);
-						}
-						catch
-						{
-							return new double[] { 0, 0, 0 };
-						}
+						throw new Exception("No valid RINEX file found on server.");
 					}
-					using (FileStream file = File.Create(fileName))   //Salva l'array di byte in un file
-					{
-						file.Write(data, 0, data.Length);
-						file.Close();
-					}
+
 				}
 
 				//Il file è sicuramente presente, si estrae l'effemeride
@@ -2179,8 +2242,18 @@ namespace X_Manager.Units.Gipsy6
 
 				while (str != null)
 				{
-					str = ifs.ReadLine();
-					if ((str == null) || (str.Length < 32)) break;
+					//Aspetta un satellite GPS che inizia per "G"
+					while (true)
+					{
+						str = ifs.ReadLine();
+						if (str == null) break;
+						if (str.StartsWith("G"))
+						{
+							break;
+						}
+					}
+
+					if (str == null) break;
 					int prn = int.Parse(str.Substring(1, 2), cfi);
 					if (ephemeris.satellites[prn] == null) ephemeris.satellites[prn] = new Satellite_Ephemeris_GPS();
 
@@ -2370,26 +2443,18 @@ namespace X_Manager.Units.Gipsy6
 			if (addNewEphemeris)        //Se non è in memoria la estrae dal relativo file (se il file non è presente, prima lo scarica da internet)
 			{
 				string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-								MainWindow.companyFolder + MainWindow.appFolder + "\\brdc_galileo";
+				MainWindow.companyFolder + MainWindow.appFolder + "\\brdc";
 				var outs = Directory.CreateDirectory(dir);
 				string fileName = dir + "\\" + timestamp.ToString("yyyyMMdd") + ".dat.gz";
 
 				//Controlla se esiste il file, in caso contrario lo scarica
 				if (!File.Exists(fileName))
 				{
-
 					//Se non esiste scarica l'effemeride nel file
-					byte[] data;
-					string url = string.Format("https://igs.bkg.bund.de/root_ftp/IGS/BRDC/{0}/{1}/BRDC00WRD_R_{0}{1}0000_01D_EN.rnx.gz",
-												timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"));
-					using (WebClient request = new WebClient())     //effettua il download	
+					bool result = downloadRinex(timestamp, fileName);
+					if (!result)
 					{
-						data = request.DownloadData(url);
-					}
-					using (FileStream file = File.Create(fileName))   //Salva l'array di byte in un file
-					{
-						file.Write(data, 0, data.Length);
-						file.Close();
+						throw new Exception("No valid RINEX file found on server.");
 					}
 				}
 
@@ -2450,9 +2515,19 @@ namespace X_Manager.Units.Gipsy6
 
 				while (str != null)
 				{
-					str = ifs.ReadLine();
-					if ((str == null) || (str.Length < 32)) break;
-					//str = str.Replace('D', 'E');
+					//Aspetta un satellite GALILEO che inizia per "E"
+					while (true)
+					{
+						str = ifs.ReadLine();
+						if (str == null) break;
+						if (str.StartsWith("E"))
+						{
+							break;
+						}
+					}
+
+					if (str == null) break;
+
 					int prn = int.Parse(str.Substring(1, 2), cfi);
 					if (ephemeris.satellites[prn] == null) ephemeris.satellites[prn] = new Satellite_Ephemeris_GALILEO();
 
@@ -2646,29 +2721,20 @@ namespace X_Manager.Units.Gipsy6
 			if (addNewEphemeris)        //Se non è in memoria la estrae dal relativo file (se il file non è presente, prima lo scarica da internet)
 			{
 				string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) +
-								MainWindow.companyFolder + MainWindow.appFolder + "\\brdc_beidou";
+								MainWindow.companyFolder + MainWindow.appFolder + "\\brdc";
 				var outs = Directory.CreateDirectory(dir);
 				string fileName = dir + "\\" + timestamp.ToString("yyyyMMdd") + ".dat.gz";
 
 				//Controlla se esiste il file, in caso contrario lo scarica
 				if (!File.Exists(fileName))
 				{
-
 					//Se non esiste scarica l'effemeride nel file
-					byte[] data;
-					//string url = string.Format("ftp://gssc.esa.int/gnss/data/daily/{0}/brdc/brdc{1}0.{2}n.gz",
-					//							timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"), (timestamp.Year - 2000).ToString("00"));
-					string url = string.Format("https://igs.bkg.bund.de/root_ftp/IGS/BRDC/{0}/{1}/BRDC00WRD_R_{0}{1}0000_01D_CN.rnx.gz",
-												timestamp.Year.ToString("0000"), timestamp.DayOfYear.ToString("000"));
-					using (WebClient request = new WebClient())     //effettua il download	
+					bool result = downloadRinex(timestamp, fileName);
+					if (!result)
 					{
-						data = request.DownloadData(url);
+						throw new Exception("No valid RINEX file found on server.");
 					}
-					using (FileStream file = File.Create(fileName))   //Salva l'array di byte in un file
-					{
-						file.Write(data, 0, data.Length);
-						file.Close();
-					}
+
 				}
 
 				//Il file è sicuramente presente, si estrae l'effemeride
@@ -2731,9 +2797,20 @@ namespace X_Manager.Units.Gipsy6
 
 				while (str != null)
 				{
+					//Aspetta un satellite BEIDOU che inizia per "C"
+					while (true)
+					{
+						str = ifs.ReadLine();
+						if (str == null) break;
+						if (str.StartsWith("C"))
+						{
+							break;
+						}
+					}
+
+					//str = ifs.ReadLine();
+					if (str == null) break;
 					//Linea 0
-					str = ifs.ReadLine();
-					if ((str == null) || (str.Length < 32)) break;
 					int prn = int.Parse(str.Substring(1, 2), cfi);
 					if (ephemeris.satellites[prn] == null) ephemeris.satellites[prn] = new Satellite_Ephemeris_BEIDOU();
 

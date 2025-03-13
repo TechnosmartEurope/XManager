@@ -719,8 +719,8 @@ namespace X_Manager.Units.AxyTreks
 						double ppos = ard.Position;
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ppos));
 						if ((timeStamp0 & 1) == 1) timeStamp1 = (byte)ard.ReadByte();
-						if ((timeStamp0 & 2) == 2) ard.Position += 6;
-						if ((timeStamp0 & 4) == 4) ard.Position += 6;
+						if ((timeStamp0 & 2) == 2) ard.Position += 4;
+						if ((timeStamp0 & 4) == 4) ard.Position += 8;
 						if ((timeStamp0 & 8) == 8) ard.Position += 2;
 						if ((timeStamp0 & 16) == 16)
 						{
