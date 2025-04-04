@@ -29,6 +29,7 @@ namespace X_Manager.Units.AxyTreks
 			public double fastTemperature;
 			public double press;
 			public double co2co2;
+			public double co2raw;
 			public double co2temp;
 			public double co2hum;
 			public Coord coord;

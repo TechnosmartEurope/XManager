@@ -244,10 +244,11 @@ namespace X_Manager.Units.AxyTreks
 				timestamp.tsTypeExt1 = 0;
 			}
 
-			//Parametri CO2
+			//Valori CO2 e temperatura
 			if ((timestamp.tsType & 2) == 2)
 			{
 				timestamp.co2co2 = ard.ReadByte() * 256 + ard.ReadByte();
+				timestamp.co2raw = ard.ReadByte() * 256 + ard.ReadByte();
 				timestamp.co2temp = ard.ReadByte() * 256 + ard.ReadByte();
 				timestamp.co2temp = timestamp.co2temp / 100.0;
 
@@ -552,14 +553,14 @@ namespace X_Manager.Units.AxyTreks
 				additionalInfo += csvSeparator + csvSeparator + csvSeparator;
 			}
 
-			contoTab += 1;
+			contoTab += 2;
 			if (((timestamp.tsType & 2) == 2) | pref_repeatEmptyValues)
 			{
-				additionalInfo += csvSeparator + timestamp.co2co2.ToString();
+				additionalInfo += csvSeparator + timestamp.co2co2.ToString() + csvSeparator + timestamp.co2raw.ToString();
 			}
 			else
 			{
-				additionalInfo += csvSeparator;
+				additionalInfo += csvSeparator + csvSeparator;
 			}
 
 
@@ -719,7 +720,7 @@ namespace X_Manager.Units.AxyTreks
 						double ppos = ard.Position;
 						Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => parent.statusProgressBar.Value = ppos));
 						if ((timeStamp0 & 1) == 1) timeStamp1 = (byte)ard.ReadByte();
-						if ((timeStamp0 & 2) == 2) ard.Position += 4;
+						if ((timeStamp0 & 2) == 2) ard.Position += 6;
 						if ((timeStamp0 & 4) == 4) ard.Position += 8;
 						if ((timeStamp0 & 8) == 8) ard.Position += 2;
 						if ((timeStamp0 & 16) == 16)
@@ -825,7 +826,7 @@ namespace X_Manager.Units.AxyTreks
 
 			csvHeader += csvSeparator + "Temp. (°C)" + csvSeparator + "Pressure" + csvSeparator + "Humidity";
 
-			csvHeader = csvHeader + csvSeparator + "CO2";
+			csvHeader = csvHeader + csvSeparator + "CO2 (filtered)" + csvSeparator + "CO2 (unfiltered)";
 
 			csvHeader += csvSeparator + "location-lat" + csvSeparator + "location-lon" + csvSeparator + "height-msl"
 				+ csvSeparator + "ground-speed" + csvSeparator + "satellites" + csvSeparator + "hdop" + csvSeparator + "signal-strength";

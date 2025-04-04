@@ -147,7 +147,7 @@ namespace X_Manager.ConfigurationWindows
 				gridNN.Children.Remove(tdPeriodSP);
 				TDgroupBox.Content = null;
 				ComboBox co2PeriodCB = new ComboBox();
-				string[] pp = new string[] { "5sec", "30sec", "1min", "5min", "10min", "20min", "30min", "40min", "50min", "60min" };
+				string[] pp = new string[] { "2sec", "5sec", "30sec", "1min", "5min", "10min", "20min", "30min", "40min", "50min", "60min" };
 				co2PeriodCB.Height = 40;
 				co2PeriodCB.Width = 90;
 				co2PeriodCB.HorizontalAlignment = HorizontalAlignment.Center;
@@ -169,7 +169,7 @@ namespace X_Manager.ConfigurationWindows
 				externalGrid2.Children.Add(tpgroupBox);
 
 				//tdPeriodSP.Children.Add(pressureCB);
-				tdPeriodSP.Margin=new Thickness(20, 0, 0, 0);
+				tdPeriodSP.Margin = new Thickness(20, 0, 0, 0);
 				tdPeriodSP.HorizontalAlignment = HorizontalAlignment.Left;
 				tpgroupBox.Content = tdPeriodSP;
 				tdPeriodSP.IsEnabled = true;
@@ -397,42 +397,47 @@ namespace X_Manager.ConfigurationWindows
 			}
 			else if (unit is AxyTrekCO2)
 			{
+				int[] valori = { 2, 5, 30, 60, 300, 600, 1200, 1800, 2400, 3000, 3600 };
 				int co2Period = axyconf[3] * 256 + axyconf[4];
-				int index = 1;
-				switch (co2Period)
-				{
-					case 5:
-						index = 0;
-						break;
-					case 30:
-						index = 1;
-						break;
-					case 60:
-						index = 2;
-						break;
-					case 300:
-						index = 3;
-						break;
-					case 600:
-						index = 4;
-						break;
-					case 1200:
-						index = 5;
-						break;
-					case 1800:
-						index = 6;
-						break;
-					case 2400:
-						index = 7;
-						break;
-					case 3000:
-						index = 8;
-						break;
-					case 3600:
-						index = 9;
-						break;
-				}
-				co2PeriodCB.SelectedIndex = index;
+				//int index = 1;
+				//switch (co2Period)
+				//{
+				//	case 2:
+				//		index = 0;
+				//		break;
+				//	case 5:
+				//		index = 1;
+				//		break;
+				//	case 30:
+				//		index = 2;
+				//		break;
+				//	case 60:
+				//		index = 3;
+				//		break;
+				//	case 300:
+				//		index = 4;
+				//		break;
+				//	case 600:
+				//		index = 5;
+				//		break;
+				//	case 1200:
+				//		index = 6;
+				//		break;
+				//	case 1800:
+				//		index = 7;
+				//		break;
+				//	case 2400:
+				//		index = 8;
+				//		break;
+				//	case 3000:
+				//		index = 9;
+				//		break;
+				//	case 3600:
+				//		index = 10;
+				//		break;
+				//}
+				//co2PeriodCB.SelectedIndex = index;
+				co2PeriodCB.SelectedIndex = Array.IndexOf(valori, co2Period);
 				axyconf[18] = 1;
 				pressureCB.IsChecked = true;
 				temperatureCB.IsChecked = true;
@@ -980,41 +985,52 @@ namespace X_Manager.ConfigurationWindows
 			}
 
 			if ((unit is AxyTrekCO2Small) || (unit is AxyTrekCO2))
+
 			{
-				int perCo2 = 1800;
-				switch (co2PeriodCB.SelectedIndex)
+				int[] valori;
+				if (unit is AxyTrekCO2Small)
 				{
-					case 0:
-						perCo2 = 5;
-						break;
-					case 1:
-						perCo2 = 30;
-						break;
-					case 2:
-						perCo2 = 60;
-						break;
-					case 3:
-						perCo2 = 300;
-						break;
-					case 4:
-						perCo2 = 600;
-						break;
-					case 5:
-						perCo2 = 1200;
-						break;
-					case 6:
-						perCo2 = 1800;
-						break;
-					case 7:
-						perCo2 = 2400;
-						break;
-					case 8:
-						perCo2 = 3000;
-						break;
-					case 9:
-						perCo2 = 3600;
-						break;
+					valori = new int[] { 5, 30, 60, 300, 600, 1200, 1800, 2400, 3000, 3600 };
 				}
+				else
+				{
+					valori = new int[] { 2, 5, 30, 60, 300, 600, 1200, 1800, 2400, 3000, 3600 };
+				}
+				int perCo2 = valori[co2PeriodCB.SelectedIndex];
+				//int perCo2 = 1800;
+				//switch (co2PeriodCB.SelectedIndex)
+				//{
+				//	case 0:
+				//		perCo2 = 5;
+				//		break;
+				//	case 1:
+				//		perCo2 = 30;
+				//		break;
+				//	case 2:
+				//		perCo2 = 60;
+				//		break;
+				//	case 3:
+				//		perCo2 = 300;
+				//		break;
+				//	case 4:
+				//		perCo2 = 600;
+				//		break;
+				//	case 5:
+				//		perCo2 = 1200;
+				//		break;
+				//	case 6:
+				//		perCo2 = 1800;
+				//		break;
+				//	case 7:
+				//		perCo2 = 2400;
+				//		break;
+				//	case 8:
+				//		perCo2 = 3000;
+				//		break;
+				//	case 9:
+				//		perCo2 = 3600;
+				//		break;
+				//}
 
 				axyConfOut[3] = (byte)(perCo2 >> 8);
 				axyConfOut[4] = (byte)(perCo2 & 0xff);
