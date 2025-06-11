@@ -2038,13 +2038,13 @@ namespace X_Manager.Units.Gipsy6
 						switch (constellation)
 						{
 							case 0:
-								posVel = extractPositionFromEphemeris_GPS(tL[0].fixDateTime, rawd[pp + 1], rawName);
+								posVel = extractPositionFromEphemeris_GPS(tL[0].fixDateTime, rawd[pp + 1]);
 								break;
 							case 2:
-								posVel = extractPositionFromEphemeris_GALILEO(tL[0].fixDateTime, rawd[pp + 1], rawName);
+								posVel = extractPositionFromEphemeris_GALILEO(tL[0].fixDateTime, rawd[pp + 1]);
 								break;
 							case 3:
-								posVel = extractPositionFromEphemeris_BEIDOU(tL[0].fixDateTime, rawd[pp + 1], rawName);
+								posVel = extractPositionFromEphemeris_BEIDOU(tL[0].fixDateTime, rawd[pp + 1]);
 								break;
 						}
 						position.Add(posVel.Take(3).ToArray());
@@ -2084,7 +2084,6 @@ namespace X_Manager.Units.Gipsy6
 			string day = timestamp.DayOfYear.ToString("000");
 			string effDayUrl = string.Format("https://igs.bkg.bund.de/root_ftp/IGS/BRDC/{0}/{1}/", year, day);
 
-			bool result = false;
 			List<string> remoteFileNames = new List<string>();
 			using (HttpClient client = new HttpClient())
 			{
@@ -2141,7 +2140,8 @@ namespace X_Manager.Units.Gipsy6
 
 			return true;
 		}
-		private double[] extractPositionFromEphemeris_GPS(DateTime timestamp, int svId, string rawName)
+
+		private double[] extractPositionFromEphemeris_GPS(DateTime timestamp, int svId)
 		{
 			CultureInfo cfi = CultureInfo.InvariantCulture;
 			Ephemeris_GPS ephemeris = new Ephemeris_GPS();
@@ -2418,7 +2418,7 @@ namespace X_Manager.Units.Gipsy6
 			return new double[3] { x, y, z };
 		}
 
-		private double[] extractPositionFromEphemeris_GALILEO(DateTime timestamp, int svId, string rawName)
+		private double[] extractPositionFromEphemeris_GALILEO(DateTime timestamp, int svId)
 		{
 			CultureInfo cfi = CultureInfo.InvariantCulture;
 			Ephemeris_GALILEO ephemeris = new Ephemeris_GALILEO();
@@ -2698,7 +2698,7 @@ namespace X_Manager.Units.Gipsy6
 
 		}
 
-		private double[] extractPositionFromEphemeris_BEIDOU(DateTime timestamp, int svId, string rawName)
+		private double[] extractPositionFromEphemeris_BEIDOU(DateTime timestamp, int svId)
 		{
 			CultureInfo cfi = CultureInfo.InvariantCulture;
 			Ephemeris_BEIDOU ephemeris = new Ephemeris_BEIDOU();

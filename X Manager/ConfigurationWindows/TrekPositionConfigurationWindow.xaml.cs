@@ -238,11 +238,19 @@ namespace X_Manager.ConfigurationWindows
 				dt.I4H2.SelectedItem = conf[(14 + (i * 19))].ToString("D2");
 				dt.I5H2.SelectedItem = conf[(17 + (i * 19))].ToString("D2");
 				//modi
-				dt.I1M.SelectedIndex = conf[(6 + (i * 19))];
-				dt.I2M.SelectedIndex = conf[(9 + (i * 19))];
-				dt.I3M.SelectedIndex = conf[(12 + (i * 19))];
-				dt.I4M.SelectedIndex = conf[(15 + (i * 19))];
-				dt.I5M.SelectedIndex = conf[(18 + (i * 19))];
+				var modi = new ComboBox[] { dt.I1M, dt.I2M, dt.I3M, dt.I4M, dt.I5M };
+				for (int j = 0; j < 5; j++)
+				{
+					int modo = conf[6 + (j * 3) + (i * 19)];
+					if (modo >= 3) modo--;
+					modi[j].SelectedIndex = modo;
+				}
+
+				//dt.I1M.SelectedIndex = conf[(6 + (i * 19))];
+				//dt.I2M.SelectedIndex = conf[(9 + (i * 19))];
+				//dt.I3M.SelectedIndex = conf[(12 + (i * 19))];
+				//dt.I4M.SelectedIndex = conf[(15 + (i * 19))];
+				//dt.I5M.SelectedIndex = conf[(18 + (i * 19))];
 				//parametri
 				dt.I1P.SelectedIndex = conf[(7 + (i * 19))];
 				dt.I2P.SelectedIndex = conf[(10 + (i * 19))];
@@ -400,11 +408,18 @@ namespace X_Manager.ConfigurationWindows
 				conf[17 + i * 19] = byte.Parse((string)dt.I5H2.SelectedItem);
 
 				//modi
-				conf[6 + i * 19] = (byte)dt.I1M.SelectedIndex;
-				conf[9 + i * 19] = (byte)dt.I2M.SelectedIndex;
-				conf[12 + i * 19] = (byte)dt.I3M.SelectedIndex;
-				conf[15 + i * 19] = (byte)dt.I4M.SelectedIndex;
-				conf[18 + i * 19] = (byte)dt.I5M.SelectedIndex;
+				var modi = new ComboBox[] { dt.I1M, dt.I2M, dt.I3M, dt.I4M, dt.I5M };
+				for (int j = 0; j < 5; j++)
+				{
+					byte modo = (byte)modi[j].SelectedIndex;
+					if (modo >= 2) modo++;
+					conf[6 + (j * 3) + (i * 19)] = modo;
+				}
+				//conf[6 + i * 19] = (byte)dt.I1M.SelectedIndex;
+				//conf[9 + i * 19] = (byte)dt.I2M.SelectedIndex;
+				//conf[12 + i * 19] = (byte)dt.I3M.SelectedIndex;
+				//conf[15 + i * 19] = (byte)dt.I4M.SelectedIndex;
+				//conf[18 + i * 19] = (byte)dt.I5M.SelectedIndex;
 
 				//parametri
 				try { conf[7 + i * 19] = (byte)dt.I1P.SelectedIndex; }

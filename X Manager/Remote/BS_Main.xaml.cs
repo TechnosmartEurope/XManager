@@ -450,7 +450,7 @@ namespace X_Manager.Remote
 			timestamp[6] = reverseByte(dec2BCD((byte)dt.Minute));
 			timestamp[7] = reverseByte(dec2BCD((byte)dt.Second));
 
-			//File.WriteAllBytes(drive.Name + FILE_CONF, conf);
+			saveConfigurationDate();
 			MessageBox.Show("Date and time set.");
 		}
 
@@ -514,6 +514,10 @@ namespace X_Manager.Remote
 					actLV[i] = ((BS_listViewElement)channelLV.Items[i]).Address;
 				}
 				if (!actLV.SequenceEqual(initialLV))
+				{
+					somethingChanged = true;
+				}
+				if (timestamp != null)//Se timestamp non è null, è stata inserita una data e ora recente, ma chiudendo ne viene scritta una ancora più recente
 				{
 					somethingChanged = true;
 				}
@@ -1665,28 +1669,54 @@ namespace X_Manager.Remote
 
 		private void saveNameConfigurationDate()
 		{
-			DriveInfo dr = null;
-
 			//Salva l'indirizzo di ricezione e, se impostate, data e ora
+			try
+			{
+				DriveInfo dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
+				byte[] conf = File.ReadAllBytes(dr.Name + FILE_CONF);
+				byte[] add = BitConverter.GetBytes(bsAddress);
+				Array.Reverse(add);
+				Array.Copy(add, 0, conf, 0x0a, 4);
+				if (!(timestamp is null))//Se timestamp != null, è stata inserita una data e ora recente nel file di configurazione, ma in fase di salvataggio ne inserisce una ancora più recente
+				{
+					timestamp = new byte[8];
+					DateTime dt = DateTime.UtcNow;
+
+					timestamp[0] = 1;
+					timestamp[1] = reverseByte(dec2BCD((byte)(dt.Year - 2000)));
+					timestamp[2] = reverseByte(dec2BCD((byte)dt.Month));
+					timestamp[3] = reverseByte(dec2BCD((byte)dt.Day));
+					timestamp[4] = reverseByte(dec2BCD((byte)dt.DayOfWeek));
+					timestamp[5] = reverseByte(dec2BCD((byte)dt.Hour));
+					timestamp[6] = reverseByte(dec2BCD((byte)dt.Minute));
+					timestamp[7] = reverseByte(dec2BCD((byte)dt.Second));
+					Array.Copy(timestamp, 0, conf, 0x12, 8);
+				}
+				File.WriteAllBytes(dr.Name + FILE_CONF, conf);
+				File.WriteAllText(dr.Name + FILE_NAME, bsNameTB.Text);
+			}
+			catch { }
+
+			////Salva il nome della basestation
+			//try
+			//{
+			//	//dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
+				
+			//}
+			//catch { }
+		}
+
+		private void saveConfigurationDate()  //Aggiunge al file di configurazione data e ora attuali, lasciando il resto inalterato
+		{
+			DriveInfo dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
 			try
 			{
 				byte[] conf = File.ReadAllBytes(dr.Name + FILE_CONF);
 				byte[] add = BitConverter.GetBytes(bsAddress);
 				Array.Reverse(add);
 				Array.Copy(add, 0, conf, 0x0a, 4);
-				if (!(timestamp is null))
-				{
-					Array.Copy(timestamp, 0, conf, 0x12, 8);
-				}
+				Array.Copy(timestamp, 0, conf, 0x12, 8);
 				File.WriteAllBytes(dr.Name + FILE_CONF, conf);
-			}
-			catch { }
-
-			//Salva il nome della basestation
-			try
-			{
-				dr = ((BS_listViewElement)driveLV.SelectedItem).Drive;
-				File.WriteAllText(dr.Name + FILE_NAME, bsNameTB.Text);
 			}
 			catch { }
 		}
