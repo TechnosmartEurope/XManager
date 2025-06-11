@@ -48,6 +48,7 @@ namespace X_Manager.Units
 		uint rendiNeg;
 		bool bit16 = true;
 		byte sampleLength;
+		int iend;
 		ushort addMilli;
 		new byte[] lastGroup;
 		byte cifreDec;
@@ -611,6 +612,7 @@ namespace X_Manager.Units
 
 			sampleLength = findBytesPerSample(ref ard);
 			lastGroup = new byte[(sampleLength * rate)];
+			iend = rate * sampleLength;
 
 			//Legge i coefficienti sensore di profondità
 			convCoeffs = new double[] { 0, 0, 0, 0, 0, 0 };
@@ -999,7 +1001,7 @@ namespace X_Manager.Units
 
 			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 
-			int iend = rate * sampleLength;
+			//int iend = rate * sampleLength;
 			for (int i = sampleLength; i < iend; i += sampleLength)
 			{
 				x = group[i] * 256 + group[i + 1];
@@ -1023,8 +1025,8 @@ namespace X_Manager.Units
 				if (rate == 1)
 				{
 					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 				}
+				dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 				textOut += unitName + csvSeparator + dateS;
 
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
@@ -1194,7 +1196,7 @@ namespace X_Manager.Units
 				tsc.gyro[2] *= dpsCoeff;
 			}
 
-			tsc.orario = tsc.orario.AddSeconds(1);
+			//tsc.orario = tsc.orario.AddSeconds(1);
 
 			return false;
 
@@ -1243,9 +1245,7 @@ namespace X_Manager.Units
 					break;
 			}
 
-			if (rateOut == 1) addMilli = 0;
-
-			else addMilli = (ushort)((1 / (double)rateOut) * 1000);
+			addMilli = (ushort)(1 / (double)rateOut * 1000);
 
 			return rateOut;
 		}
@@ -1332,7 +1332,7 @@ namespace X_Manager.Units
 			}
 
 			csvHeader += "\r\n";
-			csv.Write(System.Text.Encoding.ASCII.GetBytes(csvHeader));
+			csv.Write(Encoding.ASCII.GetBytes(csvHeader));
 		}
 
 		private bool pressureAir(ref BinaryReader ard, ref timeStamp tsc)

@@ -28,6 +28,8 @@ namespace X_Manager.Units.AxyTreks
 			public double temperature;
 			public double fastTemperature;
 			public double press;
+			public double voc;
+			public double nox;
 			public double co2co2;
 			public double co2raw;
 			public double co2temp;
@@ -928,7 +930,7 @@ namespace X_Manager.Units.AxyTreks
 					{
 						var oldPosition = mdp.BaseStream.Position;
 						mdp.BaseStream.Position = mdp.BaseStream.Length - 1;
-						if (mdp.ReadByte() == sectorLength - 2)
+						if (mdp.ReadByte() == 0xfe)
 						{
 							mdp.BaseStream.Position -= 8;
 							firmwareArray = mdp.ReadBytes(6);
