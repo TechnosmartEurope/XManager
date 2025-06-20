@@ -289,7 +289,18 @@ namespace X_Manager.Units.AxyTreks
 					timestamp.coord.altH = b & 15;
 				}
 				timestamp.gsvSum = ard.ReadByte() * 256 + ard.ReadByte();
-
+				if (pref_overrideSystemDate)
+				{
+					timestamp.orario = new DateTime(timestamp.data.anno, timestamp.data.mese, timestamp.data.giorno, timestamp.data.ore, timestamp.data.minuti, timestamp.data.secondi);
+				}
+				else
+				{
+					timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
+				}
+			}
+			else
+			{
+				timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
 			}
 
 
@@ -349,7 +360,6 @@ namespace X_Manager.Units.AxyTreks
 					timestamp.secondAmount = (byte)ard.ReadByte();
 				}
 			}
-			timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
 		}
 
 		protected override double[] extractGroup()

@@ -1007,6 +1007,7 @@ namespace X_Manager.Units.AxyTreks
 
 			pref_debugLevel = parent.stDebugLevel;
 			pref_addGpsTime = parent.addGpsTime;
+			pref_overrideSystemDate = parent.overrideSystemDate;
 
 			if (pref_addGpsTime)
 			{

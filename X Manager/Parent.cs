@@ -17,6 +17,7 @@ namespace X_Manager
 		public bool stOldUnitDebug;
 		public bool remote;
 		public bool addGpsTime;
+		public bool overrideSystemDate;
 
 		public DateTime convertingStartDate;
 		public string convertingFileName;

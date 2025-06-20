@@ -2221,6 +2221,7 @@ namespace X_Manager
 			stDebugLevel = cp.debugLevel;
 			stOldUnitDebug = cp.OldUnitDebug;
 			addGpsTime = cp.addGpsTime;
+			overrideSystemDate = cp.overrideSystemDate;
 
 			mainGrid.IsEnabled = false;
 			convFileTot = (ushort)convFiles.Count;

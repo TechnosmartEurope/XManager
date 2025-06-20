@@ -897,8 +897,7 @@ namespace X_Manager.Units
 			NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 			ushort contoTab = 0;
 
-			dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
-			textOut = unitName + csvSeparator + dateS;
+			//################################################################ PRIMA RIGA ##############################################################
 
 			x = group[0]; y = group[1]; z = group[2];
 
@@ -906,6 +905,8 @@ namespace X_Manager.Units
 			y *= gCoeff; //y = Math.Round(y, cifreDec);
 			z *= gCoeff; //z = Math.Round(z, cifreDec);
 
+			dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
+			textOut = unitName + csvSeparator + dateS;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 			magAdditionalInfo = "";
@@ -994,8 +995,13 @@ namespace X_Manager.Units
 					return textOut;
 				}
 				tsLoc.orario = tsLoc.orario.AddSeconds(1);
-				dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 			}
+			else
+			{
+				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
+			}
+
+			//################################################################ FINE PRIMA RIGA ##############################################################
 
 			if (!pref_repeatEmptyValues)
 			{
@@ -1007,13 +1013,15 @@ namespace X_Manager.Units
 				for (ushort ui = 0; ui < contoTab; ui++) additionalInfo += csvSeparator;
 			}
 
-			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
+
 
 			if (tsLoc.stopEvent > 0) bitsDiv = 1;
 
 			var iend2 = (short)(rateComp * 3);
 			var iend1 = iend2 / 2;
 			iend1 -= (iend1 % 3);
+
+			//################################################################ RIGA2 -> IEND1-1 ##############################################################
 
 			for (short i = 3; i < iend1; i += 3)
 			{
@@ -1025,19 +1033,24 @@ namespace X_Manager.Units
 				y *= gCoeff; //y = Math.Round(y, cifreDec);
 				z *= gCoeff; //z = Math.Round(z, cifreDec);
 
-
+				dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 				textOut += unitName + csvSeparator + dateS;
 
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 				textOut += magAdditionalInfo + additionalInfo + "\r\n";
-				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
+
 				if (rate == 1)
 				{
 					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
+				}
+				else
+				{
+					tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
 				}
 			}
+			//################################################################ FINE RIGA2 -> IEND1-1 ##############################################################
+			//################################################################ RIGA IEND1 #########################################################################
 
 			if (rateComp == 1) return textOut;
 
@@ -1047,6 +1060,7 @@ namespace X_Manager.Units
 			y *= gCoeff; //y = Math.Round(y, cifreDec);
 			z *= gCoeff; //z = Math.Round(z, cifreDec);
 
+			dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 			textOut += unitName + csvSeparator + dateS;
 			textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
@@ -1065,7 +1079,11 @@ namespace X_Manager.Units
 					magAdditionalInfo = csvSeparator + csvSeparator + csvSeparator;
 				}
 			}
-			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
+			tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);      //Qui non può più essere a 1Hz
+
+
+			//################################################################ FINE RIGA IEND1 #########################################################################
+			//################################################################ RIGA IEND1+1 -> IEND2 ###################################################################
 
 			for (int i = iend1 + 3; i < iend2; i += 3)
 			{
@@ -1077,17 +1095,19 @@ namespace X_Manager.Units
 				y *= gCoeff; //y = Math.Round(y, cifreDec);
 				z *= gCoeff; //z = Math.Round(z, cifreDec);
 
-				if (rate == 1)
-				{
-					tsLoc.orario = tsLoc.orario.AddSeconds(1);
-					dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
-				}
+				//if (rate == 1)
+				//{
+				//	tsLoc.orario = tsLoc.orario.AddSeconds(1);
+				//}
+				dateS = tsLoc.orario.ToString(pref_dateFormatParameter, CultureInfo.InvariantCulture);
 				textOut += unitName + csvSeparator + dateS;
-
 				textOut += csvSeparator + x.ToString(cifreDecString, nfi) + csvSeparator + y.ToString(cifreDecString, nfi) + csvSeparator + z.ToString(cifreDecString, nfi);
 
 				textOut += magAdditionalInfo + additionalInfo + "\r\n";
 				tsLoc.orario = tsLoc.orario.AddMilliseconds(addMilli);
+
+				//################################################################ FINE RIGA IEND1+1 -> IEND2 #############################################################
+
 			}
 
 
@@ -1319,7 +1339,7 @@ namespace X_Manager.Units
 				tsc.batteryLevel = (float)Math.Round(((((float)((ard.ReadByte() * 256) + ard.ReadByte())) * 6) / 4096), 2);
 			}
 
-			tsc.orario = tsc.orario.AddSeconds(1);
+			//tsc.orario = tsc.orario.AddSeconds(1);
 
 			if ((tsc.tsType & ts_ext1) == 0) return;
 

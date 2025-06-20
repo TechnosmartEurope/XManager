@@ -21,6 +21,7 @@ namespace X_Manager
 		public bool debugEvents = false;
 		public byte debugLevel = 0;
 		public bool addGpsTime = false;
+		public bool overrideSystemDate = false;
 		public bool isRem = false;
 		public bool overrideTime = false;
 		bool am;
@@ -242,6 +243,18 @@ namespace X_Manager
 								addGpsTime = true;
 								same.Content = "Date and Time on the same column + GPS time";
 							}
+						}
+						break;
+					case Key.F:
+						if (overrideSystemDate)
+						{
+							overrideSystemDate = false;
+							MessageBox.Show("System time independent.");
+						}
+						else
+						{
+							overrideSystemDate = true;
+							MessageBox.Show("System time adjusted by GNSS time.");
 						}
 						break;
 

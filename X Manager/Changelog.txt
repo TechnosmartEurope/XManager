@@ -343,3 +343,5 @@
 1.26.6	11-06-2025	Bugfix: basemanager - se si premeva send time stamp ma si usciva senza salvare, il timestamp non veniva scritto sulla basestation
 		AxyTrek: Rimossi modi Short Periods per compatibilità con MAX10
 		AxyTrek-CO2: aggiunte colonne per unità NOx
+1.26.7	20-06-2025	Bugfix: cattiva conversione dell'Axy 4.5
+		AxyTrek: nella conversione dell'ard è possibile correggere l'orario di bordo con l'ora GNSS in presenza di coordinata-

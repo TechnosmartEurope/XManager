@@ -90,6 +90,7 @@ namespace X_Manager.Units
 		protected bool pref_sameColumn = false;
 		protected double pref_pressOffset;
 		protected bool pref_addGpsTime;
+		protected bool pref_overrideSystemDate;
 		protected bool pref_isDepth = true;
 		protected bool pref_metadata = false;
 		protected int pref_leapSeconds;

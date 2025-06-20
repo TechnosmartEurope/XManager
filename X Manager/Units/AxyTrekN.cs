@@ -279,7 +279,18 @@ namespace X_Manager.Units.AxyTreks
 				}
 				timestamp.gsvSum = ard.ReadByte() * 256 + ard.ReadByte();
 				timestamp.txtAllowed = true;
-
+				if (pref_overrideSystemDate)
+				{
+					timestamp.orario = new DateTime(timestamp.data.anno, timestamp.data.mese, timestamp.data.giorno, timestamp.data.ore, timestamp.data.minuti, timestamp.data.secondi);
+				}
+				else
+				{
+					timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
+				}
+			}
+			else
+			{
+				timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
 			}
 
 
@@ -342,7 +353,7 @@ namespace X_Manager.Units.AxyTreks
 					timestamp.secondAmount = (byte)ard.ReadByte();
 				}
 			}
-			timestamp.orario = timestamp.orario.AddSeconds(timestamp.secondAmount);
+
 		}
 
 		protected override void groupConverter(double[] group, ref string textOut, long offset)
@@ -655,15 +666,15 @@ namespace X_Manager.Units.AxyTreks
 			tsc.coord.latMinDecL = unchecked((coordinate[2] & 3) << 5);
 			tsc.coord.latMinDecL += unchecked(coordinate[3] >> 3);
 			tsc.coord.lonMinDecL = unchecked((coordinate[3] & 7) << 4);
-			tsc.coord.lonMinDecL += unchecked((coordinate[4] >> 4));
+			tsc.coord.lonMinDecL += unchecked(coordinate[4] >> 4);
 			tsc.coord.DOPdec = unchecked((coordinate[4] & 15) >> 1);
 			tsc.coord.vel = unchecked((coordinate[4] & 1) << 5);
-			tsc.coord.vel += unchecked((coordinate[5] >> 3));
+			tsc.coord.vel += unchecked(coordinate[5] >> 3);
 			tsc.coord.vel *= 2;
-			tsc.coord.nSat = (coordinate[5] & 7);
+			tsc.coord.nSat = coordinate[5] & 7;
 			tsc.coord.altL = coordinate[6];
 			tsc.coord.latMinDecLL += unchecked(coordinate[7] >> 4);
-			tsc.coord.lonMinDecLL = (coordinate[7] & 15);
+			tsc.coord.lonMinDecLL = coordinate[7] & 15;
 			byte cCounter = 8;
 
 			//tsc.altSegno = true; tsc.ns = false; tsc.eo = false;
