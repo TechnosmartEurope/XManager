@@ -345,3 +345,4 @@
 		AxyTrek-CO2: aggiunte colonne per unità NOx
 1.26.7	20-06-2025	Bugfix: cattiva conversione dell'Axy 4.5
 		AxyTrek: nella conversione dell'ard è possibile correggere l'orario di bordo con l'ora GNSS in presenza di coordinata-
+1.26.8	07-08-2025	Axy5: coefficente conversione a +/-16g corretto per firmware inferiori o uguali a 1.7.0 (vecchio chip)

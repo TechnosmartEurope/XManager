@@ -2463,8 +2463,12 @@ namespace X_Manager.Units
 							gCoeff = 62.52;
 							break;
 						case 3:
-							gCoeff = 187.58;
-							//gCoeff = 125;
+							gCoeff = 187.58;        //AGR
+							if (firmTotA <= 1007000)
+							{
+								gCoeff = 125;       //AH
+							}
+
 							break;
 					}
 					break;
@@ -2482,7 +2486,10 @@ namespace X_Manager.Units
 							break;
 						case 3:
 							gCoeff = 46.9;
-							//gCoeff = 31.25;
+							if (firmTotA <= 1007000)
+							{
+								gCoeff = 31.25;
+							}
 							break;
 					}
 					break;
@@ -2500,7 +2507,10 @@ namespace X_Manager.Units
 							break;
 						case 3:
 							gCoeff = 11.72;
-							//gCoeff = 7.8125;
+							if (firmTotA <= 1007000)
+							{
+								gCoeff = 7.8125;
+							}
 							break;
 					}
 					break;
