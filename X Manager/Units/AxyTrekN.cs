@@ -698,13 +698,13 @@ namespace X_Manager.Units.AxyTreks
 				tsc.coord.altH = (coordinate[cCounter] & 15);
 			}
 			//ard.Close();
-			secondiAdd += 1;    //Questo secondo sottratto in più viene reinserito al decoding del primo timestamp
+			//secondiAdd += 1;    //Questo secondo sottratto in più viene reinserito al decoding del primo timestamp
 
 			try
 			{
 				dt = new DateTime(2000 + tsc.data.anno, tsc.data.mese, tsc.data.giorno, tsc.data.ore, tsc.data.minuti, tsc.data.secondi);
 				dt = dt.AddSeconds(-secondiAdd);
-				dt = dt.AddSeconds(pref_leapSeconds * -1);
+				//dt = dt.AddSeconds(pref_leapSeconds * -1);
 			}
 			catch { }
 

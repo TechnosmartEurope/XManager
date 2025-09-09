@@ -757,5 +757,30 @@ namespace X_Manager.Units.Gipsy6
 				txtBW.Write(headers[headers.Count - 1] + "\r\n");
 			}
 		}
+
+		public static byte[] CRCcalc(byte[] buffer)
+		{
+			ushort crc = 0xFFFF;
+			ushort polynome = 0xA001; // Polinomio standard per il CRC-16
+			byte bit, bit_crc, b;
+
+			for (ushort i = 0; i < buffer.Length; ++i)
+			{
+				b = buffer[i];
+
+				for (bit = 0; bit < 8; ++bit)
+				{
+					bit_crc = (byte)(crc & 1);
+					crc >>= 1;
+					//if ((b ^ bit_crc) & 1) crc ^= polynome;
+					if (((b ^ bit_crc) & 1) != 0)
+						crc ^= polynome;
+					b >>= 1;
+				}
+			}
+
+			return new byte[] { (byte)(crc >> 8), (byte)(crc & 0xff) };
+
+		}
 	}
 }

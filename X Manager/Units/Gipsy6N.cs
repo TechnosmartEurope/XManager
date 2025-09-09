@@ -665,9 +665,9 @@ namespace X_Manager.Units.Gipsy6
 
 		private byte[] getConfRemote()
 		{
-			ft.ReadTimeout = 2200;
+			ft.ReadTimeout = 2500;
 			byte[] conf = new byte[0x1000];
-			byte[] command = new byte[] { 84, 84, 84, 84, 84, 84, 84, 71, 71, 65, 67, 255 };
+			byte[] command = new byte[] { 84, 84, 84, 84, 84, 84, 84, 71, 71, 65, 67, 255 };    //Crea il comando TTTTTTTGGAC + parametro 0xff = richiesta dimensione configurazione
 			int size = 0;
 			int sizeOk = 522;
 
@@ -678,7 +678,7 @@ namespace X_Manager.Units.Gipsy6
 				ft.Write(command, 0, 12);
 				try
 				{
-					size = ft.ReadByte();
+					size = ft.ReadByte();       //Riceve e controlla la dimensione del buffer di configurazione
 					size <<= 8;
 					size += ft.ReadByte();
 					if (size != sizeOk)        //Questo poi andrà sistemato perché il software non sa a priori la dimensione del bufffer 
@@ -698,20 +698,42 @@ namespace X_Manager.Units.Gipsy6
 
 			Debug.WriteLine("get-size=" + size.ToString());
 
-			byte nPack = (byte)(size / 64);
-			byte rPack = (byte)(size % 64);
+			//La configurazione viene inviata in pacchetti di max 64 byte
+			byte nPack = (byte)(size / 64);         //Calcola il numero di pacchetti interi da 64 byte
+			byte rPack = (byte)(size % 64);         //Calcola la dimensione dell'eventuale ultimo pacchetto < 64 byte
 
-			for (byte i = 0; i < nPack; i++)
+			for (byte i = 0; i < nPack; i++)    //Cicla per il numero di pacchetti INTERI da ricevere
 			{
-				command[11] = i;
+				command[11] = i;            //Il parametro del comando è il numero di pacchetto che si vuole ricevere
+				if (firmTotA >= 2002000) command[10] = 72;      //In caso di firmware >= 2.2.0 manda il comando 'H' invece che 'C'. Con il firmware 2.2.0 ogni pacchetto viene inviato con un byte
+																//aggiuntivo che indica il numero di pacchetto inviato; così si può controllare se il pacchetto ricevuto è effettivamente
+																//quello richiesto																
 				for (int retry = 0; retry < RETRY_MAX; retry++)
 				{
 					Debug.WriteLine("get-packet" + i.ToString() + "-" + retry.ToString());
 					try
 					{
-						ft.Write(command, 0, 12);
-						ft.Read(conf, ((uint)i * 64) + 32, 64);
-						break;
+						ft.ReadExisting();              //Svuota eventuali byte rimasti nel buffer seriale
+						ft.Write(command, 0, 12);       //Invia il comando
+						if (firmTotA <= 2001004)
+						{
+							ft.Read(conf, ((uint)i * 64) + 32, 64);     //In caso di firmware precedenti si ricevono solo 64 byte. In caso di mancata ricezione si va nel catch
+							break;
+						}
+						else
+						{
+							byte[] rxBuff = new byte[65];       //In caso di firmware nuovo, si ricevono 65 byte in un buffer temporaneo (64 dati + 1 relativo al numero di pacchetto)
+							ft.Read(rxBuff, 0, 65);
+							if (rxBuff[64] == i)
+							{
+								Array.Copy(rxBuff, 0, conf, ((uint)i * 64) + 32, 64);
+								break;
+							}
+							else
+							{
+								if (retry == 3) throw new Exception(unitNotReady);
+							}
+						}
 					}
 					catch
 					{
@@ -726,15 +748,56 @@ namespace X_Manager.Units.Gipsy6
 				Debug.WriteLine("get-packet" + nPack.ToString() + "-" + retry.ToString());
 				try
 				{
+					ft.ReadExisting();
 					ft.Write(command, 0, 12);
-					int read = ft.Read(conf, ((uint)nPack * 64) + 32, rPack);
-					break;
+					if (firmTotA < 2002000)
+					{
+						int read = ft.Read(conf, ((uint)nPack * 64) + 32, rPack);
+						break;
+					}
+					else
+					{
+						byte[] rxBuff = new byte[rPack + 1];
+						ft.Read(rxBuff, 0, (uint)(rPack + 1));
+						if (rxBuff[rPack] == nPack)
+						{
+							Array.Copy(rxBuff, 0, conf, ((uint)nPack * 64) + 32, rPack);
+							break;
+						}
+						else
+						{
+							if (retry == 3) throw new Exception(unitNotReady);
+						}
+					}
 				}
 				catch
 				{
 					if (retry == 3) throw new Exception(unitNotReady);
 				}
 			}
+
+			//Se firmware >0 2.2.0, si manda TTTTTGGAH + 0xfe e si riceve indietro CRC solo della configurazione (no nome). Si calcola anche in locale e se non coincide si genera eccezione
+			if (firmTotA >= 2002000)
+			{
+				try
+				{
+					byte[] crcGipsy = new byte[2];
+					byte[] confl = new byte[size];
+					Array.Copy(conf, 32, confl, 0, size);
+
+					command[10] = 72;       //Già dovrebbe essere così
+					command[11] = 0xfe;     //Parametro di richiesta crc
+					ft.ReadExisting();
+					ft.Write(command, 0, 12);
+					ft.Read(crcGipsy, 2);
+					if (!crcGipsy.SequenceEqual(Gipsy6.CRCcalc(confl))) throw new Exception(unitNotReady);
+				}
+				catch
+				{
+					throw new Exception(unitNotReady);
+				}
+			}
+
 			ft.ReadExisting();
 
 			return conf;
@@ -914,12 +977,16 @@ namespace X_Manager.Units.Gipsy6
 		{
 			int size = 0;
 			ft.ReadTimeout = 2200;
+
+			//Prima viene chiesta la dimensione della configurazione con il classico comando 'C'
 			for (int retry = 0; retry < RETRY_MAX; retry++)
 			{
 				Debug.WriteLine("set-getSize-" + retry.ToString());
 				try
 				{
 					ft.ReadExisting();
+					//  0   1   2   3   4   5   6   7   8   9   10  11
+					//  T   T   T   T   T   T   T   G   G   A   C   0xff	
 					ft.Write(new byte[] { 84, 84, 84, 84, 84, 84, 84, 71, 71, 65, 67, 255 }, 0, 12);
 					size = ft.ReadByte();
 					size <<= 8;
@@ -941,6 +1008,7 @@ namespace X_Manager.Units.Gipsy6
 
 			Debug.WriteLine("set-getSize=" + size.ToString());
 
+			//Si calcola il numero di pacchetti interi da 64 e la dimensione dell'ultimo parziale
 			Thread.Sleep(1);
 			byte nPack = (byte)(size / 64);
 			byte rPack = (byte)(size % 64);
@@ -953,7 +1021,8 @@ namespace X_Manager.Units.Gipsy6
 			command[7] = 71;
 			command[8] = 71;
 			command[9] = 65;
-			command[10] = 99;
+			command[10] = 99;                               //Si modifica il comando da 'C' a 'c'
+			if (firmTotA >= 2002000) command[10] = 104;     //In caso di firmware >= 2.2.0 il comando diventa 'h', che include anche il crc check alla fine
 
 			for (byte i = 0; i < nPack; i++)
 			{
@@ -964,6 +1033,7 @@ namespace X_Manager.Units.Gipsy6
 					Debug.WriteLine("set-packet" + i.ToString() + "-" + retry.ToString());
 					try
 					{
+						ft.ReadExisting();
 						ft.Write(command, 0, 76);
 						ft.ReadByte();
 						Thread.Sleep(1);
@@ -982,6 +1052,7 @@ namespace X_Manager.Units.Gipsy6
 				Debug.WriteLine("set-packet" + nPack.ToString() + "-" + retry.ToString());
 				try
 				{
+					ft.ReadExisting();
 					ft.Write(command, 0, (uint)12 + rPack);
 					ft.ReadByte();
 					break;
@@ -991,6 +1062,31 @@ namespace X_Manager.Units.Gipsy6
 					if (retry == 3) throw new Exception(unitNotReady);
 				}
 			}
+
+			//In caso di firmware >= 2.2.0 calcolo il crc e lo invio col comando TTTTTTTGGAh + parametro 0xfe + CRC. Ricevo indietro un byte, se vale 1 è ok, se vale 0 non è arrivata
+			//correttamente e si genera l'eccezione
+			if (firmTotA >= 2002000)
+			{
+				byte[] confl = new byte[size];
+				Array.Copy(conf, 32, confl, 0, size);
+
+				byte[] locCrc = Gipsy6.CRCcalc(confl);
+				command[11] = 0xfe;                             //Parametro 0xfe: invio CRC calcolato in lcoale
+				Array.Copy(locCrc, 0, command, 12, 2);          //Due byte di CRC
+				try
+				{
+					ft.ReadExisting();
+					ft.Write(command, 0, 14);       //Invia il comando
+					byte res = ft.ReadByte();       //Riceve un  byte di risposta: 1 = crc ok, 0 = crc ko
+					if (res == 0) throw new Exception(unitNotReady);
+				}
+				catch
+				{
+					throw new Exception(unitNotReady);
+				}
+
+			}
+
 		}
 
 		public override void disconnect()

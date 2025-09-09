@@ -1833,7 +1833,17 @@ namespace X_Manager
 						fileopen.ShowDialog();
 						if (fileopen.FileName == "") return;
 						if (keepAliveTimer != null) keepAliveTimer.Stop();
-						byte[] locConf = oUnit.getConf();
+						byte[] locConf = null;
+						try
+						{
+							locConf = oUnit.getConf();
+						}
+						catch (Exception ex)
+						{
+							badShow(ex.Message);
+							uiDisconnected();
+							return;
+						}
 						var nameShort = unitNameTextBox.Text.ToArray<char>();
 						int counter = 4;
 						foreach (char c in nameShort)
