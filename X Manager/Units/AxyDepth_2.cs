@@ -665,6 +665,11 @@ namespace X_Manager.Units
 			const int yes_alaways = 11;
 			int resp = no;
 			ushort counter = 0;
+			int secsize = 1024;
+			if (firmTotA < 4000000)
+			{
+				secsize = 256;
+			}
 
 			while (mdp.BaseStream.Position < mdp.BaseStream.Length)
 			{
@@ -712,7 +717,7 @@ namespace X_Manager.Units
 						mdp.BaseStream.Position = oldPosition;
 					}
 					ard.Write(firmwareArray, 0, firmwareArray.Length);
-					ard.Write(mdp.ReadBytes(254));
+					ard.Write(mdp.ReadBytes(secsize - 2));
 				}
 				else if (testByte == 0xff)
 				{
@@ -723,7 +728,7 @@ namespace X_Manager.Units
 				}
 				else
 				{
-					ard.Write(mdp.ReadBytes(255));
+					ard.Write(mdp.ReadBytes(secsize - 1));
 				}
 			}
 			try
