@@ -348,3 +348,4 @@
 1.26.8	07-08-2025	Axy5: coefficente conversione a +/-16g corretto per firmware inferiori o uguali a 1.7.0 (vecchio chip)
 1.27.0	09-09-2025	Gipsy6: implementati controlli di sicurezza e crc in fase di ricezione e invio configurazione quando si utilizza la master station
 1.27.1	06-10-2025	Bugfix: mancava supporto per estrazione ard negli axydepth con firmware >= 4.0.0
+1.27.2	07-10-2025	Aggiunta conversione pressione Axt5 con sensore MPM3801A

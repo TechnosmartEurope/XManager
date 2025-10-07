@@ -107,6 +107,9 @@ namespace X_Manager.Units
 		bool schedTs = false;
 		byte[] group;
 
+		delegate void DT(ref MemoryStream a, ref timeStamp b);
+		DT dt;
+
 		public Axy5(object p)
 			: base(p)
 		{
@@ -1134,7 +1137,6 @@ namespace X_Manager.Units
 			base.convert(fileName);
 			string barStatus = "";
 
-
 			//Imposta i file di lettura e di scrittura
 			string shortFileName;
 			string addOn = "";
@@ -1164,6 +1166,21 @@ namespace X_Manager.Units
 				{
 					convCoeffs[convc] = ard.ReadByte() * 256 + ard.ReadByte();
 					convSum += convCoeffs[convc];
+				}
+				if ((convCoeffs[0] == 0x4D50) && (convCoeffs[1] == 0x4D33) && (convCoeffs[2] == 0x3830) && (convCoeffs[3] == 0x3141))
+				{
+					dt = dtMPM3801A;
+				}
+				else
+				{
+					if (pref_isDepth)
+					{
+						dt = dt5837;
+					}
+					else
+					{
+						dt = dtAir;
+					}
 				}
 			}
 
@@ -1947,32 +1964,43 @@ namespace X_Manager.Units
 			{
 				if ((tsc.tsType & ts_pressure) == ts_pressure)
 				{
-					if (pref_isDepth)
+					try
 					{
-						try
-						{
-							dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
-							gruppoCON[temp] = tsc.temperature.ToString("0.00", nfi);
-							gruppoCON[press] = tsc.pressure.ToString("0.00", nfi);
-						}
-						catch
-						{
-							return;
-						}
+						dt(ref ard, ref tsc);
+						gruppoCON[temp] = tsc.temperature.ToString("0.00", nfi);
+						gruppoCON[press] = tsc.pressure.ToString("0.00", nfi);
 					}
-					else
+					catch
 					{
-						try
-						{
-							dtAir(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
-							gruppoCON[temp] = tsc.temperature.ToString("0.00", nfi);
-							gruppoCON[press] = tsc.pressure.ToString("0.00", nfi);
-						}
-						catch
-						{
-							return;
-						}
+						return;
 					}
+					//if (pref_isDepth)
+					//{
+					//	try
+					//	{
+					//		dt5837(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
+					//		gruppoCON[temp] = tsc.temperature.ToString("0.00", nfi);
+					//		gruppoCON[press] = tsc.pressure.ToString("0.00", nfi);
+					//	}
+					//	catch
+					//	{
+					//		return;
+					//	}
+					//}
+					//else
+					//{
+					//	try
+					//	{
+					//		dtAir(ref ard, ref tsc);   //Tiene conto anche della pressione se tsType & 4 == 4
+					//		gruppoCON[temp] = tsc.temperature.ToString("0.00", nfi);
+					//		gruppoCON[press] = tsc.pressure.ToString("0.00", nfi);
+					//	}
+					//	catch
+					//	{
+					//		return;
+					//	}
+					//}
+
 
 				}
 				else
@@ -2527,6 +2555,59 @@ namespace X_Manager.Units
 		//	return bitsDiv;
 		//}
 
+		private void dtMPM3801A(ref MemoryStream ard, ref timeStamp tsc)
+		{
+
+			double d1, d2;
+			try
+			{
+				ard.ReadByte();
+				//d2 = (uint)(((ard.ReadByte() << 8) | ard.ReadByte()) >> 5) & 0x07FF;
+				d2 = (ard.ReadByte() << 3) | (ard.ReadByte() >> 5);
+			}
+			catch
+			{
+				return;
+			}
+
+			tsc.temperature = d2;
+			//tsc.temp = ((float)d2 / 2047.0) * 200.0 - 50.0;
+
+			//tsc.temp = ((float)d2 / 2047.0) * 150.0 - 50.0;
+			//tsc.temp = ((float)d2 / 2047.0) * 100.0 - 20.0;
+
+			if ((tsc.tsType & 4) == 4)
+			{
+				try
+				{
+					ard.ReadByte();
+					d1 = ((ard.ReadByte() << 8) | ard.ReadByte()) & 0x3FFF;
+				}
+				catch
+				{
+					return;
+				}
+
+				tsc.pressure = d1;
+				//float factor = (float)(d1 - 1638) / (float)14746;
+				//tsc.press = Math.Round(((((200 - 0) * factor + 0) * 1000.0) + 1013.0), 1);
+
+				//tsc.press = Math.Round(((float)(0x399A - 0x0666) * ((float)d1 / 1638.0)) / (13108.0 + 0x0666), 1); // pressione in mbar
+				//Output Pressure ＝(FS pressure－Zero pressure)×(Pressure applied－1638) / 13108＋Zero pressure
+				//tsc.press = Math.Round(((float)d1 / 16383.0) * 200.0, 1);
+				if (pref_inMeters)
+				{
+					tsc.pressure -= pref_pressOffset;
+					if (tsc.pressure <= 0) tsc.pressure = 0;
+					else
+					{
+						tsc.pressure = tsc.pressure / 98.1;
+						tsc.pressure = Math.Round(tsc.pressure, 2);
+					}
+				}
+			}
+		}
+
 		private void dt5837(ref MemoryStream ard, ref timeStamp tsc)
 		{
 			double dT;
@@ -2589,7 +2670,7 @@ namespace X_Manager.Units
 			}
 		}
 
-		private bool dtAir(ref MemoryStream ard, ref timeStamp tsc)
+		private void dtAir(ref MemoryStream ard, ref timeStamp tsc)
 		{
 			double dT, off, sens, t2, off2, sens2;
 			double d1, d2;
@@ -2600,7 +2681,7 @@ namespace X_Manager.Units
 			}
 			catch
 			{
-				return true;
+				return;
 			}
 
 			dT = d2 - convCoeffs[4] * 256;
@@ -2638,13 +2719,12 @@ namespace X_Manager.Units
 				}
 				catch
 				{
-					return true;
+					return;
 				}
 				tsc.pressure = ((d1 * sens / 2097152) - off) / 32768;
 				tsc.pressure /= 100;
 				//tsc.press = Math.Round(tsc.press, 2);
 			}
-			return false;
 		}
 
 		private bool detectEof(ref MemoryStream ard)
