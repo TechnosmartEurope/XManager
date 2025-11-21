@@ -1382,6 +1382,7 @@ namespace X_Manager.Units
 						else
 						{
 							MessageBox.Show("BAD index at: " + ard.Position.ToString("X"));
+							ard.Position--;
 						}
 					}
 				}
@@ -1646,6 +1647,11 @@ namespace X_Manager.Units
 
 			tsc.tsType = ard.ReadByte();
 
+			if ((tsc.tsType != 0) && (tsc.tsType != 0x01) && (tsc.tsType != 07) && (tsc.tsType != 0x0f))// && (tsc.tsType != 02))
+			{
+				tsc.tsType = 7;
+			}
+
 			//TIMESTAMP ESTESO
 			if ((tsc.tsType & ts_ext1) == ts_ext1)
 			{
@@ -1710,8 +1716,8 @@ namespace X_Manager.Units
 				tsCheck++;
 				if ((tsCheck == 2) | (tsInvalid == 1))
 				{
-					MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
-					tsc.stopEvent = 5;
+					//MessageBox.Show("Error at loc: " + ard.Position.ToString("X"));
+					//tsc.stopEvent = 5;
 					gruppoCON[meta] = "DATA ERROR at Location 0x." + ard.Position.ToString("X"); addMilli = 0;
 					tsc.temperature = ard.Position;
 					tsc.tsTypeExt1 &= 0xfe;
