@@ -2,7 +2,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:Class="X_Manager.MainWindow" Background="#FF181818"
-    Title="X MANAGER - dati clienti" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+    Title="X MANAGER" ScrollViewer.VerticalScrollBarVisibility="Disabled"
     xmlns:local="clr-namespace:X_Manager" SizeToContent="WidthAndHeight"
     WindowStyle="SingleBorderWindow" KeyDown="ctrlManager" Closing="Window_Closing" ResizeMode="CanMinimize">
 

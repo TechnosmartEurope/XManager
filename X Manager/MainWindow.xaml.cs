@@ -461,7 +461,7 @@ namespace X_Manager
 			dumpViewTabItem.IsEnabled = true;
 			remoteButton.Content = "Remote Management";
 			remoteButton.IsEnabled = true;
-			Title = "X MANAGER - dati clienti";
+			Title = "X MANAGER";
 			configureMovementButton.Content = "Accelerometer configuration";
 			realTimeSP.Visibility = Visibility.Hidden;
 			configurePositionButton.Visibility = Visibility.Visible;
